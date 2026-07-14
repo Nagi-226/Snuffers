@@ -1,4 +1,4 @@
-﻿<#
+<#
   废墟突围 - Electron 一键构建脚本
   用法：双击本文件，或在 PowerShell 中执行：
     powershell -ExecutionPolicy Bypass -File build.ps1
@@ -32,7 +32,7 @@ Write-Host "==> npm 版本：" -ForegroundColor Cyan
 & $Npm --version
 
 # ---------- 1. 校验游戏源文件 ----------
-$required = @('index.html', 'js', 'css', 'img')
+$required = @('index.html', 'js', 'css', 'img', 'audio')
 foreach ($item in $required) {
   if (-not (Test-Path (Join-Path $Root $item))) {
     Write-Error "项目根目录缺少 $item ：$Root"
@@ -46,7 +46,7 @@ if (Test-Path $AppDir) { Remove-Item $AppDir -Recurse -Force }
 New-Item -ItemType Directory -Path $AppDir | Out-Null
 
 Copy-Item (Join-Path $Root 'index.html') $AppDir
-foreach ($dir in @('js', 'css', 'img')) {
+foreach ($dir in @('js', 'css', 'img', 'audio')) {
   Copy-Item (Join-Path $Root $dir) (Join-Path $AppDir $dir) -Recurse
 }
 

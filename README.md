@@ -22,6 +22,7 @@ Ruins-Breakout/
 │   └── cannon.min.js     # Cannon.js 物理引擎 (v0.6.2)
 ├── img/
 │   └── title-bg.jpg      # 标题界面背景图
+├── audio/                # 游戏音效 (MP3，含授权清单 LICENSES.md)
 ├── preview-server.js     # 本地预览服务器 (Node.js)
 └── desktop-port/         # Windows 桌面端移植方案与打包骨架
     ├── 01-input-adaptation.md   # 键鼠适配设计
@@ -73,6 +74,7 @@ node preview-server.js
 | 呼叫直升机 | 右上角黄色按钮 |
 | 地图 | 左上角按钮 |
 | 使用药包 | 右上角红心按钮 (获得后显示) |
+| 音效开关 | 右上角 🔊 圆形按钮（🔇 = 已静音） |
 
 ### Windows 桌面端（键鼠）
 
@@ -91,8 +93,17 @@ node preview-server.js
 | 使用药包 | `F` |
 | 释放鼠标指针 | `Esc`（再次点击画面重新锁定） |
 | 全屏切换 | `F11` |
+| 音效开关 | 右上角 🔊 圆形按钮（🔇 = 已静音） |
 
 > 桌面端启动时自动检测输入设备并隐藏触屏控件；手机/平板触屏体验与原版完全一致。
+
+## 音效
+
+自 v0.3.0 起内置完整音效系统（Web Audio API），覆盖步枪、火箭筒、爆炸、换弹、命中、敌人死亡、玩家受伤、脚步、直升机、夜视仪、药包、UI 点击与战场环境音共 13 类音效。
+
+- **音效来源**：全部为免费可商用素材——12 个来自 [Mixkit](https://mixkit.co/license/#sfxFree)（Mixkit Free License，免费商用、无需署名），1 个战场环境音为项目程序合成（自有资产）。详细授权清单见 `audio/LICENSES.md`
+- **静音按钮**：游戏内 HUD 右上角 🔊 圆形按钮，点击/触摸切换静音（🔇 = 已静音），触屏与鼠标均可操作；静音状态自动保存到 `localStorage`，下次打开游戏仍然生效
+- **离线运行**：全部音频文件位于 `audio/` 目录本地引用；音频加载失败或缺失时游戏静默降级，不影响游玩
 
 ## Windows 桌面端（.exe）
 

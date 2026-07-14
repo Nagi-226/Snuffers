@@ -52,6 +52,9 @@
         #proneBtn { position: fixed; right: 30px; bottom: 260px; width: 55px; height: 55px; border-radius: 50%; background: rgba(100, 100, 100, 0.35); border: 2px solid rgba(150, 150, 150, 0.8); color: #00ff00; font-size: 11px; display: flex; align-items: center; justify-content: center; user-select: none; z-index: 100; }
         #proneBtn.active { background: rgba(100, 255, 100, 0.5); border-color: #00ff00; }
         #settingsBtn { position: fixed; right: 10px; top: 10px; width: 40px; height: 40px; border-radius: 50%; background: rgba(200, 200, 200, 0.3); border: 2px solid rgba(255, 255, 255, 0.5); color: #00ff00; font-size: 18px; display: flex; align-items: center; justify-content: center; user-select: none; z-index: 500; pointer-events: auto; }
+        /* [audio] 静音切换按钮：位于设置按钮左侧，风格与 HUD 圆形按钮一致 */
+        #muteBtn { position: fixed; right: 60px; top: 10px; width: 40px; height: 40px; border-radius: 50%; background: rgba(200, 200, 200, 0.3); border: 2px solid rgba(255, 255, 255, 0.5); color: #00ff00; font-size: 18px; display: flex; align-items: center; justify-content: center; user-select: none; z-index: 500; pointer-events: auto; }
+        #muteBtn:active { background: rgba(200, 200, 200, 0.6); }
         #mapBtn { position: fixed; left: 10px; top: 10px; width: 50px; height: 50px; border-radius: 50%; background: rgba(0, 255, 0, 0.2); border: 2px solid rgba(0, 255, 0, 0.7); color: #00ff00; font-size: 11px; font-weight: bold; display: flex; align-items: center; justify-content: center; user-select: none; z-index: 100; }
         #mapBtn:active { background: rgba(0, 255, 0, 0.6); }
         #mapModal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 300; overflow-y: auto; }
@@ -207,6 +210,7 @@
     <div id="medkitBtn" class="hidden">❤️</div>
     <div id="mapBtn" class="hidden">地图</div>
     <div id="settingsBtn" class="hidden">⚙</div>
+    <div id="muteBtn" class="hidden">🔊</div> <!-- [audio] 静音切换按钮 -->
     <div id="heliTimer" class="hud-box px-2 py-1 rounded hidden">直升机到达: <span id="heliTime">60</span>秒</div>
     <div id="healthDisplay" class="hidden">
         <div class="health-body-container">
@@ -320,7 +324,130 @@
 
     <script>
         const Config = { viewSensitivity: 2.0 };
-        const Game = { active: false, health: { head: 35, body: 85, legs: 65 }, maxHealth: { head: 35, body: 85, legs: 65 }, helmet: 50, maxHelmet: 50, armor: 100, maxArmor: 100, ammo: 30, maxAmmo: 30, reserve: 150, kills: 0, enemies: [], machineGunners: [], snipers: [], reloading: false, lastShot: 0, isAiming: false, isFiring: false, fireInterval: null, moveX: 0, moveY: 0, rotX: 0, rotY: 0, mapOpen: false, moveSpeedMultiplier: 1.5, weaponGroup: null, rpgGroup: null, currentWeapon: 'rifle', rpgAmmo: 5, recoilOffset: 0, inventory: { medkit: 0 }, isProne: false, heliCalled: false, heliArrived: false, heliTimer: 60, heliTimerInterval: null, scopeShakeX: 0, scopeShakeY: 0, scopeShakeTimer: 0, aimFov: 25, medkits: [], playerSpeed: 0, playerStillTime: 0, bunker: null, cabin: null, missionCompleting: false, lastDamageSource: 'unknown', nightVisionEnabled: false };
+        const Game = { active: false, health: { head: 35, body: 85, legs: 65 }, maxHealth: { head: 35, body: 85, legs: 65 }, helmet: 50, maxHelmet: 50, armor: 100, maxArmor: 100, ammo: 30, maxAmmo: 30, reserve: 150, kills: 0, enemies: [], machineGunners: [], snipers: [], reloading: false, lastShot: 0, isAiming: false, isFiring: false, fireInterval: null, moveX: 0, moveY: 0, rotX: 0, rotY: 0, mapOpen: false, moveSpeedMultiplier: 0.5, weaponGroup: null, rpgGroup: null, currentWeapon: 'rifle', rpgAmmo: 5, recoilOffset: 0, inventory: { medkit: 0 }, isProne: false, heliCalled: false, heliArrived: false, heliTimer: 60, heliTimerInterval: null, scopeShakeX: 0, scopeShakeY: 0, scopeShakeTimer: 0, aimFov: 25, medkits: [], playerSpeed: 0, playerStillTime: 0, bunker: null, cabin: null, missionCompleting: false, lastDamageSource: 'unknown', nightVisionEnabled: false };
+
+        // [audio] ================= 音频引擎 SoundManager（Web Audio API） =================
+        const SoundManager = (() => {
+            let ctx = null;            // [audio] AudioContext 懒创建
+            let masterGain = null;     // [audio] 主音量总线（静音通过它实现）
+            const buffers = {};        // [audio] name -> AudioBuffer
+            const loops = {};          // [audio] name -> { src, gain } 循环音源句柄
+            let muted = false;         // [audio] 静音状态
+            // [audio] 主音量分组：sfx 0.8 / loop 0.4 / ambient 0.25
+            const GROUP = { sfx: 0.8, loop: 0.4, ambient: 0.25 };
+            // [audio] 每个音效所属分组
+            const SOUND_GROUP = {
+                rifle: 'sfx', rocket: 'sfx', explosion: 'sfx', reload: 'sfx',
+                hitmark: 'sfx', enemy_death: 'sfx', player_hurt: 'sfx',
+                nightvision: 'sfx', medkit: 'sfx', ui_click: 'sfx',
+                footstep: 'loop', helicopter: 'loop', ambient: 'ambient'
+            };
+            // [audio] 需预加载的音频文件清单（audio/NAME.mp3）
+            const FILES = ['rifle','rocket','explosion','reload','hitmark','enemy_death','player_hurt','footstep','helicopter','nightvision','medkit','ui_click','ambient'];
+
+            function ensureCtx() {     // [audio] 懒创建 AudioContext
+                if (ctx) return ctx;
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) { console.warn('[audio] 当前环境不支持 Web Audio API'); return null; }
+                ctx = new AC();
+                masterGain = ctx.createGain();
+                masterGain.gain.value = muted ? 0 : 1;
+                masterGain.connect(ctx.destination);
+                return ctx;
+            }
+
+            // [audio] 防御式预加载：单个文件 404/解码失败只 warn，不中断整体
+            async function preload() {
+                if (!ensureCtx()) return;
+                await Promise.all(FILES.map(async (name) => {
+                    try {
+                        const resp = await fetch('audio/' + name + '.mp3');
+                        if (!resp.ok) { console.warn('[audio] 缺失音效文件:', name, '(HTTP ' + resp.status + ')'); return; }
+                        const data = await resp.arrayBuffer();
+                        buffers[name] = await ctx.decodeAudioData(data);
+                    } catch (err) {
+                        console.warn('[audio] 加载/解码失败:', name, err && err.message ? err.message : err);
+                    }
+                }));
+            }
+
+            function resume() {        // [audio] 首次用户交互时恢复（兼容移动端自动播放策略）
+                if (!ensureCtx()) return;
+                if (ctx.state === 'suspended') { ctx.resume().catch(() => {}); }
+            }
+
+            // [audio] 播放接口：play(name, { volume=1, loop=false, rate=1 })
+            function play(name, opts) {
+                if (muted) return null;                          // [audio] 静音直接跳过
+                opts = opts || {};
+                if (!ensureCtx() || !buffers[name]) return null; // [audio] 缺失音效静默跳过
+                const volume = opts.volume != null ? opts.volume : 1;
+                const loop = !!opts.loop;
+                const rate = opts.rate != null ? opts.rate : 1;
+                if (loop && loops[name]) return loops[name];     // [audio] 已在循环，避免重复叠加
+                const groupGain = GROUP[SOUND_GROUP[name] || 'sfx'];
+                const src = ctx.createBufferSource();
+                src.buffer = buffers[name];
+                // [audio] 枪声 ±10% 随机 playbackRate，防止连发单调
+                const jitter = (name === 'rifle' || name === 'rocket') ? (1 + (Math.random() * 0.2 - 0.1)) : 1;
+                src.playbackRate.value = rate * jitter;
+                const g = ctx.createGain();
+                g.gain.value = volume * groupGain;
+                src.connect(g); g.connect(masterGain);
+                src.loop = loop;
+                try { src.start(0); } catch (e) { return null; }
+                if (loop) loops[name] = { src: src, gain: g };   // [audio] 记录句柄供 stopLoop
+                return { src: src, gain: g };
+            }
+
+            function stopLoop(name) {  // [audio] 停止指定循环音
+                const h = loops[name];
+                if (h) { try { h.src.stop(); } catch (e) {} delete loops[name]; }
+            }
+
+            function stopAllLoops() {  // [audio] 停止全部循环音（游戏结束/静音时调用）
+                Object.keys(loops).forEach(stopLoop);
+            }
+
+            function setMuted(m) {     // [audio] 设置静音并持久化到 localStorage
+                muted = !!m;
+                try { localStorage.setItem('rb_muted', muted ? '1' : '0'); } catch (e) {}
+                if (masterGain) masterGain.gain.value = muted ? 0 : 1;
+                if (muted) stopAllLoops();                       // [audio] 静音即停所有循环
+            }
+            function toggleMute() { setMuted(!muted); return muted; }
+            function isMuted() { return muted; }
+
+            // [audio] 初始化：读取持久化静音状态并后台预加载
+            try { muted = localStorage.getItem('rb_muted') === '1'; } catch (e) {}
+            preload();
+
+            return { preload: preload, play: play, stopLoop: stopLoop, stopAllLoops: stopAllLoops, resume: resume, setMuted: setMuted, toggleMute: toggleMute, isMuted: isMuted };
+        })();
+
+        // [audio] 首次用户交互恢复 AudioContext（移动端自动播放策略）
+        (function initAudioGesture() {
+            function onFirstGesture() {
+                SoundManager.resume();
+                window.removeEventListener('pointerdown', onFirstGesture);
+                window.removeEventListener('touchstart', onFirstGesture);
+                window.removeEventListener('keydown', onFirstGesture);
+            }
+            window.addEventListener('pointerdown', onFirstGesture);
+            window.addEventListener('touchstart', onFirstGesture);
+            window.addEventListener('keydown', onFirstGesture);
+        })();
+
+        // [audio] 静音切换按钮（右上角，跟随 HUD 按钮风格，同时支持触屏与鼠标点击）
+        (function initMuteButton() {
+            const btn = document.getElementById('muteBtn');
+            if (!btn) return;
+            function refresh() { btn.textContent = SoundManager.isMuted() ? '🔇' : '🔊'; }
+            function onToggle(e) { if (e) e.preventDefault(); SoundManager.toggleMute(); SoundManager.resume(); refresh(); }
+            refresh();
+            btn.addEventListener('touchstart', onToggle);
+            btn.addEventListener('click', onToggle);
+        })();
 
         const MAP_WIDTH = 200;
         const MAP_DEPTH = 120;
@@ -420,6 +547,7 @@
         function toggleNightVision() {
             if (Game.mapOpen) return;
             Game.nightVisionEnabled = !Game.nightVisionEnabled;
+            SoundManager.play('nightvision'); // [audio] 夜视开关音效
             const nvBtn = document.getElementById('nvBtn');
             const nvOverlay = document.getElementById('nvOverlay');
 
@@ -739,6 +867,7 @@
             Game.health.head = Math.min(Game.maxHealth.head, Game.health.head + healAmount);
             Game.health.body = Math.min(Game.maxHealth.body, Game.health.body + healAmount);
             Game.health.legs = Math.min(Game.maxHealth.legs, Game.health.legs + healAmount);
+            SoundManager.play('medkit'); // [audio] 药包使用音效
             Game.inventory.medkit--;
             updateMedkitUI();
             updateHUD();
@@ -1380,6 +1509,7 @@
 
         function explode(position) {
             const radius = 10;
+            SoundManager.play('explosion'); // [audio] 爆炸音效
 
             const fireball = new THREE.Mesh(
                 new THREE.SphereGeometry(radius, 16, 16),
@@ -2401,7 +2531,7 @@
 
         let viewTouchId = null, viewStartX = 0, viewStartY = 0;
         document.addEventListener('touchstart', (e) => {
-            if (Game.mapOpen || e.target.closest('#fireBtn') || e.target.closest('#reloadBtn') || e.target.closest('#aimBtn') || e.target.closest('#proneBtn') || e.target.closest('#weaponBtn') || e.target.closest('#callHeliBtn') || e.target.closest('#medkitBtn') || e.target.closest('#settingsBtn') || e.target.closest('#mapBtn') || e.target.closest('#startBtn') || e.target.closest('#joystick-zone') || e.target.closest('#settingsPanel') || e.target.closest('#closeMap') || e.target.closest('#nvBtn') || e.target.closest('#missionInfoBtn')) return;
+            if (Game.mapOpen || e.target.closest('#fireBtn') || e.target.closest('#reloadBtn') || e.target.closest('#aimBtn') || e.target.closest('#proneBtn') || e.target.closest('#weaponBtn') || e.target.closest('#callHeliBtn') || e.target.closest('#medkitBtn') || e.target.closest('#settingsBtn') || e.target.closest('#mapBtn') || e.target.closest('#startBtn') || e.target.closest('#joystick-zone') || e.target.closest('#settingsPanel') || e.target.closest('#closeMap') || e.target.closest('#nvBtn') || e.target.closest('#missionInfoBtn') || e.target.closest('#muteBtn')) return;
             for (let i = 0; i < e.changedTouches.length; i++) {
                 const touch = e.changedTouches[i];
                 if (viewTouchId === null) { viewTouchId = touch.identifier; viewStartX = touch.clientX; viewStartY = touch.clientY; break; }
@@ -2578,6 +2708,7 @@
         function reload() {
             if (Game.reloading || Game.ammo === Game.maxAmmo || Game.reserve === 0 || Game.mapOpen || Game.currentWeapon === 'rpg') return;
             stopFiring(); Game.reloading = true;
+            SoundManager.play('reload'); // [audio] 换弹音效
             document.getElementById('reloadText').classList.remove('hidden');
             playReloadAnimation();
             setTimeout(() => {
@@ -2641,8 +2772,8 @@
 
         const mapBtn = document.getElementById('mapBtn'), mapModal = document.getElementById('mapModal'), closeMapBtn = document.getElementById('closeMap'); // [desktop-port] 元素变量改名 closeMapBtn，避免与下方 closeMap() 命名函数冲突
         // [desktop-port] M4：地图开/关匿名体重构为命名函数 openMap/closeMap，逻辑零变化
-        function openMap() { Game.mapOpen = true; mapModal.style.display = 'flex'; drawFullMap(); }
-        function closeMap() { Game.mapOpen = false; mapModal.style.display = 'none'; }
+        function openMap() { Game.mapOpen = true; mapModal.style.display = 'flex'; drawFullMap(); SoundManager.play('ui_click'); SoundManager.stopLoop('footstep'); } // [audio] 开地图 UI 音效 + 停脚步循环
+        function closeMap() { Game.mapOpen = false; mapModal.style.display = 'none'; SoundManager.play('ui_click'); } // [audio] 关地图 UI 音效
         mapBtn.addEventListener('touchstart', (e) => { e.preventDefault(); openMap(); });
         closeMapBtn.addEventListener('touchstart', (e) => { e.preventDefault(); closeMap(); });
         closeMapBtn.addEventListener('click', () => { closeMap(); }); // [desktop-port] 桌面端鼠标可关闭地图（原仅 touchstart）
@@ -2824,6 +2955,7 @@
                 return;
             }
             Game.ammo--; updateHUD();
+            SoundManager.play('rifle'); // [audio] 步枪开火音效（连发，自带 ±10% 音高抖动防单调）
             Game.recoilOffset = 0.08; Game.rotY += 0.003;
             if (Game.isAiming) {
                 Game.scopeShakeTimer = 200;
@@ -2852,7 +2984,7 @@
                     if (hit.object === enemy.bodyMesh || hit.object === enemy.headMesh || hit.object.parent === enemy.group) {
                         const isHeadshot = hit.object === enemy.headMesh, damage = isHeadshot ? 50 : 25;
                         const died = enemy.onHit(damage, camera.position);
-                        if (died) { 
+                        if (died) { SoundManager.play('enemy_death'); // [audio] 敌人死亡音效
                             Game.kills++; 
                             Game.enemies.splice(i, 1); 
                             alertNearbyEnemies(enemy.group.position);
@@ -2866,7 +2998,7 @@
                     if (hit.object === mg.bodyMesh || hit.object === mg.headMesh || hit.object.parent === mg.group) {
                         const isHeadshot = hit.object === mg.headMesh, damage = isHeadshot ? 50 : 25;
                         const died = mg.hit(damage);
-                        if (died) { 
+                        if (died) { SoundManager.play('enemy_death'); // [audio] 敌人死亡音效
                             Game.kills++; 
                             Game.machineGunners.splice(i, 1); 
                             alertNearbyEnemies(mg.group.position);
@@ -2881,7 +3013,7 @@
                         const isHeadshot = hit.object === sniper.headMesh;
                         const damage = 999;
                         const died = sniper.hit(damage);
-                        if (died) { 
+                        if (died) { SoundManager.play('enemy_death'); // [audio] 敌人死亡音效
                             Game.kills++; 
                             Game.snipers.splice(i, 1); 
                             alertNearbyEnemies(sniper.group.position);
@@ -2949,6 +3081,7 @@
             }
             Game.rpgAmmo--;
             updateHUD();
+            SoundManager.play('rocket'); // [audio] 火箭筒发射音效
 
             const muzzleOffset = new THREE.Vector3(0, 0, -1.5).applyQuaternion(camera.quaternion);
             const muzzlePos = camera.position.clone().add(muzzleOffset);
@@ -3106,9 +3239,9 @@
             if (Game.isProne) { Game.moveSpeedMultiplier = 0.15; return; }
             const legHp = Game.health.legs, legMax = Game.maxHealth.legs, legPct = (legHp / legMax) * 100;
             let newSpeed, statusText = '';
-            if (legHp <= 0) { newSpeed = 0.375; statusText = '腿部重伤 - 移动极慢'; }
-            else if (legPct <= 60) { newSpeed = 0.75; statusText = '腿部受伤 - 移动受限'; }
-            else { newSpeed = 1.5; }
+            if (legHp <= 0) { newSpeed = 0.125; statusText = '腿部重伤 - 移动极慢'; }
+            else if (legPct <= 60) { newSpeed = 0.25; statusText = '腿部受伤 - 移动受限'; }
+            else { newSpeed = 0.5; }
             Game.moveSpeedMultiplier = newSpeed;
             const legStatusEl = document.getElementById('legStatus');
             if (legPct <= 60 && legHp > 0) { legStatusEl.style.display = 'block'; legStatusEl.textContent = '⚠ ' + statusText; legStatusEl.style.color = '#00ff00'; }
@@ -3118,6 +3251,7 @@
 
         function takeDamage(amount, source = 'unknown') {
             Game.lastDamageSource = source;
+            SoundManager.play('player_hurt'); // [audio] 玩家受伤音效
             const parts = ['head', 'body', 'legs'];
             const partNames = {head: '头部', body: '躯体', legs: '腿部'};
             const part = parts[Math.floor(Math.random() * parts.length)];
@@ -3238,15 +3372,16 @@
             setTimeout(() => div.remove(), 800);
         }
         function showHit(isHeadshot) {
+            SoundManager.play('hitmark'); // [audio] 命中敌人音效
             const ch = document.getElementById('crosshair'), scale = isHeadshot ? 1.8 : 1.3;
             ch.style.transform = Game.isAiming ? 'none' : `translate(-50%, -50%) scale(${scale})`;
             if (!Game.isAiming) setTimeout(() => ch.style.transform = 'translate(-50%, -50%) scale(1)', 60);
         }
 
         const settingsBtn = document.getElementById('settingsBtn'), settingsPanel = document.getElementById('settingsPanel'), settingsOverlay = document.getElementById('settingsOverlay');
-        settingsBtn.onclick = function(e) { e.preventDefault(); settingsOverlay.style.display = 'block'; settingsPanel.style.display = 'block'; };
-        document.getElementById('closeSettings').onclick = function(e) { e.preventDefault(); settingsOverlay.style.display = 'none'; settingsPanel.style.display = 'none'; };
-        settingsOverlay.onclick = function() { settingsOverlay.style.display = 'none'; settingsPanel.style.display = 'none'; };
+        settingsBtn.onclick = function(e) { e.preventDefault(); SoundManager.play('ui_click'); settingsOverlay.style.display = 'block'; settingsPanel.style.display = 'block'; }; // [audio] 打开设置 UI 音效
+        document.getElementById('closeSettings').onclick = function(e) { e.preventDefault(); SoundManager.play('ui_click'); settingsOverlay.style.display = 'none'; settingsPanel.style.display = 'none'; }; // [audio] 关闭设置 UI 音效
+        settingsOverlay.onclick = function() { SoundManager.play('ui_click'); settingsOverlay.style.display = 'none'; settingsPanel.style.display = 'none'; }; // [audio] 关闭设置 UI 音效
         document.getElementById('senseSlider').oninput = function() { Config.viewSensitivity = parseFloat(this.value); document.getElementById('senseValue').textContent = this.value; };
 
         function checkObstacleCollision(newPos) {
@@ -3325,10 +3460,14 @@
             } else {
                 Game.playerStillTime = 0;
             }
+            // [audio] 移动脚步声：playerSpeed > 0.05 播放循环，停止移动即停（对已循环音幂等，逐帧调用安全）
+            if (Game.playerSpeed > 0.05) SoundManager.play('footstep', { loop: true });
+            else SoundManager.stopLoop('footstep');
         }
 
         function gameOver() {
             stopFiring(); Game.active = false;
+            SoundManager.stopAllLoops(); // [audio] 游戏结束：停止 ambient/脚步/直升机等所有循环音
             let deathReason = "阵亡";
             switch(Game.lastDamageSource) {
                 case 'enemy': deathReason = "被敌方步兵击杀"; break;
@@ -3343,6 +3482,7 @@
         }
         function missionComplete() {
             stopFiring();
+            SoundManager.stopAllLoops(); // [audio] 撤离完成：停止 ambient/脚步/直升机等所有循环音
 
             const startY = camera.position.y;
             const targetY = 40;
@@ -3475,7 +3615,7 @@
             const uiElements = [
                 '#ammoDisplay', '#healthDisplay',
                 '#fireBtn', '#reloadBtn', '#aimBtn', '#proneBtn', '#weaponBtn',
-                '#callHeliBtn', '#medkitBtn', '#mapBtn', '#settingsBtn',
+                '#callHeliBtn', '#medkitBtn', '#mapBtn', '#settingsBtn', '#muteBtn',
                 '#heliTimer', '#legStatus', '#joystick-zone',
                 '#crosshair', '#scopeRing', '#scopeCrosshair', '.scope-marks', '#scopeLayer',
                 '#nvBtn', '#nvOverlay', '#fpsDisplay'
@@ -3495,6 +3635,8 @@
             }
 
             Game.active = true;
+            SoundManager.resume(); // [audio] 用户手势内恢复 AudioContext
+            SoundManager.play('ambient', { loop: true }); // [audio] 游戏开始：环境音循环（走 ambient 分组 0.25 低音量）
             // [desktop-port] M5：点击"收到"是合法用户手势，桌面端立即请求 Pointer Lock 锁定鼠标
             if (document.body.classList.contains('desktop-mode')) { canvas.requestPointerLock(); }
             updateMoveSpeed();
@@ -3552,6 +3694,7 @@
                 if (timeLeft <= 0) {
                     clearInterval(Game.heliTimerInterval);
                     Game.heliArrived = true;
+                    SoundManager.play('helicopter', { loop: true }); // [audio] 直升机到达后播放循环音效
                     document.getElementById('heliTimer').innerHTML = '直升机<span class="text-green-400">已落地</span>';
                     showMsg("直升机已落地! 立即撤离!", "green");
                 }
