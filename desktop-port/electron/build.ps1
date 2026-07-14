@@ -1,4 +1,4 @@
-<#
+﻿<#
   废墟突围 - Electron 一键构建脚本
   用法：双击本文件，或在 PowerShell 中执行：
     powershell -ExecutionPolicy Bypass -File build.ps1
