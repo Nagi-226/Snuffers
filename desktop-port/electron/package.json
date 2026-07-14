@@ -1,0 +1,57 @@
+{
+  "name": "ruins-breakout-desktop",
+  "version": "1.0.0",
+  "description": "废墟突围 - Windows 桌面端（Electron 打包）",
+  "author": "Nagi_Games",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "build:portable": "electron-builder --win portable",
+    "build:nsis": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.nagigames.ruinsbreakout",
+    "productName": "废墟突围",
+    "copyright": "Copyright © Nagi_Games",
+    "files": [
+      "main.js",
+      "app/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        },
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "portable": {
+      "artifactName": "废墟突围-${version}-portable.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "废墟突围",
+      "artifactName": "废墟突围-${version}-setup.exe"
+    }
+  }
+}

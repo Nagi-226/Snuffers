@@ -1,0 +1,8 @@
+# Electron 构建产物与依赖
+node_modules/
+dist/
+# app/ 由 build.ps1 从项目根目录自动复制生成，不入库
+app/
+# 日志
+npm-debug.log*
+yarn-error.log*
