@@ -56,8 +56,12 @@ electron/
 | `desktop-port/03-godot-assessment.md` | Godot 重写评估（子系统映射表、人日估算、保真风险） |
 | `desktop-port/electron/` | 可直接使用的 Electron 打包骨架 |
 
-## 待用户决策
+## 实施状态
 
-1. 是否按 `01-input-adaptation.md` 执行 index.html 键鼠适配改造？（改动小、可逆、不影响手机端）
-2. 默认产物 150–250 MB 是否可接受？若需 < 20 MB 发行，改走 Neutralino 路线（02 报告含配置示例）
-3. 是否提供游戏图标（256×256 .ico）？缺失时用 Electron 默认图标
+| 工作项 | 状态 | 说明 |
+|--------|------|------|
+| 键鼠操控适配（index.html） | ✅ 已完成 | 按 `01-input-adaptation.md` 实施，手机端触屏体验保持不变 |
+| Electron 打包骨架（`electron/`） | ✅ 已完成 | package.json / main.js / build.ps1 已就绪并提交 |
+| 构建验证（产出 .exe） | 🔄 进行中 | 以 `build.ps1` 实际构建结果为准 |
+| 游戏图标（256×256 .ico） | ⏳ 待补充 | 缺失时使用 Electron 默认图标，不阻塞构建 |
+| 小体积发行（< 20 MB） | 📌 待定 | 如需启用，改走 Neutralino 路线（见 02 报告配置示例） |

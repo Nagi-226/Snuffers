@@ -1,4 +1,4 @@
-<#
+﻿<#
   废墟突围 - Electron 一键构建脚本
   用法：双击本文件，或在 PowerShell 中执行：
     powershell -ExecutionPolicy Bypass -File build.ps1
@@ -55,12 +55,12 @@ Write-Host "==> npm install（首次较慢，需联网）..." -ForegroundColor C
 Push-Location $PSScriptRoot
 try {
   & $Npm install
-  if ($LASTEXITCODE -ne 0) { throw "npm install 失败，退出码 $LASTEXITCODE" }
+  if (-not $?) { throw "npm install 失败" }
 
   # ---------- 4. 构建 ----------
   Write-Host "==> electron-builder 构建 Windows 产物..." -ForegroundColor Cyan
   & $Npm run build
-  if ($LASTEXITCODE -ne 0) { throw "electron-builder 构建失败，退出码 $LASTEXITCODE" }
+  if (-not $?) { throw "electron-builder 构建失败" }
 }
 finally {
   Pop-Location

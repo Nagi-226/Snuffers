@@ -143,6 +143,32 @@
         .mission-btn { display: block; margin: 0 24px 24px; padding: 12px 40px; background: #0f0; color: #000; border: none; font-size: 16px; font-family: "Microsoft YaHei", sans-serif; font-weight: bold; cursor: pointer; letter-spacing: 4px; transition: all 0.2s; border-radius: 2px; }
         .mission-btn:active { background: #0c0; transform: scale(0.98); }
         #fpsDisplay { position: fixed; left: 10px; bottom: 10px; z-index: 95; font-size: 10px; color: #00ff00; font-family: monospace; pointer-events: none; }
+
+        /* —— [desktop-port] 桌面端（键鼠）UI 适配 —— */
+        body.desktop-mode #fireBtn, body.desktop-mode #reloadBtn,
+        body.desktop-mode #aimBtn, body.desktop-mode #proneBtn,
+        body.desktop-mode #weaponBtn, body.desktop-mode #callHeliBtn,
+        body.desktop-mode #medkitBtn, body.desktop-mode #mapBtn,
+        body.desktop-mode #nvBtn, body.desktop-mode #joystick-zone { display: none !important; }
+        body.desktop-mode { cursor: default; }
+        body.desktop-mode.pointer-locked { cursor: none; }   /* 锁定时隐藏系统光标，准星已在画面中央 */
+
+        /* [desktop-port] 键鼠提示条（游戏内常驻右下角） */
+        #desktopHint { position: fixed; right: 10px; bottom: 10px; z-index: 95; display: none;
+            background: rgba(0,0,0,0.75); border: 1px solid rgba(0,255,0,0.3); border-radius: 6px;
+            color: #00ff00; font-size: 10px; font-family: monospace; padding: 6px 10px; line-height: 1.6;
+            pointer-events: none; white-space: nowrap; }
+        body.desktop-mode #desktopHint { display: block; }
+
+        /* [desktop-port] 暂停遮罩（Esc 释放指针后显示，点击恢复） */
+        #pauseOverlay { position: fixed; inset: 0; z-index: 400; display: none;
+            background: rgba(0,0,0,0.7); flex-direction: column; align-items: center; justify-content: center;
+            color: #00ff00; font-family: 'Microsoft YaHei', sans-serif; cursor: pointer; }
+        #pauseOverlay.active { display: flex; }
+
+        /* [desktop-port] 开始菜单：桌面端显示键鼠指南，触屏端显示触屏指南 */
+        body.desktop-mode #touchGuide { display: none; }
+        body:not(.desktop-mode) #desktopGuide { display: none; }
     </style>
 </head>
 <body class="text-green-400">
@@ -254,21 +280,40 @@
 
     <div id="fpsDisplay" class="hidden">FPS: --</div>
 
+    <!-- [desktop-port] 桌面端键鼠提示条 + 暂停遮罩（显隐由 body.desktop-mode / .active 控制） -->
+    <div id="desktopHint">WASD 移动 | 鼠标 视角 | 左键 开火 | 右键 瞄准 | R 换弹 | C 趴下 | 1/2 切枪 | V 夜视 | H 直升机 | M 地图 | F 药包 | Esc 暂停</div>
+    <div id="pauseOverlay"><div style="font-size:28px;font-weight:bold;">已暂停</div><div style="margin-top:12px;font-size:14px;">点击屏幕继续任务</div></div>
+
     <div id="startMenu">
         <img id="titleBgImg" src="img/title-bg.jpg" alt="background">
         <h1 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-orange-600 mb-2 tracking-wider drop-shadow-lg" style="text-shadow: 0 2px 10px rgba(0,0,0,0.5);">Ruins Breakout</h1>
         <div class="bg-gray-900/90 p-5 rounded-lg mb-6 w-full max-w-sm border border-gray-700 backdrop-blur-sm">
             <div class="text-green-400 font-bold mb-3 text-sm uppercase tracking-wider">操作指南</div>
-            <ul class="space-y-2 text-green-300 text-xs">
-                <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">滑动屏幕</span><span>控制视角</span></li>
-                <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">左摇杆</span><span>移动角色</span></li>
-                <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">左侧红钮</span><span>开火 / 火箭筒发射</span></li>
-                <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">右下黄钮</span><span>开镜（火箭筒显示下坠线）</span></li>
-                <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">右下紫钮</span><span>切换步枪/火箭筒</span></li>
-                <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">右上灰钮</span><span>趴下（缓慢爬行）</span></li>
-                <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">顶部绿钮</span><span>热融合夜视</span></li>
-                <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">右上黄钮</span><span>呼叫直升机撤离</span></li>
-            </ul>
+            <!-- [desktop-port] M6：操作指南双份化，由 body.desktop-mode 类按设备二选一显示 -->
+            <div id="touchGuide">
+                <ul class="space-y-2 text-green-300 text-xs">
+                    <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">滑动屏幕</span><span>控制视角</span></li>
+                    <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">左摇杆</span><span>移动角色</span></li>
+                    <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">左侧红钮</span><span>开火 / 火箭筒发射</span></li>
+                    <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">右下黄钮</span><span>开镜（火箭筒显示下坠线）</span></li>
+                    <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">右下紫钮</span><span>切换步枪/火箭筒</span></li>
+                    <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">右上灰钮</span><span>趴下（缓慢爬行）</span></li>
+                    <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">顶部绿钮</span><span>热融合夜视</span></li>
+                    <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">右上黄钮</span><span>呼叫直升机撤离</span></li>
+                </ul>
+            </div>
+            <div id="desktopGuide">
+                <ul class="space-y-2 text-green-300 text-xs">
+                    <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">鼠标</span><span>控制视角</span></li>
+                    <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">WASD</span><span>移动角色</span></li>
+                    <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">左键</span><span>开火 / 火箭筒发射</span></li>
+                    <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">右键</span><span>开镜（火箭筒显示下坠线）</span></li>
+                    <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">1 / 2 键</span><span>切换步枪/火箭筒</span></li>
+                    <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">C 键</span><span>趴下（缓慢爬行）</span></li>
+                    <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">V 键</span><span>热融合夜视</span></li>
+                    <li class="flex items-center gap-3"><span class="w-20 text-green-400 font-mono">H 键</span><span>呼叫直升机撤离</span></li>
+                </ul>
+            </div>
         </div>
         <button id="startBtn" class="w-full max-w-sm py-4 bg-gradient-to-r from-green-600 to-blue-600 text-white font-bold rounded-lg text-lg active:scale-95 transition-all shadow-[0_0_30px_rgba(0,255,0,0.3)]">开始任务</button>
     </div>
@@ -2445,8 +2490,8 @@
 
         const aimBtn = document.getElementById('aimBtn');
         const rpgScope = document.getElementById('rpgScope');
-        aimBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
+        // [desktop-port] M1：瞄准匿名 handler 命名化，函数体逐字搬迁，逻辑零变化
+        function toggleAim() {
             Game.isAiming = !Game.isAiming;
             const crosshair = document.getElementById('crosshair');
             const scopeLayer = document.getElementById('scopeLayer');
@@ -2479,11 +2524,12 @@
                     Game.weaponGroup.position.set(0.3, -0.4, -0.6);
                 }
             }
-        });
+        }
+        aimBtn.addEventListener('touchstart', (e) => { e.preventDefault(); toggleAim(); });
 
         const weaponBtn = document.getElementById('weaponBtn');
-        weaponBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
+        // [desktop-port] M2：切枪匿名 handler 命名化，函数体逐字搬迁（保留 mapOpen 守卫），逻辑零变化
+        function switchWeapon() {
             if (Game.mapOpen) return;
             Game.currentWeapon = Game.currentWeapon === 'rifle' ? 'rpg' : 'rifle';
             if (Game.currentWeapon === 'rpg') {
@@ -2507,11 +2553,12 @@
                 }
             }
             updateHUD();
-        });
+        }
+        weaponBtn.addEventListener('touchstart', (e) => { e.preventDefault(); switchWeapon(); });
 
         const proneBtn = document.getElementById('proneBtn');
-        proneBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
+        // [desktop-port] M3：趴下匿名 handler 命名化，函数体逐字搬迁，逻辑零变化
+        function toggleProne() {
             Game.isProne = !Game.isProne;
             if (Game.isProne) {
                 proneBtn.classList.add('active'); proneBtn.innerHTML = '<span>趴下</span>';
@@ -2521,7 +2568,8 @@
                 proneBtn.classList.remove('active'); proneBtn.innerHTML = '<span>趴下</span>';
                 camera.position.y = 2; updateMoveSpeed();
             }
-        });
+        }
+        proneBtn.addEventListener('touchstart', (e) => { e.preventDefault(); toggleProne(); });
 
         const callHeliBtn = document.getElementById('callHeliBtn');
         callHeliBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if (Game.mapOpen) return; callHelicopter(); });
@@ -2591,9 +2639,97 @@
             animatePhase1();
         }
 
-        const mapBtn = document.getElementById('mapBtn'), mapModal = document.getElementById('mapModal'), closeMap = document.getElementById('closeMap');
-        mapBtn.addEventListener('touchstart', (e) => { e.preventDefault(); Game.mapOpen = true; mapModal.style.display = 'flex'; drawFullMap(); });
-        closeMap.addEventListener('touchstart', (e) => { e.preventDefault(); Game.mapOpen = false; mapModal.style.display = 'none'; });
+        const mapBtn = document.getElementById('mapBtn'), mapModal = document.getElementById('mapModal'), closeMapBtn = document.getElementById('closeMap'); // [desktop-port] 元素变量改名 closeMapBtn，避免与下方 closeMap() 命名函数冲突
+        // [desktop-port] M4：地图开/关匿名体重构为命名函数 openMap/closeMap，逻辑零变化
+        function openMap() { Game.mapOpen = true; mapModal.style.display = 'flex'; drawFullMap(); }
+        function closeMap() { Game.mapOpen = false; mapModal.style.display = 'none'; }
+        mapBtn.addEventListener('touchstart', (e) => { e.preventDefault(); openMap(); });
+        closeMapBtn.addEventListener('touchstart', (e) => { e.preventDefault(); closeMap(); });
+        closeMapBtn.addEventListener('click', () => { closeMap(); }); // [desktop-port] 桌面端鼠标可关闭地图（原仅 touchstart）
+
+        /* ================= 桌面端键鼠输入层 [desktop-port] 新增 ================= */
+        (function initDesktopInput() {
+            // [desktop-port] 设备检测：JS 写 body.desktop-mode 类（不依赖 CSS 媒体特性，兼容内嵌 WebView）
+            const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+            const hasFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+            if (!isTouch || hasFinePointer) document.body.classList.add('desktop-mode');
+            if (!document.body.classList.contains('desktop-mode')) return;   // 纯触屏设备：不启用键鼠层
+
+            const keys = Object.create(null);
+            let pointerLocked = false;
+
+            // [desktop-port] Pointer Lock：锁定/释放状态机 + 暂停遮罩
+            function requestLock() {
+                if (document.pointerLockElement !== canvas) canvas.requestPointerLock();
+            }
+            document.addEventListener('pointerlockchange', () => {
+                pointerLocked = (document.pointerLockElement === canvas);
+                document.body.classList.toggle('pointer-locked', pointerLocked);
+                if (!pointerLocked && Game.active && !Game.mapOpen) {
+                    stopFiring();                       // 防卡枪
+                    Game.moveX = 0; Game.moveY = 0;     // 防"幽灵移动"
+                    document.getElementById('pauseOverlay').classList.add('active');
+                }
+            });
+            document.getElementById('pauseOverlay').addEventListener('click', () => {
+                document.getElementById('pauseOverlay').classList.remove('active');
+                requestLock();
+            });
+            canvas.addEventListener('click', () => { if (Game.active && !pointerLocked && !Game.mapOpen) requestLock(); });
+
+            // [desktop-port] 鼠标视角：完全复刻触屏公式（delta * 0.002 * sens，开镜 ×0.3，俯仰钳制 ±1.2）
+            document.addEventListener('mousemove', (e) => {
+                if (!pointerLocked || !Game.active || Game.mapOpen) return;
+                const sens = Game.isAiming ? Config.viewSensitivity * 0.3 : Config.viewSensitivity;
+                Game.rotX -= e.movementX * 0.002 * sens;
+                Game.rotY -= e.movementY * 0.002 * sens;
+                Game.rotY = Math.max(-1.2, Math.min(1.2, Game.rotY));
+            });
+
+            // [desktop-port] 鼠标按键：左键开火（按住语义）/ 右键瞄准（切换式，与触屏一致）
+            canvas.addEventListener('mousedown', (e) => {
+                if (!Game.active || Game.mapOpen || !pointerLocked) return;
+                if (e.button === 0) startFiring();
+                else if (e.button === 2) toggleAim();
+            });
+            document.addEventListener('mouseup', (e) => { if (e.button === 0) stopFiring(); });
+            canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+            window.addEventListener('blur', () => { stopFiring(); for (const k in keys) keys[k] = false; syncMoveFromKeys(); });
+
+            // [desktop-port] 键盘状态机 + 摇杆向量桥接：WASD/方向键合成为 Game.moveX/moveY ∈ [-1,1]
+            function syncMoveFromKeys() {
+                let mx = 0, my = 0;
+                if (keys['KeyW'] || keys['ArrowUp'])    my += 1;
+                if (keys['KeyS'] || keys['ArrowDown'])  my -= 1;
+                if (keys['KeyA'] || keys['ArrowLeft'])  mx -= 1;
+                if (keys['KeyD'] || keys['ArrowRight']) mx += 1;
+                const len = Math.hypot(mx, my);                 // 对角线归一化，与摇杆模长上限 1 对齐
+                if (len > 1) { mx /= len; my /= len; }
+                Game.moveX = mx; Game.moveY = my;               // 直接喂给 updateMovement()
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if (!Game.active) return;
+                if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Tab','Space'].includes(e.code)) e.preventDefault();
+                keys[e.code] = true;
+                syncMoveFromKeys();
+                if (e.repeat) return;                           // 切换类动作只触发一次
+                switch (e.code) {
+                    case 'KeyR': reload(); break;
+                    case 'KeyC': toggleProne(); break;
+                    case 'Digit1': if (Game.currentWeapon !== 'rifle') switchWeapon(); break;
+                    case 'Digit2': if (Game.currentWeapon !== 'rpg')   switchWeapon(); break;
+                    case 'KeyV': toggleNightVision(); break;
+                    case 'KeyH': callHelicopter(); break;
+                    case 'KeyF': useMedkit(); break;
+                    case 'KeyM': case 'Tab':
+                        if (Game.mapOpen) closeMap(); else openMap();
+                        break;
+                }
+            });
+            document.addEventListener('keyup', (e) => { keys[e.code] = false; syncMoveFromKeys(); });
+        })();
+        /* ============== 桌面端键鼠输入层结束 ============== */
 
         function drawFullMap() {
             const cvs = document.getElementById('mapCanvas'), ctx = cvs.getContext('2d');
@@ -3359,6 +3495,8 @@
             }
 
             Game.active = true;
+            // [desktop-port] M5：点击"收到"是合法用户手势，桌面端立即请求 Pointer Lock 锁定鼠标
+            if (document.body.classList.contains('desktop-mode')) { canvas.requestPointerLock(); }
             updateMoveSpeed();
             animate();
         });
