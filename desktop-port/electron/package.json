@@ -18,6 +18,7 @@
   "build": {
     "appId": "com.nagigames.ruinsbreakout",
     "productName": "废墟突围",
+    "compression": "normal",
     "copyright": "Copyright © Nagi_Games",
     "files": [
       "main.js",
