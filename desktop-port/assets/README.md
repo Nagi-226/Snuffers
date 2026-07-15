@@ -17,14 +17,30 @@
 | 道具（地雷/药包） | Quaternius Toon Shooter Kit + First Aid Kit | CC0 | quaternius.com ✅ |
 | 特效贴图/UI | Kenney Particle/Smoke/Crosshair/UI Sci-fi 四件套 | CC0 | kenney.nl ✅ |
 | 武器系统脚手架 | Jeh3no/Godot-simple-FPS-weapon-system（连代码+特效结构） | MIT | GitHub ✅ |
-| 直升机 | KumaSousa Low Poly Helicopter（旋翼分离） | CC0 | ⚠️ itch.io 被墙，需镜像/代理 |
+| 直升机 | KumaSousa Low Poly Helicopter（旋翼分离） | CC0 | itch.io（需代理，代理下已验证 200 ✅） |
 | 补充动画 | Mixamo（FBX→FBX2glTF/Blender 转 glTF） | 可商用禁再分发 | mixamo.com，⚠️ 原始文件禁入仓库 |
 
-### 中国大陆可达性实测（2026-07-15）
+### 中国大陆可达性实测（2026-07-15，两轮）
 
-- ✅ 可达：quaternius.com、kenney.nl、github.com、opengameart.org、mixamo.com
-- ❌ 被墙：itch.io、poly.pizza、godotengine.org（**编辑器内 AssetLib 面板连带不可用**，需离线下载或 GitHub 镜像）
-- 绕行方案：KayKit → GitHub 组织 `KayKit-Game-Assets`；AssetLib 条目 → GitHub 直链
+**第一轮（直连）**：
+- ✅ 直连可达：quaternius.com、kenney.nl、github.com、opengameart.org、mixamo.com
+- ❌ 直连被墙：itch.io、poly.pizza、godotengine.org、sketchfab.com、blendswap.com
+
+**第二轮（用户代理开启后复测）**：上述被墙站点**全部恢复 200 OK**——
+
+| 站点 | 状态 | 耗时 |
+|------|------|------|
+| itch.io | 200 ✅ | ~7.7s |
+| poly.pizza | 200 ✅ | ~4.5s |
+| godotengine.org | 200 ✅ | ~2.8s |
+| godotengine.org/asset-library | 200 ✅ | ~1.9s |
+| sketchfab.com | 200 ✅ | ~3.9s |
+| blendswap.com | 200 ✅ | ~6.1s |
+| 直升机资产页（itch.io 两个链接） | 200 ✅ | ~8.2s / ~1.9s |
+
+- 结论：原"被墙"清单在代理环境下全部解封，直升机缺口（itch.io）也随之解决；资产平台不再构成获取障碍
+- Godot 编辑器内 AssetLib 面板：系统代理全局模式下可直接使用；若为规则代理模式，需在「编辑器设置 → 网络 → HTTP 代理」手动填写代理地址
+- 备选绕行（无代理时仍有效）：KayKit → GitHub 组织 `KayKit-Game-Assets`；AssetLib 条目 → GitHub 直链
 
 ### 三大缺口与解法
 
