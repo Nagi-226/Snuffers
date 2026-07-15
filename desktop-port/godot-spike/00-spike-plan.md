@@ -80,6 +80,8 @@ Spike 不是做完整游戏，而是验证一条**最小手感闭环**：
 
 **闭环机制**：契约先行 → 并行施工 → 每晚 W6 集成出构建 → 蜂后评审 → 次日晨会（我）派单纠偏 → 门禁日 plan 子代理交叉评审。
 
+**行为准则（强制）**：全员（含蜂后）遵循仓库根 **`AGENTS.md`**——十荣十耻 + 翻车模式止损 + Commit 前四问自检 + 项目专属设计约束 + 团队边界表。工蜂派单提示词必须包含「先读仓库根 AGENTS.md 再动手」；commit message 无 `自检: ①②③④ 通过` 视为违规提交，W6 每日巡检拦截。
+
 ### 文件契约（Day 0 由蜂后冻结）
 
 - `autoload/events.gd` —— Signal Bus：`enemy_died(enemy)`、`player_damaged(part, amount)`、`weapon_fired(weapon_id)`、`heli_called()`、`mission_completed()`、`game_over(reason)` …（全量清单 Day 0 定稿）
@@ -94,8 +96,9 @@ Spike 不是做完整游戏，而是验证一条**最小手感闭环**：
 ### Day 0（7/15 晚–7/16 晨，预备，蜂后 + W6）
 
 - [ ] 下载导出模板 .tpz（1.2GB，挂代理后台）→ 安装
-- [ ] 创建 `dev_godot` 分支 + `godot/` 骨架 + headless `--import` 通过
+- [ ] 创建 `dev_godot` 分支（自 dev_win 切出，确保含 `AGENTS.md`）+ `godot/` 骨架 + headless `--import` 通过
 - [ ] 冻结契约文件（events/game_config/game_state 全量定义）
+- [ ] 将 `AGENTS.md` 团队边界表与当日派单核对一遍，工蜂提示词模板注入「先读 AGENTS.md」
 - [ ] 下载 Day 1 资产：Jeh3no 脚手架（MIT）、Kenney Graveyard/Nature、Quaternius Guns（FBX 导入验证）、直升机 FBX
 
 ### Sprint 1「站稳」（D1–D3，7/16–7/18）→ **G1 门禁：手感关**
