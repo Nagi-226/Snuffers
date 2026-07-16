@@ -101,7 +101,20 @@ Spike 不是做完整游戏，而是验证一条**最小手感闭环**：
 - [x] 工蜂提示词模板（`01-worker-dispatch-template.md`，含「先读 AGENTS.md」与 Sprint 1 派单对照表）
 - [x] **附加验证**：export_presets.cfg 建立，headless `--export-release` 产出 104.7MB 单文件 exe，RTX 4060 Vulkan 启动 EXIT=0（`d2d433d`）
   - ⚠ 踩坑记录：预设 `platform` 字段必须写 `"Windows Desktop"`（Godot 4 注册平台名），写 `"Windows"` 会被静默丢弃预设 → 报 "Invalid export preset name" 且检测列表为空
-- [ ] 下载 Day 1 资产：Jeh3no 脚手架（MIT）、Kenney Graveyard/Nature、Quaternius Guns（FBX 导入验证）、直升机 FBX → **移至 D1 开工前执行**
+- [x] 下载 Day 1 资产：Jeh3no 脚手架（MIT）、Kenney Graveyard/Nature、Quaternius Guns、直升机模型 → **D1 已完成，见下节**（直升机改为 GLB 替代，itch 动画 FBX 列手动项）
+
+### Day 1（7/16，蜂后 + W1/W4/W5/W6 四路工蜂）—— ✅ 已完成（7/16 晚，dev_godot `c342b3a`）
+
+- [x] **资产下载** → `E:\Github Project\Nagi_Games\Game materials\Ruins-Breakout\`（台账见该目录 README.md，不占 C 盘、不进 Git）
+  - Jeh3no 脚手架（git clone）、Kenney 墓地 5.0 + 自然 2.1（OpenGameArt 镜像，CC0）、Quaternius Guns 全 25 件 GLB（Poly Pizza 镜像，CC0）、直升机 GLB ×3（Poly Pizza，CC-BY 3.0/页面标注）
+  - ⚠ kenney.nl / quaternius.com 官网为 JS 动态下载，curl 无法直取，改走 CC0 镜像；itch.io 带动画直升机 FBX 需浏览器手动下载（非阻塞项）
+- [x] **四路工蜂交付**（派单模板 `01-worker-dispatch-template.md`）
+  - W1 手感蜂：`scripts/player/player_controller.gd` + `player.tscn`（全参数引 GameConfig，delta 化）
+  - W4 筑巢蜂：`scenes/levels/greybox_arena.tscn`（37 节点全内联，7 Marker3D 坐标 7/7 匹配契约）
+  - W5 颜面蜂：`scripts/ui/audio_manager.gd` + `hud.gd` + 13 音频资产（Mixkit×12 + 程序合成 ambient）+ LICENSES 台账
+  - W6 质检蜂：`tools/check.ps1` + `daily_build.ps1` + `tests/` 双 harness；端到端日出力 exe（101.3MB）跑通
+- [x] **蜂后裁决 ×4**：① W1 碰撞胶囊几何冲突接受球等效权宜；② W4 中央隔离建筑按方案 A（两段墙，尺寸零自创）；③ 认可 W6 harness 等效替代 `--check-only`（autoload 假阳性实测）；④ W5 ambient 实为 WAV 数据被 MP3 导入器拒绝 → 改名 `.wav` + 双扩展名兼容加载
+- [x] **蜂后独立复验**：L1 链全绿（import / 8 脚本编译 / 主场景 / 契约断言 / 6 场景冒烟）
 
 ### Sprint 1「站稳」（D1–D3，7/16–7/18）→ **G1 门禁：手感关**
 
