@@ -93,13 +93,15 @@ Spike 不是做完整游戏，而是验证一条**最小手感闭环**：
 
 ## 5. 十四天日程（3 冲刺 × 4 门禁）
 
-### Day 0（7/15 晚–7/16 晨，预备，蜂后 + W6）
+### Day 0（7/15 晚–7/16，预备，蜂后 + W6）—— ✅ 已完成（7/16 晚）
 
-- [ ] 下载导出模板 .tpz（1.2GB，挂代理后台）→ 安装
-- [ ] 创建 `dev_godot` 分支（自 dev_win 切出，确保含 `AGENTS.md`）+ `godot/` 骨架 + headless `--import` 通过
-- [ ] 冻结契约文件（events/game_config/game_state 全量定义）
-- [ ] 将 `AGENTS.md` 团队边界表与当日派单核对一遍，工蜂提示词模板注入「先读 AGENTS.md」
-- [ ] 下载 Day 1 资产：Jeh3no 脚手架（MIT）、Kenney Graveyard/Nature、Quaternius Guns（FBX 导入验证）、直升机 FBX
+- [x] 下载导出模板 .tpz（1193.9MB，BITS 后台走系统代理）→ 解压安装至 `%APPDATA%\Godot\export_templates\4.6.2.stable\`（35 个文件，版本精确匹配）
+- [x] 创建 `dev_godot` 分支（自 dev_win 切出，含 `AGENTS.md`）+ `godot/` 骨架 + headless `--import` / `--check-only` ×3 / `--quit` 冒烟全过（`906c83c`）
+- [x] 冻结契约文件（events 28 信号 / game_config 全量参数含行号出处 / game_state 复刻 initGame 初值）
+- [x] 工蜂提示词模板（`01-worker-dispatch-template.md`，含「先读 AGENTS.md」与 Sprint 1 派单对照表）
+- [x] **附加验证**：export_presets.cfg 建立，headless `--export-release` 产出 104.7MB 单文件 exe，RTX 4060 Vulkan 启动 EXIT=0（`d2d433d`）
+  - ⚠ 踩坑记录：预设 `platform` 字段必须写 `"Windows Desktop"`（Godot 4 注册平台名），写 `"Windows"` 会被静默丢弃预设 → 报 "Invalid export preset name" 且检测列表为空
+- [ ] 下载 Day 1 资产：Jeh3no 脚手架（MIT）、Kenney Graveyard/Nature、Quaternius Guns（FBX 导入验证）、直升机 FBX → **移至 D1 开工前执行**
 
 ### Sprint 1「站稳」（D1–D3，7/16–7/18）→ **G1 门禁：手感关**
 
