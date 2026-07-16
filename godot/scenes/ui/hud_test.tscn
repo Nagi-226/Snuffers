@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/audio_manager.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="2"]
+
+; W5 自验测试场景：实例化 audio_manager + hud（场景冒烟由蜂后集成时统一串行执行）。
+[node name="HudTest" type="Node"]
+
+[node name="AudioManager" parent="." instance=ExtResource("1")]
+
+[node name="HUD" parent="." instance=ExtResource("2")]
