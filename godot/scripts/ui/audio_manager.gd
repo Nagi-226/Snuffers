@@ -154,7 +154,9 @@ func _enable_loop(stream: AudioStream) -> void:
 ## weapon_reloaded → reload ｜ hit_confirmed → hitmark ｜ player_damaged → player_hurt
 ## enemy_died → enemy_death ｜ medkit_used → medkit ｜ night_vision_toggled → nightvision
 ## heli_called → helicopter（loop 总线循环）｜ mission_completed / game_over → 停全部 loop
-## 注：explosion / footstep / ui_click 契约中无对应信号，见交付报告「需蜂后裁决」。
+## Sprint 2 缺口（契约无信号，见交付报告「需蜂后裁决」）：
+##   explosion ← 建议信号 rpg_exploded()；footstep（loop）← 建议信号 player_moving_changed(is_moving)；
+##   ui_click ← 留待 Sprint 3 菜单界面接入。
 func _connect_events() -> void:
 	Events.weapon_fired.connect(_on_weapon_fired)
 	Events.weapon_reloaded.connect(_on_weapon_reloaded)

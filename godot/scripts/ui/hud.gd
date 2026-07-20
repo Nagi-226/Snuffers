@@ -1,14 +1,16 @@
-## HUD — 最小战斗抬头显示（CanvasLayer）
+## HUD — 战斗抬头显示（CanvasLayer）
 ##
 ## 布局（W5 派单）：
 ##   左上：头/躯/腿三部位血条 + 头盔/护甲条；右上：击杀数；
-##   右下：弹药；顶部中央：腿部警告 + 直升机倒计时；中央：飘字 + 十字准星。
+##   右下：弹药；顶部中央：腿部警告（分级 injured/critical）+ 直升机倒计时；
+##   中央：飘字 + 十字准星；准星上方：击杀反馈；全屏底层：受击红晕闪屏。
 ##
 ## 数据来源：全部经 Events 信号驱动 + GameState 读取（契约约束 #2/#3）。
 ## 头盔/护甲无专用变更信号，在 player_damaged / player_health_changed 触发时
 ## 从 GameState 刷新（见交付报告「需蜂后裁决」）。
-## UI 反馈数值（准星 1.3×/1.8×/60ms、飘字 0.8s）为派单口径，与 events.gd
-## hit_confirmed / message_posted 注释一致；GameConfig 暂无对应参数，未硬编码手感数值。
+## UI 反馈数值（准星 1.3×/1.8×/60ms、飘字 0.8s、红晕/击杀反馈时长）为派单口径，
+## 与 events.gd hit_confirmed / message_posted 注释一致；GameConfig 暂无对应参数，
+## 未硬编码手感数值（视觉反馈常量集中在本文件头部，缺口清单见交付报告）。
 extends CanvasLayer
 
 ## 准星命中放大倍率（派单口径；events.gd hit_confirmed 注释：1.3× / 爆头 1.8×）。
@@ -22,6 +24,19 @@ const CROSSHAIR_RECOVER_TIME: float = 0.1
 const MESSAGE_HOLD_TIME: float = 0.8
 ## 飘字淡出时长 s。
 const MESSAGE_FADE_TIME: float = 0.3
+## 受击红晕峰值透明度（派单口径；GameConfig 缺口 DAMAGE_FLASH_PEAK_ALPHA）。
+const DAMAGE_FLASH_PEAK_ALPHA: float = 0.35
+## 受击红晕淡出时长 s（派单口径；GameConfig 缺口 DAMAGE_FLASH_FADE_TIME）。
+const DAMAGE_FLASH_FADE_TIME: float = 0.4
+## 击杀反馈停留时长 s（派单口径；GameConfig 缺口 KILL_FEEDBACK_HOLD_TIME）。
+const KILL_FEEDBACK_HOLD_TIME: float = 0.6
+## 击杀反馈淡出时长 s。
+const KILL_FEEDBACK_FADE_TIME: float = 0.4
+## 击杀反馈淡出时上飘距离 px。
+const KILL_FEEDBACK_RISE_PIXELS: float = 24.0
+## 腿部警告分级颜色（视觉样式常量）：受伤橙 / 重伤红。
+const LEG_WARN_COLOR_INJURED: Color = Color(0.78, 0.62, 0.35)
+const LEG_WARN_COLOR_CRITICAL: Color = Color(0.8, 0.3, 0.25)
 
 @onready var _head_bar: ProgressBar = %HeadBar
 @onready var _body_bar: ProgressBar = %BodyBar
@@ -34,12 +49,20 @@ const MESSAGE_FADE_TIME: float = 0.3
 @onready var _message_label: Label = %MessageLabel
 @onready var _heli_timer_label: Label = %HeliTimerLabel
 @onready var _crosshair: Control = %Crosshair
+@onready var _damage_flash: ColorRect = %DamageFlash
+@onready var _kill_label: Label = %KillLabel
 
 var _message_tween: Tween
 var _crosshair_tween: Tween
+var _damage_flash_tween: Tween
+var _kill_tween: Tween
+## 击杀标签基准 y（_ready 时记录，上飘动画的起点）。
+var _kill_label_base_y: float = 0.0
 
 
 func _ready() -> void:
+	_kill_label_base_y = _kill_label.position.y
+	_damage_flash.color.a = 0.0
 	_refresh_all_from_state()
 	_connect_events()
 
@@ -79,6 +102,7 @@ func _connect_events() -> void:
 	Events.message_posted.connect(_on_message_posted)
 	Events.kills_changed.connect(_refresh_kills)
 	Events.hit_confirmed.connect(_on_hit_confirmed)
+	Events.enemy_died.connect(_on_enemy_died)
 	Events.heli_called.connect(_on_heli_called)
 	Events.heli_timer_updated.connect(_on_heli_timer_updated)
 	Events.heli_arrived.connect(_on_heli_arrived)
@@ -95,6 +119,7 @@ func _disconnect_events() -> void:
 	Events.message_posted.disconnect(_on_message_posted)
 	Events.kills_changed.disconnect(_refresh_kills)
 	Events.hit_confirmed.disconnect(_on_hit_confirmed)
+	Events.enemy_died.disconnect(_on_enemy_died)
 	Events.heli_called.disconnect(_on_heli_called)
 	Events.heli_timer_updated.disconnect(_on_heli_timer_updated)
 	Events.heli_arrived.disconnect(_on_heli_arrived)
@@ -114,9 +139,19 @@ func _on_player_health_changed(part: StringName, current: float, maximum: float)
 	_refresh_vitals()
 
 
-## 受伤（含护甲全吸收不掉血的情况）：五条全量同步。
+## 受伤（含护甲全吸收不掉血的情况）：五条全量同步 + 受击红晕闪屏。
 func _on_player_damaged(_part: StringName, _amount: float) -> void:
 	_refresh_vitals()
+	_flash_damage_vignette()
+
+
+## 受击红晕：全屏红层瞬间到峰值后淡出；连续受击重新起峰（派单口径）。
+func _flash_damage_vignette() -> void:
+	if _damage_flash_tween != null and _damage_flash_tween.is_valid():
+		_damage_flash_tween.kill()
+	_damage_flash.color.a = DAMAGE_FLASH_PEAK_ALPHA
+	_damage_flash_tween = create_tween()
+	_damage_flash_tween.tween_property(_damage_flash, "color:a", 0.0, DAMAGE_FLASH_FADE_TIME)
 
 
 ## 弹药变化：仅当报告的是当前武器才刷新显示。
@@ -146,9 +181,19 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 		_ammo_label.text = "步枪 弹药：%d / %d" % [mag, reserve]
 
 
-## 腿部警告：非 healthy（injured / critical）显示「⚠ 腿部受伤」（派单口径）。
+## 腿部警告分级：injured 显示橙色「⚠ 腿部受伤」，critical 显示红色「⚠ 腿部重伤」。
 func _on_leg_state_changed(state: StringName) -> void:
-	_leg_warning_label.visible = state != &"healthy"
+	match state:
+		&"injured":
+			_leg_warning_label.text = "⚠ 腿部受伤"
+			_leg_warning_label.add_theme_color_override("font_color", LEG_WARN_COLOR_INJURED)
+			_leg_warning_label.visible = true
+		&"critical":
+			_leg_warning_label.text = "⚠ 腿部重伤"
+			_leg_warning_label.add_theme_color_override("font_color", LEG_WARN_COLOR_CRITICAL)
+			_leg_warning_label.visible = true
+		_:
+			_leg_warning_label.visible = false
 
 
 ## 中央飘字：显示 MESSAGE_HOLD_TIME 秒后淡出；新消息顶替旧消息。
@@ -175,6 +220,23 @@ func _on_hit_confirmed(is_headshot: bool) -> void:
 	_crosshair_tween = create_tween()
 	_crosshair_tween.tween_interval(CROSSHAIR_PULSE_HOLD)
 	_crosshair_tween.tween_property(_crosshair, "scale", Vector2.ONE, CROSSHAIR_RECOVER_TIME)
+
+
+## 击杀反馈：准星上方飘出确认文字，停留后上飘淡出；连续击杀重新触发。
+## 伤害数值飘字契约无对应信号（hit_confirmed 不带伤害量），缺口见交付报告。
+func _on_enemy_died(_enemy: Node) -> void:
+	if _kill_tween != null and _kill_tween.is_valid():
+		_kill_tween.kill()
+	_kill_label.position.y = _kill_label_base_y
+	_kill_label.modulate.a = 1.0
+	_kill_label.visible = true
+	_kill_tween = create_tween()
+	_kill_tween.tween_interval(KILL_FEEDBACK_HOLD_TIME)
+	_kill_tween.tween_property(_kill_label, "modulate:a", 0.0, KILL_FEEDBACK_FADE_TIME)
+	_kill_tween.parallel().tween_property(
+		_kill_label, "position:y", _kill_label_base_y - KILL_FEEDBACK_RISE_PIXELS, KILL_FEEDBACK_FADE_TIME
+	)
+	_kill_tween.tween_callback(_kill_label.hide)
 
 
 ## 呼叫后显示倒计时（未呼叫时保持隐藏，派单口径）。
