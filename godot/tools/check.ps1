@@ -13,6 +13,9 @@
       c) godot --headless --quit              main scene boot smoke
       d) godot -s res://tests/smoke_contracts.gd   contract assertions
       e) godot --headless --quit <scene>      per-scene instantiation smoke
+      f) godot -s res://tests/smoke_scenes.gd scene node assertions
+                                              (Sprint 2 scaffold; undelivered
+                                              W2/W3 cases report SKIP)
     Prints "L1 PASS" and exits 0 when every step is green.
     Prints "L1 FAIL" plus failure details and exits 1 otherwise.
 .NOTES
@@ -117,6 +120,10 @@ foreach ($sc in $scenes) {
     $resPath = 'res://' + $sc.FullName.Substring($ProjectDir.Length + 1).Replace('\', '/')
     Invoke-Godot "scene smoke $resPath" @('--headless', '--path', $ProjectDir, '--quit', $resPath) | Out-Null
 }
+
+# (f) scene node assertions (Sprint 2 scaffold; W2/W3 placeholder cases SKIP
+#     until their scenes land, so the chain stays green during parallel work)
+Invoke-Godot 'scene node assertions (tests/smoke_scenes.gd)' @('--headless', '--path', $ProjectDir, '-s', 'res://tests/smoke_scenes.gd') | Out-Null
 
 Write-Host ''
 if ($failures.Count -gt 0) {

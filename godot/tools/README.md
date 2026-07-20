@@ -22,6 +22,7 @@ powershell -File godot/tools/daily_build.ps1
 | c | `--headless --quit` | 主场景启动冒烟（读 project.godot 的 main_scene） |
 | d | `-s tests/smoke_contracts.gd` | 契约断言（参数值 / 信号 / 状态键） |
 | e | `--headless --quit <scene>` | `scenes/**/*.tscn` 逐个实例化冒烟 |
+| f | `-s tests/smoke_scenes.gd` | 场景节点断言（W2 武器 / W3 状态机占位用例交付前 SKIP，交付后转 FAIL）；临时模式：`-- <tscn> <节点路径...>` |
 
 ## 已知坑
 

@@ -16,3 +16,14 @@ desktop.ini
 godot/.godot/
 godot/export/
 godot/addons/jeh3no-fps-weapon-system/
+godot/addons/jeh3no_fps_weapon_system/
+
+# 原始大文件资产（AGENTS.md 约束 #7：Mixamo/Sketchfab/PolyPack 原始文件禁止入库，只能烘焙进包体）
+raw_assets/
+godot/raw_assets/
+*.fbx
+*.blend
+*.psd
+*.tga
+*.exr
+*.hdr
