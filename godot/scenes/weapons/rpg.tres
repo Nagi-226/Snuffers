@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/rpg_projectile.tscn" id="2_projectile"]
+
+; RPG 定义（G2 门禁基准，§7 对照表）。
+; GameConfig 已有字段运行时由 sync_from_config() 覆盖，此处数值必须与 GameConfig 一致（L2 校验项）。
+; recoil_pitch=0.01 为「契约缺口」暂定值：网页版 RPG 后坐永不触发（缺陷，index.html L2959
+; 仅步枪路径），无对照值，待蜂后/机主手感裁决；view 系数取自网页版 updateWeaponRecoil RPG 分支
+; （L3189-3191：rot 2.5 / y 0.025 / z 0.075）。
+[resource]
+script = ExtResource("1_data")
+weapon_id = &"rpg"
+kind = 1
+projectile_scene = ExtResource("2_projectile")
+projectile_speed = 120.0
+projectile_gravity = 9.8
+projectile_max_range = 300.0
+projectile_explode_below_y = -10.0
+explode_radius = 10.0
+explode_damage = 9999.0
+bunker_radius_bonus = 5.0
+self_damage = false
+ammo_count = 5
+recoil_pitch = 0.01
+recoil_view_offset = 0.08
+recoil_decay = 0.82
+recoil_recover_rate = 6.0
+view_recoil_rot_factor = 2.5
+view_recoil_y_factor = 0.025
+view_recoil_z_factor = 0.075

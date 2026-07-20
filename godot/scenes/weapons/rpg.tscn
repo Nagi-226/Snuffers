@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/rpg_controller.gd" id="1_rpg"]
+[ext_resource type="Resource" path="res://scenes/weapons/rpg.tres" id="2_data"]
+
+; 灰盒占位视图模型（发射筒：细长盒）
+[sub_resource type="BoxMesh" id="BoxMesh_view_model"]
+size = Vector3(0.12, 0.12, 1.0)
+
+; 挂载约定：实例化到 player.tscn 的 Camera3D/WeaponMount 下（W1 已预留）。
+[node name="RPG" type="Node3D"]
+script = ExtResource("1_rpg")
+weapon_data = ExtResource("2_data")
+
+[node name="ViewModel" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_view_model")

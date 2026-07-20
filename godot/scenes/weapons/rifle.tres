@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+
+; 步枪定义（G2 门禁基准，§7 对照表）。
+; GameConfig 已有字段运行时由 sync_from_config() 覆盖，此处数值必须与 GameConfig 一致（L2 校验项）；
+; 标注「契约缺口」的字段（recover_rate / view_*_factor）GameConfig 暂无，由本资源承载，已上报蜂后。
+[resource]
+script = ExtResource("1_data")
+weapon_id = &"rifle"
+kind = 0
+damage_body = 25.0
+headshot_factor = 2.0
+dmg_vs_sniper = 999.0
+fire_interval = 0.1
+mag_size = 30
+reserve_size = 150
+reload_time = 2.0
+hitscan_range = 100.0
+spread_hip = 0.004
+spread_prone = 0.002
+spread_aim = 0.0005
+recoil_pitch = 0.003
+recoil_view_offset = 0.08
+recoil_decay = 0.82
+recoil_recover_rate = 6.0
+view_recoil_rot_factor = 2.25
+view_recoil_y_factor = 0.025
+view_recoil_z_factor = 0.05
