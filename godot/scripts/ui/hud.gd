@@ -8,32 +8,34 @@
 ## 数据来源：全部经 Events 信号驱动 + GameState 读取（契约约束 #2/#3）。
 ## 头盔/护甲无专用变更信号，在 player_damaged / player_health_changed 触发时
 ## 从 GameState 刷新（见交付报告「需蜂后裁决」）。
-## UI 反馈数值（准星 1.3×/1.8×/60ms、飘字 0.8s、红晕/击杀反馈时长）为派单口径，
-## 与 events.gd hit_confirmed / message_posted 注释一致；GameConfig 暂无对应参数，
-## 未硬编码手感数值（视觉反馈常量集中在本文件头部，缺口清单见交付报告）。
+## UI 反馈数值（准星放大/停留、飘字停留、红晕峰值/淡出、击杀反馈停留）已随 G2 契约
+## 冻结迁入 GameConfig「UI 反馈动效」组，本文件不再保留同名常量；其余纯视觉样式常量
+## （颜色/字号/过渡时长/上飘像素）契约未含，集中在本文件头部。
 extends CanvasLayer
 
-## 准星命中放大倍率（派单口径；events.gd hit_confirmed 注释：1.3× / 爆头 1.8×）。
-const CROSSHAIR_HIT_SCALE: float = 1.3
-const CROSSHAIR_HEADSHOT_SCALE: float = 1.8
-## 准星放大保持时长 s（派单口径 60ms）。
-const CROSSHAIR_PULSE_HOLD: float = 0.06
-## 准星恢复过渡时长 s。
+## 准星恢复过渡时长 s（视觉表现常量）。
 const CROSSHAIR_RECOVER_TIME: float = 0.1
-## 飘字停留时长 s（派单口径 0.8s，对应网页版 msgArea 800ms）。
-const MESSAGE_HOLD_TIME: float = 0.8
-## 飘字淡出时长 s。
+## 飘字淡出时长 s（视觉表现常量）。
 const MESSAGE_FADE_TIME: float = 0.3
-## 受击红晕峰值透明度（派单口径；GameConfig 缺口 DAMAGE_FLASH_PEAK_ALPHA）。
-const DAMAGE_FLASH_PEAK_ALPHA: float = 0.35
-## 受击红晕淡出时长 s（派单口径；GameConfig 缺口 DAMAGE_FLASH_FADE_TIME）。
-const DAMAGE_FLASH_FADE_TIME: float = 0.4
-## 击杀反馈停留时长 s（派单口径；GameConfig 缺口 KILL_FEEDBACK_HOLD_TIME）。
-const KILL_FEEDBACK_HOLD_TIME: float = 0.6
-## 击杀反馈淡出时长 s。
+## 击杀反馈淡出时长 s（视觉表现常量）。
 const KILL_FEEDBACK_FADE_TIME: float = 0.4
-## 击杀反馈淡出时上飘距离 px。
+## 击杀反馈淡出时上飘距离 px（视觉表现常量）。
 const KILL_FEEDBACK_RISE_PIXELS: float = 24.0
+## 伤害飘字淡出时长 s（视觉表现常量；契约冻结未含，如需调参由蜂后下轮冻结迁入）。
+const DAMAGE_TEXT_FADE_TIME: float = 0.5
+## 即杀阈值：amount ≥ 900（狙击即杀 999 / RPG 爆径 9999）时飘字显示「击毙」而非数字
+## （契约冻结未含，如需调参由蜂后下轮冻结迁入）。
+const DAMAGE_TEXT_INSTAKILL_THRESHOLD: float = 900.0
+## 即杀飘字文案（阈值内不显示裸数值，避免 999/9999 观感突兀）。
+const DAMAGE_TEXT_INSTAKILL_LABEL: String = "击毙"
+## 伤害飘字上飘距离 px（视觉表现常量）。
+const DAMAGE_TEXT_RISE_PIXELS: float = 28.0
+## 伤害飘字字号：普通 / 爆头（视觉样式常量）。
+const DAMAGE_TEXT_FONT_SIZE: int = 16
+const DAMAGE_TEXT_FONT_SIZE_HEADSHOT: int = 22
+## 伤害飘字颜色：普通米白 / 爆头警示橙（视觉样式常量）。
+const DAMAGE_TEXT_COLOR: Color = Color(0.85, 0.83, 0.78)
+const DAMAGE_TEXT_COLOR_HEADSHOT: Color = Color(0.9, 0.55, 0.25)
 ## 腿部警告分级颜色（视觉样式常量）：受伤橙 / 重伤红。
 const LEG_WARN_COLOR_INJURED: Color = Color(0.78, 0.62, 0.35)
 const LEG_WARN_COLOR_CRITICAL: Color = Color(0.8, 0.3, 0.25)
@@ -51,17 +53,22 @@ const LEG_WARN_COLOR_CRITICAL: Color = Color(0.8, 0.3, 0.25)
 @onready var _crosshair: Control = %Crosshair
 @onready var _damage_flash: ColorRect = %DamageFlash
 @onready var _kill_label: Label = %KillLabel
+@onready var _damage_label: Label = %DamageLabel
 
 var _message_tween: Tween
 var _crosshair_tween: Tween
 var _damage_flash_tween: Tween
 var _kill_tween: Tween
+var _damage_tween: Tween
 ## 击杀标签基准 y（_ready 时记录，上飘动画的起点）。
 var _kill_label_base_y: float = 0.0
+## 伤害飘字基准 y（_ready 时记录，上飘动画的起点）。
+var _damage_label_base_y: float = 0.0
 
 
 func _ready() -> void:
 	_kill_label_base_y = _kill_label.position.y
+	_damage_label_base_y = _damage_label.position.y
 	_damage_flash.color.a = 0.0
 	_refresh_all_from_state()
 	_connect_events()
@@ -103,6 +110,8 @@ func _connect_events() -> void:
 	Events.kills_changed.connect(_refresh_kills)
 	Events.hit_confirmed.connect(_on_hit_confirmed)
 	Events.enemy_died.connect(_on_enemy_died)
+	Events.damage_dealt.connect(_on_damage_dealt)
+	Events.bunker_destroyed.connect(_on_bunker_destroyed)
 	Events.heli_called.connect(_on_heli_called)
 	Events.heli_timer_updated.connect(_on_heli_timer_updated)
 	Events.heli_arrived.connect(_on_heli_arrived)
@@ -120,6 +129,8 @@ func _disconnect_events() -> void:
 	Events.kills_changed.disconnect(_refresh_kills)
 	Events.hit_confirmed.disconnect(_on_hit_confirmed)
 	Events.enemy_died.disconnect(_on_enemy_died)
+	Events.damage_dealt.disconnect(_on_damage_dealt)
+	Events.bunker_destroyed.disconnect(_on_bunker_destroyed)
 	Events.heli_called.disconnect(_on_heli_called)
 	Events.heli_timer_updated.disconnect(_on_heli_timer_updated)
 	Events.heli_arrived.disconnect(_on_heli_arrived)
@@ -149,9 +160,9 @@ func _on_player_damaged(_part: StringName, _amount: float) -> void:
 func _flash_damage_vignette() -> void:
 	if _damage_flash_tween != null and _damage_flash_tween.is_valid():
 		_damage_flash_tween.kill()
-	_damage_flash.color.a = DAMAGE_FLASH_PEAK_ALPHA
+	_damage_flash.color.a = GameConfig.DAMAGE_FLASH_PEAK_ALPHA
 	_damage_flash_tween = create_tween()
-	_damage_flash_tween.tween_property(_damage_flash, "color:a", 0.0, DAMAGE_FLASH_FADE_TIME)
+	_damage_flash_tween.tween_property(_damage_flash, "color:a", 0.0, GameConfig.DAMAGE_FLASH_FADE_TIME)
 
 
 ## 弹药变化：仅当报告的是当前武器才刷新显示。
@@ -196,14 +207,14 @@ func _on_leg_state_changed(state: StringName) -> void:
 			_leg_warning_label.visible = false
 
 
-## 中央飘字：显示 MESSAGE_HOLD_TIME 秒后淡出；新消息顶替旧消息。
+## 中央飘字：显示 GameConfig.MESSAGE_HOLD_TIME 秒后淡出；新消息顶替旧消息。
 func _on_message_posted(text: String) -> void:
 	_message_label.text = text
 	_message_label.modulate.a = 1.0
 	if _message_tween != null and _message_tween.is_valid():
 		_message_tween.kill()
 	_message_tween = create_tween()
-	_message_tween.tween_interval(MESSAGE_HOLD_TIME)
+	_message_tween.tween_interval(GameConfig.MESSAGE_HOLD_TIME)
 	_message_tween.tween_property(_message_label, "modulate:a", 0.0, MESSAGE_FADE_TIME)
 
 
@@ -211,19 +222,20 @@ func _refresh_kills(kills: int) -> void:
 	_kills_label.text = "击杀：%d" % kills
 
 
-## 命中反馈：准星放大（普通 1.3× / 爆头 1.8×），保持 60ms 后恢复。
+## 命中反馈：准星放大（普通 / 爆头倍率见 GameConfig「UI 反馈动效」组），保持后恢复。
 func _on_hit_confirmed(is_headshot: bool) -> void:
-	var target_scale: float = CROSSHAIR_HEADSHOT_SCALE if is_headshot else CROSSHAIR_HIT_SCALE
+	var target_scale: float = (
+		GameConfig.CROSSHAIR_HEADSHOT_SCALE if is_headshot else GameConfig.CROSSHAIR_HIT_SCALE
+	)
 	if _crosshair_tween != null and _crosshair_tween.is_valid():
 		_crosshair_tween.kill()
 	_crosshair.scale = Vector2.ONE * target_scale
 	_crosshair_tween = create_tween()
-	_crosshair_tween.tween_interval(CROSSHAIR_PULSE_HOLD)
+	_crosshair_tween.tween_interval(GameConfig.CROSSHAIR_PULSE_HOLD)
 	_crosshair_tween.tween_property(_crosshair, "scale", Vector2.ONE, CROSSHAIR_RECOVER_TIME)
 
 
 ## 击杀反馈：准星上方飘出确认文字，停留后上飘淡出；连续击杀重新触发。
-## 伤害数值飘字契约无对应信号（hit_confirmed 不带伤害量），缺口见交付报告。
 func _on_enemy_died(_enemy: Node) -> void:
 	if _kill_tween != null and _kill_tween.is_valid():
 		_kill_tween.kill()
@@ -231,12 +243,44 @@ func _on_enemy_died(_enemy: Node) -> void:
 	_kill_label.modulate.a = 1.0
 	_kill_label.visible = true
 	_kill_tween = create_tween()
-	_kill_tween.tween_interval(KILL_FEEDBACK_HOLD_TIME)
+	_kill_tween.tween_interval(GameConfig.KILL_FEEDBACK_HOLD_TIME)
 	_kill_tween.tween_property(_kill_label, "modulate:a", 0.0, KILL_FEEDBACK_FADE_TIME)
 	_kill_tween.parallel().tween_property(
 		_kill_label, "position:y", _kill_label_base_y - KILL_FEEDBACK_RISE_PIXELS, KILL_FEEDBACK_FADE_TIME
 	)
 	_kill_tween.tween_callback(_kill_label.hide)
+
+
+## 伤害数值飘字：准星下方显示伤害量，上飘淡出；爆头加大字号 + 警示橙区分；
+## 即杀量（≥ DAMAGE_TEXT_INSTAKILL_THRESHOLD，如狙击 999 / RPG 爆径 9999）显示「击毙」替代数字。
+func _on_damage_dealt(amount: float, is_headshot: bool) -> void:
+	if amount >= DAMAGE_TEXT_INSTAKILL_THRESHOLD:
+		_damage_label.text = DAMAGE_TEXT_INSTAKILL_LABEL
+	else:
+		_damage_label.text = "%d" % roundi(amount)
+	_damage_label.add_theme_font_size_override(
+		"font_size", DAMAGE_TEXT_FONT_SIZE_HEADSHOT if is_headshot else DAMAGE_TEXT_FONT_SIZE
+	)
+	_damage_label.add_theme_color_override(
+		"font_color", DAMAGE_TEXT_COLOR_HEADSHOT if is_headshot else DAMAGE_TEXT_COLOR
+	)
+	if _damage_tween != null and _damage_tween.is_valid():
+		_damage_tween.kill()
+	_damage_label.position.y = _damage_label_base_y
+	_damage_label.modulate.a = 1.0
+	_damage_label.visible = true
+	_damage_tween = create_tween()
+	_damage_tween.tween_property(_damage_label, "modulate:a", 0.0, DAMAGE_TEXT_FADE_TIME)
+	_damage_tween.parallel().tween_property(
+		_damage_label, "position:y", _damage_label_base_y - DAMAGE_TEXT_RISE_PIXELS, DAMAGE_TEXT_FADE_TIME
+	)
+	_damage_tween.tween_callback(_damage_label.hide)
+
+
+## 碉堡被摧毁：走中央飘字通道（对应网页版 msgArea 语义；KillLabel 专司击杀确认，
+## 碉堡摧毁非击杀事件，不走 GameState 击杀记账链路）。
+func _on_bunker_destroyed() -> void:
+	_on_message_posted("碉堡被摧毁！")
 
 
 ## 呼叫后显示倒计时（未呼叫时保持隐藏，派单口径）。

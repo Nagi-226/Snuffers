@@ -15,6 +15,9 @@ extends Node
 const AUDIO_DIR: String = "res://assets/audio/"
 ## 枪声类音效：播放时附加 ±GameConfig.SFX_PITCH_JITTER 随机 pitch_scale（派单口径）。
 const GUN_SOUNDS: Array[StringName] = [&"rifle", &"rocket"]
+## 敌人机枪音高基值：复用 rifle.mp3 降调以区分敌我枪声（G2 派单口径；契约冻结未含此项，
+## 属听觉表现常量，如需调参由蜂后在下轮契约冻结迁入 GameConfig）。
+const ENEMY_MG_PITCH: float = 0.8
 
 const BUS_SFX: StringName = &"sfx"
 const BUS_LOOP: StringName = &"loop"
@@ -61,15 +64,30 @@ func _ensure_bus(bus_name: StringName, volume_linear: float) -> void:
 ## 播放一次性音效（sfx 总线）；枪声类自动附加随机音高抖动。
 ## name 与 assets/audio/ 下的文件名主体一致（rifle/rocket/reload/... ）。
 func play_sfx(sound_name: StringName) -> void:
+	var pitch: float = -1.0 ## 负值 = 不设置 pitch_scale（保持默认 1.0）
+	if sound_name in GUN_SOUNDS:
+		var jitter: float = GameConfig.SFX_PITCH_JITTER
+		pitch = randf_range(1.0 - jitter, 1.0 + jitter)
+	_spawn_sfx(sound_name, pitch)
+
+
+## 播放一次性音效并叠加音高基值（敌人机枪降调复用步枪音源用）；
+## 实际 pitch = base_pitch × (1 ± GameConfig.SFX_PITCH_JITTER)。
+func play_sfx_pitched(sound_name: StringName, base_pitch: float) -> void:
+	var jitter: float = GameConfig.SFX_PITCH_JITTER
+	_spawn_sfx(sound_name, base_pitch * randf_range(1.0 - jitter, 1.0 + jitter))
+
+
+## 实际创建播放器；pitch ≤ 0 时保持默认 1.0。
+func _spawn_sfx(sound_name: StringName, pitch: float) -> void:
 	var stream: AudioStream = _get_stream(sound_name)
 	if stream == null:
 		return
 	var player := AudioStreamPlayer.new()
 	player.stream = stream
 	player.bus = BUS_SFX
-	if sound_name in GUN_SOUNDS:
-		var jitter: float = GameConfig.SFX_PITCH_JITTER
-		player.pitch_scale = randf_range(1.0 - jitter, 1.0 + jitter)
+	if pitch > 0.0:
+		player.pitch_scale = pitch
 	player.finished.connect(player.queue_free)
 	add_child(player)
 	player.play()
@@ -149,14 +167,16 @@ func _enable_loop(stream: AudioStream) -> void:
 		stream.loop_end = 0
 
 
-## Events 接线表（派单口径）：
+## Events 接线表（G2 契约冻结终态，2026-07-21）：
 ## weapon_fired → 按 GameState.current_weapon 放 rifle/rocket（枪声带音高抖动）
 ## weapon_reloaded → reload ｜ hit_confirmed → hitmark ｜ player_damaged → player_hurt
 ## enemy_died → enemy_death ｜ medkit_used → medkit ｜ night_vision_toggled → nightvision
 ## heli_called → helicopter（loop 总线循环）｜ mission_completed / game_over → 停全部 loop
-## Sprint 2 缺口（契约无信号，见交付报告「需蜂后裁决」）：
-##   explosion ← 建议信号 rpg_exploded()；footstep（loop）← 建议信号 player_moving_changed(is_moving)；
-##   ui_click ← 留待 Sprint 3 菜单界面接入。
+## rpg_exploded → explosion ｜ player_moving_changed → footstep 循环起停（loop 总线；
+##   结束态由 mission_completed / game_over 的 stop_all_loops 兜底，开地图暂停沿用同一通道）
+## enemy_fired → &"rifle" 用 rifle；&"machine_gun" 复用 rifle 音源按 ENEMY_MG_PITCH 降调
+##   （±GameConfig.SFX_PITCH_JITTER 抖动不变）；position 暂不参与衰减（见交付报告）
+## ui_click ← 留待 Sprint 3 菜单界面接入。
 func _connect_events() -> void:
 	Events.weapon_fired.connect(_on_weapon_fired)
 	Events.weapon_reloaded.connect(_on_weapon_reloaded)
@@ -168,6 +188,9 @@ func _connect_events() -> void:
 	Events.heli_called.connect(_on_heli_called)
 	Events.mission_completed.connect(_on_mission_ended)
 	Events.game_over.connect(_on_game_over)
+	Events.rpg_exploded.connect(_on_rpg_exploded)
+	Events.player_moving_changed.connect(_on_player_moving_changed)
+	Events.enemy_fired.connect(_on_enemy_fired)
 
 
 func _disconnect_events() -> void:
@@ -181,6 +204,9 @@ func _disconnect_events() -> void:
 	Events.heli_called.disconnect(_on_heli_called)
 	Events.mission_completed.disconnect(_on_mission_ended)
 	Events.game_over.disconnect(_on_game_over)
+	Events.rpg_exploded.disconnect(_on_rpg_exploded)
+	Events.player_moving_changed.disconnect(_on_player_moving_changed)
+	Events.enemy_fired.disconnect(_on_enemy_fired)
 
 
 func _on_weapon_fired(_weapon_id: StringName) -> void:
@@ -225,3 +251,25 @@ func _on_mission_ended() -> void:
 
 func _on_game_over(_reason: StringName) -> void:
 	stop_all_loops()
+
+
+## RPG 爆炸：爆炸音效锚点（position 暂不参与衰减，见交付报告）。
+func _on_rpg_exploded(_position: Vector3) -> void:
+	play_sfx(&"explosion")
+
+
+## 脚步循环起停（loop 总线）；play_loop 幂等，重复 true 信号安全。
+func _on_player_moving_changed(is_moving: bool) -> void:
+	if is_moving:
+		play_loop(&"footstep")
+	else:
+		stop_loop(&"footstep")
+
+
+## 敌人枪声：步枪兵用 rifle；机枪手复用步枪音源按 ENEMY_MG_PITCH 降调区分。
+func _on_enemy_fired(kind: StringName, _position: Vector3) -> void:
+	match kind:
+		&"rifle":
+			play_sfx(&"rifle")
+		&"machine_gun":
+			play_sfx_pitched(&"rifle", ENEMY_MG_PITCH)
