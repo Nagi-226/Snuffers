@@ -4,18 +4,16 @@
 ## 玩家在射程内被通视且连续静止 ≥ SNIPER_STILL_TIME 秒 → 狙杀；
 ## 否则放空枪警告（不消耗玩家血量）。玩家静止时长读 GameState.still_time
 ## （由玩家域按 STILL_SPEED_THRESHOLD 维护，契约既有）。
-## lethal 参数化开关按 §6 裁决实现、默认 true（契约缺口，见交付报告）；
+## lethal 参数化开关按 §6 裁决实现，契约已落地（GameConfig.SNIPER_LETHAL /
+## SNIPER_KILL_DAMAGE / SNIPER_NON_LETHAL_DAMAGE，默认 true 保留秒杀，
+## G2 试玩可切 8 伤档）；
 ## 场景由 W4 摆放在狙击塔顶（SNIPER_POS / SNIPER_TOWER_HEIGHT），本脚本不强制 y。
 extends "res://scripts/enemies/machine_gunner.gd"
 
-## ===== 契约缺口（§6 G2 裁决项；建议迁入 game_config.gd，默认值=下列常量）=====
-const SNIPER_LETHAL: bool = true ## 事件狙击手 lethal 死代码裁决：默认保留秒杀（L1062/L3678）
-const SNIPER_NON_LETHAL_DAMAGE: float = 8.0 ## lethal=false 备选：改 8 伤普通弹（§6 裁决口径）
-const SNIPER_KILL_DAMAGE: float = 999.0 ## 秒杀结算伤害（web 直接清零三部位+gameOver，L1113-1119）
-
-## lethal 参数化开关（§6 裁决：实例字段，默认 true，对应 web L1062 实例属性）。
-## 塔上狙击手/事件狙击手可逐实例设置；契约落地后默认值改读 GameConfig。
-var lethal: bool = SNIPER_LETHAL
+## lethal 参数化开关（§6 裁决：实例字段，对应 web L1062 实例属性）。
+## 默认值读 GameConfig.SNIPER_LETHAL（常量编译期折叠，成员初始化安全）；
+## 塔上狙击手/事件狙击手可逐实例覆盖。
+var lethal: bool = GameConfig.SNIPER_LETHAL
 
 
 func _ready() -> void:
@@ -52,6 +50,10 @@ func _shoot(player_pos: Vector3) -> void:
 		return
 	_fire_cooldown = _get_fire_interval()
 	_magazine -= 1
+	# 开火广播（G2 冻结信号，W5 枪口音效/火光锚点；狙击枪复用 &"rifle" kind，
+	# 契约不新增 kind——蜂后裁决）。
+	var muzzle_pos := _muzzle.global_position if _muzzle != null else global_position
+	Events.enemy_fired.emit(&"rifle", muzzle_pos)
 	if GameState.still_time >= GameConfig.SNIPER_STILL_TIME:
 		_kill_shot()
 	else:
@@ -69,7 +71,7 @@ func _miss_shot() -> void:
 func _kill_shot() -> void:
 	if lethal:
 		Events.message_posted.emit("被狙击手击中! 一枪毙命")
-		Events.player_damaged.emit(&"head", SNIPER_KILL_DAMAGE)
+		Events.player_damaged.emit(&"head", GameConfig.SNIPER_KILL_DAMAGE)
 		Events.game_over.emit(&"sniper")
 	else:
-		_damage_player(SNIPER_NON_LETHAL_DAMAGE)
+		_damage_player(GameConfig.SNIPER_NON_LETHAL_DAMAGE)

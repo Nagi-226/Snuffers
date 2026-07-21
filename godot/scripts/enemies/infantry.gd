@@ -1,32 +1,14 @@
 ## Infantry — 步兵五态状态机（W3 敌智蜂）
 ##
 ## PATROL → ALERT → TAKE_COVER → PEEK → ENGAGE，逐行复刻网页版 Enemy 类
-## （index.html L1123-1426）。HP/移速/射速/伤害等契约参数全部引用 GameConfig
-## （§7 敌兵行）；web 内联的行为调参集中在「契约缺口」常量区（已登记交付报告，
-## 待蜂后迁入 game_config.gd 后切换）。
+## （index.html L1123-1426）。HP/移速/射速/伤害与行为调参全部引用 GameConfig
+## （§7 敌兵行 + G2 冻结 INFANTRY_* 调参组，契约已落地；web 行号出处保留在
+## game_config.gd 注释中）。
 ## 掩体消费约定：以 group "cover_point" 标记的节点作为掩体候选（W4 并行施工
 ## 按同一约定产出，最终由蜂后对齐），评分公式复刻 web L1350-1363。
 extends "res://scripts/enemies/enemy_base.gd"
 
-## ===== 契约缺口（web 内联值；建议迁入 game_config.gd，默认值=下列常量）=====
-const INFANTRY_PATROL_RADIUS: float = 40.0 ## 巡逻半径 u（L1144）
-const INFANTRY_ALERT_DELAY: float = 1.0 ## 发现玩家→戒备时长 s（L1204）
-const INFANTRY_COVER_SEARCH_RADIUS: float = 25.0 ## 掩体搜索半径 u（L1354）
-const INFANTRY_COVER_MIN_DIST: float = 8.0 ## 距玩家大于此值才优先找掩体（L1223）
-const INFANTRY_COVER_ARRIVE_DIST: float = 1.5 ## 到达掩体判定 u（L1240）
-const INFANTRY_COVER_SCORE_DIST: float = 0.5 ## 掩体评分距离权重（L1359）
-const INFANTRY_COVER_SCORE_ALIGN: float = 10.0 ## 掩体评分夹角权重（L1359）
-const INFANTRY_PEEK_FIRE_DELAY: float = 0.5 ## 探头前隐蔽时长 s（L1255）
-const INFANTRY_PEEK_CYCLE_TIME: float = 1.0 ## 探头周期 s（L1262）
-const INFANTRY_PEEK_REPEAT_CHANCE: float = 0.3 ## 探头后继续探头概率（L1265）
-const INFANTRY_PEEK_ENGAGE_TIME: float = 1.5 ## 探头转交战计时 s（L1269）
-const INFANTRY_ALERT_ENGAGE_TIME: float = 2.0 ## 戒备转交战计时 s（L1229）
-const INFANTRY_ENGAGE_APPROACH_DIST: float = 12.0 ## 交战逼近距离 u（L1279）
-const INFANTRY_ENGAGE_BACKOFF_DIST: float = 5.0 ## 交战后退距离 u（L1283）
-const INFANTRY_BLIND_FIRE_DIST: float = 3.0 ## 无视线也可开火的距离 u（L1257/L1293）
-const INFANTRY_FALLBACK_COVER_DIST: float = 5.0 ## 无掩体时受击后退距离 u（L1366）
-const INFANTRY_COMPANION_COVER_DIST: float = 5.0 ## 同伴警戒时距死亡点大于此值才找掩体（L3037）
-const INFANTRY_COMPANION_ENGAGE_TIME: float = 10.0 ## 同伴警戒交战计时 s（L3042）
+## ===== web 内联行为值（G2 冻结契约未收录的残留调参，已登记交付报告）=====
 const STRAFE_SPEED_CLOSE: float = 2.5 ## 交战近距离横移速度（L1284）
 const STRAFE_SPEED_MID: float = 2.0 ## 交战中距离横移速度（L1289）
 const BACKOFF_FACTOR: float = 0.45 ## 交战后退系数（-1.5×0.3，L1285-1287）
@@ -48,6 +30,8 @@ var _patrol_time: float = 0.0
 var _patrol_center: Vector3 = Vector3.ZERO
 var _attack_cooldown: float = 0.0
 var _strafe_time: float = 0.0
+
+@onready var _muzzle: Marker3D = $Muzzle
 
 
 func _ready() -> void:
@@ -72,10 +56,9 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y -= _gravity * delta
 
-	# 玩家缺席（冒烟/未入组）时保持巡逻，不做任何战斗转移。
-	var player := _get_player()
-	var has_player := player != null
-	var player_pos := player.global_position if has_player else global_position
+	# 玩家缺席（冒烟/未入组且 GameState 未写入）时保持巡逻，不做任何战斗转移。
+	var has_player := _has_player()
+	var player_pos := _get_player_position() if has_player else global_position
 	var dist := global_position.distance_to(player_pos) if has_player else INF
 	var can_see := _update_sight(delta, player_pos) if has_player else false
 	if can_see and not alerted:
@@ -106,13 +89,13 @@ func _physics_process(delta: float) -> void:
 ## PATROL：绕出生点圆周巡逻；看见玩家且在索敌半径内 → ALERT（L1201-1216）。
 func _update_patrol(delta: float, player_pos: Vector3, dist: float, can_see: bool) -> void:
 	if can_see and dist < GameConfig.INFANTRY_DETECT_RADIUS:
-		_set_state(State.ALERT, INFANTRY_ALERT_DELAY)
+		_set_state(State.ALERT, GameConfig.INFANTRY_ALERT_DELAY)
 		velocity.x *= 0.3
 		velocity.z *= 0.3
 		return
 	_patrol_time += delta * 0.3
-	var tx := _patrol_center.x + cos(_patrol_time) * INFANTRY_PATROL_RADIUS
-	var tz := _patrol_center.z + sin(_patrol_time) * INFANTRY_PATROL_RADIUS
+	var tx := _patrol_center.x + cos(_patrol_time) * GameConfig.INFANTRY_PATROL_RADIUS
+	var tz := _patrol_center.z + sin(_patrol_time) * GameConfig.INFANTRY_PATROL_RADIUS
 	var dir := Vector3(tx - global_position.x, 0.0, tz - global_position.z)
 	if dir.length() > 0.01:
 		dir = dir.normalized()
@@ -131,12 +114,12 @@ func _update_alert(player_pos: Vector3, dist: float) -> void:
 	velocity.z *= 0.5
 	if _state_timer <= 0.0:
 		var cover := _find_nearest_cover(player_pos)
-		if cover["found"] and dist > INFANTRY_COVER_MIN_DIST:
+		if cover["found"] and dist > GameConfig.INFANTRY_COVER_MIN_DIST:
 			_set_state(State.TAKE_COVER)
 			_target_pos = cover["pos"]
 			_has_target = true
 		else:
-			_set_state(State.ENGAGE, INFANTRY_ALERT_ENGAGE_TIME)
+			_set_state(State.ENGAGE, GameConfig.INFANTRY_ALERT_ENGAGE_TIME)
 			_shots_in_burst = 0
 
 
@@ -145,7 +128,7 @@ func _update_take_cover(player_pos: Vector3) -> void:
 	if not _has_target:
 		_set_state(State.ENGAGE)
 		return
-	if _horizontal_distance_to(_target_pos) < INFANTRY_COVER_ARRIVE_DIST:
+	if _horizontal_distance_to(_target_pos) < GameConfig.INFANTRY_COVER_ARRIVE_DIST:
 		_set_state(State.PEEK, 1.0 + randf())
 		_peek_timer = 0.0
 		velocity.x *= 0.2
@@ -163,17 +146,17 @@ func _update_take_cover(player_pos: Vector3) -> void:
 ## PEEK：隐蔽 0.5s → 探头窗口开火（0.2s/发）→ 周期末 30% 再探头，否则 ENGAGE（L1253-1276）。
 func _update_peek(delta: float, player_pos: Vector3, dist: float, can_see: bool) -> void:
 	_peek_timer += delta
-	if _peek_timer > INFANTRY_PEEK_FIRE_DELAY and _peek_timer < INFANTRY_PEEK_CYCLE_TIME:
+	if _peek_timer > GameConfig.INFANTRY_PEEK_FIRE_DELAY and _peek_timer < GameConfig.INFANTRY_PEEK_CYCLE_TIME:
 		_face_position(player_pos)
-		if (can_see or dist < INFANTRY_BLIND_FIRE_DIST) and _attack_cooldown <= 0.0:
+		if (can_see or dist < GameConfig.INFANTRY_BLIND_FIRE_DIST) and _attack_cooldown <= 0.0:
 			_attack(GameConfig.INFANTRY_PEEK_INTERVAL)
-	elif _peek_timer >= INFANTRY_PEEK_CYCLE_TIME:
+	elif _peek_timer >= GameConfig.INFANTRY_PEEK_CYCLE_TIME:
 		_peek_timer = 0.0
 		_shots_in_burst = 0
-		if randf() < INFANTRY_PEEK_REPEAT_CHANCE:
+		if randf() < GameConfig.INFANTRY_PEEK_REPEAT_CHANCE:
 			_state_timer = 1.0 + randf()
 		else:
-			_set_state(State.ENGAGE, INFANTRY_PEEK_ENGAGE_TIME)
+			_set_state(State.ENGAGE, GameConfig.INFANTRY_PEEK_ENGAGE_TIME)
 	else:
 		velocity.x *= 0.1
 		velocity.z *= 0.1
@@ -183,20 +166,20 @@ func _update_peek(delta: float, player_pos: Vector3, dist: float, can_see: bool)
 ## 计时耗尽或打满点射 → TAKE_COVER（L1277-1304）。
 func _update_engage(player_pos: Vector3, dist: float, can_see: bool) -> void:
 	_face_position(player_pos)
-	if dist > INFANTRY_ENGAGE_APPROACH_DIST:
+	if dist > GameConfig.INFANTRY_ENGAGE_APPROACH_DIST:
 		var dir := player_pos - global_position
 		dir.y = 0.0
 		dir = dir.normalized()
 		velocity.x = dir.x * GameConfig.INFANTRY_SPEED
 		velocity.z = dir.z * GameConfig.INFANTRY_SPEED
-	elif dist < INFANTRY_ENGAGE_BACKOFF_DIST:
+	elif dist < GameConfig.INFANTRY_ENGAGE_BACKOFF_DIST:
 		var strafe := sin(_strafe_time / 0.3) * STRAFE_SPEED_CLOSE
 		velocity.x = (player_pos.x - global_position.x) * -BACKOFF_FACTOR + strafe
 		velocity.z = (player_pos.z - global_position.z) * -BACKOFF_FACTOR
 	else:
 		velocity.x = sin(_strafe_time / 0.4) * STRAFE_SPEED_MID
 		velocity.z *= 0.5
-	if (can_see or dist < INFANTRY_BLIND_FIRE_DIST) and _attack_cooldown <= 0.0:
+	if (can_see or dist < GameConfig.INFANTRY_BLIND_FIRE_DIST) and _attack_cooldown <= 0.0:
 		_attack(GameConfig.INFANTRY_ENGAGE_INTERVAL)
 	if _state_timer <= 0.0 or _shots_in_burst >= _max_burst:
 		_shots_in_burst = 0
@@ -208,10 +191,12 @@ func _update_engage(player_pos: Vector3, dist: float, can_see: bool) -> void:
 
 
 ## 单发攻击：web attack() L1416-1425，直接结算 5 伤（命中判定由调用方视线门控）。
-## 枪口音效/火光依赖契约缺口信号 enemy_fired（见交付报告），当前静默。
+## 开火广播 Events.enemy_fired(&"rifle", 枪口位置)（G2 冻结信号，W5 音效/火光锚点）。
 func _attack(interval: float) -> void:
 	_attack_cooldown = interval
 	_shots_in_burst += 1
+	var muzzle_pos := _muzzle.global_position if _muzzle != null else global_position
+	Events.enemy_fired.emit(&"rifle", muzzle_pos)
 	_damage_player(GameConfig.INFANTRY_DAMAGE)
 
 
@@ -228,11 +213,11 @@ func _find_nearest_cover(player_pos: Vector3) -> Dictionary:
 			continue
 		var cover_pos := Vector3(point.global_position.x, 0.0, point.global_position.z)
 		var d := _horizontal_distance_to(cover_pos)
-		if d > INFANTRY_COVER_SEARCH_RADIUS:
+		if d > GameConfig.INFANTRY_COVER_SEARCH_RADIUS:
 			continue
 		var to_player := Vector3(player_pos.x - cover_pos.x, 0.0, player_pos.z - cover_pos.z).normalized()
 		var to_enemy := Vector3(global_position.x - cover_pos.x, 0.0, global_position.z - cover_pos.z).normalized()
-		var score := -d * INFANTRY_COVER_SCORE_DIST + to_player.dot(to_enemy) * INFANTRY_COVER_SCORE_ALIGN
+		var score := -d * GameConfig.INFANTRY_COVER_SCORE_DIST + to_player.dot(to_enemy) * GameConfig.INFANTRY_COVER_SCORE_ALIGN
 		if score > best_score:
 			best_score = score
 			best = cover_pos
@@ -245,7 +230,7 @@ func _find_fallback_pos(attacker_pos: Vector3) -> Vector3:
 	var dir := global_position - attacker_pos
 	dir.y = 0.0
 	dir = dir.normalized()
-	return global_position + dir * INFANTRY_FALLBACK_COVER_DIST
+	return global_position + dir * GameConfig.INFANTRY_FALLBACK_COVER_DIST
 
 
 ## 受击反应（web onHit L1368-1397）：巡逻/戒备中 → 找掩体；探头中 → 缩回重置。
@@ -272,15 +257,14 @@ func _on_enemies_alerted(origin: Vector3, radius: float) -> void:
 	if dist >= radius:
 		return
 	alerted = true
-	var player := _get_player()
-	var player_pos := player.global_position if player != null else global_position
+	var player_pos := _get_player_position() if _has_player() else global_position
 	var cover := _find_nearest_cover(player_pos)
-	if cover["found"] and dist > INFANTRY_COMPANION_COVER_DIST:
+	if cover["found"] and dist > GameConfig.INFANTRY_COMPANION_COVER_DIST:
 		_set_state(State.TAKE_COVER)
 		_target_pos = cover["pos"]
 		_has_target = true
 	else:
-		_set_state(State.ENGAGE, INFANTRY_COMPANION_ENGAGE_TIME)
+		_set_state(State.ENGAGE, GameConfig.INFANTRY_COMPANION_ENGAGE_TIME)
 	_shots_in_burst = 0
 
 

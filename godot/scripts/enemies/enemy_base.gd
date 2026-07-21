@@ -1,13 +1,14 @@
 ## EnemyBase — 敌人基类（W3 敌智蜂）
 ##
 ## 契约约束（AGENTS.md）：
-## - 全部手感参数引用 autoload/game_config.gd；web 内联的行为调参以「契约缺口」
-##   常量形式留在子类并已登记交付报告，待蜂后迁入契约后切换。
+## - 全部手感参数引用 autoload/game_config.gd；原「契约缺口」行为调参已于
+##   G2 契约冻结日（2026-07-21）迁入 game_config.gd，子类已全部切换。
 ## - 场景通信只走 autoload/events.gd：死亡发 Events.enemy_died(self)，对玩家
 ##   伤害发 Events.player_damaged(part, amount)，同伴警戒监听
 ##   Events.enemies_alerted(origin, radius)。
-## - 玩家节点经 group "player" 软引用获取（禁止跨模块 get_node；待
-##   GameState.player_position 契约落地后切换，见交付报告）。
+## - 玩家位置主通道为 GameState.player_position（G2 冻结契约，W1 每帧写入）；
+##   group "player" 软引用保留作启动早期回退与物理体 RID 排除（禁止跨模块
+##   get_node 的边界不变）。
 ## - 受击接口（与 W2 hit_solver.gd 鸭子类型约定对齐）：武器域 raycast/爆炸命中
 ##   后调用 take_damage(amount, is_headshot)；爆头判定约定为头部 hitbox
 ##   （Area3D "HeadHitbox"）节点元数据 "hit_part" = &"head"；狙击手加入
@@ -65,14 +66,13 @@ func _process(delta: float) -> void:
 ## W2 以两参形式调用 take_damage(damage, is_head)；爆头倍率/兵种固定伤害由
 ## 武器侧结算后传入最终伤害。返回 true 表示本次伤害致死。
 ## 受击方向（步兵找掩体用）取玩家位置——web 的 attackerPos 恒为 camera.position
-## （L2986），与此处 _get_player() 语义一致。
+## （L2986），与此处 _get_player_position() 语义一致。
 func take_damage(amount: float, _is_headshot: bool = false) -> bool:
 	if _dead:
 		return false
 	health -= amount
 	_flash_body()
-	var player := _get_player()
-	var attacker_pos := player.global_position if player != null else global_position
+	var attacker_pos := _get_player_position() if _has_player() else global_position
 	_on_damaged(amount, attacker_pos)
 	if health <= 0.0:
 		_die()
@@ -103,9 +103,28 @@ func _die() -> void:
 
 
 ## ===== 感知 =====
-## 玩家节点软引用；玩家未入组 "player" 时返回 null（调用方必须判空）。
+## 玩家节点软引用；玩家未入组 "player" 时返回 null。
+## 仅用于物理体 RID 排除与启动早期回退；位置读取请用 _get_player_position()。
 func _get_player() -> Node3D:
 	return get_tree().get_first_node_in_group(&"player") as Node3D
+
+
+## 玩家世界坐标主通道：GameState.player_position（G2 冻结契约，W1 每帧写入）。
+## 启动早期回退：GameState 尚未写入（Vector3.ZERO 哨兵；出生点 90,-55 不会
+## 碰撞该值）时回退 group "player" 节点坐标；均无则返回 ZERO（配 _has_player()
+## 判空使用）。
+func _get_player_position() -> Vector3:
+	if GameState.player_position != Vector3.ZERO:
+		return GameState.player_position
+	var player := _get_player()
+	if player != null:
+		return player.global_position
+	return Vector3.ZERO
+
+
+## 玩家是否在场（GameState 已写入或 group 节点存在）。
+func _has_player() -> bool:
+	return GameState.player_position != Vector3.ZERO or _get_player() != null
 
 
 ## 节流视线检测：每 SIGHT_CHECK_INTERVAL 秒做一次真实射线，其余帧用缓存。

@@ -65,10 +65,9 @@ func _physics_process(delta: float) -> void:
 		else:
 			return
 
-	var player := _get_player()
-	if player == null:
+	if not _has_player():
 		return
-	var player_pos := player.global_position
+	var player_pos := _get_player_position()
 	var can_see := _update_sight(delta, player_pos)
 	var dist := global_position.distance_to(player_pos)
 	# 进入交战：射程内且通视，或已被警戒（web L958；警戒后无距离/视线限制）。
@@ -90,6 +89,10 @@ func _shoot(player_pos: Vector3) -> void:
 		return
 	_fire_cooldown = _get_fire_interval()
 	_magazine -= 1
+	# 开火广播（G2 冻结信号，W5 枪口音效/火光锚点；碉堡机枪继承本实现。
+	# 狙击手重写 _shoot 不发本信号——契约 kind 未覆盖狙击枪，见交付报告）。
+	var muzzle_pos := _muzzle.global_position if _muzzle != null else global_position
+	Events.enemy_fired.emit(&"machine_gun", muzzle_pos)
 	_damage_player(_roll_damage())
 
 
