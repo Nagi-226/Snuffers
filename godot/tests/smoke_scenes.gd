@@ -1,9 +1,9 @@
 ## smoke_scenes.gd -- headless 场景节点冒烟（L1 校验链 Sprint 2 加固步）。
 ##
 ## 逐个加载注册的 .tscn 并实例化，断言契约关键节点存在。
-## 场景文件尚未交付的用例（W2 武器 / W3 敌智蜂骨架）报 SKIP 而非 FAIL，
-## 保证并行施工期间链路常绿；场景落地后即转正式断言，由 W6 按实际节点
-## 结构补全 expect 清单。
+## optional = true 的用例在场景文件缺失时报 SKIP 而非 FAIL，供并行施工期间
+## 保持链路常绿；W2 武器 / W3 兵种场景已于 G2 全量交付，相应用例已按 .tscn
+## 实际节点结构补全 expect 并转为正式断言（optional = false）。
 ##
 ## 用法（工程根下 headless）：
 ##   godot --headless --path . -s res://tests/smoke_scenes.gd
@@ -41,11 +41,31 @@ const CASES: Array = [
 		"optional": false,
 		"expect": ["StatusPanel", "KillsLabel", "HeliTimerLabel", "LegWarningLabel", "MessageLabel", "AmmoLabel", "Crosshair"],
 	},
-	# ===== W2 火力蜂占位骨架：武器场景交付后转正式断言，expect 由 W6 补全 =====
-	{"scene": "res://scenes/weapons/rifle.tscn", "optional": true, "expect": []},
-	{"scene": "res://scenes/weapons/rpg.tscn", "optional": true, "expect": []},
-	# ===== W3 敌智蜂占位骨架：五态机场景交付后同上处理 =====
-	{"scene": "res://scenes/enemies/infantry.tscn", "optional": true, "expect": []},
+	# ===== W2 火力蜂武器场景（已交付入库，G2 转正式断言；expect 按 .tscn 实际节点补全）=====
+	{"scene": "res://scenes/weapons/rifle.tscn", "optional": false, "expect": ["ViewModel"]},
+	{"scene": "res://scenes/weapons/rpg.tscn", "optional": false, "expect": ["ViewModel"]},
+	{"scene": "res://scenes/weapons/rpg_projectile.tscn", "optional": false, "expect": ["Body"]},
+	# ===== W3 敌智蜂兵种场景（已交付入库，G2 转正式断言；Eye/Muzzle 为 AI 感知/开火锚点）=====
+	{
+		"scene": "res://scenes/enemies/infantry.tscn",
+		"optional": false,
+		"expect": ["CollisionShape3D", "HeadHitbox", "BodyMesh", "HeadMesh", "GunMesh", "Eye", "Muzzle"],
+	},
+	{
+		"scene": "res://scenes/enemies/machine_gunner.tscn",
+		"optional": false,
+		"expect": ["CollisionShape3D", "HeadHitbox", "BodyMesh", "HeadMesh", "GunMesh", "Eye", "Muzzle"],
+	},
+	{
+		"scene": "res://scenes/enemies/sniper.tscn",
+		"optional": false,
+		"expect": ["CollisionShape3D", "HeadHitbox", "BodyMesh", "HeadMesh", "GunMesh", "Eye", "Muzzle"],
+	},
+	{
+		"scene": "res://scenes/enemies/bunker_machine_gunner.tscn",
+		"optional": false,
+		"expect": ["CollisionShape3D", "BodyMesh", "GunMesh", "Eye", "Muzzle"],
+	},
 ]
 
 var _failures: int = 0

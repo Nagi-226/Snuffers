@@ -1,9 +1,73 @@
-[gd_scene format=3]
+[gd_scene load_steps=9 format=3]
+
+; G2 驻军集成（W6 质检蜂串行）：灰盒关卡 + 代表性驻军
+;   步兵×6（靠近 cover_point 分布）/ 机枪手×2（MG1/MG2 标记位）/
+;   碉堡机枪×1（碉堡 muzzle_ne 口）/ 狙击手×1（sniper_perch 标记）
+; 18+2 全量部署属 G3 任务，此处不做。
+; G2 收尾总装（W6 串行）：玩家实例化于出生点 GameConfig.START_POS(90,-55)，
+;   地面顶面 y=0，胶囊底部贴地留 0.1 余量；HUD / AudioManager 挂根。
+;   骨架期占位 Camera3D / DirectionalLight3D 已移除（玩家相机 current 已就绪，
+;   灰盒自带夜战光照 WorldEnvironment+MoonLight，避免双重叠加）。
+
+[ext_resource type="PackedScene" path="res://scenes/levels/greybox_arena.tscn" id="1_arena"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/infantry.tscn" id="2_infantry"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/machine_gunner.tscn" id="3_machine_gunner"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/bunker_machine_gunner.tscn" id="4_bunker_mg"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/sniper.tscn" id="5_sniper"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="6_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="7_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/audio_manager.tscn" id="8_audio"]
 
 [node name="Main" type="Node3D"]
 
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.866026, 0.5, 0, -0.5, 0.866026, 0, 4, 8)
+[node name="GreyboxArena" parent="." instance=ExtResource("1_arena")]
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 6, 0)
+; 玩家：出生点 GameConfig.START_POS(90,-55)，对应 greybox Markers/start_pos；y=0.1 防初始穿插
+[node name="Player" parent="." instance=ExtResource("6_player")]
+position = Vector3(90, 0.1, -55)
+
+; UI / 音频（W5 域场景，实例化只读）
+[node name="HUD" parent="." instance=ExtResource("7_hud")]
+
+[node name="AudioManager" parent="." instance=ExtResource("8_audio")]
+
+; G2 代表性驻军（掩体点位对应 greybox_arena.tscn Covers 组 cover_point）
+[node name="Garrison" type="Node3D" parent="."]
+
+; 步兵×6：沿东→西推进线靠近 cover_point 分布（PATROL 出生点即巡逻中心）
+[node name="Infantry01" parent="Garrison" instance=ExtResource("2_infantry")]
+position = Vector3(84, 0, -50)
+
+[node name="Infantry02" parent="Garrison" instance=ExtResource("2_infantry")]
+position = Vector3(16, 0, -37)
+
+[node name="Infantry03" parent="Garrison" instance=ExtResource("2_infantry")]
+position = Vector3(38, 0, -8)
+
+[node name="Infantry04" parent="Garrison" instance=ExtResource("2_infantry")]
+position = Vector3(32, 0, 17)
+
+[node name="Infantry05" parent="Garrison" instance=ExtResource("2_infantry")]
+position = Vector3(-22, 0, -27)
+
+[node name="Infantry06" parent="Garrison" instance=ExtResource("2_infantry")]
+position = Vector3(-27, 0, 22)
+
+; 机枪手×2：MG1/MG2 标记位（game_config.gd MG1_POS/MG2_POS），面向东侧玩家推进方向
+[node name="MachineGunner01" parent="Garrison" instance=ExtResource("3_machine_gunner")]
+position = Vector3(12, 0, -20)
+rotation = Vector3(0, -1.5708, 0)
+
+[node name="MachineGunner02" parent="Garrison" instance=ExtResource("3_machine_gunner")]
+position = Vector3(12, 0, 20)
+rotation = Vector3(0, -1.5708, 0)
+
+; 碉堡机枪×1：碉堡 muzzle_ne 口（碉堡(-50,40) + 标记局部(4.596,-4.596)），面向东北来犯方向
+[node name="BunkerMachineGunner" parent="Garrison" instance=ExtResource("4_bunker_mg")]
+position = Vector3(-45.404, 0, 35.404)
+rotation = Vector3(0, -0.785398, 0)
+
+; 狙击手×1：狙击塔 sniper_perch 标记 (80, 12.25, 0)，面向西侧场区
+[node name="Sniper01" parent="Garrison" instance=ExtResource("5_sniper")]
+position = Vector3(80, 12.25, 0)
+rotation = Vector3(0, 1.5708, 0)
