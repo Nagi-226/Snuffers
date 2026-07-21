@@ -26,6 +26,8 @@ var is_aiming: bool = false
 var leg_state: StringName = &"healthy"
 ## 连续静止时长（狙击手判定用）
 var still_time: float = 0.0
+## 玩家世界坐标（W1 每帧写入；敌人感知/AI 共用，替代 group 软引用——G2 冻结新增）
+var player_position: Vector3 = Vector3.ZERO
 
 var heli_unlocked: bool = false
 var heli_time_left: float = 0.0
@@ -35,6 +37,13 @@ var night_vision: bool = false
 
 func _ready() -> void:
 	reset()
+	# 击杀统一记账（纯状态派生，非业务逻辑；防止 W2/W3 双头计数——2026-07-21 蜂后裁决）
+	Events.enemy_died.connect(_on_enemy_died)
+
+
+func _on_enemy_died(_enemy: Node) -> void:
+	kills += 1
+	Events.kills_changed.emit(kills)
 
 
 ## 回到开局状态（对应网页版 initGame L327 初始值）。

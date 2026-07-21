@@ -17,6 +17,8 @@ signal player_prone_changed(is_prone: bool)
 signal player_aim_changed(is_aiming: bool)
 ## 移动速度状态变化（健康/受伤/重伤/趴下联动结果）。state: &"normal" / &"injured" / &"critical" / &"prone"
 signal player_speed_state_changed(state: StringName)
+## 移动输入状态切换（脚步循环音起停用）。is_moving: 有无移动输入，与速度档位语义不同（G2 冻结新增）。
+signal player_moving_changed(is_moving: bool)
 ## 连续静止时长（秒），狙击手秒杀判定与 HUD 警告共用。仅在越过 1.0s 阈值时必需持续广播。
 signal player_still_time_changed(seconds: float)
 ## 腿部状态警告（&"healthy" / &"injured" / &"critical"），HUD「⚠ 腿部受伤」条。
@@ -37,12 +39,20 @@ signal ammo_changed(weapon_id: StringName, mag: int, reserve: int)
 signal hit_confirmed(is_headshot: bool)
 ## 步枪打碉堡跳弹（提示「需用火箭筒摧毁碉堡」）。
 signal ricochet_on_bunker()
+## RPG 爆炸（爆炸音效/特效锚点，G2 冻结新增）。
+signal rpg_exploded(position: Vector3)
+## 对敌人造成伤害（HUD 伤害飘字用，G2 冻结新增）。与 hit_confirmed 互补；伤害投递仍走 take_damage 鸭子接口。
+signal damage_dealt(amount: float, is_headshot: bool)
+## 碉堡被 RPG 摧毁（碉堡机枪停火 / HUD 提示 / 任务判定共用，G2 冻结新增）。碉堡全图唯一，无需参数。
+signal bunker_destroyed()
 
 # ===== 敌人 =====
 ## 敌人死亡（任意类型）。enemies_alerted 由击杀者随后广播。
 signal enemy_died(enemy: Node)
 ## 以 origin 为中心 radius 范围同伴警戒（网页版半径 40，index.html L3029-3057）。
 signal enemies_alerted(origin: Vector3, radius: float)
+## 敌人开火（枪口音效/火光锚点，G2 冻结新增）。kind: &"rifle" / &"machine_gun"
+signal enemy_fired(kind: StringName, position: Vector3)
 
 # ===== 任务 =====
 ## 呼叫直升机按钮解锁状态变化（撤离点 15u 内或通讯小屋 6u 内）。

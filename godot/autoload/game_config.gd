@@ -64,6 +64,10 @@ const RIFLE_SPREAD_AIM: float = 0.0005 ## 瞄准散布（L2967）
 const RIFLE_RECOIL_PITCH: float = 0.003 ## 每发上跳 rad（L2959）；Godot 版加恢复（有意改进：网页版永久累积）
 const RIFLE_RECOIL_VIEW_OFFSET: float = 0.08 ## 视图模型后坐量（L2959）
 const RIFLE_RECOIL_DECAY: float = 0.82 ## 后坐衰减/帧（L3192）
+const RIFLE_RECOIL_RECOVER_RATE: float = 6.0 ## 相机后坐恢复速率 /s（有意改进：网页版永久上跳，Godot 版指数恢复）
+const RIFLE_RECOIL_VIEW_ROT: float = 2.25 ## 视图模型后坐旋转系数（L3205-3207）
+const RIFLE_RECOIL_VIEW_Y_FACTOR: float = 0.025 ## 视图模型后坐位移系数 Y（L3205-3207）
+const RIFLE_RECOIL_VIEW_Z_FACTOR: float = 0.05 ## 视图模型后坐位移系数 Z（L3205-3207）
 const SCOPE_SHAKE_TIME: float = 0.2 ## 开镜击发抖动时长 s（L2960）
 const SCOPE_SHAKE_PIXELS: float = 6.0 ## 抖动幅度 ±px（L2962）
 const SCOPE_BREATH_PIXELS: float = 1.5 ## 呼吸摆动 ±px（L3225）
@@ -76,6 +80,13 @@ const RPG_MAX_RANGE: float = 300.0 ## 最大射程 u（L3131）
 const RPG_EXPLODE_RADIUS: float = 10.0 ## 爆炸半径 u（L1511）
 const RPG_BUNKER_RADIUS_BONUS: float = 5.0 ## 对碉堡判定半径加成（L1593）
 const RPG_SELF_DAMAGE: bool = false ## 网页版爆炸对玩家零伤害（L1645-1657）；G2 复核是否保留
+const RPG_RECOIL_PITCH: float = 0.01 ## RPG 独立后坐上跳 rad（修复网页版后坐永不触发缺陷；暂定值，G2 试玩手感裁决）
+const RPG_RECOIL_RECOVER_RATE: float = 6.0 ## RPG 后坐恢复速率 /s（Godot 版新增，网页版无）
+const RPG_RECOIL_VIEW_ROT: float = 2.5 ## 视图模型后坐旋转系数（L3189-3191）
+const RPG_RECOIL_VIEW_Y_FACTOR: float = 0.025 ## 视图模型后坐位移系数 Y（L3189-3191）
+const RPG_RECOIL_VIEW_Z_FACTOR: float = 0.075 ## 视图模型后坐位移系数 Z（L3189-3191）
+const RPG_EXPLODE_DAMAGE: float = 9999.0 ## 爆径内即杀伤害（L1556-1591）
+const RPG_EXPLODE_BELOW_Y: float = -10.0 ## 坠地自爆高度（L3172）
 
 # ===== 敌人（G2 门禁基准）=====
 const INFANTRY_HP: float = 50.0 ## 步兵血量（L1139）
@@ -89,6 +100,25 @@ const INFANTRY_DAMAGE: float = 5.0 ## 单发伤害（L1424）
 const INFANTRY_BURST_MIN: int = 3 ## 点射下限（L1157）
 const INFANTRY_BURST_MAX: int = 5 ## 点射上限（L1157）
 const ALERT_ON_DEATH_RADIUS: float = 40.0 ## 同伴死亡警戒半径（L3042）
+# —— 步兵行为调参组（G2 冻结自 W3 脚本常量迁入，出处行为 W3 报告标注）——
+const INFANTRY_PATROL_RADIUS: float = 40.0 ## 巡逻半径
+const INFANTRY_ALERT_DELAY: float = 1.0 ## 警戒延迟 s
+const INFANTRY_COVER_SEARCH_RADIUS: float = 25.0 ## 掩体搜索半径
+const INFANTRY_COVER_MIN_DIST: float = 8.0 ## 掩体最小间距
+const INFANTRY_COVER_ARRIVE_DIST: float = 1.5 ## 到达掩体判定距离
+const INFANTRY_COVER_SCORE_DIST: float = 0.5 ## 掩体评分·距离权重
+const INFANTRY_COVER_SCORE_ALIGN: float = 10.0 ## 掩体评分·朝向权重
+const INFANTRY_PEEK_FIRE_DELAY: float = 0.5 ## 探头开火延迟 s
+const INFANTRY_PEEK_CYCLE_TIME: float = 1.0 ## 探头周期 s
+const INFANTRY_PEEK_REPEAT_CHANCE: float = 0.3 ## 重复探头概率
+const INFANTRY_PEEK_ENGAGE_TIME: float = 1.5 ## 探头转交战时长 s
+const INFANTRY_ALERT_ENGAGE_TIME: float = 2.0 ## 警戒转交战时长 s
+const INFANTRY_ENGAGE_APPROACH_DIST: float = 12.0 ## 交战逼近距离
+const INFANTRY_ENGAGE_BACKOFF_DIST: float = 5.0 ## 交战后退距离
+const INFANTRY_BLIND_FIRE_DIST: float = 3.0 ## 盲射距离
+const INFANTRY_FALLBACK_COVER_DIST: float = 5.0 ## 撤退掩体距离
+const INFANTRY_COMPANION_COVER_DIST: float = 5.0 ## 同伴掩体距离
+const INFANTRY_COMPANION_ENGAGE_TIME: float = 10.0 ## 同伴交战时长 s
 
 const MG_HP: float = 80.0 ## 机枪手血量（L908）
 const MG_FIRE_INTERVAL: float = 0.06 ## 射速 s/发 ≈ 1000 RPM（L910）
@@ -100,8 +130,9 @@ const MG_RANGE: float = 100.0 ## 射程（L911）
 
 const BUNKER_MG_FIRE_INTERVAL: float = 0.08 ## 碉堡机枪射速（L1822）
 const BUNKER_MG_DAMAGE_MIN: float = 5.0 ## 碉堡机枪伤害下限（L1822）
+const BUNKER_MG_DAMAGE_RAND: float = 3.0 ## 碉堡机枪伤害随机浮动（同公式 L1027/L1822）
 const BUNKER_MG_RANGE: float = 60.0 ## 碉堡机枪射程（L1823）
-const BUNKER_PRONE_CEASEFIRE_TIME: float = 7.0 ## 玩家趴下后停火倒计时 s（L941）
+const BUNKER_PRONE_CEASEFIRE_TIME: float = 7.0 ## 趴下即停火的安全窗口时长 s；窗口耗尽或起身立即恢复射击（L941-949/L964；G2 裁决采 A 语义，2026-07-21 机主签字）
 
 const SNIPER_HP: float = 80.0 ## 狙击手血量（继承，L1050）
 const SNIPER_FIRE_INTERVAL: float = 4.0 ## 射击间隔 s（L1057）
@@ -109,6 +140,9 @@ const SNIPER_MAG: int = 5 ## 弹匣（L1058）
 const SNIPER_RELOAD_TIME: float = 5.0 ## 换弹 s（L1060）
 const SNIPER_RANGE: float = 150.0 ## 射程（L1056）
 const SNIPER_TOWER_HEIGHT: float = 12.0 ## 狙击塔高（L2254）
+const SNIPER_LETHAL: bool = true ## 狙杀开关（§6 死代码裁决：参数化保留秒杀为默认，G2 试玩可切 8 伤档）
+const SNIPER_KILL_DAMAGE: float = 999.0 ## 狙杀伤害（lethal=true）
+const SNIPER_NON_LETHAL_DAMAGE: float = 8.0 ## 普通弹伤害（lethal=false，L3678 死代码启用量）
 
 const EVENT_SNIPER_COUNT: int = 2 ## 事件狙击手数量（L3671）
 const EVENT_SNIPER_INTERVAL: float = 5.0 ## 射击间隔 s（L3677）
@@ -116,7 +150,7 @@ const EVENT_SNIPER_MAG: int = 3 ## 弹匣（L3677）
 const EVENT_SNIPER_RANGE: float = 80.0 ## 射程（L3677）
 const EVENT_SNIPER_SPAWN_DELAY: float = 3.0 ## 呼机后刷出延迟 s（L3671）
 const EVENT_SNIPER_SPAWN_DIST: float = 35.0 ## 距撤离点刷出距离（L3673）
-## 事件狙击手 lethal=false 死代码（L3678）→ G2 裁决：8 伤普通弹 or 保留秒杀
+## 事件狙击手 lethal 死代码（L3678）→ 已裁决：契约化 SNIPER_LETHAL 开关，默认 true 保留秒杀，G2 试玩可切 8 伤档
 
 # ===== 地图关键点（L452-460）=====
 const MAP_SIZE: Vector2 = Vector2(200.0, 120.0) ## 地图尺寸
@@ -139,3 +173,12 @@ const VOL_SFX: float = 0.8 ## 音效组
 const VOL_LOOP: float = 0.4 ## 循环组（脚步/直升机）
 const VOL_AMBIENT: float = 0.25 ## 环境组
 const SFX_PITCH_JITTER: float = 0.1 ## 枪声音高抖动 ±10%（L392）
+
+# ===== UI 反馈动效（G2 冻结自 W5 脚本常量迁入）=====
+const CROSSHAIR_HIT_SCALE: float = 1.3 ## 命中准星放大倍率
+const CROSSHAIR_HEADSHOT_SCALE: float = 1.8 ## 爆头准星放大倍率
+const CROSSHAIR_PULSE_HOLD: float = 0.06 ## 准星放大停留 s
+const MESSAGE_HOLD_TIME: float = 0.8 ## 中央飘字停留 s
+const DAMAGE_FLASH_PEAK_ALPHA: float = 0.35 ## 受击红晕峰值透明度
+const DAMAGE_FLASH_FADE_TIME: float = 0.4 ## 受击红晕淡出 s
+const KILL_FEEDBACK_HOLD_TIME: float = 0.6 ## 击杀反馈停留 s
