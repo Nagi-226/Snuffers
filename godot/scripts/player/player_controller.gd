@@ -12,7 +12,7 @@ const KEY_BACK: Key = KEY_S ## 网页版 S：后退
 const KEY_STRAFE_LEFT: Key = KEY_A ## 网页版 A：左移
 const KEY_STRAFE_RIGHT: Key = KEY_D ## 网页版 D：右移
 const KEY_PRONE: Key = KEY_C ## 网页版 C：趴下切换
-const KEY_RELOAD: Key = KEY_R ## 网页版 R：换弹
+const KEY_RELOAD: Key = KEY_R ## 网页版 R：换弹（计时归 W2 武器域；R 键通路缺口已上报蜂后，见交付报告）
 const KEY_WEAPON_RIFLE: Key = KEY_1 ## 网页版 1：切步枪
 const KEY_WEAPON_RPG: Key = KEY_2 ## 网页版 2：切火箭筒
 const KEY_NIGHT_VISION: Key = KEY_V ## 网页版 V：夜视仪切换
@@ -21,7 +21,7 @@ const KEY_HELI: Key = KEY_H ## 网页版 H：呼叫直升机
 const KEY_RELEASE_MOUSE: Key = KEY_ESCAPE ## Esc：释放鼠标（点击画面恢复捕获）
 
 var _pitch: float = 0.0
-var _is_reloading: bool = false
+var _is_moving: bool = false
 var _speed_state: StringName = &"normal"
 var _still_broadcast_second: int = 0
 
@@ -81,8 +81,6 @@ func _unhandled_input(event: InputEvent) -> void:
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			KEY_PRONE:
 				_toggle_prone()
-			KEY_RELOAD:
-				_start_reload()
 			KEY_WEAPON_RIFLE:
 				_switch_weapon(&"rifle")
 			KEY_WEAPON_RPG:
@@ -118,6 +116,12 @@ func _physics_process(delta: float) -> void:
 		input_dir = input_dir.normalized()
 		direction = (global_transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
 
+	# 移动输入边沿广播（G2 冻结新增信号；脚步循环音起停用，与速度档位语义不同）。
+	var is_moving := input_dir != Vector2.ZERO
+	if is_moving != _is_moving:
+		_is_moving = is_moving
+		Events.player_moving_changed.emit(is_moving)
+
 	var speed := _current_speed()
 	velocity.x = direction.x * speed
 	velocity.z = direction.z * speed
@@ -127,6 +131,9 @@ func _physics_process(delta: float) -> void:
 	# 世界边界钳制。
 	global_position.x = clampf(global_position.x, -GameConfig.WORLD_BOUND_X, GameConfig.WORLD_BOUND_X)
 	global_position.z = clampf(global_position.z, -GameConfig.WORLD_BOUND_Z, GameConfig.WORLD_BOUND_Z)
+
+	# 每物理帧写入玩家世界坐标（G2 冻结新增字段；敌人感知/AI 共用）。
+	GameState.player_position = global_position
 
 	_update_speed_state()
 	_update_still_time(delta)
@@ -216,18 +223,12 @@ func _toggle_aim() -> void:
 	Events.player_aim_changed.emit(GameState.is_aiming)
 
 
-## R：占位换弹——只发信号，不接真实弹药逻辑（W2 职责）。
-## 契约注明「RPG 无此事件」，故仅步枪触发。
-func _start_reload() -> void:
-	if _is_reloading or GameState.current_weapon != &"rifle":
-		return
-	_is_reloading = true
-	Events.weapon_reload_started.emit(&"rifle")
-	await get_tree().create_timer(GameConfig.RIFLE_RELOAD_TIME).timeout
-	if not is_instance_valid(self):
-		return
-	_is_reloading = false
-	Events.weapon_reloaded.emit(&"rifle")
+## 武器后坐接收（蜂后裁决：recoil_kick 不上总线，player.tscn 内局部连接）。
+## 语义即「rotation.x += delta」：增量同步进 _pitch 保持鼠标/后坐状态一致，
+## 沿用既有俯仰钳制，避免后坐把相机推出 ±PITCH_CLAMP。
+func _on_weapon_recoil_kick(pitch_delta: float) -> void:
+	_pitch = clampf(_pitch + pitch_delta, -GameConfig.PITCH_CLAMP, GameConfig.PITCH_CLAMP)
+	_camera.rotation.x = _pitch
 
 
 ## 1/2：切枪占位——改写 GameState.current_weapon + 发信号。
