@@ -5,9 +5,10 @@
 
 ; RPG 定义（G2 门禁基准，§7 对照表）。
 ; GameConfig 已有字段运行时由 sync_from_config() 覆盖，此处数值必须与 GameConfig 一致（L2 校验项）。
-; recoil_pitch=0.01 为「契约缺口」暂定值：网页版 RPG 后坐永不触发（缺陷，index.html L2959
-; 仅步枪路径），无对照值，待蜂后/机主手感裁决；view 系数取自网页版 updateWeaponRecoil RPG 分支
-; （L3189-3191：rot 2.5 / y 0.025 / z 0.075）。
+; G2 契约冻结（2026-07-21）：recoil_pitch / recoil_recover_rate / view_*_factor / explode_damage /
+; projectile_explode_below_y 已由 RPG_RECOIL_* / RPG_EXPLODE_* 契约接管（RPG_RECOIL_PITCH=0.01
+; 采纳原暂定值，修复网页版 RPG 后坐永不触发缺陷，index.html L2959）。
+; recoil_view_offset / recoil_decay 契约无 RPG 专属项，由本资源承载（与步枪同值 0.08 / 0.82）。
 [resource]
 script = ExtResource("1_data")
 weapon_id = &"rpg"

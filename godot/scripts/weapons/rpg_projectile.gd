@@ -6,9 +6,13 @@
 ## 不用 RigidBody3D：网页版为纯运动学弹道，手动积分才能 1:1 对齐 §7 参数表。
 ##
 ## 爆炸结算（explode，index.html L1510-1625）：
-## - 爆径 10u 内可伤害目标即杀（explode_damage 为契约缺口暂定值，网页版不经 HP 直接移除）；
-## - group "bunker" 目标在 爆径+5u 内特杀（destroy() 鸭子调用；
-##   彻底总线化的 Events.bunker_destroyed 信号为契约缺口，见交付报告）；
+## - 爆径 10u 内可伤害目标即杀（explode_damage 由 GameConfig.RPG_EXPLODE_DAMAGE 契约接管；
+##   网页版不经 HP 直接移除）；
+## - group "bunker" 目标在 爆径+5u 内特杀（destroy() 鸭子调用保留为投递机制，
+##   随后发 Events.bunker_destroyed() 供碉堡机枪停火/HUD/任务判定消费——G2 冻结信号）；
+## - 每次爆炸发 Events.rpg_exploded(position)（音效/特效锚点，G2 冻结信号）；
+## - 每次伤害投递发 Events.damage_dealt(amount, false)（HUD 飘字，G2 冻结信号；
+##   RPG 爆炸不分部位，is_headshot 恒 false）；
 ## - 玩家零自伤（GameConfig.RPG_SELF_DAMAGE=false，经发射方 RID 排除实现）。
 extends Node3D
 
@@ -30,6 +34,9 @@ func setup(direction: Vector3, excludes: Array[RID], data: WeaponData) -> void:
 
 func _physics_process(delta: float) -> void:
 	if _exploded:
+		return
+	# 守卫：setup() 由 rpg_controller 实例化后调用；未 setup 时（如场景单独冒烟）静止待销毁。
+	if _data == null:
 		return
 
 	_velocity.y -= _data.projectile_gravity * delta
@@ -61,6 +68,8 @@ func _explode(at: Vector3) -> void:
 		return
 	_exploded = true
 	set_physics_process(false)
+	# 爆炸锚点广播（G2 冻结契约）：音效/特效由消费方接入。
+	Events.rpg_exploded.emit(at)
 	_apply_area_damage(at)
 	_spawn_explosion_placeholder(at)
 	queue_free()
@@ -86,6 +95,8 @@ func _apply_area_damage(at: Vector3) -> void:
 			if bunker.global_position.distance_to(at) <= _data.explode_radius + _data.bunker_radius_bonus:
 				if bunker.has_method(&"destroy"):
 					bunker.destroy()
+					# G2 冻结契约：碉堡全图唯一，信号无参数；destroy() 鸭子调用保留为投递机制。
+					Events.bunker_destroyed.emit()
 			continue
 
 		var target := HitSolver.find_damageable(collider)
@@ -94,9 +105,11 @@ func _apply_area_damage(at: Vector3) -> void:
 		damaged.append(target)
 		# 爆径内即杀（网页版不经 HP 直接移除，L1556-1591）；不分部位。
 		target.take_damage(_data.explode_damage, false)
+		# G2 冻结契约：HUD 伤害飘字；take_damage 鸭子调用保留为投递机制。
+		Events.damage_dealt.emit(_data.explode_damage, false)
 
 
-## 灰盒占位视觉：半透明火球 1.0s 放大淡出（正式爆炸特效属 W5 域，经 weapon_fired/后续爆炸信号接入）。
+## 灰盒占位视觉：半透明火球 1.0s 放大淡出（正式爆炸特效属 W5 域，经 Events.rpg_exploded 接入）。
 func _spawn_explosion_placeholder(at: Vector3) -> void:
 	var ball := MeshInstance3D.new()
 	var sphere := SphereMesh.new()

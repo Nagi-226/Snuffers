@@ -3,8 +3,10 @@
 [ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
 
 ; 步枪定义（G2 门禁基准，§7 对照表）。
-; GameConfig 已有字段运行时由 sync_from_config() 覆盖，此处数值必须与 GameConfig 一致（L2 校验项）；
-; 标注「契约缺口」的字段（recover_rate / view_*_factor）GameConfig 暂无，由本资源承载，已上报蜂后。
+; GameConfig 已有字段运行时由 sync_from_config() 覆盖，此处数值必须与 GameConfig 一致（L2 校验项）。
+; G2 契约冻结（2026-07-21）：recoil_recover_rate / view_*_factor 已由
+; RIFLE_RECOIL_RECOVER_RATE / RIFLE_RECOIL_VIEW_ROT/Y_FACTOR/Z_FACTOR 契约接管，本文件同名字段
+; 仅供编辑器查看，以 GameConfig 为单一事实源。
 [resource]
 script = ExtResource("1_data")
 weapon_id = &"rifle"

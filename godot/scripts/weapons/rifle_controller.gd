@@ -5,14 +5,16 @@
 ## 后坐每发 +0.003 rad 带相机恢复（修正网页版永久上跳缺陷）。
 ##
 ## 解耦：
-## - 伤害结算：射线命中 → HitSolver 鸭子探测 take_damage，禁止引用 enemies 域节点。
-##   （彻底总线化的 Events.enemy_damaged 信号为契约缺口，见交付报告。）
+## - 伤害结算：射线命中 → HitSolver 鸭子探测 take_damage，禁止引用 enemies 域节点；
+##   take_damage 保留为投递机制，随后发 Events.damage_dealt(amount, is_headshot)
+##   供 HUD 伤害飘字消费（G2 冻结信号，与 hit_confirmed 互补）。
 ## - 命中反馈：Events.hit_confirmed(is_headshot)（契约已有，HUD 准星 1.3×/1.8× 由 W5 消费）。
 ## - 碉堡跳弹：Events.ricochet_on_bunker()（契约已有）。
 ##
-## 换弹责任划分（已上报蜂后裁决）：按键 R 的计时目前由 W1 player_controller 占位驱动，
+## 换弹责任划分（蜂后裁决：换弹归武器域自足，W1 已移除 player_controller 占位分发）：
+## R 键监听在本脚本 _unhandled_input（门控与基类左键开火同款），
 ## 本脚本监听 Events.weapon_reload_started/reloaded 做状态封锁与弹药结算；
-## 弹尽自动换弹（网页版 L2954）由本脚本自发同一对信号，两条路径信号序列一致。
+## 弹尽自动换弹（网页版 L2954）与 R 键手动换弹共用 _start_reload，两条路径信号序列一致。
 extends WeaponController
 
 var _fire_cooldown: float = 0.0
@@ -31,6 +33,20 @@ func _exit_tree() -> void:
 	super()
 
 
+## R 键换弹监听：门控与基类左键开火同款——仅鼠标捕获态 + 当前手持武器响应。
+## RPG 无换弹概念，故监听放本子类而非基类。
+func _unhandled_input(event: InputEvent) -> void:
+	super(event)
+	if not (event is InputEventKey):
+		return
+	var key := event as InputEventKey
+	if key.keycode != KEY_R or not key.pressed or key.echo:
+		return
+	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or not _is_current_weapon():
+		return
+	_start_reload()
+
+
 ## 全自动：按住左键按 fire_interval 连发（600 RPM）。
 func _tick_weapon(delta: float) -> void:
 	_fire_cooldown = maxf(_fire_cooldown - delta, 0.0)
@@ -45,7 +61,7 @@ func _fire() -> bool:
 		return false
 	if GameState.rifle_mag <= 0:
 		# 网页版弹尽自动换弹（index.html L2954）。
-		_start_auto_reload()
+		_start_reload()
 		return false
 
 	GameState.rifle_mag -= 1
@@ -73,6 +89,8 @@ func _fire() -> bool:
 	if HitSolver.find_group_ancestor(collider, &"sniper") != null:
 		damage = weapon_data.dmg_vs_sniper
 	target.take_damage(damage, is_head)
+	# G2 冻结契约：HUD 伤害飘字（与 hit_confirmed 互补；狙击手固定伤害如实广播）。
+	Events.damage_dealt.emit(damage, is_head)
 	Events.hit_confirmed.emit(is_head)
 	return true
 
@@ -103,9 +121,12 @@ func _current_spread() -> float:
 	return weapon_data.spread_hip
 
 
-## 弹尽自动换弹：自发与按键路径相同的 started →（reload_time）→ reloaded 信号序列。
-func _start_auto_reload() -> void:
+## 换弹启动（R 键手动 / 弹尽自动共用）：自发 started →（reload_time）→ reloaded 信号序列。
+## 守卫：换弹中 / 无备弹 / 弹匣已满时不触发。
+func _start_reload() -> void:
 	if _is_reloading or GameState.rifle_reserve <= 0:
+		return
+	if GameState.rifle_mag >= weapon_data.mag_size:
 		return
 	Events.weapon_reload_started.emit(&"rifle")
 	await get_tree().create_timer(weapon_data.reload_time).timeout
