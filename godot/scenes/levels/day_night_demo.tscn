@@ -1,0 +1,96 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/levels/day_night_controller.tscn" id="Scene_ctrl"]
+[ext_resource type="Script" path="res://scripts/levels/night_vision_overlay.gd" id="Script_nv_overlay"]
+[ext_resource type="Script" path="res://scripts/levels/day_night_demo_controller.gd" id="Script_demo_ctrl"]
+
+[sub_resource type="StandardMaterial3D" id="Material_ground"]
+albedo_color = Color(0.2, 0.231, 0.278, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="Mesh_ground"]
+material = SubResource("Material_ground")
+size = Vector3(60, 1, 60)
+
+[sub_resource type="BoxShape3D" id="Shape_ground"]
+size = Vector3(60, 1, 60)
+
+[sub_resource type="StandardMaterial3D" id="Material_box_a"]
+albedo_color = Color(0.545, 0.451, 0.333, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Mesh_box_a"]
+material = SubResource("Material_box_a")
+size = Vector3(2, 2, 2)
+
+[sub_resource type="StandardMaterial3D" id="Material_box_b"]
+albedo_color = Color(0.29, 0.29, 0.29, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="Mesh_box_b"]
+material = SubResource("Material_box_b")
+size = Vector3(3, 4, 3)
+
+[sub_resource type="StandardMaterial3D" id="Material_cylinder"]
+albedo_color = Color(0.42, 0.259, 0.149, 1)
+roughness = 0.85
+
+[sub_resource type="CylinderMesh" id="Mesh_cylinder"]
+material = SubResource("Material_cylinder")
+top_radius = 1.0
+bottom_radius = 1.0
+height = 5.0
+
+[node name="DayNightDemo" type="Node3D"]
+
+[node name="DayNightController" parent="." instance=ExtResource("Scene_ctrl")]
+
+[node name="NightVisionOverlay" type="CanvasLayer" parent="."]
+script = ExtResource("Script_nv_overlay")
+
+[node name="DemoController" type="Node" parent="."]
+script = ExtResource("Script_demo_ctrl")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.955336, 0.29552, 0, -0.29552, 0.955336, 0, 8, 25)
+fov = 75.0
+
+[node name="Ground" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("Mesh_ground")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+shape = SubResource("Shape_ground")
+
+[node name="TestObjects" type="Node3D" parent="."]
+
+[node name="CrateA" type="MeshInstance3D" parent="TestObjects"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, -3)
+mesh = SubResource("Mesh_box_a")
+
+[node name="CrateB" type="MeshInstance3D" parent="TestObjects"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2, -8)
+mesh = SubResource("Mesh_box_b")
+
+[node name="Pillar" type="MeshInstance3D" parent="TestObjects"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 2.5, 2)
+mesh = SubResource("Mesh_cylinder")
+
+[node name="WallSegment" type="MeshInstance3D" parent="TestObjects"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2, 5)
+mesh = SubResource("Mesh_box_b")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="InfoLabel" type="Label" parent="UI"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 48.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 14
+text = "[T] Toggle Day/Night  |  [N] Night Vision (night only)  |  [WASD+QE] Fly  |  [Esc] Release Mouse
+Mode: NIGHT"
+horizontal_alignment = 1
+vertical_alignment = 1
