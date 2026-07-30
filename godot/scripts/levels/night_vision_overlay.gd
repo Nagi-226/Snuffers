@@ -3,8 +3,8 @@
 ## 契约约束（AGENTS.md）：
 ## - 消费 Events.night_vision_toggled（已存在，events.gd L81）。
 ## - 读取 GameState.night_vision 同步状态。
-## - 键位 N（§11.2 机主裁决）；当前 player_controller.gd 仍为 V（W1 域待改），
-##   本脚本在演示场景中自行处理 N 键，集成后由 player_controller 统一发信号。
+## - 键位 N（§11.2 机主裁决，player_controller.gd 已翻正）；有玩家在场时本脚本让位，
+##   由 player_controller 统一发信号；白天禁开门控读 GameState.is_night。
 ##
 ## 效果：绿色磷光全屏覆盖 + 扫描线 + 暗角（占位，G4 后替换正式素材）。
 ## 仅黑夜模式下可用（白天按 N 无反应）。
@@ -38,11 +38,6 @@ void fragment() {
 var _overlay: ColorRect
 var _is_active: bool = false
 
-## 可选：引用 DayNightController 以限制白天不可用。
-## 若为 null 则不做模式限制（向后兼容）。
-var day_night_ref: Node = null
-
-
 func _ready() -> void:
 	layer = 100
 	_build_overlay()
@@ -52,7 +47,10 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	# 演示用：N 键切换夜视（集成后由 player_controller 发信号，本段可删）。
+	# 演示场景用：N 键切换夜视。场景内存在玩家（player 组）时让位给
+	# player_controller 统一处理，避免双头切换（蜂后集成 2026-07-30）。
+	if get_tree().get_first_node_in_group("player") != null:
+		return
 	if event is InputEventKey:
 		var key := event as InputEventKey
 		if key.pressed and not key.echo and key.physical_keycode == KEY_N:
@@ -61,10 +59,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _toggle_night_vision() -> void:
-	# 白天模式下禁止开启夜视（§11.2：夜视仪黑夜模式下可用）。
-	if day_night_ref != null and day_night_ref.has_method("is_night"):
-		if not day_night_ref.is_night() and not GameState.night_vision:
-			return
+	# 白天禁开（§11.2）：GameState.is_night 由 DayNightController 维护。
+	if not GameState.is_night and not GameState.night_vision:
+		return
 	GameState.night_vision = not GameState.night_vision
 	Events.night_vision_toggled.emit(GameState.night_vision)
 

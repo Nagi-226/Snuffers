@@ -80,6 +80,8 @@ func is_night() -> bool:
 
 
 func _apply_mode(mode: Mode) -> void:
+	# 同步昼夜运行时状态到契约（GameState.is_night；夜视仪门控消费——蜂后集成 2026-07-30）
+	GameState.is_night = (mode == Mode.NIGHT)
 	var env := _world_env.environment
 	if env == null:
 		env = Environment.new()

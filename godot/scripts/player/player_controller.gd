@@ -15,7 +15,7 @@ const KEY_PRONE: Key = KEY_C ## 网页版 C：趴下切换
 const KEY_RELOAD: Key = KEY_R ## 网页版 R：换弹（计时归 W2 武器域；R 键通路缺口已上报蜂后，见交付报告）
 const KEY_WEAPON_RIFLE: Key = KEY_1 ## 网页版 1：切步枪
 const KEY_WEAPON_RPG: Key = KEY_2 ## 网页版 2：切火箭筒
-const KEY_NIGHT_VISION: Key = KEY_V ## 网页版 V：夜视仪切换
+const KEY_NIGHT_VISION: Key = KEY_N ## N：夜视仪切换（§11.2 机主裁决：V→N，与昼夜演示场景键位一致）
 const KEY_MEDKIT: Key = KEY_F ## 网页版 F：使用药包
 const KEY_HELI: Key = KEY_H ## 网页版 H：呼叫直升机
 const KEY_RELEASE_MOUSE: Key = KEY_ESCAPE ## Esc：释放鼠标（点击画面恢复捕获）
@@ -239,8 +239,10 @@ func _switch_weapon(weapon_id: StringName) -> void:
 	Events.weapon_switched.emit(weapon_id)
 
 
-## V：夜视仪切换占位。
+## N：夜视仪切换占位。白天禁开（§11.2）：白天且当前未开启时直接返回；关闭不限时段。
 func _toggle_night_vision() -> void:
+	if not GameState.is_night and not GameState.night_vision:
+		return
 	GameState.night_vision = not GameState.night_vision
 	Events.night_vision_toggled.emit(GameState.night_vision)
 

@@ -33,6 +33,8 @@ var heli_unlocked: bool = false
 var heli_time_left: float = 0.0
 var mission_phase: MissionPhase = MissionPhase.INFILTRATE
 var night_vision: bool = false
+## 昼夜模式运行时状态（DayNightController 维护；true=黑夜。夜视仪白天禁开——§11.2；蜂后集成 2026-07-30）
+var is_night: bool = true
 
 
 func _ready() -> void:

@@ -34,7 +34,7 @@ const CASES: Array = [
 	{
 		"scene": "res://scenes/levels/greybox_arena.tscn",
 		"optional": false,
-		"expect": ["WorldEnvironment", "MoonLight", "Ground", "BoundaryWalls", "DividerBuilding", "Markers"],
+		"expect": ["DayNightController", "NightVisionOverlay", "Ground", "BoundaryWalls", "DividerBuilding", "Markers"],
 	},
 	{
 		"scene": "res://scenes/ui/hud.tscn",

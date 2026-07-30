@@ -1,4 +1,7 @@
-[gd_scene format=3]
+[gd_scene load_steps=53 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/levels/day_night_controller.tscn" id="Scene_day_night"]
+[ext_resource type="Script" path="res://scripts/levels/night_vision_overlay.gd" id="Script_nv_overlay"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
 albedo_color = Color(0.2, 0.231, 0.278, 1)
@@ -197,27 +200,12 @@ size = Vector3(1.2, 1.2, 1.2)
 [sub_resource type="BoxShape3D" id="BoxShape3D_barrel"]
 size = Vector3(0.8, 1.2, 0.8)
 
-[sub_resource type="Environment" id="Environment_night"]
-background_mode = 1
-background_color = Color(0.02, 0.02, 0.039, 1)
-ambient_light_source = 2
-ambient_light_color = Color(0.0667, 0.0667, 0.1333, 1)
-ambient_light_energy = 0.15
-fog_enabled = true
-fog_light_color = Color(0.086, 0.086, 0.122, 1)
-fog_density = 0.005
-
 [node name="GreyboxArena" type="Node3D"]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_night")
+[node name="DayNightController" parent="." instance=ExtResource("Scene_day_night")]
 
-[node name="MoonLight" type="DirectionalLight3D" parent="."]
-rotation = Vector3(-0.872665, -0.523599, 0)
-light_color = Color(0.6667, 0.8, 1, 1)
-light_energy = 0.4
-shadow_enabled = true
-directional_shadow_max_distance = 250.0
+[node name="NightVisionOverlay" type="CanvasLayer" parent="."]
+script = ExtResource("Script_nv_overlay")
 
 [node name="Ground" type="StaticBody3D" parent="."]
 position = Vector3(0, -0.5, 0)

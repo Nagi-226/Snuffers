@@ -7,7 +7,7 @@
 ; G2 收尾总装（W6 串行）：玩家实例化于出生点 GameConfig.START_POS(90,-55)，
 ;   地面顶面 y=0，胶囊底部贴地留 0.1 余量；HUD / AudioManager 挂根。
 ;   骨架期占位 Camera3D / DirectionalLight3D 已移除（玩家相机 current 已就绪，
-;   灰盒自带夜战光照 WorldEnvironment+MoonLight，避免双重叠加）。
+;   灰盒光照由 DayNightController 昼夜控制器接管——2026-07-30 总装，避免双重叠加）。
 
 [ext_resource type="PackedScene" path="res://scenes/levels/greybox_arena.tscn" id="1_arena"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/infantry.tscn" id="2_infantry"]
