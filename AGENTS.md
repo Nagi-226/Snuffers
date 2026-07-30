@@ -89,6 +89,15 @@
 | W4 筑巢蜂 | 开发者（levels 域） | `scenes/levels/` | 改 enemy 脚本；未登记资产入库 |
 | W5 颜面蜂 | 开发者（ui/audio 域） | `scenes/ui/`、`scripts/ui/`、`assets/audio/` | 改游戏逻辑脚本；音效未登记台账 |
 | W6 质检蜂 | 质量/集成 | `tools/`、`tests/`、`export_presets.cfg`、headless 校验链、构建发布、仓库卫生 | 交互式开发业务功能、架构决策、放过 L1 红灯 |
+| W7 Qoder | 外部 IDE Agent（昼夜/夜视域） | `scenes/levels/`、`scripts/levels/` 下**新增的** day_night 相关文件（场景/脚本/占位素材）；只读其余全部 | 改 main.tscn、autoload 三件套、其他域已有文件；硬编码参数；绕过蜂后改契约 |
+| W8 workbuddy | 外部 IDE Agent（质检增强） | `tools/`、`tests/`、`desktop-port/godot-spike/` 文档、`.gitignore` 仓库卫生；只读其余全部 | 改任何业务玩法脚本/场景；改 autoload 三件套；放过 L1 红灯 |
+
+> **外部 Agent 协同协议（W7/W8 适用，2026-07-30 机主批准方案 A 入规）**
+> 1. **入口纪律**：每次开工先读本文件（AGENTS.md）+ `desktop-port/godot-spike/` 下最新日期的 `03-handoff-*.md`，再动手。
+> 2. **单工作树轮值**：三个 Agent 共用同一工作树，同一时间只允许一个 Agent 施工；收工必须 commit+push（或明确 stash），不得留半截改动。
+> 3. **契约申请制**：外部 Agent 需要新信号/新参数时**禁止直接改 autoload 三件套**，在交接备忘录中写「契约变更申请」由蜂后冻结后落地。
+> 4. **L1 串行**：`godot/tools/check.ps1` 全链同一时间只允许一个 Agent 运行（.godot 缓存锁冲突，已有教训）；push 前必须全绿。
+> 5. **交接义务**：收工必写 `03-handoff-<日期>.md`（完成了什么/未完成/给下一棒的注意事项）。
 
 ## 分支与 Commit 规范
 

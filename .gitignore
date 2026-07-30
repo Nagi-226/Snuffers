@@ -12,6 +12,10 @@ desktop.ini
 .vscode/
 .idea/
 
+# 外部 IDE Agent 本地记忆（不入库）
+.workbuddy/
+.qoder/
+
 # Godot 引擎缓存与导出产物
 godot/.godot/
 godot/export/
