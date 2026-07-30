@@ -56,10 +56,54 @@ func _run() -> void:
 	# -- game_config.gd: frozen feel parameters must keep contract values --
 	_assert(config.SPEED_STAND == 4.5, "game_config.gd SPEED_STAND == 4.5")
 	_assert(config.RIFLE_FIRE_INTERVAL == 0.1, "game_config.gd RIFLE_FIRE_INTERVAL == 0.1")
-	# G2 冻结新增参数抽查（RPG 独立后坐 / 狙杀开关 / 命中准星倍率）。
+	# G2 冻结新增参数全量锁定（commit 99dc010；RPG 后坐/步兵调参/狙杀 lethal/UI 动效四组）。
+	# 步枪后坐组（网页版永久上跳缺陷修正，Godot 版指数恢复）
+	_assert(config.RIFLE_RECOIL_RECOVER_RATE == 6.0, "game_config.gd RIFLE_RECOIL_RECOVER_RATE == 6.0")
+	_assert(config.RIFLE_RECOIL_VIEW_ROT == 2.25, "game_config.gd RIFLE_RECOIL_VIEW_ROT == 2.25")
+	_assert(config.RIFLE_RECOIL_VIEW_Y_FACTOR == 0.025, "game_config.gd RIFLE_RECOIL_VIEW_Y_FACTOR == 0.025")
+	_assert(config.RIFLE_RECOIL_VIEW_Z_FACTOR == 0.05, "game_config.gd RIFLE_RECOIL_VIEW_Z_FACTOR == 0.05")
+	# RPG 后坐 + 爆炸组（修复网页版 RPG 后坐永不触发缺陷）
 	_assert(config.RPG_RECOIL_PITCH == 0.01, "game_config.gd RPG_RECOIL_PITCH == 0.01")
+	_assert(config.RPG_RECOIL_RECOVER_RATE == 6.0, "game_config.gd RPG_RECOIL_RECOVER_RATE == 6.0")
+	_assert(config.RPG_RECOIL_VIEW_ROT == 2.5, "game_config.gd RPG_RECOIL_VIEW_ROT == 2.5")
+	_assert(config.RPG_RECOIL_VIEW_Y_FACTOR == 0.025, "game_config.gd RPG_RECOIL_VIEW_Y_FACTOR == 0.025")
+	_assert(config.RPG_RECOIL_VIEW_Z_FACTOR == 0.075, "game_config.gd RPG_RECOIL_VIEW_Z_FACTOR == 0.075")
+	_assert(config.RPG_EXPLODE_DAMAGE == 9999.0, "game_config.gd RPG_EXPLODE_DAMAGE == 9999.0")
+	_assert(config.RPG_EXPLODE_BELOW_Y == -10.0, "game_config.gd RPG_EXPLODE_BELOW_Y == -10.0")
+	# 步兵行为调参组（G2 冻结自 W3 脚本常量迁入）
+	_assert(config.INFANTRY_PATROL_RADIUS == 40.0, "game_config.gd INFANTRY_PATROL_RADIUS == 40.0")
+	_assert(config.INFANTRY_ALERT_DELAY == 1.0, "game_config.gd INFANTRY_ALERT_DELAY == 1.0")
+	_assert(config.INFANTRY_COVER_SEARCH_RADIUS == 25.0, "game_config.gd INFANTRY_COVER_SEARCH_RADIUS == 25.0")
+	_assert(config.INFANTRY_COVER_MIN_DIST == 8.0, "game_config.gd INFANTRY_COVER_MIN_DIST == 8.0")
+	_assert(config.INFANTRY_COVER_ARRIVE_DIST == 1.5, "game_config.gd INFANTRY_COVER_ARRIVE_DIST == 1.5")
+	_assert(config.INFANTRY_COVER_SCORE_DIST == 0.5, "game_config.gd INFANTRY_COVER_SCORE_DIST == 0.5")
+	_assert(config.INFANTRY_COVER_SCORE_ALIGN == 10.0, "game_config.gd INFANTRY_COVER_SCORE_ALIGN == 10.0")
+	_assert(config.INFANTRY_PEEK_FIRE_DELAY == 0.5, "game_config.gd INFANTRY_PEEK_FIRE_DELAY == 0.5")
+	_assert(config.INFANTRY_PEEK_CYCLE_TIME == 1.0, "game_config.gd INFANTRY_PEEK_CYCLE_TIME == 1.0")
+	_assert(config.INFANTRY_PEEK_REPEAT_CHANCE == 0.3, "game_config.gd INFANTRY_PEEK_REPEAT_CHANCE == 0.3")
+	_assert(config.INFANTRY_PEEK_ENGAGE_TIME == 1.5, "game_config.gd INFANTRY_PEEK_ENGAGE_TIME == 1.5")
+	_assert(config.INFANTRY_ALERT_ENGAGE_TIME == 2.0, "game_config.gd INFANTRY_ALERT_ENGAGE_TIME == 2.0")
+	_assert(config.INFANTRY_ENGAGE_APPROACH_DIST == 12.0, "game_config.gd INFANTRY_ENGAGE_APPROACH_DIST == 12.0")
+	_assert(config.INFANTRY_ENGAGE_BACKOFF_DIST == 5.0, "game_config.gd INFANTRY_ENGAGE_BACKOFF_DIST == 5.0")
+	_assert(config.INFANTRY_BLIND_FIRE_DIST == 3.0, "game_config.gd INFANTRY_BLIND_FIRE_DIST == 3.0")
+	_assert(config.INFANTRY_FALLBACK_COVER_DIST == 5.0, "game_config.gd INFANTRY_FALLBACK_COVER_DIST == 5.0")
+	_assert(config.INFANTRY_COMPANION_COVER_DIST == 5.0, "game_config.gd INFANTRY_COMPANION_COVER_DIST == 5.0")
+	_assert(config.INFANTRY_COMPANION_ENGAGE_TIME == 10.0, "game_config.gd INFANTRY_COMPANION_ENGAGE_TIME == 10.0")
+	# 碉堡机枪（G2 冻结；停火裁决采 A，机主签字）
+	_assert(config.BUNKER_MG_DAMAGE_RAND == 3.0, "game_config.gd BUNKER_MG_DAMAGE_RAND == 3.0")
+	_assert(config.BUNKER_PRONE_CEASEFIRE_TIME == 7.0, "game_config.gd BUNKER_PRONE_CEASEFIRE_TIME == 7.0")
+	# 狙击手 lethal 组（§6 死代码裁决参数化）
 	_assert(config.SNIPER_LETHAL == true, "game_config.gd SNIPER_LETHAL == true")
+	_assert(config.SNIPER_KILL_DAMAGE == 999.0, "game_config.gd SNIPER_KILL_DAMAGE == 999.0")
+	_assert(config.SNIPER_NON_LETHAL_DAMAGE == 8.0, "game_config.gd SNIPER_NON_LETHAL_DAMAGE == 8.0")
+	# UI 反馈动效组（G2 冻结自 W5 脚本常量迁入）
 	_assert(config.CROSSHAIR_HIT_SCALE == 1.3, "game_config.gd CROSSHAIR_HIT_SCALE == 1.3")
+	_assert(config.CROSSHAIR_HEADSHOT_SCALE == 1.8, "game_config.gd CROSSHAIR_HEADSHOT_SCALE == 1.8")
+	_assert(config.CROSSHAIR_PULSE_HOLD == 0.06, "game_config.gd CROSSHAIR_PULSE_HOLD == 0.06")
+	_assert(config.MESSAGE_HOLD_TIME == 0.8, "game_config.gd MESSAGE_HOLD_TIME == 0.8")
+	_assert(config.DAMAGE_FLASH_PEAK_ALPHA == 0.35, "game_config.gd DAMAGE_FLASH_PEAK_ALPHA == 0.35")
+	_assert(config.DAMAGE_FLASH_FADE_TIME == 0.4, "game_config.gd DAMAGE_FLASH_FADE_TIME == 0.4")
+	_assert(config.KILL_FEEDBACK_HOLD_TIME == 0.6, "game_config.gd KILL_FEEDBACK_HOLD_TIME == 0.6")
 
 	# -- events.gd: signal bus must expose the contracted signals --
 	_assert(events.has_signal(&"weapon_fired"), "events.gd has signal weapon_fired")
