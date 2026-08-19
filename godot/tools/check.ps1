@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    L1 validation chain for the Ruins Breakout Godot spike.
+    L1 validation chain for the Snuffers Godot spike.
 .DESCRIPTION
     Steps:
       a) godot --headless --import            refresh the import cache

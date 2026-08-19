@@ -1,13 +1,13 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Daily build for the Ruins Breakout Godot spike.
+    Daily build for the Snuffers Godot spike.
 .DESCRIPTION
     1) Runs tools/check.ps1 (L1 validation chain). Any red aborts the build
        with a non-zero exit code.
     2) Exports a dated Windows release exe:
          godot --headless --export-release "Windows Desktop" ^
-               export/ruins_breakout_spike_yyyyMMdd.exe
+               export/snuffers_spike_yyyyMMdd.exe
     Prints artifact size and wall-clock time on success.
 .NOTES
     The export preset name must stay "Windows Desktop" (matches
@@ -69,7 +69,7 @@ if ($LASTEXITCODE -ne 0) {
 $dateStamp  = Get-Date -Format 'yyyyMMdd'
 $exportDir  = Join-Path $ProjectDir 'export'
 New-Item -ItemType Directory -Force -Path $exportDir | Out-Null
-$exportPath = Join-Path $exportDir ("ruins_breakout_spike_{0}.exe" -f $dateStamp)
+$exportPath = Join-Path $exportDir ("snuffers_spike_{0}.exe" -f $dateStamp)
 
 Write-Host "exporting: $exportPath"
 $run = Invoke-GodotCapture @('--headless', '--path', $ProjectDir, '--export-release', 'Windows Desktop', $exportPath)

@@ -1,4 +1,4 @@
-# AGENTS.md — 《废墟突围》项目 AI Agent 行为准则
+# AGENTS.md — 《熄烛者》（Snuffers，原《废墟突围》）项目 AI Agent 行为准则
 
 > **效力**: 本仓库**所有分支**、**所有 AI Agent**（Orchestrator 蜂后 + 全部工蜂子代理）会话启动即加载，违反任一条 → 视为行为不合格，立即暂停并报告。
 > **来源**: ZEEKR ARK OS 2「十荣十耻」体系（v3.7.2 通用版 v1.1）+ Karpathy 内部 Claude.md 十条军规，按本项目（Godot 4.6.2 + GDScript 重制 spike）实例化。

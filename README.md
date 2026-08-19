@@ -1,4 +1,6 @@
-# Ruins Breakout - Tactical Remake (离线包)
+# 《熄烛者》Snuffers（原 Ruins Breakout / 废墟突围）
+
+> **更名通告（2026-08-19）**：项目已更名为《熄烛者》（Snuffers），定位为 EDAA 原创设定的衍生 FPS（熄烛者特遣队题材）。本 README 下部为 Web/Electron 旧线历史文档，其中「废墟突围」「Ruins-Breakout」字样为历史名称，不再逐一回改。
 
 HTML5 单页 3D 战术射击游戏，全离线运行。支持**移动端触屏**与 **Windows 桌面端（.exe）**两种形态。
 

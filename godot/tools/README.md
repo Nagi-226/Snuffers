@@ -11,7 +11,7 @@ powershell -File godot/tools/daily_build.ps1
 ```
 
 - `check.ps1` 全绿输出 `L1 PASS`（退出码 0）；任一失败输出 `L1 FAIL` + 明细（退出码 1）。
-- `daily_build.ps1` 产物：`godot/export/ruins_breakout_spike_yyyyMMdd.exe`（`godot/export/` 已 gitignore），结束打印产物大小与耗时。
+- `daily_build.ps1` 产物：`godot/export/snuffers_spike_yyyyMMdd.exe`（`godot/export/` 已 gitignore），结束打印产物大小与耗时。
 
 ## check.ps1 校验步骤
 

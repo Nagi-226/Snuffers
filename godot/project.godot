@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Ruins Breakout — Godot Spike"
+config/name="Snuffers — Godot Spike"
 config/features=PackedStringArray("4.6")
 run/main_scene="res://scenes/main.tscn"
 
