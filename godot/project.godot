@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Snuffers — Godot Spike"
 config/features=PackedStringArray("4.6")
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/ui/title_screen.tscn" ; 开头画面（07 §3.1）：徽记缓显后进 main.tscn
 
 [autoload]
 

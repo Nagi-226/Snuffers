@@ -1,0 +1,71 @@
+[gd_scene load_steps=3 format=3]
+
+; 游戏开头画面（07 美术设定 §3.1 机主指令 2026-08-19）：
+;   纯黑底 + EDAA 徽记居中缓显（特写 → 拉远全貌），标题与提示叠加其上。
+; 徽记图样唯一基准：res://assets/branding/edaa_emblem.png（机主原创，禁止变体重绘）。
+
+[ext_resource type="Texture2D" path="res://assets/branding/edaa_emblem.png" id="1_emblem"]
+[ext_resource type="Script" path="res://scripts/ui/title_screen.gd" id="2_script"]
+
+[node name="TitleScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Emblem" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.42
+anchor_right = 0.5
+anchor_bottom = 0.42
+offset_left = -280.0
+offset_top = -280.0
+offset_right = 280.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_emblem")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 36.0
+offset_bottom = 90.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.847, 0.851, 0.855, 1)
+theme_override_font_sizes/font_size = 44
+text = "熄 烛 者    S N U F F E R S"
+horizontal_alignment = 1
+
+[node name="PromptLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -72.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.6, 0.62, 0.65, 1)
+theme_override_font_sizes/font_size = 18
+text = "—— 按任意键开始作业 ——"
+horizontal_alignment = 1
+vertical_alignment = 1

@@ -41,6 +41,12 @@ const CASES: Array = [
 		"optional": false,
 		"expect": ["StatusPanel", "KillsLabel", "HeliTimerLabel", "LegWarningLabel", "MessageLabel", "AmmoLabel", "Crosshair"],
 	},
+	# ===== 开头画面（07 §3.1 机主指令，2026-08-19 交付；徽记图样基准 edaa_emblem.png）=====
+	{
+		"scene": "res://scenes/ui/title_screen.tscn",
+		"optional": false,
+		"expect": ["Background", "Emblem", "TitleLabel", "PromptLabel"],
+	},
 	# ===== W2 火力蜂武器场景（已交付入库，G2 转正式断言；expect 按 .tscn 实际节点补全）=====
 	{"scene": "res://scenes/weapons/rifle.tscn", "optional": false, "expect": ["ViewModel"]},
 	{"scene": "res://scenes/weapons/rpg.tscn", "optional": false, "expect": ["ViewModel"]},

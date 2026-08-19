@@ -89,8 +89,8 @@ func _shoot(player_pos: Vector3) -> void:
 		return
 	_fire_cooldown = _get_fire_interval()
 	_magazine -= 1
-	# 开火广播（G2 冻结信号，W5 枪口音效/火光锚点；碉堡机枪继承本实现。
-	# 狙击手重写 _shoot 不发本信号——契约 kind 未覆盖狙击枪，见交付报告）。
+	# 开火广播（G2 冻结信号，W5 枪口音效/火光锚点；碉堡机枪继承本实现）。
+	# 狙击手亦发本信号（kind=&"rifle" 复用步枪音源，见 sniper.gd）。
 	var muzzle_pos := _muzzle.global_position if _muzzle != null else global_position
 	Events.enemy_fired.emit(&"machine_gun", muzzle_pos)
 	_damage_player(_roll_damage())

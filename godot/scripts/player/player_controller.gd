@@ -12,7 +12,6 @@ const KEY_BACK: Key = KEY_S ## 网页版 S：后退
 const KEY_STRAFE_LEFT: Key = KEY_A ## 网页版 A：左移
 const KEY_STRAFE_RIGHT: Key = KEY_D ## 网页版 D：右移
 const KEY_PRONE: Key = KEY_C ## 网页版 C：趴下切换
-const KEY_RELOAD: Key = KEY_R ## 网页版 R：换弹（计时归 W2 武器域；R 键通路缺口已上报蜂后，见交付报告）
 const KEY_WEAPON_RIFLE: Key = KEY_1 ## 网页版 1：切步枪
 const KEY_WEAPON_RPG: Key = KEY_2 ## 网页版 2：切火箭筒
 const KEY_NIGHT_VISION: Key = KEY_N ## N：夜视仪切换（§11.2 机主裁决：V→N，与昼夜演示场景键位一致）
