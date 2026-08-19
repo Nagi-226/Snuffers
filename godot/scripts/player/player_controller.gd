@@ -46,6 +46,8 @@ func _ready() -> void:
 	_cam_height_target = GameConfig.CAM_HEIGHT_STAND
 	_cam_height_from = GameConfig.CAM_HEIGHT_STAND
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# 承伤管线挂接（发射侧在 enemy_base._damage_player；结算收口在本类 _apply_damage）。
+	Events.player_damaged.connect(_apply_damage)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -133,6 +135,7 @@ func _physics_process(delta: float) -> void:
 
 	# 每物理帧写入玩家世界坐标（G2 冻结新增字段；敌人感知/AI 共用）。
 	GameState.player_position = global_position
+	GameState.player_yaw = rotation.y
 
 	_update_speed_state()
 	_update_still_time(delta)
@@ -256,6 +259,69 @@ func _use_medkit() -> void:
 		var maximum := _part_max_health(part)
 		GameState.health[part] = minf(GameState.health[part] + GameConfig.MEDKIT_HEAL, maximum)
 		Events.player_health_changed.emit(part, GameState.health[part], maximum)
+	_update_leg_state()
+
+
+## 玩家承伤管线（§6 既定修复落地 + web takeDamage L3252-3292 复刻，2026-08-19 Phase 0b）。
+## 发射侧（enemy_base._damage_player）只随机部位发信号；护甲/头盔吸收、部位系数、
+## 溢出分摊、致死判定全部在本函数收口。任务结束态（COMPLETED/GAME_OVER）不再承伤。
+func _apply_damage(part: StringName, amount: float) -> void:
+	if GameState.mission_phase == GameState.MissionPhase.COMPLETED \
+			or GameState.mission_phase == GameState.MissionPhase.GAME_OVER:
+		return
+	var actual := amount
+	# 头盔吸收（仅头部）；击穿时提示（web L3262-3267）。
+	if part == &"head" and GameState.helmet > 0.0:
+		var helmet_absorb := minf(GameState.helmet, actual)
+		GameState.helmet -= helmet_absorb
+		actual -= helmet_absorb
+		if GameState.helmet <= 0.0:
+			Events.message_posted.emit("头盔被击穿!")
+	# 护甲吸收（仅躯体；上限 = 原始伤害 × ARMOR_ABSORB_FACTOR，web L3269-3273 既有口径）。
+	if part == &"body" and GameState.armor > 0.0:
+		var armor_absorb := minf(GameState.armor, amount * GameConfig.ARMOR_ABSORB_FACTOR)
+		GameState.armor -= armor_absorb
+		actual -= armor_absorb
+	# 部位系数 + 趴下爆头减免（web L3275-3278）。
+	if part == &"head":
+		actual *= GameConfig.DMG_TAKEN_HEAD_FACTOR
+		if GameState.is_prone:
+			actual *= GameConfig.DMG_TAKEN_PRONE_HEAD_FACTOR
+	elif part == &"legs":
+		actual *= GameConfig.DMG_TAKEN_LEGS_FACTOR
+	GameState.health[part] -= actual
+	# 溢出分摊（§6 修复 web 死代码：先算溢出再清零，均摊到仍有血的部位，单趟不连锁）。
+	if GameState.health[part] <= 0.0:
+		var overflow: float = -GameState.health[part]
+		GameState.health[part] = 0.0
+		var others: Array = []
+		for p: StringName in GameState.health:
+			if p != part and GameState.health[p] > 0.0:
+				others.append(p)
+		if overflow > 0.0 and not others.is_empty():
+			var per_part: float = overflow / others.size()
+			for p: StringName in others:
+				GameState.health[p] = maxf(0.0, GameState.health[p] - per_part)
+				Events.player_health_changed.emit(p, GameState.health[p], _part_max_health(p))
+	Events.player_health_changed.emit(part, GameState.health[part], _part_max_health(part))
+	_update_leg_state()
+	# 致死判定（web L3290：头/躯清零即结算；腿部清零不致死）。
+	if GameState.health[&"head"] <= 0.0 or GameState.health[&"body"] <= 0.0:
+		GameState.mission_phase = GameState.MissionPhase.GAME_OVER
+		Events.game_over.emit(&"enemy")
+
+
+## 腿部状态派生：≤0 → critical（×0.25），≤60% → injured（×0.5）（阈值契约 L3242-3243 既有）。
+func _update_leg_state() -> void:
+	var legs: float = GameState.health[&"legs"]
+	var new_state: StringName = &"healthy"
+	if legs <= 0.0:
+		new_state = &"critical"
+	elif legs <= GameConfig.HEALTH_LEGS * GameConfig.LEG_INJURED_THRESHOLD:
+		new_state = &"injured"
+	if new_state != GameState.leg_state:
+		GameState.leg_state = new_state
+		Events.leg_state_changed.emit(new_state)
 
 
 func _part_max_health(part: StringName) -> float:

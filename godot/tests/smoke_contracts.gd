@@ -114,6 +114,15 @@ func _run() -> void:
 	_assert(events.has_signal(&"damage_dealt"), "events.gd has signal damage_dealt")
 	_assert(events.has_signal(&"bunker_destroyed"), "events.gd has signal bunker_destroyed")
 	_assert(events.has_signal(&"enemy_fired"), "events.gd has signal enemy_fired")
+	# 表现层三件套新增信号（§11.1 A 方案，2026-08-19 冻结）。
+	_assert(events.has_signal(&"player_hit_direction"), "events.gd has signal player_hit_direction")
+
+	# -- 表现层三件套参数（2026-08-19 冻结新增）--
+	_assert(config.TRACER_LIFETIME == 0.06, "game_config.gd TRACER_LIFETIME == 0.06")
+	_assert(config.TRACER_WIDTH == 0.03, "game_config.gd TRACER_WIDTH == 0.03")
+	_assert(config.MUZZLE_FLASH_LIFETIME == 0.05, "game_config.gd MUZZLE_FLASH_LIFETIME == 0.05")
+	_assert(config.MUZZLE_FLASH_ENERGY == 2.0, "game_config.gd MUZZLE_FLASH_ENERGY == 2.0")
+	_assert(config.DAMAGE_ARC_SHOW_TIME == 1.0, "game_config.gd DAMAGE_ARC_SHOW_TIME == 1.0")
 
 	# -- game_state.gd: reset() must restore the three body-part health keys --
 	# 挂载时 _ready 已跑过一次 reset()（含 Events.enemy_died 连接）；再调一次验证幂等。

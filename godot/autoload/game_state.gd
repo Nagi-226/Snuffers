@@ -28,6 +28,8 @@ var leg_state: StringName = &"healthy"
 var still_time: float = 0.0
 ## 玩家世界坐标（W1 每帧写入；敌人感知/AI 共用，替代 group 软引用——G2 冻结新增）
 var player_position: Vector3 = Vector3.ZERO
+## 玩家偏航角 rad（W1 每帧写入；HUD 受击方向弧共用——2026-08-19 冻结新增）
+var player_yaw: float = 0.0
 
 var heli_unlocked: bool = false
 var heli_time_left: float = 0.0
@@ -67,6 +69,7 @@ func reset() -> void:
 	is_aiming = false
 	leg_state = &"healthy"
 	still_time = 0.0
+	player_yaw = 0.0
 	heli_unlocked = false
 	heli_time_left = GameConfig.HELI_COUNTDOWN
 	mission_phase = MissionPhase.INFILTRATE

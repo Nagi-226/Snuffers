@@ -9,6 +9,9 @@ extends Node
 # ===== 玩家 =====
 ## 玩家受到伤害。part: &"head" / &"body" / &"legs"
 signal player_damaged(part: StringName, amount: float)
+## 受击来源方向（HUD 受击方向指示弧用，§11.1 A 方案三件套，2026-08-19 蜂后冻结新增）。
+## 与 player_damaged 同点发射（enemy_base._damage_player / 狙击直发路径），纯增量不改既有签名。
+signal player_hit_direction(from_position: Vector3)
 ## 某部位血量变化（含治疗）。用于 HUD 血条刷新。
 signal player_health_changed(part: StringName, current: float, maximum: float)
 ## 趴下状态切换。

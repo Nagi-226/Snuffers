@@ -47,6 +47,12 @@ const CASES: Array = [
 		"optional": false,
 		"expect": ["Background", "Emblem", "TitleLabel", "PromptLabel"],
 	},
+	# ===== 结算/失败界面（2026-08-19 Phase 0b 交付）=====
+	{
+		"scene": "res://scenes/ui/mission_end_screen.tscn",
+		"optional": false,
+		"expect": ["Panel", "Panel/VBox/TitleLabel", "Panel/VBox/StatsLabel", "Panel/VBox/HintLabel"],
+	},
 	# ===== W2 火力蜂武器场景（已交付入库，G2 转正式断言；expect 按 .tscn 实际节点补全）=====
 	{"scene": "res://scenes/weapons/rifle.tscn", "optional": false, "expect": ["ViewModel"]},
 	{"scene": "res://scenes/weapons/rpg.tscn", "optional": false, "expect": ["ViewModel"]},

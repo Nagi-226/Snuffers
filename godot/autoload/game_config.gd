@@ -182,3 +182,10 @@ const MESSAGE_HOLD_TIME: float = 0.8 ## 中央飘字停留 s
 const DAMAGE_FLASH_PEAK_ALPHA: float = 0.35 ## 受击红晕峰值透明度
 const DAMAGE_FLASH_FADE_TIME: float = 0.4 ## 受击红晕淡出 s
 const KILL_FEEDBACK_HOLD_TIME: float = 0.6 ## 击杀反馈停留 s
+
+# ===== 表现层三件套（§11.1 A 方案，2026-08-19 机主裁决纳入 G4 前施工，蜂后冻结新增）=====
+const TRACER_LIFETIME: float = 0.06 ## 敌弹曳光驻留 s
+const TRACER_WIDTH: float = 0.03 ## 曳光束粗细 u
+const MUZZLE_FLASH_LIFETIME: float = 0.05 ## 枪口火光驻留 s
+const MUZZLE_FLASH_ENERGY: float = 2.0 ## 枪口火光 OmniLight 能量
+const DAMAGE_ARC_SHOW_TIME: float = 1.0 ## 受击方向指示弧显示 s

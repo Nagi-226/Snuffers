@@ -1,13 +1,15 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=12 format=3]
 
 ; G2 驻军集成（W6 质检蜂串行）：灰盒关卡 + 代表性驻军
 ;   步兵×6（靠近 cover_point 分布）/ 机枪手×2（MG1/MG2 标记位）/
 ;   碉堡机枪×1（碉堡 muzzle_ne 口）/ 狙击手×1（sniper_perch 标记）
-; 18+2 全量部署属 G3 任务，此处不做。
 ; G2 收尾总装（W6 串行）：玩家实例化于出生点 GameConfig.START_POS(90,-55)，
 ;   地面顶面 y=0，胶囊底部贴地留 0.1 余量；HUD / AudioManager 挂根。
 ;   骨架期占位 Camera3D / DirectionalLight3D 已移除（玩家相机 current 已就绪，
 ;   灰盒光照由 DayNightController 昼夜控制器接管——2026-07-30 总装，避免双重叠加）。
+; Phase 0b 总装（2026-08-19 蜂后串行）：18+2 全量部署（步兵 6→14，固定编制达 18）
+;   + MissionDirector（G3 任务链：解锁→呼叫→60s 坚守→登机→结算，事件狙击手×2 注入）
+;   + CombatFX（§11.1 曳光/枪口火光）+ MissionEndScreen（结算/失败界面）。
 
 [ext_resource type="PackedScene" path="res://scenes/levels/greybox_arena.tscn" id="1_arena"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/infantry.tscn" id="2_infantry"]
@@ -17,6 +19,9 @@
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="6_player"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="7_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/audio_manager.tscn" id="8_audio"]
+[ext_resource type="PackedScene" path="res://scenes/ui/mission_end_screen.tscn" id="9_end_screen"]
+[ext_resource type="Script" path="res://scripts/levels/mission_director.gd" id="10_director"]
+[ext_resource type="Script" path="res://scripts/weapons/combat_fx.gd" id="11_combat_fx"]
 
 [node name="Main" type="Node3D"]
 
@@ -71,3 +76,41 @@ rotation = Vector3(0, -0.785398, 0)
 [node name="Sniper01" parent="Garrison" instance=ExtResource("5_sniper")]
 position = Vector3(80, 12.25, 0)
 rotation = Vector3(0, 1.5708, 0)
+
+; ===== Phase 0b 补充部署（2026-08-19）：步兵 6→14，固定编制 14+2MG+1碉堡+1狙 = 18 =====
+[node name="Infantry07" parent="Garrison" instance=ExtResource("2_infantry")]
+position = Vector3(60, 0, -15)
+
+[node name="Infantry08" parent="Garrison" instance=ExtResource("2_infantry")]
+position = Vector3(55, 0, 25)
+
+[node name="Infantry09" parent="Garrison" instance=ExtResource("2_infantry")]
+position = Vector3(0, 0, -50)
+
+[node name="Infantry10" parent="Garrison" instance=ExtResource("2_infantry")]
+position = Vector3(-10, 0, 5)
+
+[node name="Infantry11" parent="Garrison" instance=ExtResource("2_infantry")]
+position = Vector3(-45, 0, -30)
+
+[node name="Infantry12" parent="Garrison" instance=ExtResource("2_infantry")]
+position = Vector3(-60, 0, -10)
+
+[node name="Infantry13" parent="Garrison" instance=ExtResource("2_infantry")]
+position = Vector3(-30, 0, 45)
+
+[node name="Infantry14" parent="Garrison" instance=ExtResource("2_infantry")]
+position = Vector3(15, 0, 55)
+
+; ===== Phase 0b 系统层（蜂后串行总装）=====
+; 任务流程控制器：事件狙击手场景由组合层注入（复用 5_sniper）
+[node name="MissionDirector" type="Node3D" parent="."]
+script = ExtResource("10_director")
+event_sniper_scene = ExtResource("5_sniper")
+
+; 表现层三件套之曳光/枪口火光（监听 Events.enemy_fired）
+[node name="CombatFX" type="Node3D" parent="."]
+script = ExtResource("11_combat_fx")
+
+; 结算/失败界面（CanvasLayer，mission_completed/game_over 触发）
+[node name="MissionEndScreen" parent="." instance=ExtResource("9_end_screen")]

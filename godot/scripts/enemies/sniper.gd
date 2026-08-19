@@ -72,6 +72,7 @@ func _kill_shot() -> void:
 	if lethal:
 		Events.message_posted.emit("被狙击手击中! 一枪毙命")
 		Events.player_damaged.emit(&"head", GameConfig.SNIPER_KILL_DAMAGE)
+		Events.player_hit_direction.emit(global_position)
 		Events.game_over.emit(&"sniper")
 	else:
 		_damage_player(GameConfig.SNIPER_NON_LETHAL_DAMAGE)

@@ -163,10 +163,12 @@ func _los_exclude_rids() -> Array[RID]:
 
 ## ===== 共用工具 =====
 ## 对玩家造成一次伤害：部位随机（web takeDamage L3255-3257）。
-## 护甲吸收/部位系数/溢出分摊属玩家域伤害管线，不在本类职责内。
+## 护甲吸收/部位系数/溢出分摊属玩家域伤害管线（player_controller._apply_damage）。
+## 受击方向弧信号与 player_damaged 同点发射（§11.1 A 方案，2026-08-19 冻结新增）。
 func _damage_player(amount: float) -> void:
 	var part: StringName = PLAYER_HIT_PARTS[randi() % PLAYER_HIT_PARTS.size()]
 	Events.player_damaged.emit(part, amount)
+	Events.player_hit_direction.emit(global_position)
 
 
 ## 朝向目标（锁定水平面，避免俯仰翻倒）。
