@@ -102,6 +102,7 @@
 ## 分支与 Commit 规范
 
 - 分支：`dev_godot`（Godot 重制）/ `dev_win`（Electron 壳 + 文档）/ `dev_mobile`（移动端保留）/ `master`（基线）。跨分支搬运须经蜂后。
+- **分支模型 v2（机主 2026-08-20 19:05 指令，参照 signal-lost 项目）**：`master` = 主分支/试玩验收基线；`dev1` = **日常开发唯一分支**（所有 Agent 默认在 dev1 施工）；`dev2` = 实验/备用分支（高风险探索、并行方案验证用）。**dev1 → master 的合入只能在机主试玩同意后执行，未经许可任何 Agent 禁止擅自合入 master**，违反视为行为不合格。dev1/dev2 于 2026-08-20 从 dev_godot HEAD 切出；dev_godot 保留作历史存档，不再新增提交。
 - 每个逻辑单元完成即 commit（小步提交，出问题只丢一步）。
 - commit message 末尾必须追加 `自检: ①②③④ 通过`，缺失视为违规提交。
 - 门禁日（G1–G4）代码冻结，冻结后只修阻断性 bug，每修一个重跑 L1+L2。
