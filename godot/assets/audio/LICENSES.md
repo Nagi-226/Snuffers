@@ -8,7 +8,7 @@
 
 ## 许可证说明
 
-- **Mixkit Free License**（https://mixkit.co/license/#sfxFree）：Mixkit 音效可免费用于商业与非商业项目，无需署名，可修改。本次下载的 12 个文件均来自 Mixkit 官方音效库，直接下载、无需登录、无付费项。
+- **Mixkit Free License**（https://mixkit.co/license/#sfxFree）：Mixkit 音效可免费用于商业与非商业项目，无需署名，可修改。本次下载的 12 个文件均来自 Mixkit 官方音效库，直接下载、无需登录、无付费项。**2026-08-20 机主指令移除 2 个人声呻吟条目（enemy_death「Man in pain」/ player_hurt「Ow exclamation of pain」，违和感太强），现库内 Mixkit 文件 10 个。**
 - **程序合成占位**：`ambient.wav` 由本项目 Node 脚本程序化合成（棕噪声风声 + 随机远处枪声爆点 + 低频爆炸隆隆声），非第三方素材，可视为项目自有资产（等同于 CC0），无任何授权限制。
 
 ---
@@ -22,8 +22,6 @@
 | explosion.mp3 | 爆炸 | Mixkit | Short explosion | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/1694/ （直链 https://assets.mixkit.co/active_storage/sfx/1694/1694-preview.mp3 ） | Mixkit Free License | 2026-07-14 |
 | reload.mp3 | 换弹/拉栓 | Mixkit | Shotgun long pump | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/1666/ （直链 https://assets.mixkit.co/active_storage/sfx/1666/1666-preview.mp3 ） | Mixkit Free License | 2026-07-14 |
 | hitmark.mp3 | 命中提示 | Mixkit | Game ball tap | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/2073/ （直链 https://assets.mixkit.co/active_storage/sfx/2073/2073-preview.mp3 ） | Mixkit Free License | 2026-07-14 |
-| enemy_death.mp3 | 敌人倒地 | Mixkit | Man in pain | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/2197/ （直链 https://assets.mixkit.co/active_storage/sfx/2197/2197-preview.mp3 ） | Mixkit Free License | 2026-07-14 |
-| player_hurt.mp3 | 玩家受伤 | Mixkit | Ow exclamation of pain | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/2204/ （直链 https://assets.mixkit.co/active_storage/sfx/2204/2204-preview.mp3 ） | Mixkit Free License | 2026-07-14 |
 | footstep.mp3 | 脚步（可循环） | Mixkit | Crunchy footsteps loop | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/535/ （直链 https://assets.mixkit.co/active_storage/sfx/535/535-preview.mp3 ） | Mixkit Free License | 2026-07-14 |
 | helicopter.mp3 | 直升机旋翼（可循环） | Mixkit | Helicopter propellers in the sky | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/2704/ （直链 https://assets.mixkit.co/active_storage/sfx/2704/2704-preview.mp3 ） | Mixkit Free License | 2026-07-14 |
 | nightvision.mp3 | 夜视仪开关/电流声 | Mixkit | Electronics power up | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/2602/ （直链 https://assets.mixkit.co/active_storage/sfx/2602/2602-preview.mp3 ） | Mixkit Free License | 2026-07-14 |

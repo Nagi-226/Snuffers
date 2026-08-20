@@ -167,22 +167,22 @@ func _enable_loop(stream: AudioStream) -> void:
 		stream.loop_end = 0
 
 
-## Events 接线表（G2 契约冻结终态，2026-07-21）：
+## Events 接线表（G2 契约冻结终态，2026-07-21；2026-08-20 机主指令修订）：
 ## weapon_fired → 按 GameState.current_weapon 放 rifle/rocket（枪声带音高抖动）
-## weapon_reloaded → reload ｜ hit_confirmed → hitmark ｜ player_damaged → player_hurt
-## enemy_died → enemy_death ｜ medkit_used → medkit ｜ night_vision_toggled → nightvision
+## weapon_reloaded → reload ｜ hit_confirmed → hitmark
+## medkit_used → medkit ｜ night_vision_toggled → nightvision
 ## heli_called → helicopter（loop 总线循环）｜ mission_completed / game_over → 停全部 loop
 ## rpg_exploded → explosion ｜ player_moving_changed → footstep 循环起停（loop 总线；
 ##   结束态由 mission_completed / game_over 的 stop_all_loops 兜底，开地图暂停沿用同一通道）
 ## enemy_fired → &"rifle" 用 rifle；&"machine_gun" 复用 rifle 音源按 ENEMY_MG_PITCH 降调
 ##   （±GameConfig.SFX_PITCH_JITTER 抖动不变）；position 暂不参与衰减（见交付报告）
-## ui_click ← 留待 Sprint 3 菜单界面接入。
+## ui_click ← 留待菜单界面接入。
+## 2026-08-20 机主指令：人呻吟声违和——player_hurt/enemy_death 两条人声链路整体移除
+## （信号 player_damaged/enemy_died 在 HUD/GameState 侧仍正常使用，仅音频不再消费）。
 func _connect_events() -> void:
 	Events.weapon_fired.connect(_on_weapon_fired)
 	Events.weapon_reloaded.connect(_on_weapon_reloaded)
 	Events.hit_confirmed.connect(_on_hit_confirmed)
-	Events.player_damaged.connect(_on_player_damaged)
-	Events.enemy_died.connect(_on_enemy_died)
 	Events.medkit_used.connect(_on_medkit_used)
 	Events.night_vision_toggled.connect(_on_night_vision_toggled)
 	Events.heli_called.connect(_on_heli_called)
@@ -197,8 +197,6 @@ func _disconnect_events() -> void:
 	Events.weapon_fired.disconnect(_on_weapon_fired)
 	Events.weapon_reloaded.disconnect(_on_weapon_reloaded)
 	Events.hit_confirmed.disconnect(_on_hit_confirmed)
-	Events.player_damaged.disconnect(_on_player_damaged)
-	Events.enemy_died.disconnect(_on_enemy_died)
 	Events.medkit_used.disconnect(_on_medkit_used)
 	Events.night_vision_toggled.disconnect(_on_night_vision_toggled)
 	Events.heli_called.disconnect(_on_heli_called)
@@ -223,14 +221,6 @@ func _on_weapon_reloaded(_reloaded_id: StringName) -> void:
 
 func _on_hit_confirmed(_is_headshot: bool) -> void:
 	play_sfx(&"hitmark")
-
-
-func _on_player_damaged(_part: StringName, _amount: float) -> void:
-	play_sfx(&"player_hurt")
-
-
-func _on_enemy_died(_enemy: Node) -> void:
-	play_sfx(&"enemy_death")
 
 
 func _on_medkit_used(_remaining: int) -> void:

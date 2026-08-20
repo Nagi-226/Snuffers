@@ -50,8 +50,6 @@
 | explosion.mp3（爆炸） | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/1694/ | Mixkit Free License | 2026-07-14 |
 | reload.mp3（换弹/拉栓） | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/1666/ | Mixkit Free License | 2026-07-14 |
 | hitmark.mp3（命中提示） | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/2073/ | Mixkit Free License | 2026-07-14 |
-| enemy_death.mp3（敌人倒地） | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/2197/ | Mixkit Free License | 2026-07-14 |
-| player_hurt.mp3（玩家受伤） | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/2204/ | Mixkit Free License | 2026-07-14 |
 | footstep.mp3（脚步，可循环） | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/535/ | Mixkit Free License | 2026-07-14 |
 | helicopter.mp3（直升机旋翼，可循环） | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/2704/ | Mixkit Free License | 2026-07-14 |
 | nightvision.mp3（夜视仪开关/电流声） | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/2602/ | Mixkit Free License | 2026-07-14 |
