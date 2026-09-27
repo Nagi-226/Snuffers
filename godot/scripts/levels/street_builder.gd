@@ -288,9 +288,9 @@ func _enterable_obstacles(b: Dictionary) -> Array:
 	var bw1: float = x1 if b["x"] > 0.0 else x0 + SHELL_WALL_T
 	# 一层隔断 x=px：门洞 z ∈ b.z+1.0..b.z+2.2
 	var px: float = b["x"] - 0.5 if b["x"] > 0.0 else b["x"] + 0.5
-	# 楼梯 footprint（L 型：一段+平台贴北墙，二段向南转折；西排楼按 b.x 镜像）
-	var l1r: Array = [x0 + 0.4, z0 + SHELL_WALL_T, x0 + 4.4, z0 + SHELL_WALL_T + 1.2]
-	var l2r: Array = [x0 + 3.2, z0 + SHELL_WALL_T + 1.15, x0 + 4.4, z0 + SHELL_WALL_T + 4.0]
+	# 楼梯 footprint（L 型 v2：一段+平台贴西墙 z0+0.3..z0+4.1，二段沿北墙向东）
+	var l1r: Array = [x0 + 0.3, z0 + SHELL_WALL_T, x0 + 1.5, z0 + 4.1]
+	var l2r: Array = [x0 + 1.45, z0 + SHELL_WALL_T, x0 + 4.3, z0 + SHELL_WALL_T + 1.2]
 	if b["x"] < 0.0:
 		l1r = [2.0 * b["x"] - l1r[2], l1r[1], 2.0 * b["x"] - l1r[0], l1r[3]]
 		l2r = [2.0 * b["x"] - l2r[2], l2r[1], 2.0 * b["x"] - l2r[0], l2r[3]]
@@ -354,72 +354,77 @@ func _build_enterable_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Co
 		Vector3(b["w"], 0.24, b["d"]), pal, tint)
 
 	# 中层楼板（顶面与 floor_h 齐平；楼梯开口 = L 型梯段正上方）
-	# L 型 90° 转角楼梯（2026-09-27 机主裁决：起点离开墙边、栏杆式扶手、顶部无遮挡板）：
-	# 一段贴北墙向东爬 1.4m → 转角平台 → 二段向南转 90° 爬 1.455m 接上二楼板
+	# L 型 90° 转角楼梯 v2（2026-09-27 机主草图裁决）：一段贴【西墙】（门北侧）向北爬 1.4m
+	# → 西北角转角平台 → 二段向东转 90° 沿北墙爬 1.455m 接上二楼板；栏杆式扶手，顶部无挡板
 	var sgn: float = 1.0 if east_side else -1.0
 	var mx := func(v: float) -> float: return b["x"] + (v - b["x"]) * sgn
-	var f1x0: float = in_x0 + 0.15   # 东向基准坐标（西排楼经 mx 镜像）
-	var f1x1: float = f1x0 + 2.6
-	var stz0: float = in_z0 + 0.05
-	var stz1: float = stz0 + 1.1
-	var f2xa: float = f1x1 + 0.2
-	var f2xb: float = f1x1 + 1.3
-	var f2z1: float = stz1 + 2.8
+	# 以下 x 均为东排基准坐标（西排楼经 mx 镜像）；z 不变（爬升方向朝北 -Z）
+	var stx0: float = in_x0 + 0.05          # 梯段一西缘（贴西墙）
+	var stx1: float = stx0 + 1.1            # 梯段一东缘
+	var f1z0: float = b["z"] - 0.95         # 梯段一底（门洞北缘外 0.25m，不挡门）
+	var f1z1: float = f1z0 - 3.0            # 梯段一顶
+	var lz0: float = in_z0 + 0.05           # 平台南缘（贴北墙）
+	var f2x1: float = stx1 + 2.8            # 梯段二东端
 	var y_mid: float = 0.145 + 1.4
-	var slab_z0: float = f2z1 + 0.1
-	var slab_x0: float = f2xb + 0.15
+	# 楼板开口：A = 梯段一+平台上方；B = 梯段二上方
+	var oax1: float = stx1 + 0.1
+	var oaz1: float = f1z1 + 1.85
+	var obx1: float = stx1 + 2.95
+	var obz1: float = lz0 + 1.15
 	_add_box(row, "Bldg_%s_SLAB_A" % b["id"],
-		Vector3(b["x"], floor_h - 0.12, (slab_z0 + in_z1) * 0.5),
-		Vector3(in_x1 - in_x0, 0.24, in_z1 - slab_z0), pal, tint)
+		Vector3(b["x"], floor_h - 0.12, (oaz1 + in_z1) * 0.5),
+		Vector3(in_x1 - in_x0, 0.24, in_z1 - oaz1), pal, tint)
 	_add_box(row, "Bldg_%s_SLAB_B" % b["id"],
-		Vector3((mx.call(slab_x0) + mx.call(in_x1)) * 0.5, floor_h - 0.12, (in_z0 + slab_z0) * 0.5),
-		Vector3(absf(mx.call(in_x1) - mx.call(slab_x0)), 0.24, slab_z0 - in_z0), pal, tint)
+		Vector3((mx.call(oax1) + mx.call(in_x1)) * 0.5, floor_h - 0.12, (obz1 + oaz1) * 0.5),
+		Vector3(absf(mx.call(in_x1) - mx.call(oax1)), 0.24, oaz1 - obz1), pal, tint)
+	_add_box(row, "Bldg_%s_SLAB_C" % b["id"],
+		Vector3((mx.call(obx1) + mx.call(in_x1)) * 0.5, floor_h - 0.12, (in_z0 + obz1) * 0.5),
+		Vector3(absf(mx.call(in_x1) - mx.call(obx1)), 0.24, obz1 - in_z0), pal, tint)
 
-	# 梯段一坡道（碰撞斜面，东向爬升）
-	var f1_len: float = sqrt(2.6 * 2.6 + 1.4 * 1.4)
-	var f1_ang: float = rad_to_deg(atan2(1.4, 2.6)) * sgn
-	var f1_c := Vector3(mx.call((f1x0 + f1x1) * 0.5), (0.145 + y_mid) * 0.5 - 0.05, (stz0 + stz1) * 0.5)
-	_add_box(row, "Bldg_%s_RAMP1" % b["id"], f1_c, Vector3(f1_len, 0.1, 1.1),
-		"kerb", Color(0.5, 0.5, 0.5), f1_ang)
-	# 转角平台
+	# 梯段一坡道（碰撞斜面，贴西墙向北爬升，绕 X 轴；北端 -Z 抬升 → rot_x 正号）
+	var f1_len: float = sqrt(3.0 * 3.0 + 1.4 * 1.4)
+	var f1_ang: float = rad_to_deg(atan2(1.4, 3.0))
+	var f1_c := Vector3(mx.call((stx0 + stx1) * 0.5), (0.145 + y_mid) * 0.5 - 0.05, (f1z0 + f1z1) * 0.5)
+	_add_box(row, "Bldg_%s_RAMP1" % b["id"], f1_c, Vector3(1.1, 0.1, f1_len),
+		"kerb", Color(0.5, 0.5, 0.5), 0.0, f1_ang)
+	# 转角平台（西北角）
 	_add_box(row, "Bldg_%s_LANDING" % b["id"],
-		Vector3(mx.call((f1x1 + f2xb) * 0.5), y_mid - 0.27, (stz0 + stz1) * 0.5),
-		Vector3(1.3, 0.54, 1.1), "kerb", Color(0.55, 0.55, 0.55))
-	# 梯段二坡道（南向爬升，绕 X 轴）
+		Vector3(mx.call((stx0 + stx1) * 0.5), y_mid - 0.27, (lz0 + f1z1) * 0.5),
+		Vector3(1.1, 0.54, f1z1 - lz0), "kerb", Color(0.55, 0.55, 0.55))
+	# 梯段二坡道（沿北墙向东爬升，绕 Z 轴）
 	var f2_len: float = sqrt(2.8 * 2.8 + 1.455 * 1.455)
-	var f2_ang: float = -rad_to_deg(atan2(1.455, 2.8))
-	var f2_c := Vector3(mx.call((f2xa + f2xb) * 0.5), (y_mid + floor_h) * 0.5 - 0.05, (stz1 + f2z1) * 0.5)
-	_add_box(row, "Bldg_%s_RAMP2" % b["id"], f2_c, Vector3(1.1, 0.1, f2_len),
-		"kerb", Color(0.5, 0.5, 0.5), 0.0, f2_ang)
+	var f2_ang: float = rad_to_deg(atan2(1.455, 2.8)) * sgn
+	var f2_c := Vector3(mx.call((stx1 + f2x1) * 0.5), (y_mid + floor_h) * 0.5 - 0.05, lz0 + 0.55)
+	_add_box(row, "Bldg_%s_RAMP2" % b["id"], f2_c, Vector3(f2_len, 0.1, 1.1),
+		"kerb", Color(0.5, 0.5, 0.5), f2_ang)
 	# 踏步视觉（两段各 6 级）
 	for i in 6:
-		var sx: float = f1x0 + (float(i) + 0.5) * (2.6 / 6.0)
-		var sy: float = 0.145 + (float(i) + 1.0) * (1.4 / 6.0)
-		_add_box(row, "Bldg_%s_S1_%d" % [b["id"], i], Vector3(mx.call(sx), sy - 0.09, (stz0 + stz1) * 0.5),
-			Vector3(0.46, 0.18, 1.1), "kerb", Color(0.62, 0.62, 0.62))
-		var sz: float = stz1 + (float(i) + 0.5) * (2.8 / 6.0)
+		var sz1: float = f1z0 - (float(i) + 0.5) * 0.5
+		var sy1: float = 0.145 + (float(i) + 1.0) * (1.4 / 6.0)
+		_add_box(row, "Bldg_%s_S1_%d" % [b["id"], i], Vector3(mx.call((stx0 + stx1) * 0.5), sy1 - 0.09, sz1),
+			Vector3(1.1, 0.18, 0.52), "kerb", Color(0.62, 0.62, 0.62))
+		var sx2: float = stx1 + (float(i) + 0.5) * (2.8 / 6.0)
 		var sy2: float = y_mid + (float(i) + 1.0) * (1.455 / 6.0)
-		_add_box(row, "Bldg_%s_S2_%d" % [b["id"], i], Vector3(mx.call((f2xa + f2xb) * 0.5), sy2 - 0.09, sz),
-			Vector3(1.1, 0.18, 0.49), "kerb", Color(0.62, 0.62, 0.62))
-	# 栏杆式扶手（立柱 + 细扶手杆，通透不挡视线）：梯段一南缘 / 梯段二两侧 / 平台东缘
+		_add_box(row, "Bldg_%s_S2_%d" % [b["id"], i], Vector3(mx.call(sx2), sy2 - 0.09, lz0 + 0.55),
+			Vector3(0.49, 0.18, 1.1), "kerb", Color(0.62, 0.62, 0.62))
+	# 栏杆式扶手（立柱 + 细扶手杆，通透不挡视线）：
+	# 梯段一东缘（临空侧）/ 二楼板 B 西缘与板 A 北缘（临楼梯井侧）
 	var rail := func(x_e: float, y_surf: float, z: float) -> void:
 		_add_box(row, "Bldg_%s_POST" % b["id"], Vector3(mx.call(x_e), y_surf + 0.45, z),
 			Vector3(0.05, 0.9, 0.05), "metal_dark")
 	for i in 4:
-		var pxf: float = f1x0 + 0.35 + float(i) * 0.65
-		rail.call(pxf, 0.145 + 1.4 * (pxf - f1x0) / 2.6, stz1 - 0.02)
-	_add_box(row, "Bldg_%s_HR1" % b["id"], f1_c + Vector3(0, 0.95, 0.53),
-		Vector3(f1_len, 0.05, 0.05), "metal_dark", Color(1, 1, 1), f1_ang)
-	for side_x in [f2xa - 0.03, f2xb + 0.03]:
-		for i in 4:
-			var pz2: float = stz1 + 0.3 + float(i) * 0.65
-			rail.call(side_x, y_mid + 1.455 * (pz2 - stz1) / 2.8, pz2)
-		_add_box(row, "Bldg_%s_HR2" % b["id"], Vector3(mx.call(side_x), f2_c.y + 0.95, f2_c.z),
-			Vector3(0.05, 0.05, f2_len), "metal_dark", Color(1, 1, 1), 0.0, f2_ang)
+		var pz1: float = f1z1 + 0.3 + float(i) * 0.65
+		rail.call(stx1 + 0.03, 0.145 + 1.4 * (f1z0 - pz1) / 3.0, pz1)
+	_add_box(row, "Bldg_%s_HR1" % b["id"], Vector3(mx.call(stx1 + 0.03), f1_c.y + 0.95, f1_c.z),
+		Vector3(0.05, 0.05, f1_len), "metal_dark", Color(1, 1, 1), 0.0, f1_ang)
 	for i in 3:
-		rail.call(f2xb + 0.03, y_mid, stz0 + 0.2 + float(i) * 0.35)
-	_add_box(row, "Bldg_%s_HR3" % b["id"], Vector3(mx.call(f2xb + 0.03), y_mid + 0.9, (stz0 + stz1) * 0.5),
-		Vector3(0.05, 0.05, 1.1), "metal_dark")
+		rail.call(oax1, floor_h, obz1 + 0.25 + float(i) * 0.45)
+	_add_box(row, "Bldg_%s_HR2" % b["id"], Vector3(mx.call(oax1), floor_h + 0.95, (obz1 + oaz1) * 0.5),
+		Vector3(0.05, 0.05, oaz1 - obz1), "metal_dark")
+	for i in 3:
+		rail.call(in_x0 + 0.25 + float(i) * 0.4, floor_h, oaz1 + 0.02)
+	_add_box(row, "Bldg_%s_HR3" % b["id"], Vector3(mx.call((in_x0 + oax1) * 0.5), floor_h + 0.95, oaz1 + 0.02),
+		Vector3(oax1 - in_x0, 0.05, 0.05), "metal_dark")
 
 	# 一层隔断（x=px，门洞 z ∈ b.z+1.0..b.z+2.2）：门厅 | 东房
 	var px: float = b["x"] - 0.5 if east_side else b["x"] + 0.5
@@ -446,7 +451,7 @@ func _build_enterable_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Co
 	row.add_child(l1)
 	var l2 := OmniLight3D.new()
 	l2.name = "Bldg_%s_EmLightF2" % b["id"]
-	l2.position = Vector3(mx.call(f2xb + 1.7), h_total - 0.45, stz1 + 1.5)  # 二楼楼梯到达口上方
+	l2.position = Vector3(mx.call(obx1 + 1.6), h_total - 0.45, lz0 + 0.55)  # 二楼楼梯到达口上方
 	l2.set_script(script)
 	row.add_child(l2)
 
