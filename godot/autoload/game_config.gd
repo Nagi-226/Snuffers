@@ -215,3 +215,14 @@ const SKYLINE_LIT_RATIO: float = 0.40 ## 亮窗比例（内环）
 const SKYLINE_LIT_RATIO_OUTER: float = 0.22 ## 亮窗比例（外环，更稀疏更暗）
 const SKYLINE_VISTA_GAP_DEG: float = 15.0 ## 主街轴线 ±扇区不放内环塔楼（留视线走廊）
 const SKYLINE_BEACON_MIN_HEIGHT_M: float = 80.0 ## 高于此高度的塔楼顶部亮航空障碍红灯
+
+# --- 天际线 v2 真实化（参考广州珠江新城 CBD 夜景照片特征；skyline_builder 消费）---
+const SKYLINE_PODIUM_RATIO: float = 0.50 ## 内环塔楼带裙楼底座的比例
+const SKYLINE_PODIUM_HEIGHT_M: float = 12.0 ## 裙楼高度 m（此高度以下商业照明更亮更暖）
+const SKYLINE_DARK_FLOOR_RATIO: float = 0.22 ## 整层熄灯（无人加班层）的出现概率
+const SKYLINE_NEON_RATIO: float = 0.55 ## 带 LED 轮廓/竖向灯带的塔楼比例（中国 CBD 特色）
+const SKYLINE_MEDIA_RATIO: float = 0.12 ## 媒体立面（整楼缓慢变色）塔楼比例，仅 >90m 启用
+const SKYLINE_ANTENNA_RATIO: float = 0.50 ## >70m 塔楼带天线桅杆的比例
+## 轴线地标塔：[半径m, 高度m, 相对 -Z 轴角偏移rad]——街道尽头视线走廊的远景焦点
+const SKYLINE_AXIS_TOWERS := [[320.0, 150.0, -0.03], [470.0, 185.0, 0.05]]
+const SKYLINE_AXIS_BRIGHTNESS: float = 0.75 ## 地标塔亮度（远距离衰减感）
