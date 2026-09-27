@@ -198,7 +198,9 @@ const FOG_LIGHT_COLOR := Color(0.55, 0.58, 0.62) ## 雾色（阴天灰蓝）
 const FOG_SUN_SCATTER: float = 0.3 ## 雾中阳光散射强度
 
 # ===== 夜景：蓝调时刻 + 减薄夜雾（street_test 夜景化；夜里本身能见度低，雾减薄）=====
-const NIGHT_FOG_VISIBILITY_TARGET_M: float = 60.0 ## 夜雾目标能见度 m（为白天浓雾两倍，保氛围不闷）
+# 机主护栏（2026-09-27）：夜雾能见度不得低于 60m、density 不得高于 0.065，
+# fog_sky_affect 不得上调——雾绝不能掩盖远处 CBD 夜景天际线
+const NIGHT_FOG_VISIBILITY_TARGET_M: float = 60.0 ## 夜雾目标能见度 m（下限护栏，勿上调 density）
 const NIGHT_FOG_DENSITY: float = 0.065 ## = -ln(0.02)/60 ≈ 0.065（由上行派生，勿独立改）
 const NIGHT_FOG_LIGHT_COLOR := Color(0.10, 0.12, 0.18) ## 夜雾色（深蓝灰）
 const NIGHT_FOG_SUN_SCATTER: float = 0.1 ## 月光散射弱于日光
