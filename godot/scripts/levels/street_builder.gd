@@ -22,6 +22,7 @@ const PALETTE := {
 	"rubber_dark": Color(0.03, 0.03, 0.032),
 	"canvas_red": Color(0.52, 0.14, 0.12),
 	"plastic_white": Color(0.80, 0.79, 0.74),
+	"fence_metal": Color(0.30, 0.33, 0.30),
 }
 
 var _materials := {}
@@ -40,9 +41,11 @@ const SHADER_MAP := {
 
 func _ready() -> void:
 	_apply_fog()
+	_compute_barriers()  # 围挡需在 backdrop 前算好（墙体要进楼块排除区）
 	_build_ground()
 	_build_buildings()
 	_build_backdrop()
+	_build_barriers()
 	_build_props()
 	# 开发者截图: godot --path . res://scenes/levels/street_test.tscn -- --shot <输出路径>
 	var args := OS.get_cmdline_user_args()
@@ -141,9 +144,9 @@ func _build_ground() -> void:
 	ground.name = "Ground"
 	add_child(ground)
 
-	# 外围大地面（街区之外的延展地皮，避免看到天空地线）
+	# 外围大地面（兜底地皮，覆盖整张地图外加足量边距，避免任何角度看到天空地线）
 	_add_box(ground, "OuterGround", Vector3(0, -0.08, z_mid),
-		Vector3(120.0, 0.1, z_len + 80.0), "dirt")
+		Vector3(200.0, 0.1, z_len + 320.0), "dirt")
 	# 沥青主街（略低于人行道顶面，避免 z-fighting）
 	_add_box(ground, "Asphalt", Vector3(0, -0.05, z_mid),
 		Vector3(s["half_width"] * 2.0, 0.1, z_len), "asphalt")
@@ -169,9 +172,24 @@ func _build_ground() -> void:
 	var c_z_mid: float = (c["z_min"] + c["z_max"]) * 0.5
 	_add_box(ground, "CrossAsphalt", Vector3(0, -0.05, c_z_mid),
 		Vector3(c_x_len, 0.1, c["z_max"] - c["z_min"]), "asphalt")
+	# 横街南侧人行道：南延走廊（x=±6.5 以内）断开，让主街向南贯通（2026-09-27 机主裁决）
 	var sw_d: float = c["walk_south_z"] - c["z_max"]
-	_add_box(ground, "CrossSidewalk_S", Vector3(0, s["walk_h"] * 0.5, c["z_max"] + sw_d * 0.5),
-		Vector3(c_x_len, s["walk_h"], sw_d), "kerb")
+	var sw_half: float = (c_x_len * 0.5 - s["kerb"]) * 0.5
+	var sw_x: float = s["kerb"] + sw_half
+	_add_box(ground, "CrossSidewalk_SW", Vector3(-sw_x, s["walk_h"] * 0.5, c["z_max"] + sw_d * 0.5),
+		Vector3(sw_half * 2.0, s["walk_h"], sw_d), "kerb")
+	_add_box(ground, "CrossSidewalk_SE", Vector3(sw_x, s["walk_h"] * 0.5, c["z_max"] + sw_d * 0.5),
+		Vector3(sw_half * 2.0, s["walk_h"], sw_d), "kerb")
+	# 主街南延段：沥青 + 两侧人行道，延伸进夜雾（SOUTH_EXT，南端力场幕墙外）
+	var se: Dictionary = Layout.SOUTH_EXT
+	var se_len: float = se["z_max"] - se["z_min"]
+	var se_mid: float = (se["z_max"] + se["z_min"]) * 0.5
+	_add_box(ground, "SouthAsphalt", Vector3(0, -0.05, se_mid),
+		Vector3(s["half_width"] * 2.0, 0.1, se_len), "asphalt")
+	for side in [-1.0, 1.0]:
+		var sx: float = side * (s["half_width"] + walk_w * 0.5)
+		_add_box(ground, "SouthSidewalk_%s" % ("W" if side < 0 else "E"), Vector3(sx, s["walk_h"] * 0.5, se_mid),
+			Vector3(walk_w, s["walk_h"], se_len), "kerb")
 	# 横街两端铁栅栏门 + 北端 EDAA 路障（分段加载气闸/边界合理化，文档11 §6.6、文档12）
 	for barrier in Layout.BARRIERS:
 		_add_box(ground, barrier["id"],
@@ -642,6 +660,176 @@ func _prop_trash_bin(prop: Node3D) -> void:
 	_add_prop_collider(prop, Vector3(0.65, 0.95, 0.65), Vector3(0, 0.48, 0))
 
 
+## —— 巷弄周界围挡（2026-09-27 机主裁决：巷子不得直通地图外虚空）——
+## 数据全部由 ALLEYS/BUILDINGS/街道带推导：每条巷弄/院落的开敞边放铁栅栏（挡人、可透视），
+## 外推 wall_depth 处放红砖长墙（断视线）；墙体自动剪去建筑/街道/其他巷弄，不穿插
+## _barriers 元素: {"kind": "fence"/"wall", "axis": 0=沿Z|1=沿X, "pos", "from", "to"}
+var _barriers := []
+
+
+func _pt_in_rect(p: Vector2, r: Array) -> bool:
+	return p.x > r[0] and p.x < r[2] and p.y > r[1] and p.y < r[3]
+
+
+## 覆盖带（玩家可站立/通行的连续铺装区）：主街带 + 南延走廊 + 横街带 + 全部巷弄
+func _coverage_rects() -> Array:
+	var s: Dictionary = Layout.STREET
+	var c: Dictionary = Layout.CROSS
+	var rects: Array = [
+		[-s["kerb"], s["z_min"], s["kerb"], s["z_max"]],
+		[-s["kerb"], s["z_max"], s["kerb"], Layout.SOUTH_EXT["z_max"]],
+		[c["x_min"], c["z_min"], c["x_max"], c["walk_south_z"]],
+	]
+	for a in Layout.ALLEYS:
+		rects.append(a["rect"])
+	return rects
+
+
+## 沿 axis 方向、垂直坐标 line 处的区间列表 ivs，剪去与各 rect（外扩 expand）相交的部分
+func _subtract_rects_along(ivs: Array, axis: int, line: float, rects: Array, expand: float) -> Array:
+	var out: Array = ivs.duplicate()
+	for r in rects:
+		var p0: float; var p1: float; var a0: float; var a1: float
+		if axis == 0:  # 围挡沿 Z 走，垂直坐标是 X
+			p0 = r[0]; p1 = r[2]; a0 = r[1]; a1 = r[3]
+		else:
+			p0 = r[1]; p1 = r[3]; a0 = r[0]; a1 = r[2]
+		if line <= p0 - expand or line >= p1 + expand:
+			continue
+		var next: Array = []
+		for iv in out:
+			if iv[1] <= a0 - expand or iv[0] >= a1 + expand:
+				next.append(iv)
+			else:
+				if iv[0] < a0 - expand:
+					next.append([iv[0], a0 - expand])
+				if iv[1] > a1 + expand:
+					next.append([a1 + expand, iv[1]])
+		out = next
+	return out
+
+
+## 巷弄开敞边扫描：0.5m 采样每条边外 0.3m 的点，不被覆盖带/建筑（外扩 1.2m 楼边地块）
+## 覆盖的连续段 = 开敞段 → 铁栅栏贴边、红砖墙外推 wall_depth
+func _compute_barriers() -> void:
+	_barriers.clear()
+	var cover := _coverage_rects()
+	var blds: Array = []
+	for b in Layout.BUILDINGS:
+		blds.append([b["x"] - b["w"] * 0.5, b["z"] - b["d"] * 0.5,
+			b["x"] + b["w"] * 0.5, b["z"] + b["d"] * 0.5])
+	var style: Dictionary = Layout.BARRIER_STYLE
+	var depth: float = style["wall_depth"]
+	for ai in Layout.ALLEYS.size():
+		var r: Array = Layout.ALLEYS[ai]["rect"]
+		# [axis(0=边沿Z走/1=边沿X走), 边线坐标, 起点, 终点, 外法向符号]
+		var edges := [
+			[0, r[0], r[1], r[3], -1.0], [0, r[2], r[1], r[3], 1.0],
+			[1, r[1], r[0], r[2], -1.0], [1, r[3], r[0], r[2], 1.0],
+		]
+		for e in edges:
+			var segs: Array = []
+			var t: float = e[2]
+			var run_open := false  # 坐标可为负，不能用负数当哨兵（2026-09-27 丢边 bug 教训）
+			var run_start := 0.0
+			while t < e[3] - 0.01:
+				var mid := t + 0.25
+				var outside := Vector2(e[1] + e[4] * 0.3, mid) if e[0] == 0 else Vector2(mid, e[1] + e[4] * 0.3)
+				var open := true
+				for cr in cover:
+					if _pt_in_rect(outside, cr):
+						open = false
+						break
+				if open:
+					for br in blds:
+						if _pt_in_rect(outside, [br[0] - 1.2, br[1] - 1.2, br[2] + 1.2, br[3] + 1.2]):
+							open = false
+							break
+				if open:
+					if not run_open:
+						run_open = true
+						run_start = t
+				elif run_open:
+					segs.append([run_start, t])
+					run_open = false
+				t += 0.5
+			if run_open:
+				segs.append([run_start, e[3]])
+			for seg in segs:
+				var f0: float = seg[0] - 0.4
+				var f1: float = seg[1] + 0.4
+				if f1 - f0 < 1.0:
+					continue
+				_barriers.append({"kind": "fence", "axis": e[0], "pos": e[1], "from": f0, "to": f1})
+				var wpos: float = e[1] + e[4] * depth
+				var wext: float = style["wall_extend"]
+				var ivs: Array = [[f0 - wext, f1 + wext]]
+				ivs = _subtract_rects_along(ivs, e[0], wpos, blds, 0.2)
+				ivs = _subtract_rects_along(ivs, e[0], wpos, cover, 0.2)
+				for w in ivs:
+					if w[1] - w[0] >= 1.5:
+						_barriers.append({"kind": "wall", "axis": e[0], "pos": wpos, "from": w[0], "to": w[1]})
+
+
+## 围挡装配：铁栅栏（立柱+镂空竖条板+顶轨，带碰撞）与红砖长墙（薄墙+压顶，带碰撞）
+func _build_barriers() -> void:
+	if _barriers.is_empty():
+		return
+	var row := Node3D.new()
+	row.name = "Barriers"
+	add_child(row)
+	var style: Dictionary = Layout.BARRIER_STYLE
+	for b in _barriers:
+		var length: float = b["to"] - b["from"]
+		var mid: float = (b["from"] + b["to"]) * 0.5
+		if b["kind"] == "fence":
+			_build_fence(row, b, length, mid, style)
+		else:
+			# 红砖长墙（薄墙体 + 混凝土压顶；axis=0 沿 Z，axis=1 沿 X）
+			var wt: float = style["wall_t"]
+			var wh: float = style["wall_h"]
+			var center := Vector3(b["pos"], wh * 0.5, mid) if b["axis"] == 0 else Vector3(mid, wh * 0.5, b["pos"])
+			var size := Vector3(wt, wh, length) if b["axis"] == 0 else Vector3(length, wh, wt)
+			_add_box(row, "Wall_%d_%d" % [int(b["pos"] * 10), int(mid * 10)], center, size, "brick")
+			var cap_center := center + Vector3(0, wh * 0.5 + 0.06, 0)
+			var cap_size := Vector3(wt + 0.12, 0.12, length + 0.12) if b["axis"] == 0 \
+				else Vector3(length + 0.12, 0.12, wt + 0.12)
+			_add_box(row, "WallCap_%d_%d" % [int(b["pos"] * 10), int(mid * 10)], cap_center, cap_size, "kerb")
+
+
+## 铁栅栏：端/中立柱 + 竖条镂空板（mat_fence_bars shader，真透视）+ 顶轨；薄盒碰撞挡玩家
+func _build_fence(parent: Node3D, b: Dictionary, length: float, mid: float, style: Dictionary) -> void:
+	var fh: float = style["fence_h"]
+	var holder := Node3D.new()
+	holder.name = "Fence_%d_%d" % [int(b["pos"] * 10), int(mid * 10)]
+	holder.position = Vector3(b["pos"], 0.0, mid) if b["axis"] == 0 else Vector3(mid, 0.0, b["pos"])
+	if b["axis"] == 1:
+		holder.rotation_degrees.y = 90.0
+	parent.add_child(holder)
+	# 竖条镂空板（局部沿 Z，居中）
+	var bars_mat := ShaderMaterial.new()
+	bars_mat.shader = load("res://assets/shaders/mat_fence_bars.gdshader")
+	bars_mat.set_shader_parameter("fence_length", length)
+	var panel := BoxMesh.new()
+	panel.size = Vector3(0.03, fh - 0.25, length)
+	panel.material = bars_mat
+	var panel_mi := MeshInstance3D.new()
+	panel_mi.mesh = panel
+	panel_mi.position = Vector3(0, (fh - 0.25) * 0.5 + 0.12, 0)
+	holder.add_child(panel_mi)
+	# 立柱（间距 ≤1.8m）
+	var n_posts: int = maxi(2, int(ceil(length / 1.8)) + 1)
+	for i in n_posts:
+		var pz: float = -length * 0.5 + length * float(i) / float(n_posts - 1)
+		_add_part(holder, _make_cyl(0.045, 0.045, fh + 0.1, 8), Vector3(0, (fh + 0.1) * 0.5, pz), "fence_metal")
+	# 顶轨
+	var rail := BoxMesh.new()
+	rail.size = Vector3(0.05, 0.07, length)
+	_add_part(holder, rail, Vector3(0, fh + 0.035, 0), "fence_metal")
+	# 碰撞薄盒
+	_add_prop_collider(holder, Vector3(0.12, fh + 0.1, length), Vector3(0, (fh + 0.1) * 0.5, 0))
+
+
 ## —— 背景楼群填充（2026-09-27 机主裁决：填满临街排楼背后的两侧空白虚空）——
 ## 声明式分区（Layout.BACKFILL_ZONES）+ 定种子随机落块；夜景剪影用，无立面套件省性能，
 ## 巷弄院落与 T 字横街自动避让（排除区外扩 0.8m 边距）
@@ -655,12 +843,27 @@ func _build_backdrop() -> void:
 	row.name = "Backdrop"
 	add_child(row)
 
-	# 排除区：全部巷弄/院落 + T 字横街（含人行道与栅栏门位）
+	# 排除区：全部巷弄/院落 + T 字横街（含人行道与栅栏门位）+ 南延走廊
+	# + 全部建筑 footprint + 围挡砖墙（2026-09-27 大排查：楼块不得穿插任何既定几何）
 	var exclusions: Array = []
 	for alley in Layout.ALLEYS:
 		exclusions.append(alley["rect"])
 	var c: Dictionary = Layout.CROSS
 	exclusions.append([c["x_min"] - 1.2, c["z_min"] - 1.0, c["x_max"] + 1.2, c["walk_south_z"] + 0.8])
+	exclusions.append([-7.2, 29.0, 7.2, Layout.SOUTH_EXT["z_max"] + 1.0])  # 南延走廊
+	for b in Layout.BUILDINGS:
+		exclusions.append([b["x"] - b["w"] * 0.5 - 0.8, b["z"] - b["d"] * 0.5 - 0.8,
+			b["x"] + b["w"] * 0.5 + 0.8, b["z"] + b["d"] * 0.5 + 0.8])
+	for gate in Layout.BARRIERS:  # 栅栏门/力场发射柱 footprint
+		exclusions.append([gate["x"] - gate["w"] * 0.5 - 0.5, gate["z"] - gate["d"] * 0.5 - 0.5,
+			gate["x"] + gate["w"] * 0.5 + 0.5, gate["z"] + gate["d"] * 0.5 + 0.5])
+	for wb in _barriers:
+		if wb["kind"] != "wall":
+			continue
+		if wb["axis"] == 0:
+			exclusions.append([wb["pos"] - 0.6, wb["from"] - 0.3, wb["pos"] + 0.6, wb["to"] + 0.3])
+		else:
+			exclusions.append([wb["from"] - 0.3, wb["pos"] - 0.6, wb["to"] + 0.3, wb["pos"] + 0.6])
 
 	var palettes := ["plaster_cream", "plaster_sand", "plaster_white", "plaster_pink", "brick"]
 	var rng := RandomNumberGenerator.new()
