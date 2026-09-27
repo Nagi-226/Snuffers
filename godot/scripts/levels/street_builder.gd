@@ -41,6 +41,7 @@ func _ready() -> void:
 	_apply_fog()
 	_build_ground()
 	_build_buildings()
+	_build_backdrop()
 	_build_props()
 	# 开发者截图: godot --path . res://scenes/levels/street_test.tscn -- --shot <输出路径>
 	var args := OS.get_cmdline_user_args()
@@ -513,3 +514,63 @@ func _prop_trash_bin(prop: Node3D) -> void:
 	_add_part(prop, _make_cyl(0.30, 0.27, 0.85, 12), Vector3(0, 0.425, 0), "rust_metal")
 	_add_part(prop, _make_cyl(0.33, 0.33, 0.07, 12), Vector3(0, 0.89, 0), "metal_dark")
 	_add_prop_collider(prop, Vector3(0.65, 0.95, 0.65), Vector3(0, 0.48, 0))
+
+
+## —— 背景楼群填充（2026-09-27 机主裁决：填满临街排楼背后的两侧空白虚空）——
+## 声明式分区（Layout.BACKFILL_ZONES）+ 定种子随机落块；夜景剪影用，无立面套件省性能，
+## 巷弄院落与 T 字横街自动避让（排除区外扩 0.8m 边距）
+
+func _rects_overlap(ax0: float, az0: float, ax1: float, az1: float, r: Array) -> bool:
+	return ax0 < r[2] and ax1 > r[0] and az0 < r[3] and az1 > r[1]
+
+
+func _build_backdrop() -> void:
+	var row := Node3D.new()
+	row.name = "Backdrop"
+	add_child(row)
+
+	# 排除区：全部巷弄/院落 + T 字横街（含人行道与栅栏门位）
+	var exclusions: Array = []
+	for alley in Layout.ALLEYS:
+		exclusions.append(alley["rect"])
+	var c: Dictionary = Layout.CROSS
+	exclusions.append([c["x_min"] - 1.2, c["z_min"] - 1.0, c["x_max"] + 1.2, c["walk_south_z"] + 0.8])
+
+	var palettes := ["plaster_cream", "plaster_sand", "plaster_white", "plaster_pink", "brick"]
+	var rng := RandomNumberGenerator.new()
+	for zi in Layout.BACKFILL_ZONES.size():
+		var zone: Dictionary = Layout.BACKFILL_ZONES[zi]
+		rng.seed = GameConfig.STREET_DRESS_SEED + 31000 + zi * 104729
+		var r: Array = zone["rect"]
+		var block: Array = zone["block"]
+		var floors_range: Array = zone["floors"]
+		var gap: float = zone.get("gap", 2.5)
+		var density: float = zone.get("density", 1.0)
+		var j: float = GameConfig.STREET_TINT_JITTER
+
+		var x: float = r[0]
+		while x < r[2]:
+			var w: float = rng.randf_range(block[0], block[1])
+			var z: float = r[1]
+			while z < r[3]:
+				var d: float = rng.randf_range(block[0], block[1])
+				var cx: float = x + w * 0.5
+				var cz: float = z + d * 0.5
+				var place: bool = rng.randf() <= density \
+					and cx + w * 0.5 <= float(r[2]) + 0.01 and cz + d * 0.5 <= float(r[3]) + 0.01
+				if place:
+					for ex in exclusions:
+						if _rects_overlap(cx - w * 0.5 - 0.8, cz - d * 0.5 - 0.8,
+								cx + w * 0.5 + 0.8, cz + d * 0.5 + 0.8, ex):
+							place = false
+							break
+				if place:
+					var h: float = float(rng.randi_range(int(floors_range[0]), int(floors_range[1]))) \
+						* Layout.STREET["floor_h"]
+					var tint := Color(1.0 - j + rng.randf() * j * 2.0,
+						1.0 - j + rng.randf() * j * 2.0, 1.0 - j + rng.randf() * j * 2.0)
+					_add_box(row, "Backfill_%d_%d_%d" % [zi, int(x), int(z)],
+						Vector3(cx, h * 0.5, cz), Vector3(w, h, d),
+						palettes[rng.randi_range(0, palettes.size() - 1)], tint)
+				z += d + gap
+			x += w + gap
