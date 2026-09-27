@@ -249,9 +249,10 @@ func _build_buildings() -> void:
 		_add_box(row, "Bldg_%s" % b["id"],
 			Vector3(b["x"], h * 0.5, b["z"]), size, b["palette"], tint)
 		_dress_facade(row, b, s["floor_h"], rng)
-		# 巷弄立面：临街排楼的背街面/侧面若与巷弄院落相邻，补门窗（2026-09-27 机主裁决）
-		if b.get("face", "") == "" and absf(b["x"]) > 0.1:
-			_dress_alley_faces(row, b, s["floor_h"], rng)
+		# 次立面：非主立面凡 5m 邻接带触及可玩覆盖带（街/巷/院落）→ 补门窗
+		# （2026-09-27 全图排查：可到之处可见的侧面不许是光板墙）
+		if absf(b["x"]) > 0.1:
+			_dress_secondary_faces(row, b, s["floor_h"], rng)
 	_build_wires(rng)
 
 
@@ -282,12 +283,23 @@ func _apply_fog() -> void:
 	env.fog_sky_affect = GameConfig.NIGHT_FOG_SKY_AFFECT
 
 
-## 巷弄邻接扫描：临街排楼的非临街面，外推 5m 条带与任一巷弄/院落相交 → 该面临巷，补门窗
-func _dress_alley_faces(parent: Node3D, b: Dictionary, floor_h: float, rng: RandomNumberGenerator) -> void:
-	var street_out := Vector3(1, 0, 0) if b["x"] < 0.0 else Vector3(-1, 0, 0)
+## 次立面扫描：排楼的非主立面，外推 5m 条带与任一可玩覆盖带（街/巷/院落）相交 →
+## 该面临可达区，补门窗。主立面方向（显式 face 或临街向）跳过，避免重复装配
+func _dress_secondary_faces(parent: Node3D, b: Dictionary, floor_h: float, rng: RandomNumberGenerator) -> void:
+	var primary: Vector3
+	var facing: String = b.get("face", "")
+	if facing == "n":
+		primary = Vector3(0, 0, -1)
+	elif facing == "s":
+		primary = Vector3(0, 0, 1)
+	elif b["x"] < 0.0:
+		primary = Vector3(1, 0, 0)
+	else:
+		primary = Vector3(-1, 0, 0)
+	var cover := _coverage_rects()
 	var candidates := [Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1)]
 	for o in candidates:
-		if o == street_out:
+		if o == primary:
 			continue
 		var wall_len: float = b["d"] if o.x != 0.0 else b["w"]
 		var half_along := wall_len * 0.5
@@ -298,8 +310,8 @@ func _dress_alley_faces(parent: Node3D, b: Dictionary, floor_h: float, rng: Rand
 		else:
 			var cz: float = b["z"] + o.z * (b["d"] * 0.5 + 2.5)
 			rect = [b["x"] - half_along, cz - 2.5, b["x"] + half_along, cz + 2.5]
-		for alley in Layout.ALLEYS:
-			if _rects_overlap(rect[0], rect[1], rect[2], rect[3], alley["rect"]):
+		for cr in cover:
+			if _rects_overlap(rect[0], rect[1], rect[2], rect[3], cr):
 				_dress_facade(parent, b, floor_h, rng, true, o)
 				break
 
@@ -671,29 +683,272 @@ func _prop_trash_bin(prop: Node3D) -> void:
 	_add_prop_collider(prop, Vector3(0.65, 0.95, 0.65), Vector3(0, 0.48, 0))
 
 
-## —— 巷弄周界围挡（2026-09-27 机主裁决：巷子不得直通地图外虚空）——
-## 数据全部由 ALLEYS/BUILDINGS/街道带推导：每条巷弄/院落的开敞边放铁栅栏（挡人、可透视），
-## 外推 wall_depth 处放红砖长墙（断视线）；墙体自动剪去建筑/街道/其他巷弄，不穿插
+## —— 周界密封（2026-09-27 全图大排查重写）——
+## 不再只扫巷弄开敞边：对「可玩覆盖带」做洪水填充密封——障碍（建筑/力场/已生成围挡）
+## 按玩家半径膨胀栅格化，从街心 BFS；凡可达格跨越覆盖带边界进入非覆盖区 = 漏封缺口，
+## 在边界线上自动生成铁栅栏 + 外推 wall_depth 红砖墙，迭代至全密封。
+## 楼间缝隙/巷楼 1m 窄缝等旧扫描漏掉的缺口全部自动捕获。
 ## _barriers 元素: {"kind": "fence"/"wall", "axis": 0=沿Z|1=沿X, "pos", "from", "to"}
 var _barriers := []
 
+const SEAL_CELL := 0.25
+const SEAL_X0 := -48.0
+const SEAL_Z0 := -100.0
+const SEAL_GW := 384   # x -48..48
+const SEAL_GH := 824   # z -100..106
+const SEAL_PR := 0.35  # 玩家半径膨胀
 
-func _pt_in_rect(p: Vector2, r: Array) -> bool:
-	return p.x > r[0] and p.x < r[2] and p.y > r[1] and p.y < r[3]
+
+func _seal_idx(px: float, pz: float) -> int:
+	var ix := int(floor((px - SEAL_X0) / SEAL_CELL))
+	var iz := int(floor((pz - SEAL_Z0) / SEAL_CELL))
+	if ix < 0 or ix >= SEAL_GW or iz < 0 or iz >= SEAL_GH:
+		return -1
+	return iz * SEAL_GW + ix
 
 
-## 覆盖带（玩家可站立/通行的连续铺装区）：主街带 + 南延走廊 + 横街带 + 全部巷弄
-func _coverage_rects() -> Array:
-	var s: Dictionary = Layout.STREET
-	var c: Dictionary = Layout.CROSS
-	var rects: Array = [
-		[-s["kerb"], s["z_min"], s["kerb"], s["z_max"]],
-		[-s["kerb"], s["z_max"], s["kerb"], Layout.SOUTH_EXT["z_max"]],
-		[c["x_min"], c["z_min"], c["x_max"], c["walk_south_z"]],
-	]
-	for a in Layout.ALLEYS:
-		rects.append(a["rect"])
-	return rects
+## 把障碍 rect（含玩家半径膨胀）栅格化进 blocked
+func _seal_raster(blocked: PackedByteArray, rects: Array) -> void:
+	for r in rects:
+		var ix0 := int(floor((r[0] - SEAL_PR - SEAL_X0) / SEAL_CELL))
+		var ix1 := int(floor((r[2] + SEAL_PR - SEAL_X0) / SEAL_CELL))
+		var iz0 := int(floor((r[1] - SEAL_PR - SEAL_Z0) / SEAL_CELL))
+		var iz1 := int(floor((r[3] + SEAL_PR - SEAL_Z0) / SEAL_CELL))
+		for iz in range(maxi(iz0, 0), mini(iz1, SEAL_GH - 1) + 1):
+			for ix in range(maxi(ix0, 0), mini(ix1, SEAL_GW - 1) + 1):
+				blocked[iz * SEAL_GW + ix] = 1
+
+
+func _compute_barriers() -> void:
+	_barriers.clear()
+	var cover := _coverage_rects()
+	var style: Dictionary = Layout.BARRIER_STYLE
+	var depth: float = style["wall_depth"]
+
+	# 障碍 rect 集：建筑 + 力场/发射柱（h>0.3 的才挡人；警示轨 0.18m 不算）
+	var obstacles: Array = []
+	for b in Layout.BUILDINGS:
+		obstacles.append([b["x"] - b["w"] * 0.5, b["z"] - b["d"] * 0.5,
+			b["x"] + b["w"] * 0.5, b["z"] + b["d"] * 0.5])
+	for g in Layout.BARRIERS:
+		if g["h"] > 0.3:
+			obstacles.append([g["x"] - g["w"] * 0.5, g["z"] - g["d"] * 0.5,
+				g["x"] + g["w"] * 0.5, g["z"] + g["d"] * 0.5])
+
+	# 覆盖带栅格（O(1) 查询）
+	var cov := PackedByteArray()
+	cov.resize(SEAL_GW * SEAL_GH)
+	for r in cover:
+		var ix0 := int(floor((r[0] - SEAL_X0) / SEAL_CELL))
+		var ix1 := int(floor((r[2] - 0.001 - SEAL_X0) / SEAL_CELL))
+		var iz0 := int(floor((r[1] - SEAL_Z0) / SEAL_CELL))
+		var iz1 := int(floor((r[3] - 0.001 - SEAL_Z0) / SEAL_CELL))
+		for iz in range(maxi(iz0, 0), mini(iz1, SEAL_GH - 1) + 1):
+			for ix in range(maxi(ix0, 0), mini(ix1, SEAL_GW - 1) + 1):
+				cov[iz * SEAL_GW + ix] = 1
+
+	# 迭代密封：每轮 BFS 找越界通道 → 生成栅栏+墙 → 栅栏入障碍集 → 复验
+	for iter in 8:
+		var blocked := PackedByteArray()
+		blocked.resize(SEAL_GW * SEAL_GH)
+		_seal_raster(blocked, obstacles)
+		# BFS 从街心
+		var reach := PackedByteArray()
+		reach.resize(SEAL_GW * SEAL_GH)
+		var start := _seal_idx(0.0, 20.0)
+		var stack: Array = [start]
+		reach[start] = 1
+		while not stack.is_empty():
+			var idx: int = stack.pop_back()
+			var ix: int = idx % SEAL_GW
+			var iz: int = idx / SEAL_GW
+			for d in [[1, 0], [-1, 0], [0, 1], [0, -1]]:
+				var nx: int = ix + d[0]
+				var nz: int = iz + d[1]
+				if nx < 0 or nx >= SEAL_GW or nz < 0 or nz >= SEAL_GH:
+					continue
+				var ni: int = nz * SEAL_GW + nx
+				if blocked[ni] == 0 and reach[ni] == 0:
+					reach[ni] = 1
+					stack.append(ni)
+		# 找越界通道：覆盖带内可达格 ↔ 带外可达非障碍格 的相邻边
+		# key = [axis, line_quant, out_sign] → value = 沿线坐标列表
+		var crossings := {}
+		for iz in SEAL_GH:
+			for ix in SEAL_GW:
+				var idx: int = iz * SEAL_GW + ix
+				if reach[idx] == 0 or cov[idx] == 0:
+					continue
+				for d in [[1, 0], [-1, 0], [0, 1], [0, -1]]:
+					var nx: int = ix + d[0]
+					var nz: int = iz + d[1]
+					if nx < 0 or nx >= SEAL_GW or nz < 0 or nz >= SEAL_GH:
+						continue
+					var ni: int = nz * SEAL_GW + nx
+					if reach[ni] == 0 or cov[ni] == 1 or blocked[ni] == 1:
+						continue
+					# 边线：d 为跨越方向；栅栏轴垂直于 d
+					var line: float
+					var along: float
+					var axis: int
+					if d[0] != 0:
+						axis = 0  # 栅栏沿 Z
+						line = SEAL_X0 + (float(maxi(ix, nx))) * SEAL_CELL
+						along = SEAL_Z0 + (float(iz) + 0.5) * SEAL_CELL
+					else:
+						axis = 1  # 栅栏沿 X
+						line = SEAL_Z0 + (float(maxi(iz, nz))) * SEAL_CELL
+						along = SEAL_X0 + (float(ix) + 0.5) * SEAL_CELL
+					var key := "%d_%.2f_%d" % [axis, line, d[0] + d[1]]
+					if not crossings.has(key):
+						crossings[key] = {"axis": axis, "line": line,
+							"sign": float(d[0] + d[1]), "pts": []}
+					crossings[key]["pts"].append(along)
+		if crossings.is_empty():
+			break
+		# 每组连续点合并成栅栏段
+		for key in crossings:
+			var grp: Dictionary = crossings[key]
+			var pts: Array = grp["pts"]
+			pts.sort()
+			var seg_start: float = pts[0]
+			var prev: float = pts[0]
+			var segs: Array = []
+			for i in range(1, pts.size()):
+				if pts[i] - prev > SEAL_CELL * 1.5:
+					segs.append([seg_start, prev])
+					seg_start = pts[i]
+				prev = pts[i]
+			segs.append([seg_start, prev])
+			for sg in segs:
+				# 端点外放 0.45m 咬进两侧障碍，杜绝拐角微缝
+				var f0: float = sg[0] - SEAL_CELL * 0.5 - 0.45
+				var f1: float = sg[1] + SEAL_CELL * 0.5 + 0.45
+				_barriers.append({"kind": "fence", "axis": grp["axis"],
+					"pos": grp["line"], "from": f0, "to": f1})
+				# 栅栏碰撞入障碍集（薄板 0.12 厚），下轮 BFS 复验密封
+				if grp["axis"] == 0:
+					obstacles.append([grp["line"] - 0.06, f0, grp["line"] + 0.06, f1])
+				else:
+					obstacles.append([f0, grp["line"] - 0.06, f1, grp["line"] + 0.06])
+				# 外推红砖墙：剪去建筑/覆盖带，端点外放 wall_extend
+				var wpos: float = grp["line"] + grp["sign"] * depth
+				var wext: float = style["wall_extend"]
+				var ivs: Array = [[f0 - wext, f1 + wext]]
+				ivs = _subtract_rects_along(ivs, grp["axis"], wpos, obstacles, 0.2)
+				ivs = _subtract_rects_along(ivs, grp["axis"], wpos, cover, 0.2)
+				for w in ivs:
+					if w[1] - w[0] >= 1.5:
+						_barriers.append({"kind": "wall", "axis": grp["axis"],
+							"pos": wpos, "from": w[0], "to": w[1]})
+
+	# —— 栅栏背挡补丁（2026-09-27 全图排查）：逐栅栏做 2D 射线视线扫描——
+	# 栏外 8m 内若无实体遮挡且视线也没进入另一片可玩区 = 视线泄漏（窄缝通道/栏墙间隙），
+	# 在栏外 1.2m 处补红砖背挡墙收口。铁栅栏透视，不算遮挡。
+	var solids: Array = []
+	for b in Layout.BUILDINGS:
+		solids.append([b["x"] - b["w"] * 0.5, b["z"] - b["d"] * 0.5,
+			b["x"] + b["w"] * 0.5, b["z"] + b["d"] * 0.5])
+	for g in Layout.BARRIERS:
+		if g["h"] > 0.3:
+			solids.append([g["x"] - g["w"] * 0.5, g["z"] - g["d"] * 0.5,
+				g["x"] + g["w"] * 0.5, g["z"] + g["d"] * 0.5])
+	for wb in _barriers:
+		if wb["kind"] != "wall":
+			continue
+		if wb["axis"] == 0:
+			solids.append([wb["pos"] - 0.15, wb["from"], wb["pos"] + 0.15, wb["to"]])
+		else:
+			solids.append([wb["from"], wb["pos"] - 0.15, wb["to"], wb["pos"] + 0.15])
+	for fb in _barriers:
+		if fb["kind"] != "fence":
+			continue
+		# 判定外法向：栏线两侧 0.6m 各取中点，落在覆盖带内的一侧为内
+		var fmid: float = (fb["from"] + fb["to"]) * 0.5
+		var probe_in: Vector2
+		if fb["axis"] == 0:
+			probe_in = Vector2(fb["pos"] - 0.6, fmid)
+		else:
+			probe_in = Vector2(fmid, fb["pos"] - 0.6)
+		var minus_in := false
+		for cr in cover:
+			if _pt_in_rect(probe_in, cr):
+				minus_in = true
+				break
+		var out_sign := 1.0 if minus_in else -1.0
+		var out_dir := Vector2(out_sign, 0.0) if fb["axis"] == 0 else Vector2(0.0, out_sign)
+		# 沿栏 0.5m 采样，净空连续段合并
+		var t: float = fb["from"] + 0.25
+		var run_open := false
+		var run_start := 0.0
+		var clear_spans: Array = []
+		while t < fb["to"]:
+			var origin := Vector2(fb["pos"] + out_sign * 0.2, t) if fb["axis"] == 0 \
+				else Vector2(t, fb["pos"] + out_sign * 0.2)
+			var solid_d := INF
+			for sr in solids:
+				var d := _ray_rect_dist(origin, out_dir, 8.0, sr)
+				if d >= 0.0 and d < solid_d:
+					solid_d = d
+			var cover_d := INF
+			for cr in cover:
+				var d := _ray_rect_dist(origin, out_dir, 8.0, cr)
+				if d >= 0.0 and d < cover_d:
+					cover_d = d
+			var clear: bool = solid_d == INF and cover_d == INF
+			if clear:
+				if not run_open:
+					run_open = true
+					run_start = t
+			elif run_open:
+				clear_spans.append([run_start, t])
+				run_open = false
+			t += 0.5
+		if run_open:
+			clear_spans.append([run_start, fb["to"]])
+		for span in clear_spans:
+			if span[1] - span[0] < 0.5:
+				continue
+			# 背挡墙：栏外 1.2m，跨度两端加 1.0m 咬边，剪去建筑/覆盖带
+			# （窄通道内可用长度可能不足 1m，min 放宽到 0.4——门垛式短墙收口）
+			var bpos: float = fb["pos"] + out_sign * 1.2
+			var bivs: Array = [[span[0] - 1.0, span[1] + 1.0]]
+			bivs = _subtract_rects_along(bivs, fb["axis"], bpos, solids, 0.2)
+			bivs = _subtract_rects_along(bivs, fb["axis"], bpos, cover, 0.05)
+			for bw in bivs:
+				if bw[1] - bw[0] >= 0.4:
+					_barriers.append({"kind": "wall", "axis": fb["axis"],
+						"pos": bpos, "from": bw[0], "to": bw[1]})
+					if fb["axis"] == 0:
+						solids.append([bpos - 0.15, bw[0], bpos + 0.15, bw[1]])
+					else:
+						solids.append([bw[0], bpos - 0.15, bw[1], bpos + 0.15])
+
+
+## 2D 射线 vs rect（slab 法）：命中返回距离（0..max_d），未命中返回 -1
+func _ray_rect_dist(o: Vector2, d: Vector2, max_d: float, r: Array) -> float:
+	var tmin := 0.0
+	var tmax := max_d
+	for axis in 2:
+		var p: float = o.x if axis == 0 else o.y
+		var dv: float = d.x if axis == 0 else d.y
+		var r0: float = r[0] if axis == 0 else r[1]
+		var r1: float = r[2] if axis == 0 else r[3]
+		if absf(dv) < 0.0001:
+			if p < r0 or p > r1:
+				return -1.0
+		else:
+			var t1 := (r0 - p) / dv
+			var t2 := (r1 - p) / dv
+			if t1 > t2:
+				var tmp := t1
+				t1 = t2
+				t2 = tmp
+			tmin = maxf(tmin, t1)
+			tmax = minf(tmax, t2)
+			if tmin > tmax:
+				return -1.0
+	return tmin
 
 
 ## 沿 axis 方向、垂直坐标 line 处的区间列表 ivs，剪去与各 rect（外扩 expand）相交的部分
@@ -720,66 +975,23 @@ func _subtract_rects_along(ivs: Array, axis: int, line: float, rects: Array, exp
 	return out
 
 
-## 巷弄开敞边扫描：0.5m 采样每条边外 0.3m 的点，不被覆盖带/建筑（外扩 1.2m 楼边地块）
-## 覆盖的连续段 = 开敞段 → 铁栅栏贴边、红砖墙外推 wall_depth
-func _compute_barriers() -> void:
-	_barriers.clear()
-	var cover := _coverage_rects()
-	var blds: Array = []
-	for b in Layout.BUILDINGS:
-		blds.append([b["x"] - b["w"] * 0.5, b["z"] - b["d"] * 0.5,
-			b["x"] + b["w"] * 0.5, b["z"] + b["d"] * 0.5])
-	var style: Dictionary = Layout.BARRIER_STYLE
-	var depth: float = style["wall_depth"]
-	for ai in Layout.ALLEYS.size():
-		var r: Array = Layout.ALLEYS[ai]["rect"]
-		# [axis(0=边沿Z走/1=边沿X走), 边线坐标, 起点, 终点, 外法向符号]
-		var edges := [
-			[0, r[0], r[1], r[3], -1.0], [0, r[2], r[1], r[3], 1.0],
-			[1, r[1], r[0], r[2], -1.0], [1, r[3], r[0], r[2], 1.0],
-		]
-		for e in edges:
-			var segs: Array = []
-			var t: float = e[2]
-			var run_open := false  # 坐标可为负，不能用负数当哨兵（2026-09-27 丢边 bug 教训）
-			var run_start := 0.0
-			while t < e[3] - 0.01:
-				var mid := t + 0.25
-				var outside := Vector2(e[1] + e[4] * 0.3, mid) if e[0] == 0 else Vector2(mid, e[1] + e[4] * 0.3)
-				var open := true
-				for cr in cover:
-					if _pt_in_rect(outside, cr):
-						open = false
-						break
-				if open:
-					for br in blds:
-						if _pt_in_rect(outside, [br[0] - 1.2, br[1] - 1.2, br[2] + 1.2, br[3] + 1.2]):
-							open = false
-							break
-				if open:
-					if not run_open:
-						run_open = true
-						run_start = t
-				elif run_open:
-					segs.append([run_start, t])
-					run_open = false
-				t += 0.5
-			if run_open:
-				segs.append([run_start, e[3]])
-			for seg in segs:
-				var f0: float = seg[0] - 0.4
-				var f1: float = seg[1] + 0.4
-				if f1 - f0 < 1.0:
-					continue
-				_barriers.append({"kind": "fence", "axis": e[0], "pos": e[1], "from": f0, "to": f1})
-				var wpos: float = e[1] + e[4] * depth
-				var wext: float = style["wall_extend"]
-				var ivs: Array = [[f0 - wext, f1 + wext]]
-				ivs = _subtract_rects_along(ivs, e[0], wpos, blds, 0.2)
-				ivs = _subtract_rects_along(ivs, e[0], wpos, cover, 0.2)
-				for w in ivs:
-					if w[1] - w[0] >= 1.5:
-						_barriers.append({"kind": "wall", "axis": e[0], "pos": wpos, "from": w[0], "to": w[1]})
+func _pt_in_rect(p: Vector2, r: Array) -> bool:
+	return p.x > r[0] and p.x < r[2] and p.y > r[1] and p.y < r[3]
+
+
+## 覆盖带（玩家可站立/通行的连续铺装区）：主街带 + 南延走廊 + 横街带（含北侧人行道）+ 全部巷弄
+func _coverage_rects() -> Array:
+	var s: Dictionary = Layout.STREET
+	var c: Dictionary = Layout.CROSS
+	var rects: Array = [
+		[-s["kerb"], s["z_min"], s["kerb"], s["z_max"]],
+		[-s["kerb"], s["z_max"], s["kerb"], Layout.SOUTH_EXT["z_max"]],
+		[c["x_min"], c["z_min"], c["x_max"], c["walk_south_z"]],
+		[c["x_min"], c["walk_north_z"], c["x_max"], c["z_min"]],  # 横街北侧人行道
+	]
+	for a in Layout.ALLEYS:
+		rects.append(a["rect"])
+	return rects
 
 
 ## 围挡装配：铁栅栏（立柱+镂空竖条板+顶轨，带碰撞）与红砖长墙（薄墙+压顶，带碰撞）
@@ -909,8 +1121,8 @@ func _build_backdrop() -> void:
 		exclusions.append([gate["x"] - gate["w"] * 0.5 - 0.5, gate["z"] - gate["d"] * 0.5 - 0.5,
 			gate["x"] + gate["w"] * 0.5 + 0.5, gate["z"] + gate["d"] * 0.5 + 0.5])
 	for wb in _barriers:
-		if wb["kind"] != "wall":
-			continue
+		# 2026-09-27 全图排查：砖墙与铁栅栏都进排除区——
+		# 栅栏后（栏墙之间 6m 带）不得落楼块，否则楼贴着镂空栅栏违和且挡墙位
 		if wb["axis"] == 0:
 			exclusions.append([wb["pos"] - 0.6, wb["from"] - 0.3, wb["pos"] + 0.6, wb["to"] + 0.3])
 		else:
