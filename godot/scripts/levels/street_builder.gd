@@ -21,6 +21,14 @@ const PALETTE := {
 
 var _materials := {}
 
+## P1 程序化 shader 调色板映射: key → [shader路径, world_scale, seed]
+## 尺度分档纪律（文档10 §1-P1）：建筑面 2.5m 周期，金属件 1.2m 更密
+const SHADER_MAP := {
+	"asphalt": ["res://assets/shaders/mat_asphalt.gdshader", 2.5, 47.0],
+	"kerb": ["res://assets/shaders/mat_concrete.gdshader", 2.5, 11.0],
+	"rust_metal": ["res://assets/shaders/mat_rust_metal.gdshader", 1.2, 23.0],
+}
+
 
 func _ready() -> void:
 	_build_ground()
@@ -45,12 +53,20 @@ func _ready() -> void:
 		get_tree().quit()
 
 
-func _get_material(key: String) -> StandardMaterial3D:
+func _get_material(key: String) -> Material:
 	if not _materials.has(key):
-		var mat := StandardMaterial3D.new()
-		mat.albedo_color = PALETTE.get(key, Color(0.5, 0.5, 0.5))
-		mat.roughness = 0.9
-		_materials[key] = mat
+		if SHADER_MAP.has(key):
+			var entry: Array = SHADER_MAP[key]
+			var shader_mat := ShaderMaterial.new()
+			shader_mat.shader = load(entry[0])
+			shader_mat.set_shader_parameter("world_scale", entry[1])
+			shader_mat.set_shader_parameter("seed", entry[2])
+			_materials[key] = shader_mat
+		else:
+			var mat := StandardMaterial3D.new()
+			mat.albedo_color = PALETTE.get(key, Color(0.5, 0.5, 0.5))
+			mat.roughness = 0.9
+			_materials[key] = mat
 	return _materials[key]
 
 

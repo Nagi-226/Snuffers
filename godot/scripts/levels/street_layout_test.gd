@@ -31,6 +31,6 @@ const BUILDINGS := [
 	{"id": "E1", "x": 11.5, "z": 18.0, "w": 10.0, "d": 10.0, "floors": 2, "palette": "plaster_pink"},
 	{"id": "E2", "x": 11.5, "z": -4.0, "w": 10.0, "d": 12.0, "floors": 3, "palette": "plaster_sand"},
 	{"id": "E3", "x": 11.5, "z": -18.0, "w": 10.0, "d": 12.0, "floors": 2, "palette": "plaster_cream"},
-	# 远端封景门楼（横跨街道，closing the far vista）
-	{"id": "GATE", "x": 0.0, "z": -38.0, "w": 18.0, "d": 4.0, "floors": 2, "palette": "brick"},
+	# 远端封景门楼（横跨街道，closing the far vista；锈蚀金属验证件）
+	{"id": "GATE", "x": 0.0, "z": -38.0, "w": 18.0, "d": 4.0, "floors": 2, "palette": "rust_metal"},
 ]
