@@ -135,6 +135,20 @@ func _build_ground() -> void:
 		var cz: float = (r[1] + r[3]) * 0.5
 		_add_box(ground, "Alley_%d" % i, Vector3(cx, 0.02, cz),
 			Vector3(w, 0.1, d), alley["surface"])
+	# 南端 T 字横街：沥青 + 南侧人行道（主街不再被建筑堵死，机主 2026-09-27 裁决）
+	var c: Dictionary = Layout.CROSS
+	var c_x_len: float = c["x_max"] - c["x_min"]
+	var c_z_mid: float = (c["z_min"] + c["z_max"]) * 0.5
+	_add_box(ground, "CrossAsphalt", Vector3(0, -0.05, c_z_mid),
+		Vector3(c_x_len, 0.1, c["z_max"] - c["z_min"]), "asphalt")
+	var sw_d: float = c["walk_south_z"] - c["z_max"]
+	_add_box(ground, "CrossSidewalk_S", Vector3(0, s["walk_h"] * 0.5, c["z_max"] + sw_d * 0.5),
+		Vector3(c_x_len, s["walk_h"], sw_d), "kerb")
+	# 横街两端铁栅栏门（分段加载气闸占位，文档11 §6.6）
+	for barrier in Layout.BARRIERS:
+		_add_box(ground, barrier["id"],
+			Vector3(barrier["x"], barrier["h"] * 0.5, barrier["z"]),
+			Vector3(barrier["w"], barrier["h"], barrier["d"]), "rust_metal")
 
 
 func _build_buildings() -> void:
@@ -153,8 +167,9 @@ func _build_buildings() -> void:
 			1.0 - j + rng.randf() * j * 2.0, 1.0 - j + rng.randf() * j * 2.0)
 		var h: float = b["floors"] * s["floor_h"]
 		# 结构盒沿临街轴内缩 0.3m，给立面套件的门窗内退件让位（否则玻璃/门板被埋）
+		# 立面法线沿 Z 的（门楼/横街南排）缩 Z，沿 X 的（东西排）缩 X
 		var size := Vector3(b["w"], h, b["d"])
-		if absf(b["x"]) < 0.1:
+		if absf(b["x"]) < 0.1 or b.get("face", "") != "":
 			size.z -= 0.3
 		else:
 			size.x -= 0.3
@@ -197,7 +212,11 @@ func _apply_fog() -> void:
 func _dress_facade(parent: Node3D, b: Dictionary, floor_h: float, rng: RandomNumberGenerator) -> void:
 	var outward: Vector3
 	var wall_len: float
-	if absf(b["x"]) < 0.1:  # 门楼横跨街道，面朝 +Z
+	var facing: String = b.get("face", "")
+	if facing == "n":  # 横街南排：面朝北（-Z），临街轴为 X
+		outward = Vector3(0, 0, -1)
+		wall_len = b["w"]
+	elif absf(b["x"]) < 0.1:  # 门楼横跨街道，面朝 +Z
 		outward = Vector3(0, 0, 1)
 		wall_len = b["w"]
 	elif b["x"] < 0.0:
@@ -206,7 +225,7 @@ func _dress_facade(parent: Node3D, b: Dictionary, floor_h: float, rng: RandomNum
 	else:
 		outward = Vector3(-1, 0, 0)
 		wall_len = b["d"]
-	var rot_y := 90.0 if outward.x > 0.0 else (-90.0 if outward.x < 0.0 else 0.0)
+	var rot_y := 90.0 if outward.x > 0.0 else (-90.0 if outward.x < 0.0 else (180.0 if outward.z < 0.0 else 0.0))
 
 	var n: int = maxi(1, int(floor(wall_len / KIT_BAY)))
 	var total := n * KIT_BAY
@@ -215,6 +234,8 @@ func _dress_facade(parent: Node3D, b: Dictionary, floor_h: float, rng: RandomNum
 		face.x += b["w"] * 0.5
 	elif outward.x < 0.0:
 		face.x -= b["w"] * 0.5
+	elif outward.z < 0.0:
+		face.z -= b["d"] * 0.5  # 面朝北：锚点在北墙面
 	else:
 		face.z += b["d"] * 0.5
 
