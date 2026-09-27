@@ -196,3 +196,22 @@ const FOG_VISIBILITY_TARGET_M: float = 30.0 ## 浓雾目标能见度 m（2% 对�
 const FOG_DENSITY: float = 0.130 ## 指数雾消光密度 = -ln(0.02)/30 ≈ 0.130（由上行派生，勿独立改）
 const FOG_LIGHT_COLOR := Color(0.55, 0.58, 0.62) ## 雾色（阴天灰蓝）
 const FOG_SUN_SCATTER: float = 0.3 ## 雾中阳光散射强度
+
+# ===== 夜景：蓝调时刻 + 减薄夜雾（street_test 夜景化；夜里本身能见度低，雾减薄）=====
+const NIGHT_FOG_VISIBILITY_TARGET_M: float = 60.0 ## 夜雾目标能见度 m（为白天浓雾两倍，保氛围不闷）
+const NIGHT_FOG_DENSITY: float = 0.065 ## = -ln(0.02)/60 ≈ 0.065（由上行派生，勿独立改）
+const NIGHT_FOG_LIGHT_COLOR := Color(0.10, 0.12, 0.18) ## 夜雾色（深蓝灰）
+const NIGHT_FOG_SUN_SCATTER: float = 0.1 ## 月光散射弱于日光
+
+# ===== CBD 远景天际线（多环带 LOD 几何，skyline_builder.gd 消费；确定性种子）=====
+const SKYLINE_SEED: int = 20260927 ## 布局随机种子（改则天际线重排）
+const SKYLINE_RING_INNER_M: float = 180.0 ## 内环半径 m（低模塔楼 + 亮窗）
+const SKYLINE_RING_OUTER_M: float = 420.0 ## 外环半径 m（剪影体块）
+const SKYLINE_RING_INNER_JITTER_M: float = 40.0 ## 内环半径抖动 ±m
+const SKYLINE_RING_OUTER_JITTER_M: float = 70.0 ## 外环半径抖动 ±m
+const SKYLINE_TOWER_COUNT_INNER: int = 36 ## 内环塔楼数
+const SKYLINE_TOWER_COUNT_OUTER: int = 18 ## 外环剪影数
+const SKYLINE_LIT_RATIO: float = 0.40 ## 亮窗比例（内环）
+const SKYLINE_LIT_RATIO_OUTER: float = 0.22 ## 亮窗比例（外环，更稀疏更暗）
+const SKYLINE_VISTA_GAP_DEG: float = 15.0 ## 主街轴线 ±扇区不放内环塔楼（留视线走廊）
+const SKYLINE_BEACON_MIN_HEIGHT_M: float = 80.0 ## 高于此高度的塔楼顶部亮航空障碍红灯

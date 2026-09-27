@@ -1,13 +1,14 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/street_builder.gd" id="Script_builder"]
 [ext_resource type="Script" path="res://scripts/levels/fly_camera.gd" id="Script_flycam"]
+[ext_resource type="Script" path="res://scripts/levels/skyline_builder.gd" id="Script_skyline"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
-sky_top_color = Color(0.385, 0.454, 0.55, 1)
-sky_horizon_color = Color(0.646, 0.656, 0.67, 1)
-ground_bottom_color = Color(0.2, 0.169, 0.133, 1)
-ground_horizon_color = Color(0.646, 0.656, 0.67, 1)
+sky_top_color = Color(0.018, 0.03, 0.075, 1)
+sky_horizon_color = Color(0.185, 0.13, 0.16, 1)
+ground_bottom_color = Color(0.012, 0.012, 0.02, 1)
+ground_horizon_color = Color(0.185, 0.13, 0.16, 1)
 
 [sub_resource type="Sky" id="Sky_main"]
 sky_material = SubResource("ProceduralSkyMaterial_sky")
@@ -16,7 +17,7 @@ sky_material = SubResource("ProceduralSkyMaterial_sky")
 background_mode = 2
 sky = SubResource("Sky_main")
 ambient_light_source = 3
-ambient_light_energy = 1.0
+ambient_light_energy = 0.38
 tonemap_mode = 2
 
 [node name="StreetTest" type="Node3D"]
@@ -25,10 +26,15 @@ script = ExtResource("Script_builder")
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_main")
 
-[node name="Sun" type="DirectionalLight3D" parent="."]
+[node name="MoonLight" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866, -0.25, 0.433, 0, 0.866, 0.5, -0.5, -0.433, 0.75, 0, 12, 0)
+light_color = Color(0.6, 0.7, 0.9, 1)
+light_energy = 0.25
 shadow_enabled = false
 
 [node name="OverviewCamera" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 20)
 script = ExtResource("Script_flycam")
+
+[node name="Skyline" type="Node3D" parent="."]
+script = ExtResource("Script_skyline")

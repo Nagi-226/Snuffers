@@ -156,14 +156,15 @@ const KIT := {
 const KIT_BAY := 3.0  # 套件开间宽，与 layout floor_h=3.0 对齐
 
 
-## P2 浓雾定标（契约: GameConfig.FOG_*）——指数深度雾，30m 能见度目标
+## 夜雾定标（契约: GameConfig.NIGHT_FOG_*）——指数深度雾，60m 能见度目标
+## street_test 已固化为蓝调时刻夜景：夜里本身能见度低，雾比白天浓雾（FOG_* 30m）减薄一半
 func _apply_fog() -> void:
 	var env: Environment = get_node("WorldEnvironment").environment
 	env.fog_enabled = true
 	env.fog_mode = Environment.FOG_MODE_EXPONENTIAL
-	env.fog_density = GameConfig.FOG_DENSITY
-	env.fog_light_color = GameConfig.FOG_LIGHT_COLOR
-	env.fog_sun_scatter = GameConfig.FOG_SUN_SCATTER
+	env.fog_density = GameConfig.NIGHT_FOG_DENSITY
+	env.fog_light_color = GameConfig.NIGHT_FOG_LIGHT_COLOR
+	env.fog_sun_scatter = GameConfig.NIGHT_FOG_SUN_SCATTER
 
 
 ## 临街立面逐开间装配（panel space：件原点在地板线、前墙面，墙身向内侧延伸）
