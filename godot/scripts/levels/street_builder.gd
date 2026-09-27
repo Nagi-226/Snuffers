@@ -666,6 +666,11 @@ func _build_backdrop() -> void:
 	var rng := RandomNumberGenerator.new()
 	for zi in Layout.BACKFILL_ZONES.size():
 		var zone: Dictionary = Layout.BACKFILL_ZONES[zi]
+		# 分区地面石板覆盖（消地面虚空；顶面 0.03 低于巷弄地面 0.07 不共面）
+		var gr: Array = zone.get("ground_rect", zone["rect"])
+		_add_box(row, "ZoneGround_%d" % zi,
+			Vector3((gr[0] + gr[2]) * 0.5, -0.02, (gr[1] + gr[3]) * 0.5),
+			Vector3(absf(gr[2] - gr[0]), 0.1, absf(gr[3] - gr[1])), "paving")
 		rng.seed = GameConfig.STREET_DRESS_SEED + 31000 + zi * 104729
 		var r: Array = zone["rect"]
 		var block: Array = zone["block"]
