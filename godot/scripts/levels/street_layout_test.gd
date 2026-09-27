@@ -17,13 +17,16 @@ const STREET := {
 }
 
 ## 南端 T 字横街（2026-09-27 机主裁决：禁止房屋直接堵死马路；
-## 主街 z_max 处转为东西向横街，两端铁栅栏门封死 = 未来分段加载气闸占位）
+## 主街 z_max 处转为东西向横街）
+## 2026-09-27 二次裁决：横街两端同样改为 EDAA 力场幕墙 + 延伸式马路（四向统一），
+## 沥青/人行道直达 x=±96 没入夜雾，力场位于 x=±38.5（夹道楼排间隙处）
 const CROSS := {
 	"z_min": 30.0,       # 横街沥青北缘（接主街断头处）
 	"z_max": 36.5,       # 横街沥青南缘
-	"x_min": -26.0,      # 西端栅栏门位
-	"x_max": 26.0,       # 东端栅栏门位
+	"x_min": -96.0,      # 沥青西延进夜雾深处
+	"x_max": 96.0,       # 沥青东延进夜雾深处
 	"walk_south_z": 38.5, # 南侧人行道南缘（建筑线）
+	"walk_north_z": 28.5, # 北侧人行道北缘（x=±6.5 以外段）
 }
 
 ## 主街南延段（2026-09-27 机主裁决：T 字路口不许被楼堵死——主街继续向南延伸，
@@ -39,7 +42,7 @@ const SOUTH_EXT := {
 ## wall_extend 为墙体超出栏段两端的长度，防止掠射角视线从墙端缝隙漏到虚空）
 const BARRIER_STYLE := {
 	"fence_h": 1.9,
-	"wall_h": 2.6,
+	"wall_h": 3.0,       # 2026-09-27 二次裁决加高（原 2.6 遮不严）
 	"wall_t": 0.25,
 	"wall_depth": 6.0,
 	"wall_extend": 3.0,
@@ -105,24 +108,52 @@ const BUILDINGS := [
 	{"id": "SF_E3", "x": 11.5, "z": 76.5, "w": 10.0, "d": 12.0, "floors": 4, "palette": "plaster_pink"},
 	{"id": "SF_W4", "x": -11.5, "z": 88.5, "w": 10.0, "d": 12.0, "floors": 2, "palette": "plaster_sand"},
 	{"id": "SF_E4", "x": 11.5, "z": 88.5, "w": 10.0, "d": 12.0, "floors": 3, "palette": "brick"},
+	# —— 横街东西延伸段夹道楼排（四向力场裁决配套：北排面南 face=s，南排面北 face=n；
+	#     力场 x=±38.5 落在 N1/N2、S1/S2 楼间隙处，间隙 1.5m 被幕墙填满）——
+	{"id": "EW_N1", "x": 32.5, "z": 24.5, "w": 10.0, "d": 11.0, "floors": 3, "palette": "plaster_cream", "face": "s"},
+	{"id": "EW_N2", "x": 44.5, "z": 24.5, "w": 10.0, "d": 11.0, "floors": 2, "palette": "plaster_sand", "face": "s"},
+	{"id": "EW_N3", "x": 56.0, "z": 24.5, "w": 10.0, "d": 11.0, "floors": 4, "palette": "brick", "face": "s"},
+	{"id": "EW_N4", "x": 67.5, "z": 24.5, "w": 10.0, "d": 11.0, "floors": 3, "palette": "plaster_white", "face": "s"},
+	{"id": "EW_N5", "x": 79.0, "z": 24.5, "w": 10.0, "d": 11.0, "floors": 2, "palette": "plaster_pink", "face": "s"},
+	{"id": "EW_S1", "x": 32.5, "z": 44.0, "w": 10.0, "d": 11.0, "floors": 2, "palette": "plaster_sand", "face": "n"},
+	{"id": "EW_S2", "x": 44.5, "z": 44.0, "w": 10.0, "d": 11.0, "floors": 3, "palette": "plaster_white", "face": "n"},
+	{"id": "EW_S3", "x": 56.0, "z": 44.0, "w": 10.0, "d": 11.0, "floors": 3, "palette": "plaster_cream", "face": "n"},
+	{"id": "EW_S4", "x": 67.5, "z": 44.0, "w": 10.0, "d": 11.0, "floors": 2, "palette": "brick", "face": "n"},
+	{"id": "EW_S5", "x": 79.0, "z": 44.0, "w": 10.0, "d": 11.0, "floors": 3, "palette": "plaster_sand", "face": "n"},
+	{"id": "WW_N1", "x": -32.5, "z": 24.5, "w": 10.0, "d": 11.0, "floors": 2, "palette": "plaster_pink", "face": "s"},
+	{"id": "WW_N2", "x": -44.5, "z": 24.5, "w": 10.0, "d": 11.0, "floors": 3, "palette": "plaster_white", "face": "s"},
+	{"id": "WW_N3", "x": -56.0, "z": 24.5, "w": 10.0, "d": 11.0, "floors": 3, "palette": "plaster_sand", "face": "s"},
+	{"id": "WW_N4", "x": -67.5, "z": 24.5, "w": 10.0, "d": 11.0, "floors": 4, "palette": "plaster_cream", "face": "s"},
+	{"id": "WW_N5", "x": -79.0, "z": 24.5, "w": 10.0, "d": 11.0, "floors": 2, "palette": "plaster_sand", "face": "s"},
+	{"id": "WW_S1", "x": -32.5, "z": 44.0, "w": 10.0, "d": 11.0, "floors": 3, "palette": "plaster_cream", "face": "n"},
+	{"id": "WW_S2", "x": -44.5, "z": 44.0, "w": 10.0, "d": 11.0, "floors": 2, "palette": "plaster_sand", "face": "n"},
+	{"id": "WW_S3", "x": -56.0, "z": 44.0, "w": 10.0, "d": 11.0, "floors": 4, "palette": "plaster_pink", "face": "n"},
+	{"id": "WW_S4", "x": -67.5, "z": 44.0, "w": 10.0, "d": 11.0, "floors": 3, "palette": "plaster_white", "face": "n"},
+	{"id": "WW_S5", "x": -79.0, "z": 44.0, "w": 10.0, "d": 11.0, "floors": 2, "palette": "brick", "face": "n"},
 ]
 
-## 横街两端铁栅栏门（分段加载气闸占位，文档11 §6.6；正式栅栏门件待道具批2烘焙）
-## palette 缺省 rust_metal；hazard=true 时顶部加红色警示灯条；tip_glow=true 时顶部加 EDAA 蓝色发光帽
+## 四向 EDAA 力场幕墙（2026-09-27 机主裁决：全部统一为《半衰期2》联合军式蓝色力场 +
+## 马路延伸进夜雾；北 z=-95 / 南 z=+68 / 东西 x=±38.5，四向对称封闭街区）
+## palette 缺省 rust_metal；tip_glow=true 时顶部加 EDAA 蓝色发光帽
 const BARRIERS := [
-	{"id": "GATE_WEST", "x": -27.2, "z": 34.0, "w": 2.4, "d": 9.0, "h": 3.5},
-	{"id": "GATE_EAST", "x": 27.2, "z": 34.0, "w": 2.4, "d": 9.0, "h": 3.5},
-	# —— 北端 EDAA 能量屏蔽力场（2026-09-27 机主裁决：弃水泥隔离墩，
-	#     改《半衰期2》联合军式蓝色高科技力场；路面向北延伸 64m 没入夜雾）——
 	{"id": "FIELD", "x": 0.0, "z": -95.0, "w": 13.2, "d": 0.15, "h": 4.2, "palette": "edaa_field"},
 	{"id": "FIELD_RAIL", "x": 0.0, "z": -95.0, "w": 13.2, "d": 0.35, "h": 0.18, "palette": "metal_dark"},
 	{"id": "PYLON_W", "x": -6.8, "z": -95.0, "w": 0.55, "d": 0.55, "h": 4.6, "palette": "metal_dark", "tip_glow": true},
 	{"id": "PYLON_E", "x": 6.8, "z": -95.0, "w": 0.55, "d": 0.55, "h": 4.6, "palette": "metal_dark", "tip_glow": true},
-	# —— 南端 EDAA 力场幕墙（南延走廊末端，与北端同款；SF_W2/SF_E2 两翼贴楼夹持）——
+	# —— 南端（南延走廊，SF_W2/SF_E2 两翼贴楼夹持）——
 	{"id": "FIELD_S", "x": 0.0, "z": 68.0, "w": 13.2, "d": 0.15, "h": 4.2, "palette": "edaa_field"},
 	{"id": "FIELD_S_RAIL", "x": 0.0, "z": 68.0, "w": 13.2, "d": 0.35, "h": 0.18, "palette": "metal_dark"},
 	{"id": "PYLON_SW", "x": -6.8, "z": 68.0, "w": 0.55, "d": 0.55, "h": 4.6, "palette": "metal_dark", "tip_glow": true},
 	{"id": "PYLON_SE", "x": 6.8, "z": 68.0, "w": 0.55, "d": 0.55, "h": 4.6, "palette": "metal_dark", "tip_glow": true},
+	# —— 东西端（横街延伸段，EW 楼排间隙夹持；幕墙沿 Z 跨走廊全宽）——
+	{"id": "FIELD_E", "x": 38.5, "z": 34.25, "w": 0.15, "d": 11.0, "h": 4.2, "palette": "edaa_field"},
+	{"id": "FIELD_E_RAIL", "x": 38.5, "z": 34.25, "w": 0.35, "d": 11.0, "h": 0.18, "palette": "metal_dark"},
+	{"id": "PYLON_EN", "x": 38.5, "z": 28.6, "w": 0.55, "d": 0.55, "h": 4.6, "palette": "metal_dark", "tip_glow": true},
+	{"id": "PYLON_ES", "x": 38.5, "z": 39.9, "w": 0.55, "d": 0.55, "h": 4.6, "palette": "metal_dark", "tip_glow": true},
+	{"id": "FIELD_W", "x": -38.5, "z": 34.25, "w": 0.15, "d": 11.0, "h": 4.2, "palette": "edaa_field"},
+	{"id": "FIELD_W_RAIL", "x": -38.5, "z": 34.25, "w": 0.35, "d": 11.0, "h": 0.18, "palette": "metal_dark"},
+	{"id": "PYLON_WN", "x": -38.5, "z": 28.6, "w": 0.55, "d": 0.55, "h": 4.6, "palette": "metal_dark", "tip_glow": true},
+	{"id": "PYLON_WS", "x": -38.5, "z": 39.9, "w": 0.55, "d": 0.55, "h": 4.6, "palette": "metal_dark", "tip_glow": true},
 ]
 
 ## 背景楼群填充分区（2026-09-27 机主裁决：填满临街排楼背后的空白虚空）
@@ -132,15 +163,21 @@ const BARRIERS := [
 ## 2026-09-27 大排查：地面铺装全面内推到人行道边 x=±6.5（两翼不再有泥地接缝）；
 ## 横街以南重排为远端（栅栏门后）+ 近端（南延走廊两翼）四分区，z/x 边界精确对接不重叠
 const BACKFILL_ZONES := [
-	# 西/东两翼近景（临街排楼背后；地面贴到人行道边，楼间缝隙全铺装）
-	{"rect": [-42.0, -92.0, -17.5, 30.0], "ground_rect": [-42.0, -92.0, -6.5, 30.0], "block": [8.0, 12.0], "floors": [2, 5], "gap": 2.5, "density": 0.95},
-	{"rect": [17.5, -92.0, 42.0, 30.0], "ground_rect": [6.5, -92.0, 42.0, 30.0], "block": [8.0, 12.0], "floors": [2, 5], "gap": 2.5, "density": 0.95},
-	# 横街以南远端（东西栅栏门后）
+	# 西/东两翼近景（临街排楼背后；地面贴到人行道边，楼间缝隙全铺装；
+	# 密度 0.97/间距 2.2 —— 二次裁决：填密减少镂空缝隙）
+	{"rect": [-42.0, -92.0, -17.5, 30.0], "ground_rect": [-42.0, -92.0, -6.5, 30.0], "block": [8.0, 12.0], "floors": [2, 5], "gap": 2.2, "density": 0.97},
+	{"rect": [17.5, -92.0, 42.0, 30.0], "ground_rect": [6.5, -92.0, 42.0, 30.0], "block": [8.0, 12.0], "floors": [2, 5], "gap": 2.2, "density": 0.97},
+	# 横街以南远端（东西力场幕墙后）
 	{"rect": [-42.0, 30.0, -26.5, 102.0], "block": [9.0, 13.0], "floors": [2, 4], "gap": 3.0, "density": 0.9},
 	{"rect": [26.5, 30.0, 42.0, 102.0], "block": [9.0, 13.0], "floors": [2, 4], "gap": 3.0, "density": 0.9},
 	# 横街以南近端（南延走廊两翼；块从 z=39.3 起避开横街人行道，S/SF 楼 footprint 自动避让）
 	{"rect": [-26.5, 39.3, -6.5, 100.0], "ground_rect": [-26.5, 38.5, -6.5, 102.0], "block": [9.0, 13.0], "floors": [2, 4], "gap": 3.0, "density": 0.9},
 	{"rect": [6.5, 39.3, 26.5, 100.0], "ground_rect": [6.5, 38.5, 26.5, 102.0], "block": [9.0, 13.0], "floors": [2, 4], "gap": 3.0, "density": 0.9},
+	# 横街东西延伸段两翼（力场后的走廊纵深；EW/WW 夹道楼 footprint 自动避让）
+	{"rect": [42.0, -30.0, 96.0, 29.0], "block": [8.0, 12.0], "floors": [2, 5], "gap": 2.5, "density": 0.92},
+	{"rect": [42.0, 38.5, 96.0, 64.0], "block": [9.0, 13.0], "floors": [2, 4], "gap": 3.0, "density": 0.9},
+	{"rect": [-96.0, -30.0, -42.0, 29.0], "block": [8.0, 12.0], "floors": [2, 5], "gap": 2.5, "density": 0.92},
+	{"rect": [-96.0, 38.5, -42.0, 64.0], "block": [9.0, 13.0], "floors": [2, 4], "gap": 3.0, "density": 0.9},
 	# 力场以北远景：楼块退居雾中楼排背后；地面石板贴到人行道边（路肩无虚空）
 	{"rect": [-42.0, -158.0, -17.5, -93.5], "ground_rect": [-42.0, -160.0, -6.5, -92.0], "block": [9.0, 14.0], "floors": [3, 7], "gap": 3.0, "density": 0.8},
 	{"rect": [17.5, -158.0, 42.0, -93.5], "ground_rect": [6.5, -160.0, 42.0, -92.0], "block": [9.0, 14.0], "floors": [3, 7], "gap": 3.0, "density": 0.8},

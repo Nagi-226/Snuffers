@@ -21,6 +21,8 @@ func _init() -> void:
 		[c["x_min"], c["z_min"], c["x_max"], c["z_max"]],                # 横街沥青
 		[c["x_min"], c["z_max"], -s["kerb"], c["walk_south_z"]],         # 横街南人行道西段
 		[s["kerb"], c["z_max"], c["x_max"], c["walk_south_z"]],          # 横街南人行道东段
+		[c["x_min"], c["walk_north_z"], -s["kerb"], c["z_min"]],         # 横街北人行道西段
+		[s["kerb"], c["walk_north_z"], c["x_max"], c["z_min"]],          # 横街北人行道东段
 		[-s["half_width"], se["z_min"], s["half_width"], se["z_max"]],   # 南延沥青
 		[-s["kerb"], se["z_min"], -s["half_width"], se["z_max"]],        # 南延西人行道
 		[s["half_width"], se["z_min"], s["kerb"], se["z_max"]],          # 南延东人行道

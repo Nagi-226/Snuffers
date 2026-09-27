@@ -180,6 +180,14 @@ func _build_ground() -> void:
 		Vector3(sw_half * 2.0, s["walk_h"], sw_d), "kerb")
 	_add_box(ground, "CrossSidewalk_SE", Vector3(sw_x, s["walk_h"] * 0.5, c["z_max"] + sw_d * 0.5),
 		Vector3(sw_half * 2.0, s["walk_h"], sw_d), "kerb")
+	# 横街北侧人行道（x=±6.5 以外段，衔接两翼铺装；四向力场裁决配套）
+	var nw_d: float = c["z_min"] - c["walk_north_z"]
+	var nw_half: float = (c["x_max"] - s["kerb"]) * 0.5
+	var nw_x: float = s["kerb"] + nw_half
+	_add_box(ground, "CrossSidewalk_NW", Vector3(-nw_x, s["walk_h"] * 0.5, c["z_min"] - nw_d * 0.5),
+		Vector3(nw_half * 2.0, s["walk_h"], nw_d), "kerb")
+	_add_box(ground, "CrossSidewalk_NE", Vector3(nw_x, s["walk_h"] * 0.5, c["z_min"] - nw_d * 0.5),
+		Vector3(nw_half * 2.0, s["walk_h"], nw_d), "kerb")
 	# 主街南延段：沥青 + 两侧人行道，延伸进夜雾（SOUTH_EXT，南端力场幕墙外）
 	var se: Dictionary = Layout.SOUTH_EXT
 	var se_len: float = se["z_max"] - se["z_min"]
@@ -307,8 +315,11 @@ func _dress_facade(parent: Node3D, b: Dictionary, floor_h: float, rng: RandomNum
 	if override_outward != Vector3.ZERO:  # 巷弄立面：显式指定朝向
 		outward = override_outward
 		wall_len = b["d"] if outward.x != 0.0 else b["w"]
-	elif facing == "n":  # 横街南排：面朝北（-Z），临街轴为 X
+	elif facing == "n":  # 横街南排/东西走廊南排：面朝北（-Z），临街轴为 X
 		outward = Vector3(0, 0, -1)
+		wall_len = b["w"]
+	elif facing == "s":  # 东西走廊北排：面朝南（+Z）
+		outward = Vector3(0, 0, 1)
 		wall_len = b["w"]
 	elif absf(b["x"]) < 0.1:  # 门楼横跨街道，面朝 +Z
 		outward = Vector3(0, 0, 1)
@@ -838,6 +849,46 @@ func _rects_overlap(ax0: float, az0: float, ax1: float, az1: float, r: Array) ->
 	return ax0 < r[2] and ax1 > r[0] and az0 < r[3] and az1 > r[1]
 
 
+## 背景楼夜窗材质（2026-09-27 二次裁决：可见的外侧建筑不许是无门窗长方体——
+## 复用 skyline_windows 世界坐标窗格 shader，住宅化参数：低亮灯率、无裙楼商业、无霓虹）
+var _block_mat: ShaderMaterial = null
+
+func _get_block_material() -> ShaderMaterial:
+	if _block_mat == null:
+		_block_mat = ShaderMaterial.new()
+		_block_mat.shader = load("res://assets/shaders/skyline_windows.gdshader")
+		_block_mat.set_shader_parameter("window_size", Vector2(2.4, 3.0))
+		_block_mat.set_shader_parameter("lit_ratio", 0.30)
+		_block_mat.set_shader_parameter("dark_floor_ratio", 0.30)
+		_block_mat.set_shader_parameter("podium_height", 0.0)
+		_block_mat.set_shader_parameter("emission_strength", 1.8)
+		_block_mat.set_shader_parameter("wall_color", Color(0.045, 0.045, 0.055))
+	return _block_mat
+
+
+## 背景楼块：盒体 + 夜窗 shader（逐楼 instance 参数注入种子/楼高/亮度），带碰撞
+func _add_windowed_block(parent: Node3D, name: String, center: Vector3, size: Vector3,
+		rng: RandomNumberGenerator) -> void:
+	var body := StaticBody3D.new()
+	body.name = name
+	body.position = center
+	var mesh_inst := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = size
+	box.material = _get_block_material()
+	mesh_inst.mesh = box
+	mesh_inst.set_instance_shader_parameter("seed_offset", rng.randf() * 97.0)
+	mesh_inst.set_instance_shader_parameter("tower_height", size.y)
+	mesh_inst.set_instance_shader_parameter("brightness", 0.8)
+	body.add_child(mesh_inst)
+	var shape := CollisionShape3D.new()
+	var box_shape := BoxShape3D.new()
+	box_shape.size = size
+	shape.shape = box_shape
+	body.add_child(shape)
+	parent.add_child(body)
+
+
 func _build_backdrop() -> void:
 	var row := Node3D.new()
 	row.name = "Backdrop"
@@ -865,7 +916,6 @@ func _build_backdrop() -> void:
 		else:
 			exclusions.append([wb["from"] - 0.3, wb["pos"] - 0.6, wb["to"] + 0.3, wb["pos"] + 0.6])
 
-	var palettes := ["plaster_cream", "plaster_sand", "plaster_white", "plaster_pink", "brick"]
 	var rng := RandomNumberGenerator.new()
 	for zi in Layout.BACKFILL_ZONES.size():
 		var zone: Dictionary = Layout.BACKFILL_ZONES[zi]
@@ -880,7 +930,6 @@ func _build_backdrop() -> void:
 		var floors_range: Array = zone["floors"]
 		var gap: float = zone.get("gap", 2.5)
 		var density: float = zone.get("density", 1.0)
-		var j: float = GameConfig.STREET_TINT_JITTER
 
 		var x: float = r[0]
 		while x < r[2]:
@@ -901,10 +950,7 @@ func _build_backdrop() -> void:
 				if place:
 					var h: float = float(rng.randi_range(int(floors_range[0]), int(floors_range[1]))) \
 						* Layout.STREET["floor_h"]
-					var tint := Color(1.0 - j + rng.randf() * j * 2.0,
-						1.0 - j + rng.randf() * j * 2.0, 1.0 - j + rng.randf() * j * 2.0)
-					_add_box(row, "Backfill_%d_%d_%d" % [zi, int(x), int(z)],
-						Vector3(cx, h * 0.5, cz), Vector3(w, h, d),
-						palettes[rng.randi_range(0, palettes.size() - 1)], tint)
+					_add_windowed_block(row, "Backfill_%d_%d_%d" % [zi, int(x), int(z)],
+						Vector3(cx, h * 0.5, cz), Vector3(w, h, d), rng)
 				z += d + gap
 			x += w + gap
