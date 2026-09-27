@@ -5,10 +5,11 @@
 [ext_resource type="Script" path="res://scripts/levels/skyline_builder.gd" id="Script_skyline"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
-sky_top_color = Color(0.024, 0.09, 0.18, 1)
-sky_horizon_color = Color(0.13, 0.15, 0.24, 1)
-ground_bottom_color = Color(0.012, 0.012, 0.02, 1)
-ground_horizon_color = Color(0.13, 0.15, 0.24, 1)
+sky_top_color = Color(0.012, 0.085, 0.21, 1)
+sky_horizon_color = Color(0.05, 0.13, 0.27, 1)
+ground_bottom_color = Color(0.01, 0.015, 0.03, 1)
+ground_horizon_color = Color(0.05, 0.13, 0.27, 1)
+sky_curve = 0.09
 
 [sub_resource type="Sky" id="Sky_main"]
 sky_material = SubResource("ProceduralSkyMaterial_sky")

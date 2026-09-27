@@ -188,6 +188,7 @@ func _apply_fog() -> void:
 	env.fog_density = GameConfig.NIGHT_FOG_DENSITY
 	env.fog_light_color = GameConfig.NIGHT_FOG_LIGHT_COLOR
 	env.fog_sun_scatter = GameConfig.NIGHT_FOG_SUN_SCATTER
+	env.fog_sky_affect = GameConfig.NIGHT_FOG_SKY_AFFECT
 
 
 ## 临街立面逐开间装配（panel space：件原点在地板线、前墙面，墙身向内侧延伸）

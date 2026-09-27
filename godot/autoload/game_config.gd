@@ -202,6 +202,8 @@ const NIGHT_FOG_VISIBILITY_TARGET_M: float = 60.0 ## 夜雾目标能见度 m（�
 const NIGHT_FOG_DENSITY: float = 0.065 ## = -ln(0.02)/60 ≈ 0.065（由上行派生，勿独立改）
 const NIGHT_FOG_LIGHT_COLOR := Color(0.10, 0.12, 0.18) ## 夜雾色（深蓝灰）
 const NIGHT_FOG_SUN_SCATTER: float = 0.1 ## 月光散射弱于日光
+const NIGHT_FOG_SKY_AFFECT: float = 0.3 ## 雾对天空的影响（压低防灰洗：雾色灰蓝会把靛蓝夜空洗灰，
+## 天际线幕布卡 fog_disabled 不吃雾，天空若吃满雾就会出现"两个夜空"）
 
 # ===== CBD 远景天际线（多环带 LOD 几何，skyline_builder.gd 消费；确定性种子）=====
 const SKYLINE_SEED: int = 20260927 ## 布局随机种子（改则天际线重排）
