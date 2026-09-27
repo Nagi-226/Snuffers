@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/street_builder.gd" id="Script_builder"]
+[ext_resource type="Script" path="res://scripts/levels/fly_camera.gd" id="Script_flycam"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.385, 0.454, 0.55, 1)
@@ -30,4 +31,4 @@ shadow_enabled = false
 
 [node name="OverviewCamera" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 20)
-current = true
+script = ExtResource("Script_flycam")
