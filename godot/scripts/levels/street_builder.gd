@@ -133,6 +133,69 @@ func _build_buildings() -> void:
 
 	for b in Layout.BUILDINGS:
 		var h: float = b["floors"] * s["floor_h"]
+		# 结构盒沿临街轴内缩 0.3m，给立面套件的门窗内退件让位（否则玻璃/门板被埋）
+		var size := Vector3(b["w"], h, b["d"])
+		if absf(b["x"]) < 0.1:
+			size.z -= 0.3
+		else:
+			size.x -= 0.3
 		_add_box(row, "Bldg_%s" % b["id"],
-			Vector3(b["x"], h * 0.5, b["z"]),
-			Vector3(b["w"], h, b["d"]), b["palette"])
+			Vector3(b["x"], h * 0.5, b["z"]), size, b["palette"])
+		_dress_facade(row, b, s["floor_h"])
+
+
+## P1 立面套件（Blender headless 烘焙，build_facade_kit.py）
+const KIT := {
+	"wall": preload("res://assets/models/kit_wall.glb"),
+	"window": preload("res://assets/models/kit_window.glb"),
+	"door": preload("res://assets/models/kit_door.glb"),
+	"balcony": preload("res://assets/models/kit_balcony.glb"),
+}
+
+const KIT_BAY := 3.0  # 套件开间宽，与 layout floor_h=3.0 对齐
+
+
+## 临街立面逐开间装配（panel space：件原点在地板线、前墙面，墙身向内侧延伸）
+## 一层中间开间为门，二层中间开间为阳台，其余为窗；边距留白墙
+func _dress_facade(parent: Node3D, b: Dictionary, floor_h: float) -> void:
+	var outward: Vector3
+	var wall_len: float
+	if absf(b["x"]) < 0.1:  # 门楼横跨街道，面朝 +Z
+		outward = Vector3(0, 0, 1)
+		wall_len = b["w"]
+	elif b["x"] < 0.0:
+		outward = Vector3(1, 0, 0)
+		wall_len = b["d"]
+	else:
+		outward = Vector3(-1, 0, 0)
+		wall_len = b["d"]
+	var rot_y := 90.0 if outward.x > 0.0 else (-90.0 if outward.x < 0.0 else 0.0)
+
+	var n: int = maxi(1, int(floor(wall_len / KIT_BAY)))
+	var total := n * KIT_BAY
+	var face := Vector3(b["x"], 0.0, b["z"])
+	if outward.x > 0.0:
+		face.x += b["w"] * 0.5
+	elif outward.x < 0.0:
+		face.x -= b["w"] * 0.5
+	else:
+		face.z += b["d"] * 0.5
+
+	for f in b["floors"]:
+		for i in n:
+			var kind := "window"
+			if f == 0 and i == n / 2:
+				kind = "door"
+			elif f == 1 and i == n / 2:
+				kind = "balcony"
+			var inst: Node3D = KIT[kind].instantiate()
+			var off := -total * 0.5 + (float(i) + 0.5) * KIT_BAY
+			var pos := face + outward * 0.02  # 2cm 外凸避免与结构盒共面闪面
+			if outward.x != 0.0:
+				pos.z += off
+			else:
+				pos.x += off
+			pos.y = float(f) * floor_h
+			inst.position = pos
+			inst.rotation_degrees.y = rot_y
+			parent.add_child(inst)

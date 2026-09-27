@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/kit_light_probe.gd" id="Script_probe"]
+
+[sub_resource type="Environment" id="Environment_probe"]
+background_mode = 1
+background_color = Color(0.1, 0.1, 0.12, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.55, 0.55, 0.58, 1)
+ambient_light_energy = 1.0
+
+[node name="KitLightProbe" type="Node3D"]
+script = ExtResource("Script_probe")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_probe")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.94, 0.342, 0, -0.342, 0.94, 0, 2.2, 12)
+current = true
