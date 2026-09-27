@@ -34,6 +34,7 @@ const SHADER_MAP := {
 	"kerb": ["res://assets/shaders/mat_concrete.gdshader", 2.5, 11.0],
 	"rust_metal": ["res://assets/shaders/mat_rust_metal.gdshader", 1.2, 23.0],
 	"concrete_prop": ["res://assets/shaders/mat_concrete.gdshader", 1.0, 31.0],
+	"paving": ["res://assets/shaders/mat_paving.gdshader", 1.0, 5.0],
 }
 
 
@@ -222,6 +223,9 @@ func _build_buildings() -> void:
 		_add_box(row, "Bldg_%s" % b["id"],
 			Vector3(b["x"], h * 0.5, b["z"]), size, b["palette"], tint)
 		_dress_facade(row, b, s["floor_h"], rng)
+		# 巷弄立面：临街排楼的背街面/侧面若与巷弄院落相邻，补门窗（2026-09-27 机主裁决）
+		if b.get("face", "") == "" and absf(b["x"]) > 0.1:
+			_dress_alley_faces(row, b, s["floor_h"], rng)
 	_build_wires(rng)
 
 
@@ -252,14 +256,40 @@ func _apply_fog() -> void:
 	env.fog_sky_affect = GameConfig.NIGHT_FOG_SKY_AFFECT
 
 
+## 巷弄邻接扫描：临街排楼的非临街面，外推 5m 条带与任一巷弄/院落相交 → 该面临巷，补门窗
+func _dress_alley_faces(parent: Node3D, b: Dictionary, floor_h: float, rng: RandomNumberGenerator) -> void:
+	var street_out := Vector3(1, 0, 0) if b["x"] < 0.0 else Vector3(-1, 0, 0)
+	var candidates := [Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1)]
+	for o in candidates:
+		if o == street_out:
+			continue
+		var wall_len: float = b["d"] if o.x != 0.0 else b["w"]
+		var half_along := wall_len * 0.5
+		var rect: Array
+		if o.x != 0.0:
+			var cx: float = b["x"] + o.x * (b["w"] * 0.5 + 2.5)
+			rect = [cx - 2.5, b["z"] - half_along, cx + 2.5, b["z"] + half_along]
+		else:
+			var cz: float = b["z"] + o.z * (b["d"] * 0.5 + 2.5)
+			rect = [b["x"] - half_along, cz - 2.5, b["x"] + half_along, cz + 2.5]
+		for alley in Layout.ALLEYS:
+			if _rects_overlap(rect[0], rect[1], rect[2], rect[3], alley["rect"]):
+				_dress_facade(parent, b, floor_h, rng, true, o)
+				break
+
+
 ## 临街立面逐开间装配（panel space：件原点在地板线、前墙面，墙身向内侧延伸）
 ## 一层：中间开间恒为卷帘门商铺，其余开间按 SHOPFRONT_RATIO 改商铺/留窗（城中村底商）；
 ## 二层中间开间为阳台，上层窗户按 AC_UNIT_RATIO 挂空调外机；开间边线稀疏落排水管
-func _dress_facade(parent: Node3D, b: Dictionary, floor_h: float, rng: RandomNumberGenerator) -> void:
+func _dress_facade(parent: Node3D, b: Dictionary, floor_h: float, rng: RandomNumberGenerator,
+		alley_mode := false, override_outward := Vector3.ZERO) -> void:
 	var outward: Vector3
 	var wall_len: float
 	var facing: String = b.get("face", "")
-	if facing == "n":  # 横街南排：面朝北（-Z），临街轴为 X
+	if override_outward != Vector3.ZERO:  # 巷弄立面：显式指定朝向
+		outward = override_outward
+		wall_len = b["d"] if outward.x != 0.0 else b["w"]
+	elif facing == "n":  # 横街南排：面朝北（-Z），临街轴为 X
 		outward = Vector3(0, 0, -1)
 		wall_len = b["w"]
 	elif absf(b["x"]) < 0.1:  # 门楼横跨街道，面朝 +Z
@@ -302,7 +332,11 @@ func _dress_facade(parent: Node3D, b: Dictionary, floor_h: float, rng: RandomNum
 	for f in b["floors"]:
 		for i in n:
 			var kind := "window"
-			if f == 0:
+			if alley_mode:
+				# 巷弄立面：一层中间开间开后门，其余窗户；无商铺/阳台（背街生活面）
+				if f == 0 and i == n / 2:
+					kind = "door"
+			elif f == 0:
 				# 一层底商：中间开间恒商铺，其余按概率
 				if i == n / 2 or rng.randf() < GameConfig.SHOPFRONT_RATIO:
 					kind = "shopfront"
@@ -409,9 +443,20 @@ func _build_props() -> void:
 		row.add_child(prop)
 		match p["type"]:
 			"basket_hoop":
-				_prop_basket_hoop(prop)
+				_prop_basket_hoop(prop)  # 原语架体 + 开源篮圈篮网（内部自动回退）
+			"basketball":
+				# 散落篮球（开源件提取 Sphere 子节点，CC0 Armory_3D）
+				var ball := _attach_extract(prop, "res://assets/models/prop_basketball_hoop.glb", "Sphere", 0.24)
+				if ball:
+					ball.position = Vector3(0, 0.12, 0)
+					_add_prop_collider(prop, Vector3(0.26, 0.26, 0.26), Vector3(0, 0.12, 0))
+				else:
+					_add_part(prop, _make_cyl(0.12, 0.12, 0.24, 10), Vector3(0, 0.12, 0), "canvas_red")
 			"bike":
-				_prop_bike(prop)
+				# 开源模型优先（Poly Pizza CC-BY，署名见 ATTRIBUTION.md 五）
+				if not _prop_model(prop, "res://assets/models/prop_bicycle.glb",
+						1.1, Vector3(1.75, 1.1, 0.5), Vector3(0, 0.55, 0)):
+					_prop_bike(prop)
 			"bistro_set":
 				_prop_bistro_set(prop)
 			"trash_bin":
@@ -461,7 +506,83 @@ func _make_torus(r_ring: float, r_tube: float) -> TorusMesh:
 	return torus
 
 
-## 篮球架：立杆 + 伸臂 + 篮板 + 篮圈（局部 +Z 朝场内）
+## 开源模型道具归一化：量全局包围盒 → 等比缩放到目标高度 → 落地居中 → 附碰撞盒
+## 模型源任意尺度/原点（poly.pizza GLB 常见厘米级与偏移原点），全部在运行态归一
+func _prop_model(prop: Node3D, path: String, target_h: float,
+		collider_size: Vector3, collider_center: Vector3) -> bool:
+	if not ResourceLoader.exists(path):
+		return false
+	var inst: Node3D = (load(path) as PackedScene).instantiate()
+	prop.add_child(inst)
+	var aabb := AABB()
+	var first := true
+	for mi in _find_mesh_instances(inst):
+		var local: AABB = (prop.global_transform.affine_inverse() * mi.global_transform) * mi.get_aabb()
+		if first:
+			aabb = local
+			first = false
+		else:
+			aabb = aabb.merge(local)
+	if first or aabb.size.y <= 0.001:
+		prop.remove_child(inst)
+		inst.queue_free()
+		return false
+	var s: float = target_h / aabb.size.y
+	inst.scale = Vector3.ONE * s
+	inst.position = Vector3(-aabb.get_center().x * s, -aabb.position.y * s, -aabb.get_center().z * s)
+	_add_prop_collider(prop, collider_size, collider_center)
+	return true
+
+
+## 从 GLB 提取具名子树挂到 prop 下：等比缩放到 target_max（包围盒最大边）、
+## 包围盒中心对齐到新 holder 原点。返回 holder（调用方再摆位/旋转），失败 null
+func _attach_extract(prop: Node3D, path: String, node_name: String, target_max: float) -> Node3D:
+	if not ResourceLoader.exists(path):
+		return null
+	var inst: Node3D = (load(path) as PackedScene).instantiate()
+	prop.add_child(inst)
+	var node: Node3D = inst.find_child(node_name, true, false) as Node3D
+	if node == null:
+		prop.remove_child(inst)
+		inst.free()
+		return null
+	var holder := Node3D.new()
+	holder.name = "Extract_%s" % node_name
+	prop.add_child(holder)
+	node.get_parent().remove_child(node)
+	holder.add_child(node)
+	prop.remove_child(inst)
+	inst.free()
+	# 量 holder 包围盒（prop 局部空间）→ 缩放 + 居中（居中偏移落在子节点上，
+	# holder 的 position/rotation 留给调用方摆位）
+	var aabb := AABB()
+	var first := true
+	for mi in _find_mesh_instances(holder):
+		var local: AABB = (prop.global_transform.affine_inverse() * mi.global_transform) * mi.get_aabb()
+		if first:
+			aabb = local
+			first = false
+		else:
+			aabb = aabb.merge(local)
+	if first:
+		return null
+	var s: float = target_max / maxf(aabb.size.x, maxf(aabb.size.y, aabb.size.z))
+	holder.scale = Vector3.ONE * s
+	# 内容中心归零：P_new = P_auth − C（赋值会丢失节点原始偏移，导致二次平移）
+	node.position -= aabb.get_center()
+	return holder
+
+
+func _find_mesh_instances(n: Node) -> Array:
+	var out: Array = []
+	if n is MeshInstance3D:
+		out.append(n)
+	for c in n.get_children():
+		out.append_array(_find_mesh_instances(c))
+	return out
+
+
+## 篮球架：立杆 + 伸臂 + 篮板（原语）+ 篮圈带真篮网（开源件 ring 子树提取，CC0 Armory_3D）
 func _prop_basket_hoop(prop: Node3D) -> void:
 	_add_part(prop, _make_cyl(0.06, 0.06, 3.2), Vector3(0, 1.6, -0.9), "metal_dark")
 	var arm := BoxMesh.new()
@@ -470,7 +591,12 @@ func _prop_basket_hoop(prop: Node3D) -> void:
 	var board := BoxMesh.new()
 	board.size = Vector3(1.2, 0.9, 0.05)
 	_add_part(prop, board, Vector3(0, 3.05, 0.0), "plastic_white")
-	_add_part(prop, _make_torus(0.23, 0.02), Vector3(0, 2.95, 0.35), "rust_metal", Vector3(90, 0, 0))
+	var ring := _attach_extract(prop, "res://assets/models/prop_basketball_hoop.glb", "ring", 0.46)
+	if ring:
+		ring.rotation_degrees = Vector3.ZERO  # 模型内已烘平放变换，不再补偿
+		ring.position = Vector3(0, 3.0, 0.38)
+	else:
+		_add_part(prop, _make_torus(0.23, 0.02), Vector3(0, 2.95, 0.35), "rust_metal", Vector3(90, 0, 0))
 	_add_prop_collider(prop, Vector3(0.4, 3.4, 1.3), Vector3(0, 1.7, -0.4))
 
 

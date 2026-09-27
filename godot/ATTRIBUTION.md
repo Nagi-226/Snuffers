@@ -82,9 +82,18 @@
 
 ---
 
-## 五、待办与合规提示
+## 五、第三方 3D 模型资产（godot/assets/models/）
+
+| 名称 | 作者 | URL | 许可证 | 日期 |
+|------|------|-----|--------|------|
+| prop_basketball_hoop.glb（「Basket ball and hoop」，巷弄篮球场道具） | Armory_3D（Poly Pizza 分发） | https://poly.pizza/m/i3LLacyQP4 | CC0 | 2026-09-27 |
+| prop_bicycle.glb（「Bicycle」，巷弄靠墙自行车道具） | Poly by Google（Poly Pizza 分发） | https://poly.pizza/m/0Lk0xuhWE3b | CC-BY（**需游戏内署名**） | 2026-09-27 |
+
+---
+
+## 六、待办与合规提示
 
 1. **「来源待考」条目**：凡标注「来源待考（G4 美术阶段补查）」者，均为本地文件内无法查证作者/许可证，已如实标注、未作编造；G4 美术阶段须逐项补查或替换为许可证明确的资产。
-2. **CC-BY 署名义务**：Ammo Canister（Stephen Yoshimura, CC-BY）若最终进入包体，须在游戏内（结算/关于界面）署名。
+2. **CC-BY 署名义务**：Ammo Canister（Stephen Yoshimura, CC-BY）与 Bicycle（Poly by Google, CC-BY）若最终进入包体，须在游戏内（结算/关于界面）署名。
 3. **原始文件入库红线**：jeh3no 插件内自带 `Weapons.fbx`、`low_poly_rpg-7/scene.gltf` 等原始模型文件，与约束 #7「Sketchfab 等原始文件禁止提交进 git 仓库」存在潜在冲突；当前 spike 阶段业务场景不引用这些资源，是否剔除或 .gitignore 排除由蜂后裁决。
 4. **占位资产替换**：`ambient.wav` 为程序合成占位，夜视/昼夜相关音效与视觉素材按 W7 交接备忘录于 G4 后由 W5 替换正式资产，替换时同步更新本台账。

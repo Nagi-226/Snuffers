@@ -29,16 +29,16 @@ const CROSS := {
 ## 巷道/空地: rect=[x0, z0, x1, z1]，surface 为地面材质键
 ## RE3 重制版式巷弄生活区：巷口窄道 + 巷尾院落（篮球场/露天小酒馆）
 const ALLEYS := [
-	{"rect": [-20.0, -12.0, -6.5, -8.0], "surface": "dirt"},     # 西侧巷道
-	{"rect": [6.5, 2.0, 22.0, 8.0], "surface": "gravel"},        # 东侧 flank 巷
-	{"rect": [-22.0, 14.0, -6.5, 20.0], "surface": "dirt"},      # 西侧院落
+	{"rect": [-20.0, -12.0, -6.5, -8.0], "surface": "paving"},    # 西侧巷道
+	{"rect": [6.5, 2.0, 22.0, 8.0], "surface": "paving"},          # 东侧 flank 巷
+	{"rect": [-22.0, 14.0, -6.5, 20.0], "surface": "paving"},      # 西侧院落
 	# —— 北延段巷弄（2026-09-27 扩充）——
-	{"rect": [-19.0, -32.0, -6.5, -27.0], "surface": "dirt"},    # WA 西巷（通篮球场）
-	{"rect": [-27.0, -66.0, -19.5, -52.0], "surface": "dirt"},   # 篮球场院落（WB 巷尾）
-	{"rect": [-19.5, -62.0, -6.5, -57.0], "surface": "gravel"},  # WB 西巷（篮球场入口）
-	{"rect": [6.5, -29.0, 19.0, -24.0], "surface": "gravel"},    # EA 东巷（通小酒馆）
-	{"rect": [19.0, -38.0, 27.0, -20.0], "surface": "gravel"},   # 露天小酒馆院落
-	{"rect": [6.5, -59.0, 19.0, -54.0], "surface": "dirt"},      # EB 东巷
+	{"rect": [-19.0, -32.0, -6.5, -27.0], "surface": "paving"},    # WA 西巷（通篮球场）
+	{"rect": [-27.0, -66.0, -19.5, -52.0], "surface": "paving"},   # 篮球场院落（WB 巷尾）
+	{"rect": [-19.5, -62.0, -6.5, -57.0], "surface": "paving"},    # WB 西巷（篮球场入口）
+	{"rect": [6.5, -29.0, 19.0, -24.0], "surface": "paving"},      # EA 东巷（通小酒馆）
+	{"rect": [19.0, -38.0, 27.0, -20.0], "surface": "paving"},     # 露天小酒馆院落
+	{"rect": [6.5, -59.0, 19.0, -54.0], "surface": "paving"},      # EB 东巷
 ]
 
 ## 建筑: x/z 为体块中心，w=X 向宽，d=Z 向深，floors 层数，palette 为调色板键
@@ -97,8 +97,9 @@ const BACKFILL_ZONES := [
 ## 巷弄生活道具（RE3 重制版式街区丰富度；type 决定 builder 的装配方式）
 ## rot_y 为度；y 为落脚面高度（人行道 0.145 / 巷院地面 0.07）；bistro_set = 圆桌+双椅+遮阳伞一体
 const PROPS := [
-	# 篮球场院落（WB 巷尾）：半场单架
+	# 篮球场院落（WB 巷尾）：半场单架 + 散落篮球
 	{"type": "basket_hoop", "x": -26.0, "z": -59.0, "y": 0.07, "rot_y": 90.0},
+	{"type": "basketball", "x": -23.5, "z": -61.5, "y": 0.07, "rot_y": 0.0},
 	# 露天小酒馆（EA 巷尾院落）：三套桌椅伞
 	{"type": "bistro_set", "x": 21.5, "z": -24.0, "y": 0.07, "rot_y": 0.0},
 	{"type": "bistro_set", "x": 24.5, "z": -28.5, "y": 0.07, "rot_y": 40.0},
