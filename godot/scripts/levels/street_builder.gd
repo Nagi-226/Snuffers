@@ -18,6 +18,10 @@ const PALETTE := {
 	"plaster_pink": Color(0.75, 0.60, 0.53),
 	"brick": Color(0.66, 0.52, 0.42),
 	"wire_dark": Color(0.045, 0.045, 0.05),
+	"metal_dark": Color(0.10, 0.10, 0.11),
+	"rubber_dark": Color(0.03, 0.03, 0.032),
+	"canvas_red": Color(0.52, 0.14, 0.12),
+	"plastic_white": Color(0.80, 0.79, 0.74),
 }
 
 var _materials := {}
@@ -37,6 +41,7 @@ func _ready() -> void:
 	_apply_fog()
 	_build_ground()
 	_build_buildings()
+	_build_props()
 	# 开发者截图: godot --path . res://scenes/levels/street_test.tscn -- --shot <输出路径>
 	var args := OS.get_cmdline_user_args()
 	if args.has("--shot"):
@@ -66,6 +71,14 @@ func _get_material(key: String) -> Material:
 			shader_mat.set_shader_parameter("world_scale", entry[1])
 			shader_mat.set_shader_parameter("seed", entry[2])
 			_materials[key] = shader_mat
+		elif key == "hazard_red":
+			# EDAA 路障警示灯条：暗红底 + 红发光（夜里路障的远距离可读性）
+			var hazard := StandardMaterial3D.new()
+			hazard.albedo_color = Color(0.35, 0.05, 0.05)
+			hazard.emission_enabled = true
+			hazard.emission = Color(1.0, 0.15, 0.1)
+			hazard.emission_energy_multiplier = 1.6
+			_materials[key] = hazard
 		else:
 			var mat := StandardMaterial3D.new()
 			mat.albedo_color = PALETTE.get(key, Color(0.5, 0.5, 0.5))
@@ -144,11 +157,16 @@ func _build_ground() -> void:
 	var sw_d: float = c["walk_south_z"] - c["z_max"]
 	_add_box(ground, "CrossSidewalk_S", Vector3(0, s["walk_h"] * 0.5, c["z_max"] + sw_d * 0.5),
 		Vector3(c_x_len, s["walk_h"], sw_d), "kerb")
-	# 横街两端铁栅栏门（分段加载气闸占位，文档11 §6.6）
+	# 横街两端铁栅栏门 + 北端 EDAA 路障（分段加载气闸/边界合理化，文档11 §6.6、文档12）
 	for barrier in Layout.BARRIERS:
 		_add_box(ground, barrier["id"],
 			Vector3(barrier["x"], barrier["h"] * 0.5, barrier["z"]),
-			Vector3(barrier["w"], barrier["h"], barrier["d"]), "rust_metal")
+			Vector3(barrier["w"], barrier["h"], barrier["d"]),
+			barrier.get("palette", "rust_metal"))
+		if barrier.get("hazard", false):  # 警示灯条贴在隔离墩顶面前沿
+			_add_box(ground, "%s_hazard" % barrier["id"],
+				Vector3(barrier["x"], barrier["h"] + 0.04, barrier["z"]),
+				Vector3(barrier["w"] * 0.8, 0.08, barrier["d"] * 0.8), "hazard_red")
 
 
 func _build_buildings() -> void:
@@ -289,7 +307,7 @@ func _build_wires(rng: RandomNumberGenerator) -> void:
 	mat.albedo_color = PALETTE["wire_dark"]
 	mat.roughness = 0.6
 
-	var z: float = s["z_min"] + 5.0
+	var z: float = maxf(s["z_min"] + 5.0, s.get("wire_z_min", s["z_min"] + 5.0))
 	while z < s["z_max"] - 4.0:
 		var h0 := rng.randf_range(GameConfig.WIRE_HEIGHT_MIN_M, GameConfig.WIRE_HEIGHT_MAX_M)
 		var h1 := clampf(h0 + rng.randf_range(-0.5, 0.5),
@@ -345,3 +363,126 @@ func _make_wire_mesh(p0: Vector3, p1: Vector3, sag: float) -> ArrayMesh:
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	return mesh
+
+
+## —— 巷弄生活道具（P2 布景层，RE3 式街区丰富度，2026-09-27 机主裁决）——
+## 全部用引擎原语装配（柱/环/盒），正式美术件待道具批2走 Blender 烘焙替换
+
+func _build_props() -> void:
+	var row := Node3D.new()
+	row.name = "Props"
+	add_child(row)
+	for i in Layout.PROPS.size():
+		var p: Dictionary = Layout.PROPS[i]
+		var prop := Node3D.new()
+		prop.name = "Prop_%s_%d" % [p["type"], i]
+		prop.position = Vector3(p["x"], p.get("y", 0.0), p["z"])
+		prop.rotation_degrees.y = p.get("rot_y", 0.0)
+		row.add_child(prop)
+		match p["type"]:
+			"basket_hoop":
+				_prop_basket_hoop(prop)
+			"bike":
+				_prop_bike(prop)
+			"bistro_set":
+				_prop_bistro_set(prop)
+			"trash_bin":
+				_prop_trash_bin(prop)
+			_:
+				push_warning("street_builder: unknown prop type %s" % p["type"])
+
+
+## 道具局部零件（原语网格 + 调色板材质，无独立碰撞）
+func _add_part(parent: Node3D, mesh: PrimitiveMesh, offset: Vector3,
+		palette_key: String, rot_deg := Vector3.ZERO) -> void:
+	mesh.material = _get_material(palette_key)
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.position = offset
+	mi.rotation_degrees = rot_deg
+	parent.add_child(mi)
+
+
+## 道具整体碰撞盒（单盒近似，y_center 为盒中心局部高度）
+func _add_prop_collider(prop: Node3D, size: Vector3, center := Vector3.ZERO) -> void:
+	var body := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	shape.shape = box
+	shape.position = center
+	body.add_child(shape)
+	prop.add_child(body)
+
+
+func _make_cyl(r_top: float, r_bottom: float, h: float, sides := 10) -> CylinderMesh:
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = r_top
+	cyl.bottom_radius = r_bottom
+	cyl.height = h
+	cyl.radial_segments = sides
+	return cyl
+
+
+func _make_torus(r_ring: float, r_tube: float) -> TorusMesh:
+	var torus := TorusMesh.new()
+	torus.inner_radius = r_ring - r_tube
+	torus.outer_radius = r_ring + r_tube
+	torus.rings = 16
+	torus.ring_segments = 6
+	return torus
+
+
+## 篮球架：立杆 + 伸臂 + 篮板 + 篮圈（局部 +Z 朝场内）
+func _prop_basket_hoop(prop: Node3D) -> void:
+	_add_part(prop, _make_cyl(0.06, 0.06, 3.2), Vector3(0, 1.6, -0.9), "metal_dark")
+	var arm := BoxMesh.new()
+	arm.size = Vector3(0.08, 0.08, 0.95)
+	_add_part(prop, arm, Vector3(0, 3.35, -0.45), "metal_dark")
+	var board := BoxMesh.new()
+	board.size = Vector3(1.2, 0.9, 0.05)
+	_add_part(prop, board, Vector3(0, 3.05, 0.0), "plastic_white")
+	_add_part(prop, _make_torus(0.23, 0.02), Vector3(0, 2.95, 0.35), "rust_metal", Vector3(90, 0, 0))
+	_add_prop_collider(prop, Vector3(0.4, 3.4, 1.3), Vector3(0, 1.7, -0.4))
+
+
+## 自行车：双轮 + 大梁 + 座管 + 车把（局部 X 为车身长向，靠墙停放剪影）
+func _prop_bike(prop: Node3D) -> void:
+	for sx in [-0.55, 0.55]:
+		_add_part(prop, _make_torus(0.32, 0.025), Vector3(sx, 0.32, 0), "rubber_dark")
+	var frame := BoxMesh.new()
+	frame.size = Vector3(0.95, 0.05, 0.05)
+	_add_part(prop, frame, Vector3(0, 0.55, 0), "metal_dark")
+	var seat_post := BoxMesh.new()
+	seat_post.size = Vector3(0.05, 0.35, 0.05)
+	_add_part(prop, seat_post, Vector3(-0.25, 0.72, 0), "metal_dark")
+	var bar := BoxMesh.new()
+	bar.size = Vector3(0.05, 0.05, 0.42)
+	_add_part(prop, bar, Vector3(0.55, 0.88, 0), "metal_dark")
+	_add_prop_collider(prop, Vector3(1.25, 1.0, 0.3), Vector3(0, 0.5, 0))
+
+
+## 露天小酒馆单元：圆桌 + 伞 + 对椅（局部 ±X 两侧落座）
+func _prop_bistro_set(prop: Node3D) -> void:
+	_add_part(prop, _make_cyl(0.42, 0.42, 0.05, 14), Vector3(0, 0.72, 0), "plastic_white")
+	_add_part(prop, _make_cyl(0.04, 0.04, 0.72), Vector3(0, 0.36, 0), "metal_dark")
+	_add_part(prop, _make_cyl(0.025, 0.025, 2.3), Vector3(0, 1.15, 0), "metal_dark")
+	_add_part(prop, _make_cyl(0.05, 0.95, 0.35, 12), Vector3(0, 2.2, 0), "canvas_red")
+	for sx in [-0.85, 0.85]:
+		var seat := BoxMesh.new()
+		seat.size = Vector3(0.42, 0.05, 0.42)
+		_add_part(prop, seat, Vector3(sx, 0.45, 0), "plastic_white")
+		var leg := BoxMesh.new()
+		leg.size = Vector3(0.06, 0.45, 0.06)
+		_add_part(prop, leg, Vector3(sx, 0.225, 0), "metal_dark")
+		var back := BoxMesh.new()
+		back.size = Vector3(0.42, 0.5, 0.05)
+		_add_part(prop, back, Vector3(sx + signf(sx) * 0.19, 0.72, 0), "plastic_white")
+	_add_prop_collider(prop, Vector3(2.2, 1.0, 0.9), Vector3(0, 0.5, 0))
+
+
+## 垃圾桶：桶身 + 盖
+func _prop_trash_bin(prop: Node3D) -> void:
+	_add_part(prop, _make_cyl(0.30, 0.27, 0.85, 12), Vector3(0, 0.425, 0), "rust_metal")
+	_add_part(prop, _make_cyl(0.33, 0.33, 0.07, 12), Vector3(0, 0.89, 0), "metal_dark")
+	_add_prop_collider(prop, Vector3(0.65, 0.95, 0.65), Vector3(0, 0.48, 0))
