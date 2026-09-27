@@ -130,8 +130,16 @@ func _make_facade_material(tex_path: String, wall_darken: float, emit_gain: floa
 	return mat
 
 
-## 全景幕布卡环带：面朝原点的 QuadMesh 卡片交替贴两张 AI 全景，边缘羽化交叠
+## 全景幕布卡环带：面朝原点的 QuadMesh 卡片交替贴两张 AI 全景，边缘羽化交叠。
+## sky_color 从场景 WorldEnvironment 实时读取注入——天色改动自动同步到幕布卡，
+## 保证幕布夜空与场景夜空永远一致（机主 2026-09-27 要求：禁止出现两个夜空的分界）。
 func _build_panorama_cards(rng: RandomNumberGenerator) -> void:
+	var sky_color := Color(0.024, 0.09, 0.18)  # 兜底值，与 street_test.tscn 天空一致
+	var world_env := get_parent().get_node_or_null("WorldEnvironment") as WorldEnvironment
+	if world_env != null and world_env.environment != null and world_env.environment.sky != null:
+		var sky_mat := world_env.environment.sky.sky_material as ProceduralSkyMaterial
+		if sky_mat != null:
+			sky_color = sky_mat.sky_top_color
 	var texs := [TEX_PANO_A, TEX_PANO_B]
 	var count: int = GameConfig.SKYLINE_CARD_COUNT
 	for i in count:
@@ -139,6 +147,7 @@ func _build_panorama_cards(rng: RandomNumberGenerator) -> void:
 		mat.shader = load(SHADER_CARD)
 		mat.set_shader_parameter("pano_tex", load(texs[i % texs.size()]))
 		mat.set_shader_parameter("gain", 1.35)
+		mat.set_shader_parameter("sky_color", sky_color)
 		var ang := TAU * float(i) / float(count)
 		var radius: float = GameConfig.SKYLINE_CARD_RADIUS_M + rng.randf_range(-40.0, 40.0)
 		var mesh := QuadMesh.new()  # 竖直四边形，法线 +Z（PlaneMesh 默认平躺，不可用）
