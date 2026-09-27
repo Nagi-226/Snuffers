@@ -71,6 +71,19 @@ func _get_material(key: String) -> Material:
 			shader_mat.set_shader_parameter("world_scale", entry[1])
 			shader_mat.set_shader_parameter("seed", entry[2])
 			_materials[key] = shader_mat
+		elif key == "edaa_field":
+			# EDAA 能量屏蔽力场（程序化 shader，纵向扫描带+两端增亮+微闪烁）
+			var field_mat := ShaderMaterial.new()
+			field_mat.shader = load("res://assets/shaders/mat_energy_field.gdshader")
+			_materials[key] = field_mat
+		elif key == "edaa_blue_glow":
+			# 发射柱顶部发光帽：暗蓝底 + 青蓝发光
+			var glow := StandardMaterial3D.new()
+			glow.albedo_color = Color(0.05, 0.12, 0.25)
+			glow.emission_enabled = true
+			glow.emission = Color(0.35, 0.70, 1.0)
+			glow.emission_energy_multiplier = 2.2
+			_materials[key] = glow
 		elif key == "hazard_red":
 			# EDAA 路障警示灯条：暗红底 + 红发光（夜里路障的远距离可读性）
 			var hazard := StandardMaterial3D.new()
@@ -167,6 +180,20 @@ func _build_ground() -> void:
 			_add_box(ground, "%s_hazard" % barrier["id"],
 				Vector3(barrier["x"], barrier["h"] + 0.04, barrier["z"]),
 				Vector3(barrier["w"] * 0.8, 0.08, barrier["d"] * 0.8), "hazard_red")
+		if barrier.get("tip_glow", false):  # 发射柱蓝色发光帽
+			_add_box(ground, "%s_tip" % barrier["id"],
+				Vector3(barrier["x"], barrier["h"] + 0.15, barrier["z"]),
+				Vector3(barrier["w"] + 0.16, 0.3, barrier["d"] + 0.16), "edaa_blue_glow")
+		if barrier.get("palette", "") == "edaa_field":
+			# 力场蓝光灯：把能量场的光晕投到路面与两侧墙根
+			var glow_light := OmniLight3D.new()
+			glow_light.name = "%s_light" % barrier["id"]
+			glow_light.position = Vector3(barrier["x"], 2.6, barrier["z"] + 0.8)
+			glow_light.light_color = Color(0.35, 0.65, 1.0)
+			glow_light.light_energy = 1.1
+			glow_light.omni_range = 9.0
+			glow_light.shadow_enabled = false
+			ground.add_child(glow_light)
 
 
 func _build_buildings() -> void:

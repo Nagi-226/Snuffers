@@ -68,19 +68,16 @@ const BUILDINGS := [
 ]
 
 ## 横街两端铁栅栏门（分段加载气闸占位，文档11 §6.6；正式栅栏门件待道具批2烘焙）
-## palette 缺省 rust_metal；hazard=true 时顶部加 EDAA 红色警示灯条
+## palette 缺省 rust_metal；hazard=true 时顶部加红色警示灯条；tip_glow=true 时顶部加 EDAA 蓝色发光帽
 const BARRIERS := [
 	{"id": "GATE_WEST", "x": -27.2, "z": 34.0, "w": 2.4, "d": 9.0, "h": 3.5},
 	{"id": "GATE_EAST", "x": 27.2, "z": 34.0, "w": 2.4, "d": 9.0, "h": 3.5},
-	# —— 北端 EDAA 进场路障（2026-09-27 机主裁决：路障 + 雾遮蔽中断处；
-	#     双排错位混凝土隔离墩，路面向北延伸 64m 没入夜雾，替代原堵路门楼）——
-	{"id": "RB_A0", "x": -4.8, "z": -95.0, "w": 3.2, "d": 0.6, "h": 1.1, "palette": "concrete_prop", "hazard": true},
-	{"id": "RB_A1", "x": -1.6, "z": -95.0, "w": 3.2, "d": 0.6, "h": 1.1, "palette": "concrete_prop", "hazard": true},
-	{"id": "RB_A2", "x": 1.6, "z": -95.0, "w": 3.2, "d": 0.6, "h": 1.1, "palette": "concrete_prop", "hazard": true},
-	{"id": "RB_A3", "x": 4.8, "z": -95.0, "w": 3.2, "d": 0.6, "h": 1.1, "palette": "concrete_prop", "hazard": true},
-	{"id": "RB_B0", "x": -3.2, "z": -97.5, "w": 3.2, "d": 0.6, "h": 1.1, "palette": "concrete_prop", "hazard": true},
-	{"id": "RB_B1", "x": 0.0, "z": -97.5, "w": 3.2, "d": 0.6, "h": 1.1, "palette": "concrete_prop", "hazard": true},
-	{"id": "RB_B2", "x": 3.2, "z": -97.5, "w": 3.2, "d": 0.6, "h": 1.1, "palette": "concrete_prop", "hazard": true},
+	# —— 北端 EDAA 能量屏蔽力场（2026-09-27 机主裁决：弃水泥隔离墩，
+	#     改《半衰期2》联合军式蓝色高科技力场；路面向北延伸 64m 没入夜雾）——
+	{"id": "FIELD", "x": 0.0, "z": -95.0, "w": 13.2, "d": 0.15, "h": 4.2, "palette": "edaa_field"},
+	{"id": "FIELD_RAIL", "x": 0.0, "z": -95.0, "w": 13.2, "d": 0.35, "h": 0.18, "palette": "metal_dark"},
+	{"id": "PYLON_W", "x": -6.8, "z": -95.0, "w": 0.55, "d": 0.55, "h": 4.6, "palette": "metal_dark", "tip_glow": true},
+	{"id": "PYLON_E", "x": 6.8, "z": -95.0, "w": 0.55, "d": 0.55, "h": 4.6, "palette": "metal_dark", "tip_glow": true},
 ]
 
 ## 巷弄生活道具（RE3 重制版式街区丰富度；type 决定 builder 的装配方式）
