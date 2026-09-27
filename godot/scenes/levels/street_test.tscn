@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/street_builder.gd" id="Script_builder"]
 [ext_resource type="Script" path="res://scripts/levels/fly_camera.gd" id="Script_flycam"]
 [ext_resource type="Script" path="res://scripts/levels/skyline_builder.gd" id="Script_skyline"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/infantry.tscn" id="Scene_infantry"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.012, 0.085, 0.21, 1)
@@ -39,3 +40,11 @@ script = ExtResource("Script_flycam")
 
 [node name="Skyline" type="Node3D" parent="."]
 script = ExtResource("Script_skyline")
+
+; 可进入建筑试点（E1）驻军：寄生宿主×2（甲方案：复用步兵状态机，无玩家时原地巡逻）
+; Host_F1 在一楼东房（搜索房），Host_F2 在二楼南房
+[node name="Host_F1" parent="." instance=ExtResource("Scene_infantry")]
+position = Vector3(13.5, 0.15, 18.0)
+
+[node name="Host_F2" parent="." instance=ExtResource("Scene_infantry")]
+position = Vector3(12.5, 3.05, 20.5)

@@ -149,6 +149,11 @@ func _run() -> void:
 	]
 	for a in L.ALLEYS:
 		_intended.append(a["rect"])
+	# 可进入楼室内（壳体化后室内可达，属预期可玩区；墙厚 0.3 内推）
+	for b in L.BUILDINGS:
+		if b.get("enterable", false):
+			_intended.append([b["x"] - b["w"] * 0.5 + 0.3, b["z"] - b["d"] * 0.5 + 0.3,
+				b["x"] + b["w"] * 0.5 - 0.3, b["z"] + b["d"] * 0.5 - 0.3])
 
 	# —— 铺装面（与 audit_ground 一致）——
 	_paved = [

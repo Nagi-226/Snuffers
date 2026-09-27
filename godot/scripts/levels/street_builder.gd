@@ -107,11 +107,14 @@ func _get_material(key: String) -> Material:
 
 ## 在 parent 下生成一个带碰撞的盒体块。center 为盒中心，size 为全尺寸。
 ## tint ≠ 白时复制材质并线性乘算 albedo（逐楼个体差异，文档10 tint 纪律：0.02–0.9 反射率区间）
+## rot_z_deg ≠ 0 时绕 Z 轴旋转（楼梯坡道等斜面用）
 func _add_box(parent: Node3D, name: String, center: Vector3, size: Vector3, palette_key: String,
-		tint := Color(1, 1, 1)) -> void:
+		tint := Color(1, 1, 1), rot_z_deg := 0.0) -> void:
 	var body := StaticBody3D.new()
 	body.name = name
 	body.position = center
+	if rot_z_deg != 0.0:
+		body.rotation_degrees.z = rot_z_deg
 
 	var mesh_inst := MeshInstance3D.new()
 	var box := BoxMesh.new()
@@ -239,21 +242,178 @@ func _build_buildings() -> void:
 		var tint := Color(1.0 - j + rng.randf() * j * 2.0,
 			1.0 - j + rng.randf() * j * 2.0, 1.0 - j + rng.randf() * j * 2.0)
 		var h: float = b["floors"] * s["floor_h"]
-		# 结构盒沿临街轴内缩 0.3m，给立面套件的门窗内退件让位（否则玻璃/门板被埋）
-		# 立面法线沿 Z 的（门楼/横街南排）缩 Z，沿 X 的（东西排）缩 X
-		var size := Vector3(b["w"], h, b["d"])
-		if absf(b["x"]) < 0.1 or b.get("face", "") != "":
-			size.z -= 0.3
+		if b.get("enterable", false):
+			# 可进入建筑试点：实心盒改为壳体（外墙+楼板+楼梯+隔断），内部可探索
+			_build_enterable_shell(row, b, s["floor_h"], tint)
+			_dress_facade(row, b, s["floor_h"], rng, false, Vector3.ZERO, true)
 		else:
-			size.x -= 0.3
-		_add_box(row, "Bldg_%s" % b["id"],
-			Vector3(b["x"], h * 0.5, b["z"]), size, b["palette"], tint)
-		_dress_facade(row, b, s["floor_h"], rng)
+			# 结构盒沿临街轴内缩 0.3m，给立面套件的门窗内退件让位（否则玻璃/门板被埋）
+			# 立面法线沿 Z 的（门楼/横街南排）缩 Z，沿 X 的（东西排）缩 X
+			var size := Vector3(b["w"], h, b["d"])
+			if absf(b["x"]) < 0.1 or b.get("face", "") != "":
+				size.z -= 0.3
+			else:
+				size.x -= 0.3
+			_add_box(row, "Bldg_%s" % b["id"],
+				Vector3(b["x"], h * 0.5, b["z"]), size, b["palette"], tint)
+			_dress_facade(row, b, s["floor_h"], rng)
 		# 次立面：非主立面凡 5m 邻接带触及可玩覆盖带（街/巷/院落）→ 补门窗
 		# （2026-09-27 全图排查：可到之处可见的侧面不许是光板墙）
 		if absf(b["x"]) > 0.1:
 			_dress_secondary_faces(row, b, s["floor_h"], rng)
 	_build_wires(rng)
+
+
+# —— 可进入建筑试点（2026-09-27 机主立项：E1 壳体化，一楼门厅+东房 / 楼梯 / 二楼南房）——
+const SHELL_WALL_T: float = 0.3   ## 外壳墙厚（与立面套件内退 0.3 对齐，套件不内凸）
+const SHELL_DOOR_W: float = 1.4   ## 临街门洞宽
+const SHELL_DOOR_H: float = 2.3   ## 临街门洞高
+const SHELL_PART_T: float = 0.12  ## 室内隔断厚
+
+
+## 可进入楼的地面层障碍 rect 集（密封洪水填充用）：外墙段（让开门洞）+ 一层隔断 + 楼梯 footprint
+func _enterable_obstacles(b: Dictionary) -> Array:
+	var x0: float = b["x"] - b["w"] * 0.5
+	var x1: float = b["x"] + b["w"] * 0.5
+	var z0: float = b["z"] - b["d"] * 0.5
+	var z1: float = b["z"] + b["d"] * 0.5
+	var dz0: float = b["z"] - SHELL_DOOR_W * 0.5
+	var dz1: float = b["z"] + SHELL_DOOR_W * 0.5
+	# 临街墙：东排楼（x>0）在西侧 x0，西排楼在东侧 x1
+	var sw0: float = x0 if b["x"] > 0.0 else x1 - SHELL_WALL_T
+	var sw1: float = x0 + SHELL_WALL_T if b["x"] > 0.0 else x1
+	var bw0: float = x1 - SHELL_WALL_T if b["x"] > 0.0 else x0
+	var bw1: float = x1 if b["x"] > 0.0 else x0 + SHELL_WALL_T
+	# 一层隔断 x=px：门洞 z ∈ b.z+1.0..b.z+2.2
+	var px: float = b["x"] - 0.5 if b["x"] > 0.0 else b["x"] + 0.5
+	# 楼梯 footprint：贴北墙（z0 侧），从临街端起
+	var st_x0: float = (x0 + 0.5) if b["x"] > 0.0 else (x1 - 6.1)
+	return [
+		[sw0, z0, sw1, dz0], [sw0, dz1, sw1, z1],          # 临街墙两段（门洞留空）
+		[bw0, z0, bw1, z1],                                # 背街墙
+		[x0, z0, x1, z0 + SHELL_WALL_T],                   # 北墙
+		[x0, z1 - SHELL_WALL_T, x1, z1],                   # 南墙
+		[px - SHELL_PART_T * 0.5, z0 + SHELL_WALL_T, px + SHELL_PART_T * 0.5, b["z"] + 1.0],
+		[px - SHELL_PART_T * 0.5, b["z"] + 2.2, px + SHELL_PART_T * 0.5, z1 - SHELL_WALL_T],
+		[st_x0, z0 + SHELL_WALL_T, st_x0 + 5.6, z0 + SHELL_WALL_T + 1.4],  # 楼梯坡道
+	]
+
+
+## 可进入楼壳体：外墙（临街面留真门洞）+ 室内地坪 + 中层楼板（楼梯开口）+ 坡道楼梯
+## + 一层/二层隔断 + 顶板 + 门框 + 闪烁应急灯（照明 B 方案：机主 2026-09-27 裁决）
+func _build_enterable_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Color) -> void:
+	var x0: float = b["x"] - b["w"] * 0.5
+	var x1: float = b["x"] + b["w"] * 0.5
+	var z0: float = b["z"] - b["d"] * 0.5
+	var z1: float = b["z"] + b["d"] * 0.5
+	var h_total: float = b["floors"] * floor_h
+	var dz0: float = b["z"] - SHELL_DOOR_W * 0.5
+	var dz1: float = b["z"] + SHELL_DOOR_W * 0.5
+	var pal: String = b["palette"]
+	var east_side: bool = b["x"] > 0.0  # 东排楼门开在西墙
+	var sw_x: float = (x0 + SHELL_WALL_T * 0.5) if east_side else (x1 - SHELL_WALL_T * 0.5)
+	var bw_x: float = (x1 - SHELL_WALL_T * 0.5) if east_side else (x0 + SHELL_WALL_T * 0.5)
+	var in_x0: float = x0 + SHELL_WALL_T
+	var in_x1: float = x1 - SHELL_WALL_T
+	var in_z0: float = z0 + SHELL_WALL_T
+	var in_z1: float = z1 - SHELL_WALL_T
+
+	# 临街墙两段 + 门洞过梁上方墙体
+	_add_box(row, "Bldg_%s_SW_A" % b["id"], Vector3(sw_x, h_total * 0.5, (z0 + dz0) * 0.5),
+		Vector3(SHELL_WALL_T, h_total, dz0 - z0), pal, tint)
+	_add_box(row, "Bldg_%s_SW_B" % b["id"], Vector3(sw_x, h_total * 0.5, (dz1 + z1) * 0.5),
+		Vector3(SHELL_WALL_T, h_total, z1 - dz1), pal, tint)
+	_add_box(row, "Bldg_%s_SW_TOP" % b["id"], Vector3(sw_x, (SHELL_DOOR_H + h_total) * 0.5, b["z"]),
+		Vector3(SHELL_WALL_T, h_total - SHELL_DOOR_H, SHELL_DOOR_W), pal, tint)
+	# 背街墙 / 北墙 / 南墙
+	_add_box(row, "Bldg_%s_BW" % b["id"], Vector3(bw_x, h_total * 0.5, b["z"]),
+		Vector3(SHELL_WALL_T, h_total, b["d"]), pal, tint)
+	_add_box(row, "Bldg_%s_NW" % b["id"], Vector3(b["x"], h_total * 0.5, z0 + SHELL_WALL_T * 0.5),
+		Vector3(b["w"], h_total, SHELL_WALL_T), pal, tint)
+	_add_box(row, "Bldg_%s_FW" % b["id"], Vector3(b["x"], h_total * 0.5, z1 - SHELL_WALL_T * 0.5),
+		Vector3(b["w"], h_total, SHELL_WALL_T), pal, tint)
+	# 门框（门洞两侧门垛 + 门楣，深灰金属）
+	var jamb_x: float = (x0 + 0.18) if east_side else (x1 - 0.18)
+	_add_box(row, "Bldg_%s_JAMB_A" % b["id"], Vector3(jamb_x, SHELL_DOOR_H * 0.5, dz0 - 0.06),
+		Vector3(0.36, SHELL_DOOR_H, 0.12), "metal_dark")
+	_add_box(row, "Bldg_%s_JAMB_B" % b["id"], Vector3(jamb_x, SHELL_DOOR_H * 0.5, dz1 + 0.06),
+		Vector3(0.36, SHELL_DOOR_H, 0.12), "metal_dark")
+	_add_box(row, "Bldg_%s_LINTEL" % b["id"], Vector3(jamb_x, SHELL_DOOR_H + 0.06, b["z"]),
+		Vector3(0.36, 0.12, SHELL_DOOR_W + 0.24), "metal_dark")
+	# 室内地坪（与人行道顶面 0.145 齐平，过门无台阶）
+	_add_box(row, "Bldg_%s_FLOOR" % b["id"], Vector3(b["x"], 0.105, b["z"]),
+		Vector3(b["w"], 0.08, b["d"]), "kerb", Color(0.55, 0.55, 0.55))
+	# 顶板
+	_add_box(row, "Bldg_%s_ROOF" % b["id"], Vector3(b["x"], h_total + 0.12, b["z"]),
+		Vector3(b["w"], 0.24, b["d"]), pal, tint)
+
+	# 中层楼板（顶面与 floor_h 齐平，楼梯开口贴北墙）
+	var st_x0: float = (in_x0 + 0.2) if east_side else (in_x1 - 5.8)
+	var st_x1: float = st_x0 + 5.8
+	var st_z0: float = in_z0
+	var st_z1: float = in_z0 + 1.4
+	_add_box(row, "Bldg_%s_SLAB_A" % b["id"],
+		Vector3((in_x0 + in_x1) * 0.5, floor_h - 0.12, (st_z1 + in_z1) * 0.5),
+		Vector3(in_x1 - in_x0, 0.24, in_z1 - st_z1), pal, tint)
+	_add_box(row, "Bldg_%s_SLAB_B" % b["id"],
+		Vector3((st_x1 + in_x1) * 0.5, floor_h - 0.12, (st_z0 + st_z1) * 0.5),
+		Vector3(in_x1 - st_x1, 0.24, st_z1 - st_z0), pal, tint)
+	_add_box(row, "Bldg_%s_SLAB_C" % b["id"],
+		Vector3((in_x0 + st_x0) * 0.5, floor_h - 0.12, (st_z0 + st_z1) * 0.5),
+		Vector3(st_x0 - in_x0, 0.24, st_z1 - st_z0), pal, tint)
+
+	# 坡道楼梯（碰撞走斜面 + 台阶踏步视觉）：临街端地面 → 背街端二楼
+	var ramp_x0: float = st_x0 + 0.2
+	var ramp_x1: float = st_x1 - 0.2
+	if not east_side:
+		ramp_x0 = st_x0 + 0.2
+		ramp_x1 = st_x1 - 0.2
+	var run: float = ramp_x1 - ramp_x0
+	var rise: float = floor_h - 0.145
+	var ramp_len: float = sqrt(run * run + rise * rise)
+	var ang: float = rad_to_deg(atan2(rise, run)) * (1.0 if east_side else -1.0)
+	var ramp_c := Vector3((ramp_x0 + ramp_x1) * 0.5, (0.145 + floor_h) * 0.5 - 0.06, (st_z0 + st_z1) * 0.5)
+	_add_box(row, "Bldg_%s_RAMP" % b["id"], ramp_c, Vector3(ramp_len, 0.12, st_z1 - st_z0 - 0.1),
+		"kerb", Color(0.5, 0.5, 0.5), ang)
+	# 踏步视觉（12 级）
+	var steps := 12
+	for i in steps:
+		var sx: float = ramp_x0 + (float(i) + 0.5) * (run / steps)
+		var sy: float = 0.145 + (float(i) + 1.0) * (rise / steps)
+		_add_box(row, "Bldg_%s_STEP_%d" % [b["id"], i], Vector3(sx, sy - 0.09, (st_z0 + st_z1) * 0.5),
+			Vector3(run / steps + 0.02, 0.18, st_z1 - st_z0 - 0.1), "kerb", Color(0.62, 0.62, 0.62))
+	# 楼梯临空侧护沿（沿坡旋转的矮栏，防跌落穿帮）
+	_add_box(row, "Bldg_%s_RAIL" % b["id"], ramp_c + Vector3(0, 0.5, (st_z1 - st_z0) * 0.5 - 0.03),
+		Vector3(ramp_len, 0.9, 0.06), "metal_dark", Color(1, 1, 1), ang)
+
+	# 一层隔断（x=px，门洞 z ∈ b.z+1.0..b.z+2.2）：门厅 | 东房
+	var px: float = b["x"] - 0.5 if east_side else b["x"] + 0.5
+	_add_box(row, "Bldg_%s_PART_F1A" % b["id"], Vector3(px, 1.57, (in_z0 + b["z"] + 1.0) * 0.5),
+		Vector3(SHELL_PART_T, floor_h - 0.145, b["z"] + 1.0 - in_z0), "plaster_white", tint)
+	_add_box(row, "Bldg_%s_PART_F1B" % b["id"], Vector3(px, 1.57, (b["z"] + 2.2 + in_z1) * 0.5),
+		Vector3(SHELL_PART_T, floor_h - 0.145, in_z1 - b["z"] - 2.2), "plaster_white", tint)
+	# 二层隔断（z=b.z+0.5，门洞 x 居中 1.2m）：楼梯间 | 南房
+	var pz: float = b["z"] + 0.5
+	var g0: float = b["x"] - 0.6
+	var g1: float = b["x"] + 0.6
+	_add_box(row, "Bldg_%s_PART_F2A" % b["id"], Vector3((in_x0 + g0) * 0.5, (floor_h + h_total) * 0.5, pz),
+		Vector3(g0 - in_x0, h_total - floor_h, SHELL_PART_T), "plaster_white", tint)
+	_add_box(row, "Bldg_%s_PART_F2B" % b["id"], Vector3((g1 + in_x1) * 0.5, (floor_h + h_total) * 0.5, pz),
+		Vector3(in_x1 - g1, h_total - floor_h, SHELL_PART_T), "plaster_white", tint)
+
+	# 闪烁应急灯 ×2（照明 B 方案）：一层门厅顶 + 二楼楼梯口顶（引导上楼）
+	var script: Script = load("res://scripts/levels/emergency_light.gd")
+	var hall_x: float = (in_x0 + px) * 0.5 if east_side else (px + in_x1) * 0.5
+	var l1 := OmniLight3D.new()
+	l1.name = "Bldg_%s_EmLightF1" % b["id"]
+	l1.position = Vector3(hall_x, floor_h - 0.35, b["z"])
+	l1.set_script(script)
+	row.add_child(l1)
+	var l2 := OmniLight3D.new()
+	l2.name = "Bldg_%s_EmLightF2" % b["id"]
+	l2.position = Vector3((st_x1 + in_x1) * 0.5, h_total - 0.45, (st_z0 + st_z1) * 0.5)
+	l2.set_script(script)
+	row.add_child(l2)
 
 
 ## P1 立面套件（Blender headless 烘焙，build_facade_kit.py）
@@ -320,7 +480,7 @@ func _dress_secondary_faces(parent: Node3D, b: Dictionary, floor_h: float, rng: 
 ## 一层：中间开间恒为卷帘门商铺，其余开间按 SHOPFRONT_RATIO 改商铺/留窗（城中村底商）；
 ## 二层中间开间为阳台，上层窗户按 AC_UNIT_RATIO 挂空调外机；开间边线稀疏落排水管
 func _dress_facade(parent: Node3D, b: Dictionary, floor_h: float, rng: RandomNumberGenerator,
-		alley_mode := false, override_outward := Vector3.ZERO) -> void:
+		alley_mode := false, override_outward := Vector3.ZERO, enterable := false) -> void:
 	var outward: Vector3
 	var wall_len: float
 	var facing: String = b.get("face", "")
@@ -372,6 +532,8 @@ func _dress_facade(parent: Node3D, b: Dictionary, floor_h: float, rng: RandomNum
 
 	for f in b["floors"]:
 		for i in n:
+			if enterable and f == 0 and i == n / 2:
+				continue  # 可进入楼：一层中间开间留真门洞（壳体已开洞+门框，不挂商铺套件）
 			var kind := "window"
 			if alley_mode:
 				# 巷弄立面：一层中间开间开后门，其余窗户；无商铺/阳台（背街生活面）
@@ -726,10 +888,14 @@ func _compute_barriers() -> void:
 	var depth: float = style["wall_depth"]
 
 	# 障碍 rect 集：建筑 + 力场/发射柱（h>0.3 的才挡人；警示轨 0.18m 不算）
+	# 可进入楼：footprint 替换为壳体墙段/隔断/楼梯障碍，室内可走（门洞留通道）
 	var obstacles: Array = []
 	for b in Layout.BUILDINGS:
-		obstacles.append([b["x"] - b["w"] * 0.5, b["z"] - b["d"] * 0.5,
-			b["x"] + b["w"] * 0.5, b["z"] + b["d"] * 0.5])
+		if b.get("enterable", false):
+			obstacles.append_array(_enterable_obstacles(b))
+		else:
+			obstacles.append([b["x"] - b["w"] * 0.5, b["z"] - b["d"] * 0.5,
+				b["x"] + b["w"] * 0.5, b["z"] + b["d"] * 0.5])
 	for g in Layout.BARRIERS:
 		if g["h"] > 0.3:
 			obstacles.append([g["x"] - g["w"] * 0.5, g["z"] - g["d"] * 0.5,
@@ -991,6 +1157,11 @@ func _coverage_rects() -> Array:
 	]
 	for a in Layout.ALLEYS:
 		rects.append(a["rect"])
+	# 可进入楼室内（玩家可站立区，密封洪水填充不在门洞处设栏）
+	for b in Layout.BUILDINGS:
+		if b.get("enterable", false):
+			rects.append([b["x"] - b["w"] * 0.5 + SHELL_WALL_T, b["z"] - b["d"] * 0.5 + SHELL_WALL_T,
+				b["x"] + b["w"] * 0.5 - SHELL_WALL_T, b["z"] + b["d"] * 0.5 - SHELL_WALL_T])
 	return rects
 
 

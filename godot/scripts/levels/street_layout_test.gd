@@ -71,7 +71,7 @@ const BUILDINGS := [
 	{"id": "W2", "x": -11.5, "z": 10.0, "w": 10.0, "d": 14.0, "floors": 3, "palette": "plaster_sand"},
 	{"id": "W3", "x": -11.5, "z": -2.0, "w": 10.0, "d": 10.0, "floors": 2, "palette": "plaster_white"},
 	{"id": "W4", "x": -11.5, "z": -20.0, "w": 10.0, "d": 14.0, "floors": 3, "palette": "brick"},
-	{"id": "E1", "x": 11.5, "z": 18.0, "w": 10.0, "d": 10.0, "floors": 2, "palette": "plaster_pink"},
+	{"id": "E1", "x": 11.5, "z": 18.0, "w": 10.0, "d": 10.0, "floors": 2, "palette": "plaster_pink", "enterable": true},
 	{"id": "E2", "x": 11.5, "z": -4.0, "w": 10.0, "d": 12.0, "floors": 3, "palette": "plaster_sand"},
 	{"id": "E3", "x": 11.5, "z": -18.0, "w": 10.0, "d": 12.0, "floors": 2, "palette": "plaster_cream"},
 	# —— 北延段楼群（2026-09-27 扩充：主街 z -27 → -87，巷弄缺口交错）——

@@ -246,3 +246,13 @@ const WIRE_HEIGHT_MIN_M: float = 5.5 ## 电线净空最低 m
 const WIRE_HEIGHT_MAX_M: float = 8.0 ## 电线净空最高 m
 const AC_UNIT_RATIO: float = 0.35 ## 窗户开间挂空调外机的概率
 const SHOPFRONT_RATIO: float = 0.50 ## 一层非中间开间改卷帘门商铺的概率（中间开间恒为商铺）
+
+# ===== 可进入建筑试点（2026-09-27 机主裁决：照明 B 方案——闪烁应急灯+手电；
+#       城中村断电但偶有备用电的设定，应急灯兼做上楼引导）=====
+const EMERGENCY_LIGHT_COLOR := Color(1.0, 0.55, 0.25) ## 应急灯暖橙（备用电瓶灯质感）
+const EMERGENCY_LIGHT_ENERGY: float = 1.6 ## 应急灯亮度基准
+const EMERGENCY_LIGHT_RANGE: float = 7.5 ## 应急灯照明半径 m
+const EMERGENCY_FLICKER_MIN_S: float = 0.05 ## 闪烁最短间隔 s
+const EMERGENCY_FLICKER_MAX_S: float = 0.35 ## 闪烁最长间隔 s
+const EMERGENCY_DARK_PROB: float = 0.15 ## 每次跳变为长灭（接触不良）的概率
+const EMERGENCY_DIM_RATIO: float = 0.25 ## 暗态亮度比例（不完全熄灭，留底光）
