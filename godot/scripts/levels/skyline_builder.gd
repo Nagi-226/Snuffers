@@ -1,22 +1,41 @@
-## SkylineBuilder — CBD 远景天际线 v2（多环带 LOD 几何 + 真实化立面，street_test 夜景配套）
+## SkylineBuilder — CBD 远景天际线 v3（AI 贴图化三层结构，street_test 夜景配套）
 ##
-## v2 相对 v1 的真实化（参考广州珠江新城类 CBD 夜景照片，详见 shader 头注）：
-## - 体量退台：高塔由 2~3 段收分盒体叠成，不再是单一方盒；
-## - 裙楼底座：约半数塔楼底部带更宽的商业裙楼（shader 中裙楼层更亮更暖）；
-## - 天线桅杆：>70m 塔楼约半数顶部带细桅杆，顶端红色障碍灯闪烁；
-## - LED 轮廓/竖向灯带、媒体立面由 instance uniform neon_mode/media_mode 驱动。
+## v3 背景：v1/v2 纯程序化亮窗被机主否决（"黑盒+亮格子"程序味太重）。
+## v3 改用 AI 生成贴图（机主提供豆包参考图定风格，assets/textures/skyline/）：
+## - 近层：内环塔楼盒体贴 AI 立面照片贴图（skyline_facade.gdshader 提亮窗发光）；
+## - 中层：外环剪影盒体（同 shader 压暗）；
+## - 远层：全景幕布卡环带（skyline_card.gdshader，AI 全景图，边缘羽化交叠）。
+## 天线桅杆沿用 skyline_windows.gdshader 的 is_antenna 分支（顶端红灯闪烁）。
 ## 布局由 GameConfig.SKYLINE_SEED 确定性生成；全部参数见 game_config.gd 契约。
 extends Node3D
 
-const SHADER_SKYLINE := "res://assets/shaders/skyline_windows.gdshader"
+const SHADER_FACADE := "res://assets/shaders/skyline_facade.gdshader"
+const SHADER_CARD := "res://assets/shaders/skyline_card.gdshader"
+const SHADER_ANTENNA := "res://assets/shaders/skyline_windows.gdshader"
+
+const TEX_OFFICE := "res://assets/textures/skyline/facade_office.png"
+const TEX_RESIDENTIAL := "res://assets/textures/skyline/facade_residential.png"
+const TEX_NEON := "res://assets/textures/skyline/facade_neon.png"
+const TEX_PANO_A := "res://assets/textures/skyline/pano_a.png"
+const TEX_PANO_B := "res://assets/textures/skyline/pano_b.png"
+
+var _mat_antenna: ShaderMaterial
 
 
 func _ready() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = GameConfig.SKYLINE_SEED
 
-	var mat_inner := _make_material(GameConfig.SKYLINE_LIT_RATIO)
-	var mat_outer := _make_material(GameConfig.SKYLINE_LIT_RATIO_OUTER)
+	# 立面材质：办公幕墙 / 住宅 / 霓虹媒体（贴图各异，共享 shader）
+	var mat_office := _make_facade_material(TEX_OFFICE, 0.55, 1.7)
+	var mat_residential := _make_facade_material(TEX_RESIDENTIAL, 0.30, 1.5)  # 住宅贴图偏亮，压更暗
+	var mat_neon := _make_facade_material(TEX_NEON, 0.45, 1.9)
+	# 外环剪影：住宅贴图极限压暗，只留稀疏亮窗
+	var mat_silhouette := _make_facade_material(TEX_RESIDENTIAL, 0.15, 1.1)
+
+	# 天线桅杆材质（沿用程序化 shader 的桅杆分支）
+	_mat_antenna = ShaderMaterial.new()
+	_mat_antenna.shader = load(SHADER_ANTENNA)
 
 	# 内环塔楼：主街轴线 ±扇区留视线走廊
 	var gap_rad := deg_to_rad(GameConfig.SKYLINE_VISTA_GAP_DEG)
@@ -30,19 +49,27 @@ func _ready() -> void:
 			continue
 		var radius: float = GameConfig.SKYLINE_RING_INNER_M + rng.randf_range(
 			-GameConfig.SKYLINE_RING_INNER_JITTER_M, GameConfig.SKYLINE_RING_INNER_JITTER_M)
-		var w := rng.randf_range(15.0, 35.0)
-		var d := rng.randf_range(15.0, 35.0)
+		var w := rng.randf_range(18.0, 38.0)
+		var d := rng.randf_range(18.0, 38.0)
 		var h := rng.randf_range(45.0, 150.0)
-		_spawn_tower("SkylineInner_%02d" % placed, ang, radius, w, h, d, mat_inner, rng, 1.0, true)
+		# 贴图分配：高塔大概率办公幕墙，15% 霓虹媒体立面，其余住宅
+		var mat := mat_residential
+		var roll := rng.randf()
+		if h > 90.0 and roll < 0.15:
+			mat = mat_neon
+		elif roll < 0.55:
+			mat = mat_office
+		_spawn_tower("SkylineInner_%02d" % placed, ang, radius, w, h, d, mat, rng, 1.0)
 		placed += 1
 
-	# 轴线地标塔：-Z 街道尽头视线走廊的远景焦点（"广州塔式" anchor，契约 SKYLINE_AXIS_TOWERS）
+	# 轴线地标塔：-Z 街道尽头视线走廊的远景焦点（霓虹/办公高塔）
 	for i in GameConfig.SKYLINE_AXIS_TOWERS.size():
 		var spec: Array = GameConfig.SKYLINE_AXIS_TOWERS[i]
-		_spawn_tower("SkylineAxis_%d" % i, PI + spec[2], spec[0], 30.0, spec[1], 30.0,
-			mat_inner, rng, GameConfig.SKYLINE_AXIS_BRIGHTNESS, true)
+		var mat := mat_neon if i == 0 else mat_office
+		_spawn_tower("SkylineAxis_%d" % i, PI + spec[2], spec[0], 32.0, spec[1], 32.0,
+			mat, rng, GameConfig.SKYLINE_AXIS_BRIGHTNESS)
 
-	# 外环剪影：体块更大更暗，单盒不细分（在走廊尽头充当远景层次）
+	# 外环剪影：体块更大更暗，压暗的住宅贴图（在走廊尽头充当远景层次）
 	for i in GameConfig.SKYLINE_TOWER_COUNT_OUTER:
 		var ang := rng.randf() * TAU
 		var radius: float = GameConfig.SKYLINE_RING_OUTER_M + rng.randf_range(
@@ -50,89 +77,78 @@ func _ready() -> void:
 		var w := rng.randf_range(40.0, 80.0)
 		var d := rng.randf_range(40.0, 80.0)
 		var h := rng.randf_range(80.0, 200.0)
-		_spawn_tower("SkylineOuter_%02d" % i, ang, radius, w, h, d, mat_outer, rng, 0.5, false)
+		_spawn_tower("SkylineOuter_%02d" % i, ang, radius, w, h, d, mat_silhouette, rng, 0.5)
+
+	_build_panorama_cards(rng)
 
 
-func _make_material(lit_ratio: float) -> ShaderMaterial:
-	var mat := ShaderMaterial.new()
-	mat.shader = load(SHADER_SKYLINE)
-	mat.set_shader_parameter("lit_ratio", lit_ratio)
-	mat.set_shader_parameter("dark_floor_ratio", GameConfig.SKYLINE_DARK_FLOOR_RATIO)
-	mat.set_shader_parameter("podium_height", GameConfig.SKYLINE_PODIUM_HEIGHT_M)
-	return mat
-
-
-## 一栋塔楼 = 裙楼（可选）+ 1~3 段退台主体 + 天线桅杆（可选）
+## 一栋塔楼 = 单盒体贴立面贴图（贴图自带基座-皇冠完整构图）+ 天线桅杆（可选）
 func _spawn_tower(node_name: String, ang: float, radius: float, w: float, h: float, d: float,
-		mat: ShaderMaterial, rng: RandomNumberGenerator, brightness: float, detailed: bool) -> void:
+		mat: ShaderMaterial, rng: RandomNumberGenerator, brightness: float) -> void:
 	var root := Node3D.new()
 	root.name = node_name
 	root.position = Vector3(sin(ang) * radius, 0.0, cos(ang) * radius)
 	add_child(root)
 
-	var seed_off := rng.randf() * 97.0
-	var neon := 0.0
-	var media := 0.0
-	if detailed:
-		if rng.randf() < GameConfig.SKYLINE_NEON_RATIO:
-			var r := rng.randf()
-			neon = 1.0 if r < 0.5 else (2.0 if r < 0.8 else 3.0)  # 冷蓝白/暖金/变色
-		if h > 90.0 and rng.randf() < GameConfig.SKYLINE_MEDIA_RATIO:
-			media = 1.0
-	else:
-		if rng.randf() < 0.1:
-			neon = 1.0
-
-	# 裙楼底座（更宽的商业底座，shader 按世界高度提亮）
-	var body_base_y := 0.0
-	if detailed and rng.randf() < GameConfig.SKYLINE_PODIUM_RATIO:
-		var ph: float = GameConfig.SKYLINE_PODIUM_HEIGHT_M
-		_spawn_box(root, "Podium", w * 1.18, ph, d * 1.18, ph * 0.5,
-			mat, seed_off, h, brightness, neon, media, 0.0)
-		body_base_y = 0.0  # 主体仍从地面起（裙楼外包底部），退台段在上方
-
-	# 主体退台段：高塔 2~3 段收分，矮塔单段
-	var sections := 1
-	if detailed:
-		if h > 110.0:
-			sections = 3
-		elif h > 70.0:
-			sections = 2
-	var y := body_base_y
-	var sec_w := w
-	var sec_d := d
-	for s in sections:
-		var sec_h := (h - body_base_y) / float(sections)
-		_spawn_box(root, "Section_%d" % s, sec_w, sec_h, sec_d, y + sec_h * 0.5,
-			mat, seed_off, h, brightness, neon, media, 0.0)
-		y += sec_h
-		sec_w *= 0.78
-		sec_d *= 0.78
-
-	# 天线桅杆（顶端障碍灯由 shader 依据 tower_height 闪烁）；
-	# 超过航空障碍灯高度的塔楼必装桅杆（写实：高层强制航空障碍灯）
-	if detailed and h > 70.0 and (rng.randf() < GameConfig.SKYLINE_ANTENNA_RATIO
-			or h > GameConfig.SKYLINE_BEACON_MIN_HEIGHT_M):
-		var ah := rng.randf_range(5.0, 10.0)
-		_spawn_box(root, "Antenna", 0.7, ah, 0.7, h + ah * 0.5,
-			mat, seed_off, h + ah, brightness, 0.0, 0.0, 1.0)
-
-
-func _spawn_box(parent: Node3D, node_name: String, w: float, h: float, d: float, center_y: float,
-		mat: ShaderMaterial, seed_off: float, tower_h: float, brightness: float,
-		neon: float, media: float, antenna: float) -> void:
 	var mesh := BoxMesh.new()
 	mesh.size = Vector3(w, h, d)
 	var mi := MeshInstance3D.new()
-	mi.name = node_name
+	mi.name = "Body"
 	mi.mesh = mesh
-	mi.position = Vector3(0.0, center_y, 0.0)
+	mi.position = Vector3(0.0, h * 0.5, 0.0)
 	mi.material_override = mat
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	mi.set_instance_shader_parameter("seed_offset", seed_off)
-	mi.set_instance_shader_parameter("tower_height", tower_h)
 	mi.set_instance_shader_parameter("brightness", brightness)
-	mi.set_instance_shader_parameter("neon_mode", neon)
-	mi.set_instance_shader_parameter("media_mode", media)
-	mi.set_instance_shader_parameter("is_antenna", antenna)
-	parent.add_child(mi)
+	mi.set_instance_shader_parameter("flip_x", 1.0 if rng.randf() < 0.5 else 0.0)
+	root.add_child(mi)
+
+	# 天线桅杆：>70m 半数，>航空障碍灯高度强制（顶端红灯由 shader 闪烁）
+	if h > 70.0 and (rng.randf() < GameConfig.SKYLINE_ANTENNA_RATIO
+			or h > GameConfig.SKYLINE_BEACON_MIN_HEIGHT_M):
+		var ah := rng.randf_range(5.0, 10.0)
+		var a_mesh := BoxMesh.new()
+		a_mesh.size = Vector3(0.7, ah, 0.7)
+		var antenna := MeshInstance3D.new()
+		antenna.name = "Antenna"
+		antenna.mesh = a_mesh
+		antenna.position = Vector3(0.0, h + ah * 0.5, 0.0)
+		antenna.material_override = _mat_antenna
+		antenna.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		antenna.set_instance_shader_parameter("seed_offset", rng.randf() * 97.0)
+		antenna.set_instance_shader_parameter("tower_height", h + ah)
+		antenna.set_instance_shader_parameter("brightness", brightness)
+		antenna.set_instance_shader_parameter("is_antenna", 1.0)
+		root.add_child(antenna)
+
+
+func _make_facade_material(tex_path: String, wall_darken: float, emit_gain: float) -> ShaderMaterial:
+	var mat := ShaderMaterial.new()
+	mat.shader = load(SHADER_FACADE)
+	mat.set_shader_parameter("facade_tex", load(tex_path))
+	mat.set_shader_parameter("wall_darken", wall_darken)
+	mat.set_shader_parameter("emit_gain", emit_gain)
+	return mat
+
+
+## 全景幕布卡环带：面朝原点的 QuadMesh 卡片交替贴两张 AI 全景，边缘羽化交叠
+func _build_panorama_cards(rng: RandomNumberGenerator) -> void:
+	var texs := [TEX_PANO_A, TEX_PANO_B]
+	var count: int = GameConfig.SKYLINE_CARD_COUNT
+	for i in count:
+		var mat := ShaderMaterial.new()
+		mat.shader = load(SHADER_CARD)
+		mat.set_shader_parameter("pano_tex", load(texs[i % texs.size()]))
+		mat.set_shader_parameter("gain", 1.35)
+		var ang := TAU * float(i) / float(count)
+		var radius: float = GameConfig.SKYLINE_CARD_RADIUS_M + rng.randf_range(-40.0, 40.0)
+		var mesh := QuadMesh.new()  # 竖直四边形，法线 +Z（PlaneMesh 默认平躺，不可用）
+		mesh.size = Vector2(GameConfig.SKYLINE_CARD_WIDTH_M, GameConfig.SKYLINE_CARD_HEIGHT_M)
+		var card := MeshInstance3D.new()
+		card.name = "PanoCard_%d" % i
+		card.mesh = mesh
+		card.position = Vector3(sin(ang) * radius,
+			GameConfig.SKYLINE_CARD_HEIGHT_M * 0.45, cos(ang) * radius)  # 地平线压低的构图
+		card.rotation.y = ang + PI  # 面朝原点
+		card.material_override = mat
+		card.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(card)

@@ -67,7 +67,22 @@
 
 ---
 
-## 四、待办与合规提示
+## 四、AI 生成资产（Kimi image_generation 插件，项目自有）
+
+> 由本 Agent 经 Kimi image_generation 插件生成（机主提供豆包参考图定风格），
+> 无第三方版权负担，等同项目自有资产；入库前已裁除生成水印条。
+
+| 名称 | 用途 | 生成工具 | 许可证 | 日期 |
+|---|---|---|---|---|
+| `assets/textures/skyline/pano_a.png` | CBD 夜景全景幕布卡 A（3072×976） | Kimi image_generation（豆包参考图风格引导） | 项目自有（AI 生成） | 2026-09-27 |
+| `assets/textures/skyline/pano_b.png` | CBD 夜景全景幕布卡 B（3072×976） | 同上 | 项目自有（AI 生成） | 2026-09-27 |
+| `assets/textures/skyline/facade_office.png` | 玻璃幕墙办公楼立面贴图（1024×1488） | 同上 | 项目自有（AI 生成） | 2026-09-27 |
+| `assets/textures/skyline/facade_residential.png` | 住宅塔楼立面贴图（1024×1488） | 同上 | 项目自有（AI 生成） | 2026-09-27 |
+| `assets/textures/skyline/facade_neon.png` | 霓虹媒体立面塔楼贴图（1024×1488，无文字版） | 同上 | 项目自有（AI 生成） | 2026-09-27 |
+
+---
+
+## 五、待办与合规提示
 
 1. **「来源待考」条目**：凡标注「来源待考（G4 美术阶段补查）」者，均为本地文件内无法查证作者/许可证，已如实标注、未作编造；G4 美术阶段须逐项补查或替换为许可证明确的资产。
 2. **CC-BY 署名义务**：Ammo Canister（Stephen Yoshimura, CC-BY）若最终进入包体，须在游戏内（结算/关于界面）署名。

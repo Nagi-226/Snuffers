@@ -226,3 +226,9 @@ const SKYLINE_ANTENNA_RATIO: float = 0.50 ## >70m 塔楼带天线桅杆的比例
 ## 轴线地标塔：[半径m, 高度m, 相对 -Z 轴角偏移rad]——街道尽头视线走廊的远景焦点
 const SKYLINE_AXIS_TOWERS := [[320.0, 150.0, -0.03], [470.0, 185.0, 0.05]]
 const SKYLINE_AXIS_BRIGHTNESS: float = 0.75 ## 地标塔亮度（远距离衰减感）
+
+# --- 天际线 v3：AI 贴图化（立面贴图塔楼 + 全景幕布卡环带，贴图见 assets/textures/skyline/）---
+const SKYLINE_CARD_COUNT: int = 8 ## 全景幕布卡数量（环绕一周）
+const SKYLINE_CARD_RADIUS_M: float = 600.0 ## 幕布卡环半径 m
+const SKYLINE_CARD_WIDTH_M: float = 640.0 ## 单卡宽 m（相邻卡交叠羽化）
+const SKYLINE_CARD_HEIGHT_M: float = 260.0 ## 单卡高 m
