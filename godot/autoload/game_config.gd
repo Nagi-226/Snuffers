@@ -189,3 +189,10 @@ const TRACER_WIDTH: float = 0.03 ## 曳光束粗细 u
 const MUZZLE_FLASH_LIFETIME: float = 0.05 ## 枪口火光驻留 s
 const MUZZLE_FLASH_ENERGY: float = 2.0 ## 枪口火光 OmniLight 能量
 const DAMAGE_ARC_SHOW_TIME: float = 1.0 ## 受击方向指示弧显示 s
+
+# ===== 氛围：浓雾能见度定标（P2，文档10 §1-P2 散射/消光分离思想）=====
+# 定标法：先定目标能见度，再反推消光系数，而非直接手调 density
+const FOG_VISIBILITY_TARGET_M: float = 30.0 ## 浓雾目标能见度 m（2% 对比度距离，浓雾部队氛围）
+const FOG_DENSITY: float = 0.130 ## 指数雾消光密度 = -ln(0.02)/30 ≈ 0.130（由上行派生，勿独立改）
+const FOG_LIGHT_COLOR := Color(0.55, 0.58, 0.62) ## 雾色（阴天灰蓝）
+const FOG_SUN_SCATTER: float = 0.3 ## 雾中阳光散射强度

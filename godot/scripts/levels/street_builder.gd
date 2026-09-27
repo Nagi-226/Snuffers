@@ -31,6 +31,7 @@ const SHADER_MAP := {
 
 
 func _ready() -> void:
+	_apply_fog()
 	_build_ground()
 	_build_buildings()
 	# 开发者截图: godot --path . res://scenes/levels/street_test.tscn -- --shot <输出路径>
@@ -153,6 +154,16 @@ const KIT := {
 }
 
 const KIT_BAY := 3.0  # 套件开间宽，与 layout floor_h=3.0 对齐
+
+
+## P2 浓雾定标（契约: GameConfig.FOG_*）——指数深度雾，30m 能见度目标
+func _apply_fog() -> void:
+	var env: Environment = get_node("WorldEnvironment").environment
+	env.fog_enabled = true
+	env.fog_mode = Environment.FOG_MODE_EXPONENTIAL
+	env.fog_density = GameConfig.FOG_DENSITY
+	env.fog_light_color = GameConfig.FOG_LIGHT_COLOR
+	env.fog_sun_scatter = GameConfig.FOG_SUN_SCATTER
 
 
 ## 临街立面逐开间装配（panel space：件原点在地板线、前墙面，墙身向内侧延伸）
