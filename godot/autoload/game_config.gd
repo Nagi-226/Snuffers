@@ -232,3 +232,13 @@ const SKYLINE_CARD_COUNT: int = 8 ## 全景幕布卡数量（环绕一周）
 const SKYLINE_CARD_RADIUS_M: float = 600.0 ## 幕布卡环半径 m
 const SKYLINE_CARD_WIDTH_M: float = 640.0 ## 单卡宽 m（相邻卡交叠羽化）
 const SKYLINE_CARD_HEIGHT_M: float = 260.0 ## 单卡高 m
+
+# ===== 街道布景层（P2，文档10 §1-P2 props/dressing；street_builder 消费）=====
+const STREET_DRESS_SEED: int = 20260927 ## 布景随机种子（tint 抖动/空调/店面roll点）
+const STREET_TINT_JITTER: float = 0.10 ## 楼体 albedo 抖动幅度 ±（去复制粘贴感，文档10 tint 纪律）
+const WIRE_SPACING_M: float = 10.0 ## 跨街电线纵向间距 m（带抖动）
+const WIRE_SAG_M: float = 0.9 ## 悬链线垂度基准 m（±50% 抖动）
+const WIRE_HEIGHT_MIN_M: float = 5.5 ## 电线净空最低 m
+const WIRE_HEIGHT_MAX_M: float = 8.0 ## 电线净空最高 m
+const AC_UNIT_RATIO: float = 0.35 ## 窗户开间挂空调外机的概率
+const SHOPFRONT_RATIO: float = 0.50 ## 一层非中间开间改卷帘门商铺的概率（中间开间恒为商铺）

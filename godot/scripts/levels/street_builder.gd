@@ -17,16 +17,19 @@ const PALETTE := {
 	"plaster_white": Color(0.85, 0.82, 0.77),
 	"plaster_pink": Color(0.75, 0.60, 0.53),
 	"brick": Color(0.66, 0.52, 0.42),
+	"wire_dark": Color(0.045, 0.045, 0.05),
 }
 
 var _materials := {}
 
 ## P1 程序化 shader 调色板映射: key → [shader路径, world_scale, seed]
-## 尺度分档纪律（文档10 §1-P1）：建筑面 2.5m 周期，金属件 1.2m 更密
+## 尺度分档纪律（文档10 §1-P1）：建筑面 2.5m 周期，金属件 1.2m 更密，
+## 道具级混凝土 1.0m 最密（「2.5m 贴图贴在 0.5m 块上会糊成塑料感」）
 const SHADER_MAP := {
 	"asphalt": ["res://assets/shaders/mat_asphalt.gdshader", 2.5, 47.0],
 	"kerb": ["res://assets/shaders/mat_concrete.gdshader", 2.5, 11.0],
 	"rust_metal": ["res://assets/shaders/mat_rust_metal.gdshader", 1.2, 23.0],
+	"concrete_prop": ["res://assets/shaders/mat_concrete.gdshader", 1.0, 31.0],
 }
 
 
@@ -72,7 +75,9 @@ func _get_material(key: String) -> Material:
 
 
 ## 在 parent 下生成一个带碰撞的盒体块。center 为盒中心，size 为全尺寸。
-func _add_box(parent: Node3D, name: String, center: Vector3, size: Vector3, palette_key: String) -> void:
+## tint ≠ 白时复制材质并线性乘算 albedo（逐楼个体差异，文档10 tint 纪律：0.02–0.9 反射率区间）
+func _add_box(parent: Node3D, name: String, center: Vector3, size: Vector3, palette_key: String,
+		tint := Color(1, 1, 1)) -> void:
 	var body := StaticBody3D.new()
 	body.name = name
 	body.position = center
@@ -80,7 +85,13 @@ func _add_box(parent: Node3D, name: String, center: Vector3, size: Vector3, pale
 	var mesh_inst := MeshInstance3D.new()
 	var box := BoxMesh.new()
 	box.size = size
-	box.material = _get_material(palette_key)
+	var mat := _get_material(palette_key)
+	if tint != Color(1, 1, 1) and mat is StandardMaterial3D:
+		var tinted: StandardMaterial3D = mat.duplicate()
+		tinted.albedo_color = Color(mat.albedo_color.r * tint.r,
+			mat.albedo_color.g * tint.g, mat.albedo_color.b * tint.b)
+		mat = tinted
+	box.material = mat
 	mesh_inst.mesh = box
 	body.add_child(mesh_inst)
 
@@ -132,7 +143,14 @@ func _build_buildings() -> void:
 	row.name = "Buildings"
 	add_child(row)
 
-	for b in Layout.BUILDINGS:
+	var rng := RandomNumberGenerator.new()
+	for bi in Layout.BUILDINGS.size():
+		var b: Dictionary = Layout.BUILDINGS[bi]
+		rng.seed = GameConfig.STREET_DRESS_SEED + bi * 7919
+		# ② tint 个体差异：逐楼 albedo 抖动 ±STREET_TINT_JITTER（去复制粘贴感）
+		var j: float = GameConfig.STREET_TINT_JITTER
+		var tint := Color(1.0 - j + rng.randf() * j * 2.0,
+			1.0 - j + rng.randf() * j * 2.0, 1.0 - j + rng.randf() * j * 2.0)
 		var h: float = b["floors"] * s["floor_h"]
 		# 结构盒沿临街轴内缩 0.3m，给立面套件的门窗内退件让位（否则玻璃/门板被埋）
 		var size := Vector3(b["w"], h, b["d"])
@@ -141,16 +159,21 @@ func _build_buildings() -> void:
 		else:
 			size.x -= 0.3
 		_add_box(row, "Bldg_%s" % b["id"],
-			Vector3(b["x"], h * 0.5, b["z"]), size, b["palette"])
-		_dress_facade(row, b, s["floor_h"])
+			Vector3(b["x"], h * 0.5, b["z"]), size, b["palette"], tint)
+		_dress_facade(row, b, s["floor_h"], rng)
+	_build_wires(rng)
 
 
 ## P1 立面套件（Blender headless 烘焙，build_facade_kit.py）
+## P2 道具套件（build_props_kit.py）：shopfront 卷帘门商铺 / ac_unit 空调外机 / drainpipe 排水管
 const KIT := {
 	"wall": preload("res://assets/models/kit_wall.glb"),
 	"window": preload("res://assets/models/kit_window.glb"),
 	"door": preload("res://assets/models/kit_door.glb"),
 	"balcony": preload("res://assets/models/kit_balcony.glb"),
+	"shopfront": preload("res://assets/models/kit_shopfront.glb"),
+	"ac_unit": preload("res://assets/models/kit_ac_unit.glb"),
+	"drainpipe": preload("res://assets/models/kit_drainpipe.glb"),
 }
 
 const KIT_BAY := 3.0  # 套件开间宽，与 layout floor_h=3.0 对齐
@@ -168,8 +191,9 @@ func _apply_fog() -> void:
 
 
 ## 临街立面逐开间装配（panel space：件原点在地板线、前墙面，墙身向内侧延伸）
-## 一层中间开间为门，二层中间开间为阳台，其余为窗；边距留白墙
-func _dress_facade(parent: Node3D, b: Dictionary, floor_h: float) -> void:
+## 一层：中间开间恒为卷帘门商铺，其余开间按 SHOPFRONT_RATIO 改商铺/留窗（城中村底商）；
+## 二层中间开间为阳台，上层窗户按 AC_UNIT_RATIO 挂空调外机；开间边线稀疏落排水管
+func _dress_facade(parent: Node3D, b: Dictionary, floor_h: float, rng: RandomNumberGenerator) -> void:
 	var outward: Vector3
 	var wall_len: float
 	if absf(b["x"]) < 0.1:  # 门楼横跨街道，面朝 +Z
@@ -193,21 +217,109 @@ func _dress_facade(parent: Node3D, b: Dictionary, floor_h: float) -> void:
 	else:
 		face.z += b["d"] * 0.5
 
+	## 沿墙局部偏移 → 世界坐标（垂直墙面外凸 0.02 防共面闪面）
+	var place := func(kind: String, off: float, y: float, push := 0.02) -> Node3D:
+		var inst: Node3D = KIT[kind].instantiate()
+		var pos := face + outward * push
+		if outward.x != 0.0:
+			pos.z += off
+		else:
+			pos.x += off
+		pos.y = y
+		inst.position = pos
+		inst.rotation_degrees.y = rot_y
+		parent.add_child(inst)
+		return inst
+
 	for f in b["floors"]:
 		for i in n:
 			var kind := "window"
-			if f == 0 and i == n / 2:
-				kind = "door"
+			if f == 0:
+				# 一层底商：中间开间恒商铺，其余按概率
+				if i == n / 2 or rng.randf() < GameConfig.SHOPFRONT_RATIO:
+					kind = "shopfront"
 			elif f == 1 and i == n / 2:
 				kind = "balcony"
-			var inst: Node3D = KIT[kind].instantiate()
 			var off := -total * 0.5 + (float(i) + 0.5) * KIT_BAY
-			var pos := face + outward * 0.02  # 2cm 外凸避免与结构盒共面闪面
-			if outward.x != 0.0:
-				pos.z += off
-			else:
-				pos.x += off
-			pos.y = float(f) * floor_h
-			inst.position = pos
-			inst.rotation_degrees.y = rot_y
-			parent.add_child(inst)
+			place.call(kind, off, float(f) * floor_h)
+			# 空调外机：上层窗下沿，横向错开 0.7m 不挡窗
+			if f >= 1 and kind == "window" and rng.randf() < GameConfig.AC_UNIT_RATIO:
+				place.call("ac_unit", off + (0.7 if rng.randf() < 0.5 else -0.7),
+					float(f) * floor_h + 0.2, 0.05)
+	# 排水管：开间边线每隔 2 条落一根，贯通全高
+	for e in n + 1:
+		if (e + b["id"].hash()) % 3 != 0:
+			continue
+		var off := -total * 0.5 + float(e) * KIT_BAY
+		for f in b["floors"]:
+			place.call("drainpipe", off, float(f) * floor_h, 0.05)
+
+
+## 跨街悬链线电线（P2 道具布景层，文档10 §1-P2 catenaryTube 思路的 GDScript 实现）
+## 在主街两侧立面之间拉线：垂度/高度/间距全部抖动，30% 概率双线并行——城中村天空分割感
+func _build_wires(rng: RandomNumberGenerator) -> void:
+	var s: Dictionary = Layout.STREET
+	var wires := Node3D.new()
+	wires.name = "Wires"
+	add_child(wires)
+
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = PALETTE["wire_dark"]
+	mat.roughness = 0.6
+
+	var z: float = s["z_min"] + 5.0
+	while z < s["z_max"] - 4.0:
+		var h0 := rng.randf_range(GameConfig.WIRE_HEIGHT_MIN_M, GameConfig.WIRE_HEIGHT_MAX_M)
+		var h1 := clampf(h0 + rng.randf_range(-0.5, 0.5),
+			GameConfig.WIRE_HEIGHT_MIN_M, GameConfig.WIRE_HEIGHT_MAX_M)
+		var sag: float = GameConfig.WIRE_SAG_M * rng.randf_range(0.5, 1.5)
+		var pair := 1 + (1 if rng.randf() < 0.3 else 0)  # 30% 双线
+		for k in pair:
+			var p0 := Vector3(-s["kerb"] - 0.02, h0 - k * 0.18, z + rng.randf_range(-0.4, 0.4))
+			var p1 := Vector3(s["kerb"] + 0.02, h1 - k * 0.18, z + rng.randf_range(-0.4, 0.4))
+			var mi := MeshInstance3D.new()
+			mi.name = "Wire_%.0f_%d" % [z, k]
+			mi.mesh = _make_wire_mesh(p0, p1, sag)
+			mi.material_override = mat
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			wires.add_child(mi)
+		z += GameConfig.WIRE_SPACING_M * rng.randf_range(0.7, 1.4)
+
+
+## 悬链线（小垂度近似抛物线）圆管网格：12 段 × 5 边
+func _make_wire_mesh(p0: Vector3, p1: Vector3, sag: float) -> ArrayMesh:
+	var segs := 12
+	var sides := 5
+	var radius := 0.018
+	var verts := PackedVector3Array()
+	var indices := PackedInt32Array()
+	var up_hint := Vector3.UP
+	for i in segs + 1:
+		var t := float(i) / float(segs)
+		var p := p0.lerp(p1, t)
+		p.y -= 4.0 * sag * t * (1.0 - t)
+		# 切线（抛物线导数）→ 局部坐标架
+		var tangent := (p1 - p0).normalized()
+		tangent.y -= 4.0 * sag * (1.0 - 2.0 * t) / (p0.distance_to(p1))
+		tangent = tangent.normalized()
+		var side := tangent.cross(up_hint).normalized()
+		if side.length() < 0.1:
+			side = Vector3.RIGHT
+		var up := side.cross(tangent).normalized()
+		for k in sides:
+			var a := TAU * float(k) / float(sides)
+			verts.append(p + (side * cos(a) + up * sin(a)) * radius)
+	for i in segs:
+		for k in sides:
+			var a := i * sides + k
+			var b := i * sides + (k + 1) % sides
+			var c := (i + 1) * sides + k
+			var d := (i + 1) * sides + (k + 1) % sides
+			indices.append_array([a, c, b, b, c, d])
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_INDEX] = indices
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return mesh
