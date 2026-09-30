@@ -57,6 +57,11 @@ func _ready() -> void:
 		for i in 15:
 			await get_tree().process_frame
 		var cam := get_node("OverviewCamera") as Camera3D
+		# 可选摆位: --shot <输出路径> <camx> <camy> <camz> <lookx> <looky> <lookz>
+		if idx + 7 < args.size():
+			cam.position = Vector3(args[idx + 2].to_float(), args[idx + 3].to_float(), args[idx + 4].to_float())
+			cam.look_at(Vector3(args[idx + 5].to_float(), args[idx + 6].to_float(), args[idx + 7].to_float()))
+			await get_tree().process_frame
 		print("STREET_DEBUG children=%d ground=%d bldgs=%d cam_forward=%s cam_pos=%s" % [
 			get_child_count(), get_node("Ground").get_child_count(),
 			get_node("Buildings").get_child_count(),
@@ -271,6 +276,13 @@ const SHELL_WALL_T: float = 0.3   ## 外壳墙厚（与立面套件内退 0.3 �
 const SHELL_DOOR_W: float = 1.4   ## 临街门洞宽
 const SHELL_DOOR_H: float = 2.3   ## 临街门洞高
 const SHELL_PART_T: float = 0.12  ## 室内隔断厚
+# 真阳台构造（尺寸对齐 build_facade_kit.py §4 阳台单元，机主 2026-09-30 裁决内外打通）
+const SHELL_BALCONY_DOOR_W: float = 0.9   ## 阳台门洞宽（= 套件 BD_W）
+const SHELL_BALCONY_DOOR_H: float = 2.1   ## 阳台门洞高（= 套件 BD_H）
+const SHELL_BALCONY_DEPTH: float = 0.9    ## 阳台外挑深度
+const SHELL_BALCONY_SLAB_W: float = 2.2   ## 阳台板/栏杆宽
+const SHELL_BALCONY_SLAB_T: float = 0.14  ## 阳台板厚（顶面高出楼板，门槛坡道衔接）
+const SHELL_BALCONY_RAIL_H: float = 1.05  ## 栏杆扶手高
 
 
 ## 可进入楼的地面层障碍 rect 集（密封洪水填充用）：外墙段（让开门洞）+ 一层隔断 + 楼梯 footprint
@@ -315,6 +327,9 @@ func _build_enterable_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Co
 	var h_total: float = b["floors"] * floor_h
 	var dz0: float = b["z"] - SHELL_DOOR_W * 0.5
 	var dz1: float = b["z"] + SHELL_DOOR_W * 0.5
+	# 二楼阳台门洞中线（与 _dress_facade 中间开间对齐：f==1 && i==n/2，仅排楼主立面沿 Z 情形）
+	var n_bays: int = maxi(1, int(floor(b["d"] / KIT_BAY)))
+	var bz_c: float = b["z"] - n_bays * KIT_BAY * 0.5 + (n_bays / 2 + 0.5) * KIT_BAY
 	var pal: String = b["palette"]
 	var east_side: bool = b["x"] > 0.0  # 东排楼门开在西墙
 	var sw_x: float = (x0 + SHELL_WALL_T * 0.5) if east_side else (x1 - SHELL_WALL_T * 0.5)
@@ -324,13 +339,12 @@ func _build_enterable_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Co
 	var in_z0: float = z0 + SHELL_WALL_T
 	var in_z1: float = z1 - SHELL_WALL_T
 
-	# 临街墙两段 + 门洞过梁上方墙体
-	_add_box(row, "Bldg_%s_SW_A" % b["id"], Vector3(sw_x, h_total * 0.5, (z0 + dz0) * 0.5),
-		Vector3(SHELL_WALL_T, h_total, dz0 - z0), pal, tint)
-	_add_box(row, "Bldg_%s_SW_B" % b["id"], Vector3(sw_x, h_total * 0.5, (dz1 + z1) * 0.5),
-		Vector3(SHELL_WALL_T, h_total, z1 - dz1), pal, tint)
-	_add_box(row, "Bldg_%s_SW_TOP" % b["id"], Vector3(sw_x, (SHELL_DOOR_H + h_total) * 0.5, b["z"]),
-		Vector3(SHELL_WALL_T, h_total - SHELL_DOOR_H, SHELL_DOOR_W), pal, tint)
+	# 临街墙（洞口减法）：一层临街门洞；层数 ≥2 时二层开真阳台门洞（通往外挑阳台）
+	var sw_openings: Array = [[dz0, dz1, 0.0, SHELL_DOOR_H]]
+	if b["floors"] >= 2:
+		sw_openings.append([bz_c - SHELL_BALCONY_DOOR_W * 0.5, bz_c + SHELL_BALCONY_DOOR_W * 0.5,
+			floor_h, floor_h + SHELL_BALCONY_DOOR_H])
+	_build_wall_with_openings(row, "Bldg_%s_SW" % b["id"], sw_x, z0, z1, h_total, sw_openings, pal, tint)
 	# 背街墙 / 北墙 / 南墙
 	_add_box(row, "Bldg_%s_BW" % b["id"], Vector3(bw_x, h_total * 0.5, b["z"]),
 		Vector3(SHELL_WALL_T, h_total, b["d"]), pal, tint)
@@ -346,6 +360,9 @@ func _build_enterable_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Co
 		Vector3(0.36, SHELL_DOOR_H, 0.12), "metal_dark")
 	_add_box(row, "Bldg_%s_LINTEL" % b["id"], Vector3(jamb_x, SHELL_DOOR_H + 0.06, b["z"]),
 		Vector3(0.36, 0.12, SHELL_DOOR_W + 0.24), "metal_dark")
+	# 二楼真阳台（内外打通：门洞已在临街墙开好，此处建外挑板+门槛坡道+门框+栏杆）
+	if b["floors"] >= 2:
+		_build_balcony(row, b, floor_h, tint, bz_c)
 	# 室内地坪（与人行道顶面 0.145 齐平，过门无台阶）
 	_add_box(row, "Bldg_%s_FLOOR" % b["id"], Vector3(b["x"], 0.105, b["z"]),
 		Vector3(b["w"], 0.08, b["d"]), "kerb", Color(0.55, 0.55, 0.55))
@@ -454,6 +471,144 @@ func _build_enterable_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Co
 	l2.position = Vector3(mx.call(obx1 + 1.6), h_total - 0.45, lz0 + 0.55)  # 二楼楼梯到达口上方
 	l2.set_script(script)
 	row.add_child(l2)
+
+	_furnish_enterable(row, b)
+
+
+## 临街墙洞口减法（沿 Z 墙体，法线 ±X）：z 向按洞边切条，每条 y 向填洞间实体段。
+## 洞口元素 [z_lo, z_hi, y_lo, y_hi]；一层临街门洞与二层阳台门洞共用此构造。
+func _build_wall_with_openings(parent: Node3D, base_name: String, cx: float,
+		z_lo: float, z_hi: float, h: float, openings: Array, pal: String, tint: Color) -> void:
+	var cuts: Array = [z_lo, z_hi]
+	for op in openings:
+		cuts.append(clampf(op[0], z_lo, z_hi))
+		cuts.append(clampf(op[1], z_lo, z_hi))
+	cuts.sort()
+	var zs: Array = []
+	for c in cuts:
+		if zs.is_empty() or c > zs[-1] + 0.001:
+			zs.append(c)
+	var idx := 0
+	for s in zs.size() - 1:
+		var a: float = zs[s]
+		var c2: float = zs[s + 1]
+		if c2 - a < 0.01:
+			continue
+		var holes: Array = []
+		for op in openings:
+			if op[0] < c2 - 0.001 and op[1] > a + 0.001:
+				holes.append([op[2], op[3]])
+		holes.sort()
+		var y := 0.0
+		for hole in holes:
+			if hole[0] > y + 0.001:
+				_add_box(parent, "%s_%d" % [base_name, idx],
+					Vector3(cx, (y + hole[0]) * 0.5, (a + c2) * 0.5),
+					Vector3(SHELL_WALL_T, hole[0] - y, c2 - a), pal, tint)
+				idx += 1
+			y = maxf(y, hole[1])
+		if y < h - 0.001:
+			_add_box(parent, "%s_%d" % [base_name, idx],
+				Vector3(cx, (y + h) * 0.5, (a + c2) * 0.5),
+				Vector3(SHELL_WALL_T, h - y, c2 - a), pal, tint)
+			idx += 1
+
+
+## 真阳台构造（可进入楼专用，替代装饰套件 kit_balcony——套件玻璃门嵌在墙里内外不通）：
+## 外挑板（自带碰撞，顶面高出楼板 0.14）+ 门槛坡道（楼板 → 板面高差衔接，胶囊底跨不上 14cm 直台阶）
+## + 门框 + 铁栏杆（可见件）+ 隐形防坠栏板（杆间缝隙只挡视线不挡人，需整面薄碰撞）
+func _build_balcony(row: Node3D, b: Dictionary, floor_h: float, tint: Color, bz_c: float) -> void:
+	var east_side: bool = b["x"] > 0.0
+	var o: float = -1.0 if east_side else 1.0  # 外挑方向（东排楼朝 -X，西排楼朝 +X）
+	var face_x: float = (b["x"] - b["w"] * 0.5) if east_side else (b["x"] + b["w"] * 0.5)
+	var y0: float = floor_h  # 二楼楼板顶面
+	var bz0: float = bz_c - SHELL_BALCONY_DOOR_W * 0.5
+	var bz1: float = bz_c + SHELL_BALCONY_DOOR_W * 0.5
+
+	# 外挑板：0.25 嵌入墙体咬合，外挑 0.9
+	_add_box(row, "Bldg_%s_BAL_SLAB" % b["id"],
+		Vector3(face_x + o * 0.325, y0 + SHELL_BALCONY_SLAB_T * 0.5, bz_c),
+		Vector3(SHELL_BALCONY_DEPTH + 0.25, SHELL_BALCONY_SLAB_T, SHELL_BALCONY_SLAB_W),
+		"plaster_white", tint)
+	# 门槛坡道（金属压条）：从室内楼板 3.0 爬到板面 3.14，跨墙厚 + 内外各一小段
+	var ramp_run: float = SHELL_WALL_T + 0.25
+	var ramp_ang: float = rad_to_deg(atan2(SHELL_BALCONY_SLAB_T, ramp_run))
+	_add_box(row, "Bldg_%s_BAL_RAMP" % b["id"],
+		Vector3(face_x - o * 0.125, y0 + SHELL_BALCONY_SLAB_T * 0.5 - 0.03, bz_c),
+		Vector3(sqrt(ramp_run * ramp_run + SHELL_BALCONY_SLAB_T * SHELL_BALCONY_SLAB_T) + 0.02,
+			0.06, SHELL_BALCONY_DOOR_W), "metal_dark", Color(1, 1, 1), o * ramp_ang)
+	# 门框（与一层门同语言：深灰金属门垛 + 门楣）
+	var bj_x: float = face_x - o * 0.18
+	_add_box(row, "Bldg_%s_BAL_JAMB_A" % b["id"], Vector3(bj_x, y0 + SHELL_BALCONY_DOOR_H * 0.5, bz0 - 0.06),
+		Vector3(0.36, SHELL_BALCONY_DOOR_H, 0.12), "metal_dark")
+	_add_box(row, "Bldg_%s_BAL_JAMB_B" % b["id"], Vector3(bj_x, y0 + SHELL_BALCONY_DOOR_H * 0.5, bz1 + 0.06),
+		Vector3(0.36, SHELL_BALCONY_DOOR_H, 0.12), "metal_dark")
+	_add_box(row, "Bldg_%s_BAL_LINTEL" % b["id"], Vector3(bj_x, y0 + SHELL_BALCONY_DOOR_H + 0.06, bz_c),
+		Vector3(0.36, 0.12, SHELL_BALCONY_DOOR_W + 0.24), "metal_dark")
+	# 铁栏杆（与套件同位：前缘扶手 + 9 竖杆 + 两侧扶手）
+	var rail_x: float = face_x + o * 0.755
+	_add_box(row, "Bldg_%s_BAL_RAIL_TOP" % b["id"], Vector3(rail_x, y0 + SHELL_BALCONY_RAIL_H, bz_c),
+		Vector3(0.05, 0.05, SHELL_BALCONY_SLAB_W), "metal_dark")
+	for i in 9:
+		var pz: float = bz_c - 1.05 + float(i) * (2.1 / 8.0)
+		_add_box(row, "Bldg_%s_BAL_POST_%d" % [b["id"], i], Vector3(rail_x, y0 + 0.55, pz),
+			Vector3(0.03, 0.95, 0.03), "metal_dark")
+	for side in [-1.0, 1.0]:
+		_add_box(row, "Bldg_%s_BAL_RAIL_S" % b["id"],
+			Vector3(face_x + o * 0.325, y0 + SHELL_BALCONY_RAIL_H, bz_c + side * 1.08),
+			Vector3(SHELL_BALCONY_DEPTH, 0.05, 0.05), "metal_dark")
+	# 隐形防坠栏板：杆间 0.23m 缝隙与扶手下方挡不住胶囊（半径 0.4），整面薄碰撞防坠落
+	_add_collider(row, "Bldg_%s_BAL_GUARD_F" % b["id"],
+		Vector3(rail_x, y0 + 0.6, bz_c), Vector3(0.06, 1.2, SHELL_BALCONY_SLAB_W))
+	for side in [-1.0, 1.0]:
+		_add_collider(row, "Bldg_%s_BAL_GUARD_S" % b["id"],
+			Vector3(face_x + o * 0.425, y0 + 0.6, bz_c + side * 1.07),
+			Vector3(0.85, 1.2, 0.06))
+
+
+## 隐形碰撞盒（无网格）：只挡人不挡视线的场合（阳台防坠栏板等）
+func _add_collider(parent: Node3D, name: String, center: Vector3, size: Vector3) -> void:
+	var body := StaticBody3D.new()
+	body.name = name
+	body.position = center
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	shape.shape = box
+	body.add_child(shape)
+	parent.add_child(body)
+
+
+# —— 室内家具陈设（2026-09-30 机主立项：E1 内饰试点，Blender 烘焙 fur_* 套件）——
+## type → [glb 目标高, 碰撞盒 size, 碰撞盒中心]（碰撞盒为模型本地朝向，随 prop 旋转）
+const FUR_SPEC := {
+	"table": [0.75, Vector3(1.2, 0.75, 0.75), Vector3(0, 0.375, 0)],
+	"chair": [0.90, Vector3(0.45, 0.9, 0.45), Vector3(0, 0.45, 0)],
+	"bed": [0.85, Vector3(0.95, 0.6, 2.05), Vector3(0, 0.3, 0)],
+	"wardrobe": [2.0, Vector3(1.25, 2.0, 0.6), Vector3(0, 1.0, 0)],
+	"sofa": [0.85, Vector3(1.6, 0.85, 0.8), Vector3(0, 0.425, 0)],
+	"tv_stand": [1.04, Vector3(1.2, 1.05, 0.45), Vector3(0, 0.52, 0)],
+	"shelf": [1.8, Vector3(0.8, 1.8, 0.32), Vector3(0, 0.9, 0)],
+	"nightstand": [0.48, Vector3(0.45, 0.5, 0.42), Vector3(0, 0.25, 0)],
+}
+
+
+## 按 Layout.FURNITURE 数据表给可进入楼摆家具（复用 _prop_model：AABB 归一缩放+落地+碰撞盒）
+func _furnish_enterable(row: Node3D, b: Dictionary) -> void:
+	var idx := 0
+	for f in Layout.FURNITURE:
+		if f["bldg"] != b["id"]:
+			continue
+		var spec: Array = FUR_SPEC[f["type"]]
+		var prop := Node3D.new()
+		prop.name = "Fur_%s_%s_%d" % [b["id"], f["type"], idx]
+		prop.position = Vector3(f["x"], f["y"], f["z"])
+		prop.rotation_degrees.y = f.get("rot_y", 0.0)
+		row.add_child(prop)
+		if not _prop_model(prop, "res://assets/models/fur_%s.glb" % f["type"],
+				spec[0], spec[1], spec[2]):
+			push_warning("street_builder: missing furniture model fur_%s.glb" % f["type"])
+		idx += 1
 
 
 ## P1 立面套件（Blender headless 烘焙，build_facade_kit.py）
@@ -584,6 +739,8 @@ func _dress_facade(parent: Node3D, b: Dictionary, floor_h: float, rng: RandomNum
 				if i == n / 2 or rng.randf() < GameConfig.SHOPFRONT_RATIO:
 					kind = "shopfront"
 			elif f == 1 and i == n / 2:
+				if enterable:
+					continue  # 可进入楼二楼中间开间：壳体自建真阳台（门洞打通），不挂玻璃门装饰套件
 				kind = "balcony"
 			var off := -total * 0.5 + (float(i) + 0.5) * KIT_BAY
 			place.call(kind, off, float(f) * floor_h)
