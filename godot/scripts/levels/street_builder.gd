@@ -525,17 +525,17 @@ func _build_balcony(row: Node3D, b: Dictionary, floor_h: float, tint: Color, bz_
 	var bz0: float = bz_c - SHELL_BALCONY_DOOR_W * 0.5
 	var bz1: float = bz_c + SHELL_BALCONY_DOOR_W * 0.5
 
-	# 外挑板：0.25 嵌入墙体咬合，外挑 0.9
+	# 外挑板：内缘与外墙皮齐平（不嵌墙——门洞处嵌墙会露出 14cm 直台阶挡路），外挑 0.9
 	_add_box(row, "Bldg_%s_BAL_SLAB" % b["id"],
-		Vector3(face_x + o * 0.325, y0 + SHELL_BALCONY_SLAB_T * 0.5, bz_c),
-		Vector3(SHELL_BALCONY_DEPTH + 0.25, SHELL_BALCONY_SLAB_T, SHELL_BALCONY_SLAB_W),
+		Vector3(face_x + o * SHELL_BALCONY_DEPTH * 0.5, y0 + SHELL_BALCONY_SLAB_T * 0.5, bz_c),
+		Vector3(SHELL_BALCONY_DEPTH, SHELL_BALCONY_SLAB_T, SHELL_BALCONY_SLAB_W),
 		"plaster_white", tint)
-	# 门槛坡道（金属压条）：从室内楼板 3.0 爬到板面 3.14，跨墙厚 + 内外各一小段
-	var ramp_run: float = SHELL_WALL_T + 0.25
+	# 门槛坡道（金属压条）：跨整个墙厚，室内楼板 3.0 爬到板面 3.14，顶端恰与板内缘相接
+	var ramp_run: float = SHELL_WALL_T + 0.1
 	var ramp_ang: float = rad_to_deg(atan2(SHELL_BALCONY_SLAB_T, ramp_run))
 	_add_box(row, "Bldg_%s_BAL_RAMP" % b["id"],
-		Vector3(face_x - o * 0.125, y0 + SHELL_BALCONY_SLAB_T * 0.5 - 0.03, bz_c),
-		Vector3(sqrt(ramp_run * ramp_run + SHELL_BALCONY_SLAB_T * SHELL_BALCONY_SLAB_T) + 0.02,
+		Vector3(face_x - o * ramp_run * 0.5, y0 + SHELL_BALCONY_SLAB_T * 0.5 - 0.03, bz_c),
+		Vector3(sqrt(ramp_run * ramp_run + SHELL_BALCONY_SLAB_T * SHELL_BALCONY_SLAB_T),
 			0.06, SHELL_BALCONY_DOOR_W), "metal_dark", Color(1, 1, 1), o * ramp_ang)
 	# 门框（与一层门同语言：深灰金属门垛 + 门楣）
 	var bj_x: float = face_x - o * 0.18
@@ -553,15 +553,17 @@ func _build_balcony(row: Node3D, b: Dictionary, floor_h: float, tint: Color, bz_
 		var pz: float = bz_c - 1.05 + float(i) * (2.1 / 8.0)
 		_add_box(row, "Bldg_%s_BAL_POST_%d" % [b["id"], i], Vector3(rail_x, y0 + 0.55, pz),
 			Vector3(0.03, 0.95, 0.03), "metal_dark")
-	for side in [-1.0, 1.0]:
-		_add_box(row, "Bldg_%s_BAL_RAIL_S" % b["id"],
+	for i in 2:
+		var side: float = float(i) * 2.0 - 1.0
+		_add_box(row, "Bldg_%s_BAL_RAIL_S%d" % [b["id"], i],
 			Vector3(face_x + o * 0.325, y0 + SHELL_BALCONY_RAIL_H, bz_c + side * 1.08),
 			Vector3(SHELL_BALCONY_DEPTH, 0.05, 0.05), "metal_dark")
 	# 隐形防坠栏板：杆间 0.23m 缝隙与扶手下方挡不住胶囊（半径 0.4），整面薄碰撞防坠落
 	_add_collider(row, "Bldg_%s_BAL_GUARD_F" % b["id"],
 		Vector3(rail_x, y0 + 0.6, bz_c), Vector3(0.06, 1.2, SHELL_BALCONY_SLAB_W))
-	for side in [-1.0, 1.0]:
-		_add_collider(row, "Bldg_%s_BAL_GUARD_S" % b["id"],
+	for i in 2:
+		var side: float = float(i) * 2.0 - 1.0
+		_add_collider(row, "Bldg_%s_BAL_GUARD_S%d" % [b["id"], i],
 			Vector3(face_x + o * 0.425, y0 + 0.6, bz_c + side * 1.07),
 			Vector3(0.85, 1.2, 0.06))
 
