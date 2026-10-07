@@ -214,6 +214,15 @@ const NIGHT_FOG_SUN_SCATTER: float = 0.1 ## 月光散射弱于日光
 const NIGHT_FOG_SKY_AFFECT: float = 0.3 ## 雾对天空的影响（压低防灰洗：雾色灰蓝会把靛蓝夜空洗灰，
 ## 天际线幕布卡 fog_disabled 不吃雾，天空若吃满雾就会出现"两个夜空"）
 
+# ===== 街区图昼间预设（street_day_night_driver 专用；契约申请 1，蜂后冻结 2026-10-07）=====
+# c1m1 剧情态恒为夜，DAY 态仅美术对照与未来 c1m2 复用；白天雾直接复用上方 FOG_* 契约，不新增
+const STREET_DAY_SKY_TOP_COLOR := Color(0.35, 0.55, 0.85) ## 昼间天空顶色（蓝调→昼间蓝）
+const STREET_DAY_SKY_HORIZON_COLOR := Color(0.65, 0.72, 0.80) ## 地平线雾霭色
+const STREET_DAY_AMBIENT_ENERGY: float = 1.0 ## Sky 环境光能量（夜 0.38 → 昼）
+const STREET_DAY_SUN_COLOR := Color(1.0, 0.95, 0.85) ## 日光色
+const STREET_DAY_SUN_ENERGY: float = 1.2 ## 日光能量
+const STREET_DAY_SKYLINE_EMISSION_SCALE: float = 0.15 ## 天际线窗灯昼间衰减因子（白天亮窗不可信）
+
 # ===== CBD 远景天际线（多环带 LOD 几何，skyline_builder.gd 消费；确定性种子）=====
 const SKYLINE_SEED: int = 20260927 ## 布局随机种子（改则天际线重排）
 const SKYLINE_RING_INNER_M: float = 180.0 ## 内环半径 m（低模塔楼 + 亮窗）
