@@ -116,6 +116,9 @@ func _run() -> void:
 	_assert(events.has_signal(&"enemy_fired"), "events.gd has signal enemy_fired")
 	# 表现层三件套新增信号（§11.1 A 方案，2026-08-19 冻结）。
 	_assert(events.has_signal(&"player_hit_direction"), "events.gd has signal player_hit_direction")
+	# 拾取契约新增信号（2026-10-07 冻结）。
+	_assert(events.has_signal(&"battery_picked"), "events.gd has signal battery_picked")
+	_assert(events.has_signal(&"intel_picked"), "events.gd has signal intel_picked")
 
 	# -- 表现层三件套参数（2026-08-19 冻结新增）--
 	_assert(config.TRACER_LIFETIME == 0.06, "game_config.gd TRACER_LIFETIME == 0.06")
@@ -124,12 +127,21 @@ func _run() -> void:
 	_assert(config.MUZZLE_FLASH_ENERGY == 2.0, "game_config.gd MUZZLE_FLASH_ENERGY == 2.0")
 	_assert(config.DAMAGE_ARC_SHOW_TIME == 1.0, "game_config.gd DAMAGE_ARC_SHOW_TIME == 1.0")
 
+	# -- 拾取契约（2026-10-07 冻结：居民区室内补给 = 电池组/医疗注射/取证终端，无 RPG）--
+	_assert(config.BATTERY_PICKUP_ROUNDS == 60, "game_config.gd BATTERY_PICKUP_ROUNDS == 60")
+	_assert(config.PICKUP_TRIGGER_RADIUS == 0.7, "game_config.gd PICKUP_TRIGGER_RADIUS == 0.7")
+	_assert(config.PICKUP_BOB_AMP == 0.05, "game_config.gd PICKUP_BOB_AMP == 0.05")
+	_assert(config.PICKUP_BOB_HZ == 1.2, "game_config.gd PICKUP_BOB_HZ == 1.2")
+	_assert(config.PICKUP_SPIN_DEG == 45.0, "game_config.gd PICKUP_SPIN_DEG == 45.0")
+
 	# -- game_state.gd: reset() must restore the three body-part health keys --
 	# 挂载时 _ready 已跑过一次 reset()（含 Events.enemy_died 连接）；再调一次验证幂等。
 	state.reset()
 	_assert(state.health.has(&"head"), "game_state.gd reset() health has key 'head'")
 	_assert(state.health.has(&"body"), "game_state.gd reset() health has key 'body'")
 	_assert(state.health.has(&"legs"), "game_state.gd reset() health has key 'legs'")
+	# 取证终端计数（2026-10-07 冻结新增状态字段）：reset() 必须归零（换图/重开不串档）。
+	_assert(state.intel == 0, "game_state.gd reset() intel == 0")
 
 	_free_autoloads()
 

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/pickup.gd" id="Script_pickup"]
+
+[node name="Pickup" type="Area3D"]
+script = ExtResource("Script_pickup")

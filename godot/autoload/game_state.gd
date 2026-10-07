@@ -18,6 +18,8 @@ var rifle_reserve: int = 0
 var rpg_ammo: int = 0
 var medkits: int = 0
 var kills: int = 0
+## 取证终端已收集数（叙事收集品，2026-10-07 冻结新增）
+var intel: int = 0
 
 var current_weapon: StringName = &"rifle"
 var is_prone: bool = false
@@ -64,6 +66,7 @@ func reset() -> void:
 	rpg_ammo = GameConfig.RPG_AMMO
 	medkits = 0
 	kills = 0
+	intel = 0
 	current_weapon = &"rifle"
 	is_prone = false
 	is_aiming = false

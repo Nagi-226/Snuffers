@@ -47,6 +47,7 @@ func _ready() -> void:
 	_build_backdrop()
 	_build_barriers()
 	_build_props()
+	_build_pickups()
 	# 开发者截图: godot --path . res://scenes/levels/street_test.tscn -- --shot <输出路径>
 	var args := OS.get_cmdline_user_args()
 	if args.has("--shot"):
@@ -370,9 +371,10 @@ func _build_enterable_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Co
 	_add_box(row, "Bldg_%s_ROOF" % b["id"], Vector3(b["x"], h_total + 0.12, b["z"]),
 		Vector3(b["w"], 0.24, b["d"]), pal, tint)
 
-	# 中层楼板（顶面与 floor_h 齐平；楼梯开口 = L 型梯段正上方）
 	# L 型 90° 转角楼梯 v2（2026-09-27 机主草图裁决）：一段贴【西墙】（门北侧）向北爬 1.4m
-	# → 西北角转角平台 → 二段向东转 90° 沿北墙爬 1.455m 接上二楼板；栏杆式扶手，顶部无挡板
+	# → 西北角转角平台 → 二段向东转 90° 沿北墙爬 1.455m 接上一层楼板；栏杆式扶手，顶部无挡板。
+	# 多层泛化（2026-10-07 机主裁决：可进入楼支持 2 层以上）——各层楼梯井垂直对齐（真实
+	# 楼梯间做法），lvl 循环整体 y 平移；E1（2 层）产出与泛化前逐米一致。
 	var sgn: float = 1.0 if east_side else -1.0
 	var mx := func(v: float) -> float: return b["x"] + (v - b["x"]) * sgn
 	# 以下 x 均为东排基准坐标（西排楼经 mx 镜像）；z 不变（爬升方向朝北 -Z）
@@ -382,66 +384,85 @@ func _build_enterable_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Co
 	var f1z1: float = f1z0 - 3.0            # 梯段一顶
 	var lz0: float = in_z0 + 0.05           # 平台南缘（贴北墙）
 	var f2x1: float = stx1 + 2.8            # 梯段二东端
-	var y_mid: float = 0.145 + 1.4
 	# 楼板开口：A = 梯段一+平台上方；B = 梯段二上方
 	var oax1: float = stx1 + 0.1
 	var oaz1: float = f1z1 + 1.85
 	var obx1: float = stx1 + 2.95
 	var obz1: float = lz0 + 1.15
-	_add_box(row, "Bldg_%s_SLAB_A" % b["id"],
-		Vector3(b["x"], floor_h - 0.12, (oaz1 + in_z1) * 0.5),
-		Vector3(in_x1 - in_x0, 0.24, in_z1 - oaz1), pal, tint)
-	_add_box(row, "Bldg_%s_SLAB_B" % b["id"],
-		Vector3((mx.call(oax1) + mx.call(in_x1)) * 0.5, floor_h - 0.12, (obz1 + oaz1) * 0.5),
-		Vector3(absf(mx.call(in_x1) - mx.call(oax1)), 0.24, oaz1 - obz1), pal, tint)
-	_add_box(row, "Bldg_%s_SLAB_C" % b["id"],
-		Vector3((mx.call(obx1) + mx.call(in_x1)) * 0.5, floor_h - 0.12, (in_z0 + obz1) * 0.5),
-		Vector3(absf(mx.call(in_x1) - mx.call(obx1)), 0.24, obz1 - in_z0), pal, tint)
-
-	# 梯段一坡道（碰撞斜面，贴西墙向北爬升，绕 X 轴；北端 -Z 抬升 → rot_x 正号）
 	var f1_len: float = sqrt(3.0 * 3.0 + 1.4 * 1.4)
 	var f1_ang: float = rad_to_deg(atan2(1.4, 3.0))
-	var f1_c := Vector3(mx.call((stx0 + stx1) * 0.5), (0.145 + y_mid) * 0.5 - 0.05, (f1z0 + f1z1) * 0.5)
-	_add_box(row, "Bldg_%s_RAMP1" % b["id"], f1_c, Vector3(1.1, 0.1, f1_len),
-		"kerb", Color(0.5, 0.5, 0.5), 0.0, f1_ang)
-	# 转角平台（西北角）
-	_add_box(row, "Bldg_%s_LANDING" % b["id"],
-		Vector3(mx.call((stx0 + stx1) * 0.5), y_mid - 0.27, (lz0 + f1z1) * 0.5),
-		Vector3(1.1, 0.54, f1z1 - lz0), "kerb", Color(0.55, 0.55, 0.55))
-	# 梯段二坡道（沿北墙向东爬升，绕 Z 轴）
 	var f2_len: float = sqrt(2.8 * 2.8 + 1.455 * 1.455)
 	var f2_ang: float = rad_to_deg(atan2(1.455, 2.8)) * sgn
-	var f2_c := Vector3(mx.call((stx1 + f2x1) * 0.5), (y_mid + floor_h) * 0.5 - 0.05, lz0 + 0.55)
-	_add_box(row, "Bldg_%s_RAMP2" % b["id"], f2_c, Vector3(f2_len, 0.1, 1.1),
-		"kerb", Color(0.5, 0.5, 0.5), f2_ang)
-	# 踏步视觉（两段各 6 级）
-	for i in 6:
-		var sz1: float = f1z0 - (float(i) + 0.5) * 0.5
-		var sy1: float = 0.145 + (float(i) + 1.0) * (1.4 / 6.0)
-		_add_box(row, "Bldg_%s_S1_%d" % [b["id"], i], Vector3(mx.call((stx0 + stx1) * 0.5), sy1 - 0.09, sz1),
-			Vector3(1.1, 0.18, 0.52), "kerb", Color(0.62, 0.62, 0.62))
-		var sx2: float = stx1 + (float(i) + 0.5) * (2.8 / 6.0)
-		var sy2: float = y_mid + (float(i) + 1.0) * (1.455 / 6.0)
-		_add_box(row, "Bldg_%s_S2_%d" % [b["id"], i], Vector3(mx.call(sx2), sy2 - 0.09, lz0 + 0.55),
-			Vector3(0.49, 0.18, 1.1), "kerb", Color(0.62, 0.62, 0.62))
-	# 栏杆式扶手（立柱 + 细扶手杆，通透不挡视线）：
-	# 梯段一东缘（临空侧）/ 二楼板 B 西缘与板 A 北缘（临楼梯井侧）
-	var rail := func(x_e: float, y_surf: float, z: float) -> void:
-		_add_box(row, "Bldg_%s_POST" % b["id"], Vector3(mx.call(x_e), y_surf + 0.45, z),
+	var rail := func(x_e: float, y_surf: float, z: float, tag: String) -> void:
+		_add_box(row, "Bldg_%s_POST_%s" % [b["id"], tag], Vector3(mx.call(x_e), y_surf + 0.45, z),
 			Vector3(0.05, 0.9, 0.05), "metal_dark")
-	for i in 4:
-		var pz1: float = f1z1 + 0.3 + float(i) * 0.65
-		rail.call(stx1 + 0.03, 0.145 + 1.4 * (f1z0 - pz1) / 3.0, pz1)
-	_add_box(row, "Bldg_%s_HR1" % b["id"], Vector3(mx.call(stx1 + 0.03), f1_c.y + 0.95, f1_c.z),
-		Vector3(0.05, 0.05, f1_len), "metal_dark", Color(1, 1, 1), 0.0, f1_ang)
-	for i in 3:
-		rail.call(oax1, floor_h, obz1 + 0.25 + float(i) * 0.45)
-	_add_box(row, "Bldg_%s_HR2" % b["id"], Vector3(mx.call(oax1), floor_h + 0.95, (obz1 + oaz1) * 0.5),
-		Vector3(0.05, 0.05, oaz1 - obz1), "metal_dark")
-	for i in 3:
-		rail.call(in_x0 + 0.25 + float(i) * 0.4, floor_h, oaz1 + 0.02)
-	_add_box(row, "Bldg_%s_HR3" % b["id"], Vector3(mx.call((in_x0 + oax1) * 0.5), floor_h + 0.95, oaz1 + 0.02),
-		Vector3(oax1 - in_x0, 0.05, 0.05), "metal_dark")
+	var light_script: Script = load("res://scripts/levels/emergency_light.gd")
+	for lvl in b["floors"] - 1:
+		var y0: float = float(lvl) * floor_h    # 本段起点楼板面
+		var y1: float = y0 + floor_h            # 本段终点楼板面
+		var y_mid: float = y0 + 0.145 + 1.4
+		var L := "_L%d" % lvl
+		# 中层楼板（顶面与 y1 齐平；楼梯开口 = L 型梯段正上方）
+		_add_box(row, "Bldg_%s_SLAB_A%s" % [b["id"], L],
+			Vector3(b["x"], y1 - 0.12, (oaz1 + in_z1) * 0.5),
+			Vector3(in_x1 - in_x0, 0.24, in_z1 - oaz1), pal, tint)
+		_add_box(row, "Bldg_%s_SLAB_B%s" % [b["id"], L],
+			Vector3((mx.call(oax1) + mx.call(in_x1)) * 0.5, y1 - 0.12, (obz1 + oaz1) * 0.5),
+			Vector3(absf(mx.call(in_x1) - mx.call(oax1)), 0.24, oaz1 - obz1), pal, tint)
+		_add_box(row, "Bldg_%s_SLAB_C%s" % [b["id"], L],
+			Vector3((mx.call(obx1) + mx.call(in_x1)) * 0.5, y1 - 0.12, (in_z0 + obz1) * 0.5),
+			Vector3(absf(mx.call(in_x1) - mx.call(obx1)), 0.24, obz1 - in_z0), pal, tint)
+		# 梯段一坡道（碰撞斜面，贴西墙向北爬升，绕 X 轴；北端 -Z 抬升 → rot_x 正号）
+		var f1_c := Vector3(mx.call((stx0 + stx1) * 0.5), (y0 + 0.145 + y_mid) * 0.5 - 0.05, (f1z0 + f1z1) * 0.5)
+		_add_box(row, "Bldg_%s_RAMP1%s" % [b["id"], L], f1_c, Vector3(1.1, 0.1, f1_len),
+			"kerb", Color(0.5, 0.5, 0.5), 0.0, f1_ang)
+		# 转角平台（西北角）
+		_add_box(row, "Bldg_%s_LANDING%s" % [b["id"], L],
+			Vector3(mx.call((stx0 + stx1) * 0.5), y_mid - 0.27, (lz0 + f1z1) * 0.5),
+			Vector3(1.1, 0.54, f1z1 - lz0), "kerb", Color(0.55, 0.55, 0.55))
+		# 梯段二坡道（沿北墙向东爬升，绕 Z 轴）
+		var f2_c := Vector3(mx.call((stx1 + f2x1) * 0.5), (y_mid + y1) * 0.5 - 0.05, lz0 + 0.55)
+		_add_box(row, "Bldg_%s_RAMP2%s" % [b["id"], L], f2_c, Vector3(f2_len, 0.1, 1.1),
+			"kerb", Color(0.5, 0.5, 0.5), f2_ang)
+		# 踏步视觉（两段各 6 级）
+		for i in 6:
+			var sz1: float = f1z0 - (float(i) + 0.5) * 0.5
+			var sy1: float = y0 + 0.145 + (float(i) + 1.0) * (1.4 / 6.0)
+			_add_box(row, "Bldg_%s_S1%s_%d" % [b["id"], L, i], Vector3(mx.call((stx0 + stx1) * 0.5), sy1 - 0.09, sz1),
+				Vector3(1.1, 0.18, 0.52), "kerb", Color(0.62, 0.62, 0.62))
+			var sx2: float = stx1 + (float(i) + 0.5) * (2.8 / 6.0)
+			var sy2: float = y_mid + (float(i) + 1.0) * (1.455 / 6.0)
+			_add_box(row, "Bldg_%s_S2%s_%d" % [b["id"], L, i], Vector3(mx.call(sx2), sy2 - 0.09, lz0 + 0.55),
+				Vector3(0.49, 0.18, 1.1), "kerb", Color(0.62, 0.62, 0.62))
+		# 栏杆式扶手（立柱 + 细扶手杆，通透不挡视线）：
+		# 梯段一东缘（临空侧）/ 上层板 B 西缘与板 A 北缘（临楼梯井侧）
+		for i in 4:
+			var pz1: float = f1z1 + 0.3 + float(i) * 0.65
+			rail.call(stx1 + 0.03, y0 + 0.145 + 1.4 * (f1z0 - pz1) / 3.0, pz1, "%s_A%d" % [L, i])
+		_add_box(row, "Bldg_%s_HR1%s" % [b["id"], L], Vector3(mx.call(stx1 + 0.03), f1_c.y + 0.95, f1_c.z),
+			Vector3(0.05, 0.05, f1_len), "metal_dark", Color(1, 1, 1), 0.0, f1_ang)
+		for i in 3:
+			rail.call(oax1, y1, obz1 + 0.25 + float(i) * 0.45, "%s_B%d" % [L, i])
+		_add_box(row, "Bldg_%s_HR2%s" % [b["id"], L], Vector3(mx.call(oax1), y1 + 0.95, (obz1 + oaz1) * 0.5),
+			Vector3(0.05, 0.05, oaz1 - obz1), "metal_dark")
+		for i in 3:
+			rail.call(in_x0 + 0.25 + float(i) * 0.4, y1, oaz1 + 0.02, "%s_C%d" % [L, i])
+		_add_box(row, "Bldg_%s_HR3%s" % [b["id"], L], Vector3(mx.call((in_x0 + oax1) * 0.5), y1 + 0.95, oaz1 + 0.02),
+			Vector3(oax1 - in_x0, 0.05, 0.05), "metal_dark")
+		# 上层隔断（z=b.z+0.5，门洞 x 居中 1.2m）：楼梯间 | 南房（逐层一段）
+		var pz: float = b["z"] + 0.5
+		var g0: float = b["x"] - 0.6
+		var g1: float = b["x"] + 0.6
+		_add_box(row, "Bldg_%s_PART_UA%s" % [b["id"], L], Vector3((in_x0 + g0) * 0.5, y1 + floor_h * 0.5, pz),
+			Vector3(g0 - in_x0, floor_h, SHELL_PART_T), "plaster_white", tint)
+		_add_box(row, "Bldg_%s_PART_UB%s" % [b["id"], L], Vector3((g1 + in_x1) * 0.5, y1 + floor_h * 0.5, pz),
+			Vector3(in_x1 - g1, floor_h, SHELL_PART_T), "plaster_white", tint)
+		# 各层楼梯到达口应急灯（引导上楼；照明 B 方案）
+		var lu := OmniLight3D.new()
+		lu.name = "Bldg_%s_EmLightU%s" % [b["id"], L]
+		lu.position = Vector3(mx.call(obx1 + 1.6), y1 + floor_h - 0.45, lz0 + 0.55)
+		lu.set_script(light_script)
+		row.add_child(lu)
 
 	# 一层隔断（x=px，门洞 z ∈ b.z+1.0..b.z+2.2）：门厅 | 东房
 	var px: float = b["x"] - 0.5 if east_side else b["x"] + 0.5
@@ -449,30 +470,17 @@ func _build_enterable_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Co
 		Vector3(SHELL_PART_T, floor_h - 0.145, b["z"] + 1.0 - in_z0), "plaster_white", tint)
 	_add_box(row, "Bldg_%s_PART_F1B" % b["id"], Vector3(px, 1.57, (b["z"] + 2.2 + in_z1) * 0.5),
 		Vector3(SHELL_PART_T, floor_h - 0.145, in_z1 - b["z"] - 2.2), "plaster_white", tint)
-	# 二层隔断（z=b.z+0.5，门洞 x 居中 1.2m）：楼梯间 | 南房
-	var pz: float = b["z"] + 0.5
-	var g0: float = b["x"] - 0.6
-	var g1: float = b["x"] + 0.6
-	_add_box(row, "Bldg_%s_PART_F2A" % b["id"], Vector3((in_x0 + g0) * 0.5, (floor_h + h_total) * 0.5, pz),
-		Vector3(g0 - in_x0, h_total - floor_h, SHELL_PART_T), "plaster_white", tint)
-	_add_box(row, "Bldg_%s_PART_F2B" % b["id"], Vector3((g1 + in_x1) * 0.5, (floor_h + h_total) * 0.5, pz),
-		Vector3(in_x1 - g1, h_total - floor_h, SHELL_PART_T), "plaster_white", tint)
 
-	# 闪烁应急灯 ×2（照明 B 方案）：一层门厅顶 + 二楼楼梯口顶（引导上楼）
-	var script: Script = load("res://scripts/levels/emergency_light.gd")
+	# 一层门厅应急灯（照明 B 方案：机主 2026-09-27 裁决）
 	var hall_x: float = (in_x0 + px) * 0.5 if east_side else (px + in_x1) * 0.5
 	var l1 := OmniLight3D.new()
 	l1.name = "Bldg_%s_EmLightF1" % b["id"]
 	l1.position = Vector3(hall_x, floor_h - 0.35, b["z"])
-	l1.set_script(script)
+	l1.set_script(light_script)
 	row.add_child(l1)
-	var l2 := OmniLight3D.new()
-	l2.name = "Bldg_%s_EmLightF2" % b["id"]
-	l2.position = Vector3(mx.call(obx1 + 1.6), h_total - 0.45, lz0 + 0.55)  # 二楼楼梯到达口上方
-	l2.set_script(script)
-	row.add_child(l2)
 
 	_furnish_enterable(row, b)
+	_furnish_decor(row, b)
 
 
 ## 临街墙洞口减法（沿 Z 墙体，法线 ±X）：z 向按洞边切条，每条 y 向填洞间实体段。
@@ -610,6 +618,28 @@ func _furnish_enterable(row: Node3D, b: Dictionary) -> void:
 		if not _prop_model(prop, "res://assets/models/fur_%s.glb" % f["type"],
 				spec[0], spec[1], spec[2]):
 			push_warning("street_builder: missing furniture model fur_%s.glb" % f["type"])
+		idx += 1
+
+
+## 按 Layout.DECOR 数据表给可进入楼摆室内细节件（2026-10-07 道具批2「画皮居所」）。
+## 与家具的关键差异：dec_* 在烘焙期就定死了真实尺寸与「落地/贴墙」原点 → 这里【直接落位】，
+## 刻意不走 _prop_model（AABB 归一缩放会把件二次缩放，并把贴墙件的背面拉离墙面）。
+## 纯陈设：不附碰撞盒——厘米级小件加 StaticBody 只增物理开销，且挡不住人也挡不住弹。
+func _furnish_decor(row: Node3D, b: Dictionary) -> void:
+	var idx := 0
+	for d in Layout.DECOR:
+		if d["bldg"] != b["id"]:
+			continue
+		var path := "res://assets/models/dec_%s.glb" % d["type"]
+		var prop := Node3D.new()
+		prop.name = "Dec_%s_%s_%d" % [b["id"], d["type"], idx]
+		prop.position = Vector3(d["x"], d["y"], d["z"])
+		prop.rotation_degrees.y = d.get("rot_y", 0.0)
+		row.add_child(prop)
+		if ResourceLoader.exists(path):
+			prop.add_child((load(path) as PackedScene).instantiate())
+		else:
+			push_warning("street_builder: missing decor model dec_%s.glb" % d["type"])
 		idx += 1
 
 
@@ -865,6 +895,36 @@ func _build_props() -> void:
 				_prop_trash_bin(prop)
 			_:
 				push_warning("street_builder: unknown prop type %s" % p["type"])
+
+
+## 室内拾取物场景（Layout.PICKUPS 的实例模板；视觉件由 pickup.gd 按 kind 装载 pickup_<kind>.glb）
+const PICKUP_SCENE_PATH := "res://scenes/levels/pickup.tscn"
+
+
+## —— 室内拾取物（2026-10-07 机主裁决冻结：居民区室内补给 = 电池组/医疗注射/取证终端）——
+## Layout.PICKUPS → pickup.tscn 实例；intel_total 由本图 intel 条目数统一注入
+## （单件拾取物不自己数地图；HUD「取证终端 x/N」的 N 由此而来）。
+func _build_pickups() -> void:
+	var row := Node3D.new()
+	row.name = "Pickups"
+	add_child(row)
+	if not ResourceLoader.exists(PICKUP_SCENE_PATH):
+		push_warning("street_builder: missing pickup scene %s" % PICKUP_SCENE_PATH)
+		return
+	var scene: PackedScene = load(PICKUP_SCENE_PATH) as PackedScene
+	var intel_total := 0
+	for p in Layout.PICKUPS:
+		if p["kind"] == "intel":
+			intel_total += 1
+	for i in Layout.PICKUPS.size():
+		var p: Dictionary = Layout.PICKUPS[i]
+		var pk: Node3D = scene.instantiate()
+		pk.name = "Pickup_%s_%d" % [p["kind"], i]
+		pk.position = Vector3(p["x"], p.get("y", 0.0), p["z"])
+		pk.set(&"kind", StringName(p["kind"]))
+		if p["kind"] == "intel":
+			pk.set(&"intel_total", intel_total)
+		row.add_child(pk)
 
 
 ## 道具局部零件（原语网格 + 调色板材质，无独立碰撞）

@@ -50,6 +50,7 @@ const LEG_WARN_COLOR_CRITICAL: Color = Color(0.8, 0.3, 0.25)
 @onready var _leg_warning_label: Label = %LegWarningLabel
 @onready var _message_label: Label = %MessageLabel
 @onready var _heli_timer_label: Label = %HeliTimerLabel
+@onready var _intel_label: Label = %IntelLabel
 @onready var _crosshair: Control = %Crosshair
 @onready var _damage_flash: ColorRect = %DamageFlash
 @onready var _kill_label: Label = %KillLabel
@@ -108,6 +109,7 @@ func _connect_events() -> void:
 	Events.leg_state_changed.connect(_on_leg_state_changed)
 	Events.message_posted.connect(_on_message_posted)
 	Events.kills_changed.connect(_refresh_kills)
+	Events.intel_picked.connect(_on_intel_picked)
 	Events.hit_confirmed.connect(_on_hit_confirmed)
 	Events.enemy_died.connect(_on_enemy_died)
 	Events.damage_dealt.connect(_on_damage_dealt)
@@ -127,6 +129,7 @@ func _disconnect_events() -> void:
 	Events.leg_state_changed.disconnect(_on_leg_state_changed)
 	Events.message_posted.disconnect(_on_message_posted)
 	Events.kills_changed.disconnect(_refresh_kills)
+	Events.intel_picked.disconnect(_on_intel_picked)
 	Events.hit_confirmed.disconnect(_on_hit_confirmed)
 	Events.enemy_died.disconnect(_on_enemy_died)
 	Events.damage_dealt.disconnect(_on_damage_dealt)
@@ -220,6 +223,14 @@ func _on_message_posted(text: String) -> void:
 
 func _refresh_kills(kills: int) -> void:
 	_kills_label.text = "击杀：%d" % kills
+
+
+## 取证终端收集进度（2026-10-07 拾取契约的信号消费端）：
+## 首次拾取后常驻显示——中央飘字 MESSAGE_HOLD_TIME 后即淡出，
+## 而收集品的「还差几个」属于需要常读的信息；总数由地图 builder 注入。
+func _on_intel_picked(collected: int, total: int) -> void:
+	_intel_label.text = "取证终端：%d / %d" % [collected, total]
+	_intel_label.visible = true
 
 
 ## 命中反馈：准星放大（普通 / 爆头倍率见 GameConfig「UI 反馈动效」组），保持后恢复。

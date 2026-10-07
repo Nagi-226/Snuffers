@@ -207,6 +207,25 @@ theme_override_font_sizes/font_size = 20
 horizontal_alignment = 2
 text = "击杀：0"
 
+; 取证终端收集进度（2026-10-07 拾取契约的显示端；中央飘字 0.8s 即淡出，
+; 收集品的「还差几个」需要常读信息，故单列一条常驻标签。首次拾取后显示）
+[node name="IntelLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -206.0
+offset_top = 46.0
+offset_right = -16.0
+offset_bottom = 74.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.62, 0.78, 0.68, 1)
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 2
+text = "取证终端：0 / 0"
+
 [node name="HeliTimerLabel" type="Label" parent="."]
 unique_name_in_owner = true
 visible = false

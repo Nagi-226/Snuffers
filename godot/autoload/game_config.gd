@@ -49,6 +49,13 @@ const MEDKIT_HEAL: float = 50.0 ## 三部位各 +50（L866）
 const MEDKIT_PICKUP_RADIUS: float = 3.0 ## 拾取半径（L849）
 const MEDKIT_MAX_CARRY: int = 5 ## 携带上限（L2305）
 
+# ===== 拾取（2026-10-07 机主裁决冻结：居民区室内补给 = 电池组/医疗注射/取证终端，无 RPG）=====
+const BATTERY_PICKUP_ROUNDS: int = 60 ## 电池组补充步枪备弹数
+const PICKUP_TRIGGER_RADIUS: float = 0.7 ## 拾取触发半径（贴近即拾，无需按键）
+const PICKUP_BOB_AMP: float = 0.05 ## 浮动振幅 m
+const PICKUP_BOB_HZ: float = 1.2 ## 浮动频率 Hz
+const PICKUP_SPIN_DEG: float = 45.0 ## 自转角速度 度/s
+
 # ===== 步枪（G2 门禁基准）=====
 const RIFLE_DMG_BODY: float = 25.0 ## 身体伤害（L2985）
 const RIFLE_DMG_HEAD_FACTOR: float = 2.0 ## 爆头倍率 → 50（L2985）

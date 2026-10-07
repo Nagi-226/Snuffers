@@ -41,10 +41,17 @@ script = ExtResource("Script_flycam")
 [node name="Skyline" type="Node3D" parent="."]
 script = ExtResource("Script_skyline")
 
-; 可进入建筑试点（E1）驻军：寄生宿主×2（甲方案：复用步兵状态机，无玩家时原地巡逻）
-; Host_F1 在一楼东房（搜索房），Host_F2 在二楼南房
+; 可进入建筑驻军（甲方案：复用步兵状态机，无玩家时原地巡逻）
+; E1：Host_F1 一楼东房（搜索房），Host_F2 二楼南房
+; E2（3 层，2026-10-07）：Host_E2_F1 一楼东房，Host_E2_F3 三楼南房（二楼留巡逻动线）
 [node name="Host_F1" parent="." instance=ExtResource("Scene_infantry")]
 position = Vector3(13.5, 0.15, 18.0)
 
 [node name="Host_F2" parent="." instance=ExtResource("Scene_infantry")]
 position = Vector3(12.5, 3.05, 20.5)
+
+[node name="Host_E2_F1" parent="." instance=ExtResource("Scene_infantry")]
+position = Vector3(13.5, 0.15, -4.0)
+
+[node name="Host_E2_F3" parent="." instance=ExtResource("Scene_infantry")]
+position = Vector3(12.5, 6.05, -1.5)

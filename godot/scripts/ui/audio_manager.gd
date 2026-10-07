@@ -191,6 +191,11 @@ func _connect_events() -> void:
 	Events.rpg_exploded.connect(_on_rpg_exploded)
 	Events.player_moving_changed.connect(_on_player_moving_changed)
 	Events.enemy_fired.connect(_on_enemy_fired)
+	# 拾取（2026-10-07 冻结新增）：battery_picked → reload（备弹补充感）；
+	#   medkit_picked → medkit ｜ intel_picked → ui_click（终端回收感）
+	Events.battery_picked.connect(_on_battery_picked)
+	Events.medkit_picked.connect(_on_medkit_picked)
+	Events.intel_picked.connect(_on_intel_picked)
 
 
 func _disconnect_events() -> void:
@@ -205,6 +210,9 @@ func _disconnect_events() -> void:
 	Events.rpg_exploded.disconnect(_on_rpg_exploded)
 	Events.player_moving_changed.disconnect(_on_player_moving_changed)
 	Events.enemy_fired.disconnect(_on_enemy_fired)
+	Events.battery_picked.disconnect(_on_battery_picked)
+	Events.medkit_picked.disconnect(_on_medkit_picked)
+	Events.intel_picked.disconnect(_on_intel_picked)
 
 
 func _on_weapon_fired(_weapon_id: StringName) -> void:
@@ -225,6 +233,18 @@ func _on_hit_confirmed(_is_headshot: bool) -> void:
 
 func _on_medkit_used(_remaining: int) -> void:
 	play_sfx(&"medkit")
+
+
+func _on_battery_picked(_reserve: int) -> void:
+	play_sfx(&"reload")
+
+
+func _on_medkit_picked(_total: int) -> void:
+	play_sfx(&"medkit")
+
+
+func _on_intel_picked(_collected: int, _total: int) -> void:
+	play_sfx(&"ui_click")
 
 
 func _on_night_vision_toggled(_enabled: bool) -> void:
