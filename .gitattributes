@@ -1,0 +1,2 @@
+# cmd 批处理必须 CRLF 行尾（LF 会导致行拼接解析错误），任何机器 checkout 均强制 CRLF
+*.bat text eol=crlf
