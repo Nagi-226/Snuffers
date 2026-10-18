@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://scripts/levels/fly_camera.gd" id="Script_flycam"]
 [ext_resource type="Script" path="res://scripts/levels/skyline_builder.gd" id="Script_skyline"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/infantry.tscn" id="Scene_infantry"]
+[ext_resource type="Script" path="res://scripts/levels/street_day_night_driver.gd" id="Script_drv"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.012, 0.085, 0.21, 1)
@@ -55,3 +56,6 @@ position = Vector3(13.5, 0.15, -4.0)
 
 [node name="Host_E2_F3" parent="." instance=ExtResource("Scene_infantry")]
 position = Vector3(12.5, 6.05, -1.5)
+
+[node name="StreetDayNightDriver" type="Node" parent="."]
+script = ExtResource("Script_drv")
