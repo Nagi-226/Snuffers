@@ -20,19 +20,21 @@ Blender 位于 `D:\steam\steamapps\common\Blender\blender.exe`，只用 headless
 
 ## 首张派单：EM-68A 武器 GLB 后处理管线
 
-输入：`desktop-port/godot-spike/modeling/em-weapons/em68a.glb`（AI 图生3D 产物，54.7MB，4K 贴图，高面数）
+输入：`desktop-port/godot-spike/modeling/em-weapons/em68a.glb`（AI 图生3D 产物，54.7MB，4K 贴图——**机主已验收为完美成品，本任务全程零几何/零贴图改动**）
+后续：`em57p.glb`（同目录，手枪）走同一管线，首张派单只做 EM-68A，跑通后蜂后派第二单
 
 交付（全部在你域内）：
 1. `desktop-port/godot-spike/modeling/scripts/weapon_postprocess.py`——Blender headless 脚本，功能：
    a. 导入 GLB，统计并输出三角面数/网格清单/材质清单（JSON 报告）
-   b. 减面至 ≤20,000 三角面（保持 UV 与轮廓，优先 Blender 自带 Decimate/Quadric，禁引入新 Python 依赖）
-   c. 按连通分量+材质识别并拆分**弹匣、瞄具、下挂榴弹模块**为独立子对象（换弹动画需要弹匣独立；拆不出的在报告中明示，不许硬编凑数）
-   d. 导出 `em68a_viewmodel.glb`（Y-up 保持、应用全部变换、贴图内嵌）
-2. `weapon_postprocess_report.md`——处理前后对比数据 + 拆分结果 + 未解决问题清单
+   b. **【最高优先级禁令】模型几何与贴图已被机主验收为完美成品，禁止任何形式的减面（Decimate/Quadric/重拓扑/顶点合并/法线重算）、禁止重压缩或重采样贴图、禁止任何会改动模型视觉结果的"优化"。你的工作是原样保管 + 结构化拆分，不是优化。**
+   c. 按连通分量+材质识别并拆分**弹匣、瞄具、下挂榴弹模块**为独立子对象（换弹动画需要弹匣独立；拆不出的在报告中明示，不许硬编凑数）。拆分只允许做"分组/分离已有几何"，禁止增删改任何顶点与 UV
+   d. 导出 `em68a_viewmodel.glb`（Y-up 保持、应用全部变换、贴图原样内嵌，不做任何压缩）
+2. `weapon_postprocess_report.md`——三角面数/网格/材质实测清单 + 拆分结果 + 未解决问题清单
 
 验收标准（物化）：
-- `blender.exe -b --python weapon_postprocess.py -- em68a.glb` 一次跑通，输出 GLB 存在且 ≤25MB
-- 报告含前后三角面数实测值（不许写"预计"）
+- `blender.exe -b --python weapon_postprocess.py -- em68a.glb` 一次跑通，输出 GLB 存在
+- **导出模型与输入模型逐顶点一致**（顶点数/三角面数相等，报告含两组实测值对比，不许写"预计"）；仅对象层级（弹匣等子对象分离）允许变化
+- 体积不作限制（贴图原样保留是机主要求）
 - Godot 侧验证由蜂后执行，你不用碰 godot/ 目录
 
 ## 工程纪律（违反任一条即停工报告）
