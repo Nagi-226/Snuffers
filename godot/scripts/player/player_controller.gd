@@ -18,6 +18,7 @@ const KEY_NIGHT_VISION: Key = KEY_N ## N：夜视仪切换（§11.2 机主裁决
 const KEY_MEDKIT: Key = KEY_F ## 网页版 F：使用药包
 const KEY_HELI: Key = KEY_H ## 网页版 H：呼叫直升机
 const KEY_JUMP: Key = KEY_SPACE ## 空格：跳跃（2026-10-18 机主立项）
+const KEY_INTERACT: Key = KEY_E ## E：通用交互（2026-10-18 机主立项：开门等；拾取物不走此键，贴近自动捡拾）
 const KEY_RELEASE_MOUSE: Key = KEY_ESCAPE ## Esc：释放鼠标（点击画面恢复捕获）
 
 var _pitch: float = 0.0
@@ -31,6 +32,10 @@ var _cam_height_target: float = 0.0
 var _cam_lerp_elapsed: float = 0.0
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
+
+# E 键通用交互（2026-10-18 机主立项）：准星射线命中带 interact() 方法的节点即生效
+var _interact_target: Node = null
+var _prompt_label: Label = null
 
 @onready var _collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var _camera: Camera3D = $Camera3D
@@ -47,6 +52,23 @@ func _ready() -> void:
 	_cam_height_target = GameConfig.CAM_HEIGHT_STAND
 	_cam_height_from = GameConfig.CAM_HEIGHT_STAND
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# 交互提示标签（E 开门等）：脚本自建 CanvasLayer，不动 W5 域 HUD 场景；
+	# 准星下方居中，仅在有可交互目标时显示。
+	var prompt_layer := CanvasLayer.new()
+	prompt_layer.name = "InteractPrompt"
+	prompt_layer.layer = 2
+	_prompt_label = Label.new()
+	_prompt_label.anchor_left = 0.5
+	_prompt_label.anchor_right = 0.5
+	_prompt_label.anchor_top = 0.5
+	_prompt_label.anchor_bottom = 0.5
+	_prompt_label.offset_top = 34.0
+	_prompt_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_prompt_label.add_theme_font_size_override("font_size", 18)
+	_prompt_label.add_theme_color_override("font_color", Color(0.85, 0.95, 1.0, 0.9))
+	_prompt_label.visible = false
+	prompt_layer.add_child(_prompt_label)
+	add_child(prompt_layer)
 	# 承伤管线挂接（发射侧在 enemy_base._damage_player；结算收口在本类 _apply_damage）。
 	Events.player_damaged.connect(_apply_damage)
 
@@ -95,6 +117,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_call_heli()
 			KEY_JUMP:
 				_try_jump()
+			KEY_INTERACT:
+				_try_interact()
 
 
 func _physics_process(delta: float) -> void:
@@ -149,6 +173,8 @@ func _physics_process(delta: float) -> void:
 	GameState.player_position = global_position
 	GameState.player_yaw = rotation.y
 
+	_update_interact_target()
+
 	_update_speed_state()
 	_update_still_time(delta)
 
@@ -158,6 +184,36 @@ func _try_jump() -> void:
 	if GameState.is_prone or not is_on_floor():
 		return
 	velocity.y = GameConfig.JUMP_VELOCITY
+
+
+## E 键通用交互：当前射线目标（_update_interact_target 每物理帧刷新）响应即调用。
+## 交互对象契约：实现 interact() + interact_prompt()（见 scripts/levels/door.gd）。
+func _try_interact() -> void:
+	if _interact_target != null and is_instance_valid(_interact_target):
+		_interact_target.interact()
+
+
+## 准星射线探测可交互目标：命中碰撞体后沿父链找 interact() 方法；
+## 有目标时显示提示文案（interact_prompt()），无目标时隐藏。
+func _update_interact_target() -> void:
+	var from := _camera.global_position
+	var to := from + (-_camera.global_transform.basis.z) * GameConfig.INTERACT_RANGE
+	var q := PhysicsRayQueryParameters3D.create(from, to)
+	q.exclude = [get_rid()]
+	var hit := get_world_3d().direct_space_state.intersect_ray(q)
+	var target: Node = null
+	if not hit.is_empty():
+		var n: Node = hit["collider"] as Node
+		while n != null:
+			if n.has_method("interact"):
+				target = n
+				break
+			n = n.get_parent()
+	_interact_target = target
+	if _prompt_label != null:
+		_prompt_label.visible = target != null
+		if target != null:
+			_prompt_label.text = target.interact_prompt()
 
 
 ## 自动上台阶：抬 STEP_MAX_HEIGHT → 前推 → 向下落回台阶面（三段 test_move，

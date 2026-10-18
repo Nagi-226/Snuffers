@@ -369,6 +369,14 @@ func _build_enterable_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Co
 		Vector3(0.36, SHELL_DOOR_H, 0.12), "metal_dark")
 	_add_box(row, "Bldg_%s_LINTEL" % b["id"], Vector3(jamb_x, SHELL_DOOR_H + 0.06, door_c),
 		Vector3(0.36, 0.12, SHELL_DOOR_W + 0.24), "metal_dark")
+	# 门扇（常闭，E 键交互开/关，2026-10-18 机主立项）：铰链在 dz0 侧门垛、向室内开；
+	# 门扇尺寸收缩留缝。东排室内在 +X → +105°；西排镜像 → -105°。
+	var door := Node3D.new()
+	door.name = "Bldg_%s_DOOR" % b["id"]
+	door.set_script(load("res://scripts/levels/door.gd"))
+	row.add_child(door)
+	door.setup(Vector3(jamb_x, 0.0, dz0 + 0.09), SHELL_DOOR_W - 0.18, SHELL_DOOR_H - 0.06,
+		105.0 if east_side else -105.0, Color(0.30, 0.24, 0.18))
 	# 二楼真阳台（内外打通：门洞已在临街墙开好，此处建外挑板+门槛坡道+门框+栏杆）
 	if b["floors"] >= 2:
 		_build_balcony(row, b, floor_h, tint, bz_c)
@@ -1167,6 +1175,25 @@ func _compute_barriers() -> void:
 		if g["h"] > 0.3:
 			obstacles.append([g["x"] - g["w"] * 0.5, g["z"] - g["d"] * 0.5,
 				g["x"] + g["w"] * 0.5, g["z"] + g["d"] * 0.5])
+
+	# 可进入楼室内并入覆盖带（2026-10-18 机主报修：进不了楼）——壳体墙段已是障碍、
+	# 门洞留通道，但室内此前不在覆盖带内，门口被判成「带内↔带外」越界通道，
+	# 迭代密封自动落铁栅栏把大门封死（Fence_65_180 等）。室内带内化后门口两端
+	# 皆为带内，不再产生 crossing。与 audit_map.gd「预期可玩区」的内推口径一致。
+	for b in Layout.BUILDINGS:
+		if b.get("enterable", false):
+			cover.append([b["x"] - b["w"] * 0.5 + SHELL_WALL_T, b["z"] - b["d"] * 0.5 + SHELL_WALL_T,
+				b["x"] + b["w"] * 0.5 - SHELL_WALL_T, b["z"] + b["d"] * 0.5 - SHELL_WALL_T])
+			# 门洞咽喉段也必须带内：墙体厚度内的门洞格既非障碍也非带内时，
+			# 仍会被判成 crossing 落栅栏（与 _build_enterable_shell 同开间中线公式）
+			var n_bays: int = maxi(1, int(floor(b["d"] / KIT_BAY)))
+			var door_c: float = b["z"] - n_bays * KIT_BAY * 0.5 + (n_bays / 2 + 0.5) * KIT_BAY
+			var w_x0: float = b["x"] - b["w"] * 0.5
+			var w_x1: float = b["x"] + b["w"] * 0.5
+			if b["x"] > 0.0:  # 东排门在西墙
+				cover.append([w_x0 - 0.2, door_c - SHELL_DOOR_W * 0.5, w_x0 + SHELL_WALL_T, door_c + SHELL_DOOR_W * 0.5])
+			else:
+				cover.append([w_x1 - SHELL_WALL_T, door_c - SHELL_DOOR_W * 0.5, w_x1 + 0.2, door_c + SHELL_DOOR_W * 0.5])
 
 	# 覆盖带栅格（O(1) 查询）
 	var cov := PackedByteArray()

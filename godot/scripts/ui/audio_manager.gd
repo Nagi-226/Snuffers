@@ -63,12 +63,13 @@ func _ensure_bus(bus_name: StringName, volume_linear: float) -> void:
 
 ## 播放一次性音效（sfx 总线）；枪声类自动附加随机音高抖动。
 ## name 与 assets/audio/ 下的文件名主体一致（rifle/rocket/reload/... ）。
-func play_sfx(sound_name: StringName) -> void:
+## max_time > 0 时播到该时长后 0.12s 淡出截停（长音源短用，如夜视开关音）。
+func play_sfx(sound_name: StringName, max_time: float = 0.0) -> void:
 	var pitch: float = -1.0 ## 负值 = 不设置 pitch_scale（保持默认 1.0）
 	if sound_name in GUN_SOUNDS:
 		var jitter: float = GameConfig.SFX_PITCH_JITTER
 		pitch = randf_range(1.0 - jitter, 1.0 + jitter)
-	_spawn_sfx(sound_name, pitch)
+	_spawn_sfx(sound_name, pitch, max_time)
 
 
 ## 播放一次性音效并叠加音高基值（敌人机枪降调复用步枪音源用）；
@@ -79,7 +80,8 @@ func play_sfx_pitched(sound_name: StringName, base_pitch: float) -> void:
 
 
 ## 实际创建播放器；pitch ≤ 0 时保持默认 1.0。
-func _spawn_sfx(sound_name: StringName, pitch: float) -> void:
+## max_time > 0：到点 0.12s 淡出后停播（播放器仍由 finished 信号释放）。
+func _spawn_sfx(sound_name: StringName, pitch: float, max_time: float = 0.0) -> void:
 	var stream: AudioStream = _get_stream(sound_name)
 	if stream == null:
 		return
@@ -91,6 +93,20 @@ func _spawn_sfx(sound_name: StringName, pitch: float) -> void:
 	player.finished.connect(player.queue_free)
 	add_child(player)
 	player.play()
+	if max_time > 0.0:
+		_trim_sfx_after(player, max_time)
+
+
+## 长音源短用：先播 max_time - 0.12s，再 0.12s 淡出到 -40dB 并停播。
+## 播放器中途自然结束（音源比截点短）时 is_instance_valid 守卫兜底。
+func _trim_sfx_after(player: AudioStreamPlayer, max_time: float) -> void:
+	await get_tree().create_timer(maxf(max_time - 0.12, 0.05)).timeout
+	if not is_instance_valid(player) or not player.playing:
+		return
+	var tw := create_tween()
+	tw.tween_property(player, "volume_db", -40.0, 0.12)
+	# stop() 不发 finished 信号，直接 queue_free 释放（停播+回收一步完成）
+	tw.tween_callback(player.queue_free)
 
 
 ## 启动循环音（loop 总线：脚步/直升机）；同名重复调用幂等。
@@ -248,7 +264,8 @@ func _on_intel_picked(_collected: int, _total: int) -> void:
 
 
 func _on_night_vision_toggled(_enabled: bool) -> void:
-	play_sfx(&"nightvision")
+	# 2026-10-18 机主裁决：原音源偏长，截短到 NV_SFX_CUT_TIME 后淡出
+	play_sfx(&"nightvision", GameConfig.NV_SFX_CUT_TIME)
 
 
 func _on_heli_called() -> void:

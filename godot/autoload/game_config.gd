@@ -25,6 +25,8 @@ const CAM_HEIGHT_LERP_TIME: float = 0.15 ## 趴下过渡 150ms（有意改进：
 
 const JUMP_VELOCITY: float = 4.5 ## 跳跃初速 u/s（空格；2026-10-18 机主立项：g=9.8 下跳高约 1.03m，可上路缘/矮台）
 const STEP_MAX_HEIGHT: float = 0.35 ## 自动上台阶最大高度 m（2026-10-18 机主立项：路缘 0.145/门槛/阳台板 0.14 免跳直上；>0.35 的墙仍需跳或绕）
+const INTERACT_RANGE: float = 2.4 ## E 键通用交互距离 m（2026-10-18 机主立项：开门等；准星射线命中才生效）
+const NV_SFX_CUT_TIME: float = 0.85 ## 夜视开关音效截短时长 s（2026-10-18 机主裁决：原音源偏长，播到此时长后 0.12s 淡出截停）
 
 const FOV_BASE: float = 75.0 ## 主相机 FOV（L465）
 const FOV_SCOPE: float = 25.0 ## 瞄准镜 FOV = 75/3（L512）
