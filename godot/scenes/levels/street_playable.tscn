@@ -1,0 +1,26 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/levels/street_test.tscn" id="1_street"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/audio_manager.tscn" id="4_audio"]
+[ext_resource type="Script" path="res://scripts/levels/night_vision_overlay.gd" id="5_nv"]
+[ext_resource type="Script" path="res://scripts/levels/street_playable.gd" id="6_root"]
+
+[node name="StreetPlayable" type="Node3D"]
+script = ExtResource("6_root")
+
+[node name="StreetTest" parent="." instance=ExtResource("1_street")]
+
+; 玩家：主干道开阔处出生（原 OverviewCamera 位附近），面朝 -Z 街心；y=0.1 防初始穿插
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector3(0, 0.1, 30)
+
+; UI / 音频（照 main.tscn 总装模式，实例化只读）
+[node name="HUD" parent="." instance=ExtResource("3_hud")]
+
+[node name="AudioManager" parent="." instance=ExtResource("4_audio")]
+
+; 夜视覆盖层（派单 16 升级版，layer=0 只处理 3D 画面不染 HUD；N 键开关，夜间门控）
+[node name="NightVisionOverlay" type="CanvasLayer" parent="."]
+script = ExtResource("5_nv")
