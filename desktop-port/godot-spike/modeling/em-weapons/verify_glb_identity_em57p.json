@@ -1,0 +1,522 @@
+{
+ "verdict": "FAIL",
+ "input": {
+  "path": "E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\em57p.glb",
+  "file_bytes": 53740660,
+  "structural": {
+   "generator": "3d_generator",
+   "nodes": 1,
+   "meshes": 1,
+   "materials": 1,
+   "images": 3,
+   "textures": 3,
+   "animations": 0,
+   "skins": 0,
+   "cameras": 0,
+   "extensionsUsed": [],
+   "extensionsRequired": [],
+   "node_names": [
+    "node_be8e1672-1b42-47b3-a35a-0441b4edf0ec"
+   ],
+   "primitive_count": 1
+  },
+  "images": [
+   {
+    "name": "Color_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+    "mime": "image/jpeg",
+    "bytes": 3573684,
+    "sha256": "0314533b4ec8cef42173955a7dd10fa54cfea4af8063bbad1d1a3ab7ec441c8c"
+   },
+   {
+    "name": "ORM_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+    "mime": "image/jpeg",
+    "bytes": 2054035,
+    "sha256": "4fb9d6e4ef2929d02eca6302405991b2dd489be443318171cb0b6b5ef0df4100"
+   },
+   {
+    "name": "NormalGL_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+    "mime": "image/png",
+    "bytes": 8992754,
+    "sha256": "a1ec3dc4e62e6e3908467c5216f088c2150afaad73568a82a403ec024e7cfaf5"
+   }
+  ],
+  "materials": [
+   {
+    "alphaMode": "OPAQUE",
+    "alphaCutoff": null,
+    "doubleSided": false,
+    "baseColorFactor": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "metallicFactor": 1.0,
+    "roughnessFactor": 1.0,
+    "baseColorTexture": {
+     "image_sha256": "0314533b4ec8cef42173955a7dd10fa54cfea4af8063bbad1d1a3ab7ec441c8c",
+     "image_name": "Color_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+     "texCoord": 0
+    },
+    "metallicRoughnessTexture": {
+     "image_sha256": "4fb9d6e4ef2929d02eca6302405991b2dd489be443318171cb0b6b5ef0df4100",
+     "image_name": "ORM_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+     "texCoord": 0
+    },
+    "normalTexture": {
+     "image_sha256": "a1ec3dc4e62e6e3908467c5216f088c2150afaad73568a82a403ec024e7cfaf5",
+     "image_name": "NormalGL_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+     "texCoord": 0,
+     "scale": 1
+    },
+    "occlusionTexture": null,
+    "emissiveTexture": null,
+    "emissiveFactor": [
+     0,
+     0,
+     0
+    ],
+    "extensions": {}
+   }
+  ],
+  "accessor_layout": {
+   "layout": [
+    [
+     "NORMAL",
+     5126,
+     false
+    ],
+    [
+     "POSITION",
+     5126,
+     false
+    ],
+    [
+     "TEXCOORD_0",
+     5126,
+     false
+    ]
+   ],
+   "counts": {
+    "POSITION": 708475,
+    "NORMAL": 708475,
+    "TEXCOORD_0": 708475
+   }
+  },
+  "vertices": 708475,
+  "triangles": 1370580,
+  "position_groups": 685276,
+  "tri_hash_by_group_ignore_winding": "57aff810b81075244eab557133c3ecb99a6882fabebde8509a4fd6600b48b636",
+  "tri_hash_by_group_winding": "cb449bf5053bf122cd845c6cbd01d8281099a1833318067945f5e1dc3fa034c5"
+ },
+ "output": {
+  "path": "E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\em57p_viewmodel.glb",
+  "file_bytes": 52086172,
+  "structural": {
+   "generator": "Khronos glTF Blender I/O v5.2.40",
+   "nodes": 4,
+   "meshes": 4,
+   "materials": 1,
+   "images": 3,
+   "textures": 3,
+   "animations": 0,
+   "skins": 0,
+   "cameras": 0,
+   "extensionsUsed": [],
+   "extensionsRequired": [],
+   "node_names": [
+    "em57p_body",
+    "em57p_laser_module",
+    "em57p_magazine",
+    "em57p_optic"
+   ],
+   "primitive_count": 4
+  },
+  "images": [
+   {
+    "name": "NormalGL_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+    "mime": "image/png",
+    "bytes": 8992754,
+    "sha256": "a1ec3dc4e62e6e3908467c5216f088c2150afaad73568a82a403ec024e7cfaf5"
+   },
+   {
+    "name": "Color_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+    "mime": "image/jpeg",
+    "bytes": 3573684,
+    "sha256": "0314533b4ec8cef42173955a7dd10fa54cfea4af8063bbad1d1a3ab7ec441c8c"
+   },
+   {
+    "name": "ORM_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+    "mime": "image/jpeg",
+    "bytes": 2054035,
+    "sha256": "4fb9d6e4ef2929d02eca6302405991b2dd489be443318171cb0b6b5ef0df4100"
+   }
+  ],
+  "materials": [
+   {
+    "alphaMode": "OPAQUE",
+    "alphaCutoff": null,
+    "doubleSided": false,
+    "baseColorFactor": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "metallicFactor": 1.0,
+    "roughnessFactor": 1.0,
+    "baseColorTexture": {
+     "image_sha256": "0314533b4ec8cef42173955a7dd10fa54cfea4af8063bbad1d1a3ab7ec441c8c",
+     "image_name": "Color_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+     "texCoord": 0
+    },
+    "metallicRoughnessTexture": {
+     "image_sha256": "4fb9d6e4ef2929d02eca6302405991b2dd489be443318171cb0b6b5ef0df4100",
+     "image_name": "ORM_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+     "texCoord": 0
+    },
+    "normalTexture": {
+     "image_sha256": "a1ec3dc4e62e6e3908467c5216f088c2150afaad73568a82a403ec024e7cfaf5",
+     "image_name": "NormalGL_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+     "texCoord": 0
+    },
+    "occlusionTexture": null,
+    "emissiveTexture": null,
+    "emissiveFactor": [
+     0,
+     0,
+     0
+    ],
+    "extensions": {}
+   }
+  ],
+  "accessor_layout": {
+   "layout": [
+    [
+     "NORMAL",
+     5126,
+     false
+    ],
+    [
+     "POSITION",
+     5126,
+     false
+    ],
+    [
+     "TEXCOORD_0",
+     5126,
+     false
+    ]
+   ],
+   "counts": {
+    "POSITION": 708514,
+    "NORMAL": 708514,
+    "TEXCOORD_0": 708514
+   }
+  },
+  "vertices": 708514,
+  "triangles": 1370580,
+  "tri_hash_by_group_ignore_winding": "57aff810b81075244eab557133c3ecb99a6882fabebde8509a4fd6600b48b636",
+  "tri_hash_by_group_winding": "cb449bf5053bf122cd845c6cbd01d8281099a1833318067945f5e1dc3fa034c5"
+ },
+ "drift": {
+  "paired_vertices": 662428,
+  "unpaired_vertices": 46047,
+  "normal_max_angle_deg": 0.349112331,
+  "normal_p999_angle_deg": 0.05920921,
+  "normal_mean_angle_deg": 0.007019516,
+  "normal_nonzero": 662428,
+  "uv_max_abs_delta": 0.0,
+  "uv_nonzero": 0
+ },
+ "checks": [
+  {
+   "check": "顶点数一致",
+   "pass": false,
+   "detail": {
+    "in": 708475,
+    "out": 708514
+   }
+  },
+  {
+   "check": "三角面数一致",
+   "pass": true,
+   "detail": {
+    "in": 1370580,
+    "out": 1370580
+   }
+  },
+  {
+   "check": "属性布局一致（componentType/normalized 全 float32）",
+   "pass": true,
+   "detail": {
+    "in": [
+     [
+      "NORMAL",
+      5126,
+      false
+     ],
+     [
+      "POSITION",
+      5126,
+      false
+     ],
+     [
+      "TEXCOORD_0",
+      5126,
+      false
+     ]
+    ],
+    "out": [
+     [
+      "NORMAL",
+      5126,
+      false
+     ],
+     [
+      "POSITION",
+      5126,
+      false
+     ],
+     [
+      "TEXCOORD_0",
+      5126,
+      false
+     ]
+    ]
+   }
+  },
+  {
+   "check": "各属性顶点数守恒",
+   "pass": false,
+   "detail": {
+    "in": {
+     "POSITION": 708475,
+     "NORMAL": 708475,
+     "TEXCOORD_0": 708475
+    },
+    "out": {
+     "POSITION": 708514,
+     "NORMAL": 708514,
+     "TEXCOORD_0": 708514
+    }
+   }
+  },
+  {
+   "check": "三角面集合一致（按位置组，忽略绕序）",
+   "pass": true,
+   "detail": {
+    "in": "57aff810b8107524",
+    "out": "57aff810b8107524",
+    "position_groups": 685276
+   }
+  },
+  {
+   "check": "三角面绕序保留（按位置组）",
+   "pass": true,
+   "detail": {
+    "in": "cb449bf5053bf122",
+    "out": "cb449bf5053bf122"
+   }
+  },
+  {
+   "check": "每位置 POSITION 一致",
+   "pass": false,
+   "detail": {
+    "in": "2e5195abf2528308",
+    "out": "1421decf588c93bd"
+   }
+  },
+  {
+   "check": "每位置 NORMAL 一致",
+   "pass": false,
+   "detail": {
+    "in": "28d6278cebb3343f",
+    "out": "8ffa2238fb0d7f1c"
+   }
+  },
+  {
+   "check": "每位置 TEXCOORD_0 一致",
+   "pass": false,
+   "detail": {
+    "in": "37042d7c97ffb400",
+    "out": "9fb43ce945d23825"
+   }
+  },
+  {
+   "check": "法线偏差 ≤ 1e-5 度",
+   "pass": false,
+   "detail": {
+    "paired_vertices": 662428,
+    "unpaired_vertices": 46047,
+    "normal_max_angle_deg": 0.349112331,
+    "normal_p999_angle_deg": 0.05920921,
+    "normal_mean_angle_deg": 0.007019516,
+    "normal_nonzero": 662428,
+    "uv_max_abs_delta": 0.0,
+    "uv_nonzero": 0
+   }
+  },
+  {
+   "check": "UV 偏差 = 0",
+   "pass": true,
+   "detail": {
+    "paired_vertices": 662428,
+    "unpaired_vertices": 46047,
+    "normal_max_angle_deg": 0.349112331,
+    "normal_p999_angle_deg": 0.05920921,
+    "normal_mean_angle_deg": 0.007019516,
+    "normal_nonzero": 662428,
+    "uv_max_abs_delta": 0.0,
+    "uv_nonzero": 0
+   }
+  },
+  {
+   "check": "贴图字节集合一致（未重压缩/未重采样）",
+   "pass": true,
+   "detail": {
+    "in": [
+     [
+      3573684,
+      "image/jpeg",
+      "0314533b4ec8cef4"
+     ],
+     [
+      2054035,
+      "image/jpeg",
+      "4fb9d6e4ef2929d0"
+     ],
+     [
+      8992754,
+      "image/png",
+      "a1ec3dc4e62e6e39"
+     ]
+    ],
+    "out": [
+     [
+      3573684,
+      "image/jpeg",
+      "0314533b4ec8cef4"
+     ],
+     [
+      2054035,
+      "image/jpeg",
+      "4fb9d6e4ef2929d0"
+     ],
+     [
+      8992754,
+      "image/png",
+      "a1ec3dc4e62e6e39"
+     ]
+    ]
+   }
+  },
+  {
+   "check": "材质语义一致（按贴图内容解析）",
+   "pass": false,
+   "detail": {
+    "in": [
+     {
+      "alphaMode": "OPAQUE",
+      "alphaCutoff": null,
+      "doubleSided": false,
+      "baseColorFactor": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "metallicFactor": 1.0,
+      "roughnessFactor": 1.0,
+      "baseColorTexture": {
+       "image_sha256": "0314533b4ec8cef42173955a7dd10fa54cfea4af8063bbad1d1a3ab7ec441c8c",
+       "image_name": "Color_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+       "texCoord": 0
+      },
+      "metallicRoughnessTexture": {
+       "image_sha256": "4fb9d6e4ef2929d02eca6302405991b2dd489be443318171cb0b6b5ef0df4100",
+       "image_name": "ORM_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+       "texCoord": 0
+      },
+      "normalTexture": {
+       "image_sha256": "a1ec3dc4e62e6e3908467c5216f088c2150afaad73568a82a403ec024e7cfaf5",
+       "image_name": "NormalGL_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+       "texCoord": 0,
+       "scale": 1
+      },
+      "occlusionTexture": null,
+      "emissiveTexture": null,
+      "emissiveFactor": [
+       0,
+       0,
+       0
+      ],
+      "extensions": {}
+     }
+    ],
+    "out": [
+     {
+      "alphaMode": "OPAQUE",
+      "alphaCutoff": null,
+      "doubleSided": false,
+      "baseColorFactor": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "metallicFactor": 1.0,
+      "roughnessFactor": 1.0,
+      "baseColorTexture": {
+       "image_sha256": "0314533b4ec8cef42173955a7dd10fa54cfea4af8063bbad1d1a3ab7ec441c8c",
+       "image_name": "Color_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+       "texCoord": 0
+      },
+      "metallicRoughnessTexture": {
+       "image_sha256": "4fb9d6e4ef2929d02eca6302405991b2dd489be443318171cb0b6b5ef0df4100",
+       "image_name": "ORM_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+       "texCoord": 0
+      },
+      "normalTexture": {
+       "image_sha256": "a1ec3dc4e62e6e3908467c5216f088c2150afaad73568a82a403ec024e7cfaf5",
+       "image_name": "NormalGL_be8e1672-1b42-47b3-a35a-0441b4edf0ec",
+       "texCoord": 0
+      },
+      "occlusionTexture": null,
+      "emissiveTexture": null,
+      "emissiveFactor": [
+       0,
+       0,
+       0
+      ],
+      "extensions": {}
+     }
+    ]
+   }
+  },
+  {
+   "check": "对象数 1 → 4",
+   "pass": true,
+   "detail": {
+    "in": [
+     "node_be8e1672-1b42-47b3-a35a-0441b4edf0ec"
+    ],
+    "out": [
+     "em57p_body",
+     "em57p_laser_module",
+     "em57p_magazine",
+     "em57p_optic"
+    ]
+   }
+  },
+  {
+   "check": "无动画 / skin / 相机",
+   "pass": true,
+   "detail": {
+    "animations": 0,
+    "skins": 0,
+    "cameras": 0
+   }
+  }
+ ]
+}

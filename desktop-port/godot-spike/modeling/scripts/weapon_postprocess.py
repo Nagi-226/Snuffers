@@ -1,17 +1,24 @@
-"""weapon_postprocess.py — EM-68A 武器 GLB 后处理：原样保管 + 结构化拆分。
+"""weapon_postprocess.py — 武器 GLB 后处理：原样保管 + 结构化拆分（通用管线）。
 
-## 为什么这样做（设计约束，来自 W9 派单 2026-10-18）
+## 为什么这样做（设计约束，来自 W9 派单 2026-10-18 第 14/15 号）
 机主已把 AI 图生 3D 产物验收为"完美成品"，因此本脚本**不做任何资产优化**：
 - 不做减面/重拓扑/顶点合并/法线重算
 - 不重压缩、不重采样贴图
-- 只做一件事：把"弹匣 / 瞄具 / 下挂榴弹模块"从单一网格里按连通分量分离成独立子对象，
-  以便换弹、换镜、挂件等动画/挂点需求；其余几何全部留在机体对象里。
+- 只做一件事：把可动/可换装模块（弹匣、瞄具、下挂模块…）从单一网格里按连通分量
+  分离成独立子对象，以便换弹、换镜、挂件等动画/挂点需求；其余几何全部留在机体对象里。
 
 拆分只允许"分组/分离已有几何"：分离按连通分量整块搬移，不增删改任何顶点与 UV。
 
+## 通用化方式
+不同武器的尺寸与布局差异很大（EM-68A 全枪 1.0 m 长、EM-57P 手枪握把内藏弹匣），
+因此**部件划分规则按武器分档**（见 PROFILES）：每档一套 classify() + 部件名单，
+阈值一律来自隔离渲染实测，禁止跨武器套用。拆分/自检/导出逻辑对所有武器共用。
+
 ## 用法
-    blender.exe -b --python weapon_postprocess.py -- em68a.glb [输出.glb] [报告.json]
-默认输出：与输入同目录的 em68a_viewmodel.glb + weapon_postprocess_report.json
+    blender.exe -b --python weapon_postprocess.py -- <输入.glb> [输出.glb] [报告.json]
+默认为与输入同目录的：<武器名>_viewmodel.glb
+  + em68a → weapon_postprocess_report.json（沿用首单路径）
+  + 其他  → weapon_postprocess_report_<武器名>.json
 
 ## 验收自检（脚本内直接物化）
 导出 GLB 与输入 GLB 的三角面数/顶点数逐一相等（文件级实测，非估算），否则以非零码退出。
@@ -28,19 +35,68 @@ import time
 
 # ---------------------------------------------------------------- 常量
 
-# 部件归属规则（实测自 em68a.glb，坐标单位 = 米，朝向：枪口 +Y、枪托 -Y、上 +Z）
-MAG_MIN_Z = -0.05          # 弹匣：整体位于机匣下方
-MAG_CENTER_Y = (-0.10, 0.13)
-OPTIC_MIN_Z = 0.125        # 瞄具：整体位于顶部导轨之上（导轨顶面实测 0.1328）
-OPTIC_CENTER_Y = (-0.05, 0.10)   # 仅红点镜，排除前后机械照门（属机体的固定件）
-GL_MIN_CENTER_Y = 0.10     # 下挂榴弹模块：位于前段
-GL_MAX_Z = 0.04            # 且整体低于枪膛高度
-
-PART_NAMES = ("body", "magazine", "optic", "gl_module")
-OBJECT_PREFIX = "em68a_"
 GLB_MAGIC = 0x46546C67
 CHUNK_JSON = 0x4E4F534A
 CHUNK_BIN = 0x004E4942
+
+
+# ---------------------------------------------------------------- 每把武器的部件划分规则
+# 坐标系：米；枪口 +Y、枪托 -Y、上 +Z。
+# 判定顺序：瞄具 → 弹匣 → 附加模块 → 其余归 body（顺序影响重叠区域归属）。
+# 阈值必须逐武器实测标定（渲染"规则高亮 → 逐集合隔离"两轮验证），禁止跨武器套用。
+
+def _classify_em68a(stats):
+    """EM-68A 突击步枪（第 14 号单；已过 L3 审查，阈值冻结）。"""
+    labels = {}
+    for root, st in stats.items():
+        lo, hi = st["lo"], st["hi"]
+        cy = (lo[1] + hi[1]) * 0.5
+        # 瞄具：整体位于顶部导轨之上（导轨顶面实测 0.1328）；Y 区间只取红点镜，
+        # 前后折叠机械照门属机体固定件，不划入瞄具
+        if lo[2] > 0.125 and -0.05 < cy < 0.10:
+            labels[root] = "optic"
+        # 弹匣：整体位于机匣下方
+        elif hi[2] < -0.05 and -0.10 < cy < 0.13:
+            labels[root] = "magazine"
+        # 下挂榴弹模块：位于前段且整体低于枪膛高度
+        elif cy > 0.10 and hi[2] < 0.04:
+            labels[root] = "gl_module"
+        else:
+            labels[root] = "body"
+    return labels
+
+
+def _classify_em57p(stats):
+    """EM-57P「掣」手枪（第 15 号单）。
+
+    实测要点（详见 weapon_postprocess_report_em57p.md §3）：单材质、181 个连通分量；
+    弹匣与握把齐平（无独立插入件几何），故弹匣取"握把下段整块壳体 + 底盖板"，
+    拆出后握把侧板/前后握把条仍在，等价于"抽出弹匣后只剩弹匣井"。
+    """
+    labels = {}
+    for root, st in stats.items():
+        lo, hi = st["lo"], st["hi"]
+        cy = (lo[1] + hi[1]) * 0.5
+        # 瞄具：整体高于机匣顶面（实测机匣顶 z≈0.13），且位于镜桥前方到照门之间
+        if lo[2] > 0.13 and -0.16 < cy < 0.06:
+            labels[root] = "optic"
+        # 弹匣：握把下段（整体在 z=-0.145 以下），且落在握把的 Y 区间内
+        elif hi[2] < -0.145 and -0.38 <= cy <= -0.14:
+            labels[root] = "magazine"
+        # 引针模块：前段下挂组件；用"顶面 z>0.01"排除最底部导轨（导轨件顶面 <= 0）
+        elif cy > 0.20 and 0.01 < hi[2] < 0.07 and lo[2] > -0.06:
+            labels[root] = "laser_module"
+        else:
+            labels[root] = "body"
+    return labels
+
+
+PROFILES = {
+    "em68a": {"parts": ("body", "magazine", "optic", "gl_module"),
+              "classify": _classify_em68a},
+    "em57p": {"parts": ("body", "magazine", "optic", "laser_module"),
+              "classify": _classify_em57p},
+}
 
 
 def log(msg):
@@ -215,30 +271,13 @@ def component_stats(mesh, roots):
     return stats
 
 
-def classify(stats):
-    """按包围盒空间关系把连通分量归入 4 个部件。规则见文件头常量。"""
-    labels = {}
-    for root, st in stats.items():
-        lo, hi = st["lo"], st["hi"]
-        cy = (lo[1] + hi[1]) * 0.5
-        if lo[2] > OPTIC_MIN_Z and OPTIC_CENTER_Y[0] < cy < OPTIC_CENTER_Y[1]:
-            labels[root] = "optic"
-        elif hi[2] < MAG_MIN_Z and MAG_CENTER_Y[0] < cy < MAG_CENTER_Y[1]:
-            labels[root] = "magazine"
-        elif cy > GL_MIN_CENTER_Y and hi[2] < GL_MAX_Z:
-            labels[root] = "gl_module"
-        else:
-            labels[root] = "body"
-    return labels
-
-
 # ---------------------------------------------------------------- 拆分
 
-def build_part_groups(obj, mesh, roots, labels):
+def build_part_groups(obj, mesh, roots, labels, part_names):
     """用顶点组承载部件归属，供后续分多次 separate 时保持标签不丢。"""
-    for name in PART_NAMES:
+    for name in part_names:
         obj.vertex_groups.new(name=name)
-    buckets = {name: [] for name in PART_NAMES}
+    buckets = {name: [] for name in part_names}
     for vi, root in enumerate(roots):
         buckets[labels[root]].append(vi)
     for name, indices in buckets.items():
@@ -296,11 +335,21 @@ def main():
     src = os.path.abspath(argv[0])
     if not os.path.isfile(src):
         die("输入不存在: %s" % src)
+    stem = os.path.splitext(os.path.basename(src))[0]
+    profile = PROFILES.get(stem)
+    if profile is None:
+        die("没有武器 %r 的部件划分规则；已支持：%s（新增武器须先在 PROFILES 里标定阈值）"
+            % (stem, sorted(PROFILES)))
+    part_names = profile["parts"]
+    prefix = stem + "_"
+    default_report = ("weapon_postprocess_report.json" if stem == "em68a"
+                      else "weapon_postprocess_report_%s.json" % stem)
     out_glb = os.path.abspath(argv[1]) if len(argv) > 1 else os.path.join(
-        os.path.dirname(src), "em68a_viewmodel.glb")
+        os.path.dirname(src), "%s_viewmodel.glb" % stem)
     report_path = os.path.abspath(argv[2]) if len(argv) > 2 else os.path.join(
-        os.path.dirname(src), "weapon_postprocess_report.json")
+        os.path.dirname(src), default_report)
     log("输入 %s" % src)
+    log("配置 %s → 部件 %s" % (stem, ", ".join(part_names)))
     log("输出 %s" % out_glb)
 
     report = {
@@ -380,13 +429,13 @@ def main():
     t0 = time.time()
     roots = component_roots(mesh)
     stats = component_stats(mesh, roots)
-    labels = classify(stats)
+    labels = profile["classify"](stats)
     analyze_secs = round(time.time() - t0, 2)
     report["mesh"]["components"] = len(stats)
     report["mesh"]["analysis_seconds"] = analyze_secs
     log("连通分量 %d 个（%.2fs）" % (len(stats), analyze_secs))
 
-    buckets = {name: [] for name in PART_NAMES}
+    buckets = {name: [] for name in part_names}
     for root, name in labels.items():
         buckets[name].append(root)
     expected = {}
@@ -407,20 +456,20 @@ def main():
         die("部件划分顶点数之和不等于总数，分类漏判/重判")
 
     # 4) 打标签并拆分
-    build_part_groups(obj, mesh, roots, labels)
-    log("已建顶点组：%s" % ", ".join(PART_NAMES))
+    build_part_groups(obj, mesh, roots, labels, part_names)
+    log("已建顶点组：%s" % ", ".join(part_names))
 
     t0 = time.time()
     new_objects = [obj]
-    for part_name in ("magazine", "optic", "gl_module"):
+    for part_name in part_names[1:]:
         t_part = time.time()
         newo = separate_part(obj, part_name)
-        newo.name = OBJECT_PREFIX + part_name
-        newo.data.name = OBJECT_PREFIX + part_name
+        newo.name = prefix + part_name
+        newo.data.name = prefix + part_name
         new_objects.append(newo)
         log("已分离 %s（%.2fs）" % (newo.name, time.time() - t_part))
-    obj.name = OBJECT_PREFIX + "body"
-    obj.data.name = OBJECT_PREFIX + "body"
+    obj.name = prefix + "body"
+    obj.data.name = prefix + "body"
     separate_secs = round(time.time() - t0, 2)
     log("拆分完成（%.2fs）" % separate_secs)
 
@@ -491,10 +540,10 @@ def main():
     report["output"]["objects"] = actual
 
     parts_report = {}
-    for name in PART_NAMES:
-        o = bpy.data.objects.get(OBJECT_PREFIX + name)
+    for name in part_names:
+        o = bpy.data.objects.get(prefix + name)
         if o is None:
-            die("导出后缺少对象 %s%s" % (OBJECT_PREFIX, name))
+            die("导出后缺少对象 %s%s" % (prefix, name))
         parts_report[name] = dict(actual[o.name])
         parts_report[name].update({
             "components": expected[name]["components"],
@@ -578,10 +627,10 @@ def main():
     log("顶点数  Blender 输入=%d  拆分后合计=%d  %s"
         % (cmp["input_blender_vertices"], cmp["output_blender_vertices_sum"],
            "相等" if cmp["blender_vertices_equal"] else "不相等"))
-    for name in PART_NAMES:
+    for name in part_names:
         info = parts_report[name]
         log("  %-18s verts=%7d tris=%7d 分量=%3d"
-            % (OBJECT_PREFIX + name, info["verts"], info["tris"], info["components"]))
+            % (prefix + name, info["verts"], info["tris"], info["components"]))
     log("贴图字节集合一致=%s  属性集合一致=%s"
         % (cmp["images_byte_identical_as_set"], cmp["attribute_keys_equal"]))
     log("报告 %s" % report_path)
