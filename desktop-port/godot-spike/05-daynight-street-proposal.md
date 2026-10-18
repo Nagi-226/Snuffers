@@ -17,7 +17,7 @@
 | `WorldEnvironment`（场景根子节点） | `Environment_main`：background_mode=2（**Sky**）、ProceduralSkyMaterial 靛蓝蓝调（sky_top `0.012,0.085,0.21` / horizon `0.05,0.13,0.27`）、ambient_light_source=3（**Sky**）、ambient_energy 0.38、tonemap_mode=2（Filmic） | street_test.tscn L8–29 |
 | `MoonLight`（DirectionalLight3D） | 色 `0.6,0.7,0.9`、能量 **0.25**、**shadow_enabled=false** | street_test.tscn L31–35 |
 | 夜雾 | `street_builder._apply_fog()` 在 `_ready()` 第一行**无条件**写入：FOG_MODE_EXPONENTIAL、density/颜色/散射/sky_affect 全部取 `GameConfig.NIGHT_FOG_*`（60m 能见度，机主护栏：density ≤0.065、sky_affect 禁上调） | street_builder.gd L42–43、L474–483；game_config.gd L200–208 |
-| CBD 天际线 | `skyline_builder.gd` + `skyline_windows.gdshader`：emission 自发光窗格、`render_mode fog_disabled`（夜雾不洗天际线的前提）、材质 `brightness` instance uniform 可逐塔调暗 | skyline_builder.gd；shader L12–33 |
+| CBD 天际线 | `skyline_builder.gd` + `skyline_facade.gdshader`（**塔楼**立面；`skyline_windows.gdshader` 用于天线与 Backdrop 楼块——2026-10-18 派单 16 订正）：emission 自发光窗格、`render_mode fog_disabled`（夜雾不洗天际线的前提）、材质 `brightness` instance uniform 可逐塔调暗 | skyline_builder.gd；shader L12–33 |
 | 背景楼夜窗 | `street_builder._get_block_material()` 复用同 shader，住宅化参数（lit_ratio 0.30） | street_builder.gd L1275–1285 |
 | 力场幕墙 | `mat_energy_field.gdshader`：自发光半透明（base_alpha 0.16 / band 0.30 / edge 0.35），四向 `FIELD_*` + 发射柱 `tip_glow` + 每力场一盏 `OmniLight3D` 蓝光灯（投路面光晕） | street_builder.gd L79–83、L218–224 |
 | E1 应急灯 | `emergency_light.gd`（OmniLight3D）暖橙闪烁，参数全走 `GameConfig.EMERGENCY_*`；一楼门厅 + 二楼楼梯口各一盏 | 03-handoff-2026-09-27 §二 |
@@ -73,7 +73,7 @@ godot/scenes/levels/street_day_night_driver.tscn  （新增，仅一个 Node + �
 3. **雾所有权让渡（规避 C3，利用 `_ready` 顺序）**：
    - NIGHT 态驱动器**完全不写 fog_***——夜雾唯一事实源保持 `street_builder._apply_fog()`（契约 `NIGHT_FOG_*` + 机主护栏）。
    - DAY 态在**第二个物理帧**（`_ready` 后 await 一次 process）再写雾，确保排在 builder 之后：取**既有契约** `GameConfig.FOG_*`（浓雾 30m，game_config.gd L195–198）作为白天雾基线，白天浓雾恰好符合「回南」潮湿氛围且不触碰夜雾护栏。
-4. **DAY 预设（新增视觉参数，走契约申请 §五）**：Sky 材质换白天配色（sky_top/horizon 提亮为昼间蓝）、ambient_energy 上调、MoonLight 换暖白日光 + 能量上调 + **shadow_enabled=true**（白天阳光投影；夜景关阴影是性能取舍，白天开回来）、`skyline_windows` 材质 `emission_strength` 乘昼间衰减因子（白天亮窗不可信）。
+4. **DAY 预设（新增视觉参数，走契约申请 §五）**：Sky 材质换白天配色（sky_top/horizon 提亮为昼间蓝）、ambient_energy 上调、MoonLight 换暖白日光 + 能量上调 + **shadow_enabled=true**（白天阳光投影；夜景关阴影是性能取舍，白天开回来）、`skyline_facade` 材质 `brightness` 乘昼间衰减因子（白天亮窗不可信；instance uniform 名以代码为准是 `brightness`，非 `emission_strength`——2026-10-18 派单 16 订正）。
 5. **模式切换入口**：驱动器自持 `mode_changed` 本地信号（同 controller 先例，非全局契约）；写 `GameState.is_night`（复用既有字段，无契约变更）。是否给玩家/任务链暴露切换能力**不在本期范围**——c1m1 剧情定位即夜战，DAY 态主要用于美术对照与未来 c1m2 复用。
 6. **应急灯/力场白天策略**：均**不动**。应急灯是 OmniLight，白天环境光下自然不可见（物理正确）；力场 shader 自发光白天略洗白，属 Phase 2 美术期议题（07 文档域），本期只在文档记录。
 
@@ -165,4 +165,12 @@ STREET_DAY_SKYLINE_EMISSION_SCALE ≈ 0.15                   # 天际线窗灯�
 
 ---
 
-*本文档为只读调研产物；施工待蜂后评审。取证文件清单：street_test.tscn / street_builder.gd / street_layout_test.gd / skyline_builder.gd / day_night_controller.gd(.tscn) / day_night_demo_controller.gd / night_vision_overlay.gd / emergency_light 契约段 / game_config.gd / game_state.gd / events.gd / player_controller.gd / mat_energy_field.gdshader / skyline_windows.gdshader / project.godot。*
+*本文档为只读调研产物；施工待蜂后评审。取证文件清单：street_test.tscn / street_builder.gd / street_layout_test.gd / skyline_builder.gd / day_night_controller.gd(.tscn) / day_night_demo_controller.gd / night_vision_overlay.gd / emergency_light 契约段 / game_config.gd / game_state.gd / events.gd / player_controller.gd / mat_energy_field.gdshader / skyline_facade.gdshader / skyline_windows.gdshader / project.godot。*
+
+---
+
+## 修订记录
+
+| 日期 | 修订 | 依据 |
+|------|------|------|
+| 2026-10-18 | ① `emission_strength` 订正为代码事实 `brightness`（§三.4；原 §四/§五 表述同源）；② shader 归属订正：塔楼用 `skyline_facade.gdshader`，`skyline_windows.gdshader` 用于天线与 Backdrop 楼块（§1.1、取证清单） | 派单 16 任务 2（契约申请 3 已批）；代码事实见 `skyline_facade.gdshader` / `skyline_windows.gdshader` 的 instance uniform 声明与 `03-handoff-2026-10-07-w7.md` §五.2 |
