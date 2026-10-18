@@ -172,6 +172,143 @@ def paired_drift2(gi, go, nrm_i, nrm_o, uv_i, uv_o, n_groups):
     }
 
 
+# ------------------------------------------------------ 节点变换与世界空间位置（第 17 号单）
+
+def _quat_to_mat(q):
+    x, y, z, w = q
+    return np.array([
+        [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+        [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+        [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)],
+    ], dtype=np.float64)
+
+
+def _node_local_matrix(node):
+    if "matrix" in node:
+        return np.array(node["matrix"], dtype=np.float64).reshape(4, 4).T
+    m = np.eye(4, dtype=np.float64)
+    rot = node.get("rotation")
+    scl = node.get("scale")
+    tra = node.get("translation")
+    if rot is not None:
+        m[:3, :3] = _quat_to_mat(rot)
+    if scl is not None:
+        m[:3, :3] = m[:3, :3] @ np.diag(np.array(scl, dtype=np.float64))
+    if tra is not None:
+        m[:3, 3] = np.array(tra, dtype=np.float64)
+    return m
+
+
+def node_world_matrices(gltf):
+    """返回 [(节点名, 4x4 世界矩阵, mesh 索引)]，含节点 TRS 展开与父子链累积。"""
+    out = []
+    scenes = gltf.get("scenes", [])
+    roots = scenes[gltf.get("scene", 0)].get("nodes", []) if scenes else []
+
+    def rec(idx, parent):
+        node = gltf["nodes"][idx]
+        world = parent @ _node_local_matrix(node)
+        if "mesh" in node:
+            out.append((node.get("name", "node%d" % idx), world, node["mesh"]))
+        for ch in node.get("children", []):
+            rec(ch, world)
+
+    for r in roots:
+        rec(r, np.eye(4, dtype=np.float64))
+    return out
+
+
+def world_positions_by_node(gltf, bin_chunk):
+    """{节点名: (N,3) float64 应用节点变换后的世界坐标}。"""
+    out = {}
+    for name, world, mesh_index in node_world_matrices(gltf):
+        mesh = gltf["meshes"][mesh_index]
+        parts = []
+        for prim in mesh["primitives"]:
+            p = read_accessor(gltf, bin_chunk, prim["attributes"]["POSITION"]).astype(np.float64)
+            parts.append((world[:3, :3] @ p.T).T + world[:3, 3])
+        if parts:
+            out[name] = np.concatenate(parts, axis=0)
+    return out
+
+
+def _sorted_by_xyz(arr):
+    order = np.lexsort((arr[:, 2], arr[:, 1], arr[:, 0]))
+    return arr[order]
+
+
+def world_spatial_check(gltf_i, bin_i, gltf_o, bin_o, tol=1e-6, sorted_tol=1e-5):
+    """世界空间几何守恒判定：应用节点变换后，逐顶点世界坐标（按索引）在 tol 内一致。
+
+    为什么用容差而不是哈希：glTF 的 POSITION 是 float32，枢轴迁移会改变局部坐标的
+    舍入结果，逐顶点世界坐标会出现 ~1e-7 m 量级抖动（远小于任何真实几何变化）。
+    1 nm 量化哈希会把这种纯浮点抖动误判成几何变化，故改用「索引比对 + 容差」。
+
+    兼容两种场景：
+      - 枢轴迁移前后（对象名/顶点数相同）：逐对象比对，给出逐对象最大偏差；
+      - 单网格 vs 拆分后（对象集合不同）：退化为全网排序比对（顶点数不等直接判失败，
+        这属于预期——拆分本身不保证文件级顶点数不变，见报告口径）。
+    """
+    wi = world_positions_by_node(gltf_i, bin_i)
+    wo = world_positions_by_node(gltf_o, bin_o)
+    names_i, names_o = sorted(wi), sorted(wo)
+    same_names = names_i == names_o
+    per_object = {}
+    max_delta = 0.0
+    ok = True
+    if same_names:
+        for name in names_i:
+            a, b = wi[name], wo[name]
+            if a.shape != b.shape:
+                per_object[name] = {"shape_in": list(a.shape), "shape_out": list(b.shape),
+                                    "match": False}
+                ok = False
+                continue
+            idx_delta = float(np.abs(a - b).max()) if a.size else 0.0
+            sorted_delta = (float(np.abs(_sorted_by_xyz(a) - _sorted_by_xyz(b)).max())
+                            if a.size else 0.0)
+            # 排序比对只作参考、不参与判定（lexsort 的浮点抖动会把微小差异放大成假差异，
+            # 见报告 §4）。
+            good = idx_delta <= tol
+            per_object[name] = {
+                "vertices": int(a.shape[0]),
+                "max_abs_delta_m": idx_delta,
+                "index_delta_ok": bool(good),
+                "sorted_max_abs_delta_m": sorted_delta,
+                "match": bool(good),
+            }
+            max_delta = max(max_delta, idx_delta)
+            if not good:
+                ok = False
+    else:
+        ai = np.concatenate([wi[n] for n in names_i], axis=0)
+        bo = np.concatenate([wo[n] for n in names_o], axis=0)
+        if ai.shape != bo.shape:
+            per_object = {"_global": {"vertices_in": int(ai.shape[0]),
+                                      "vertices_out": int(bo.shape[0]),
+                                      "match": False}}
+            ok = False
+        else:
+            gd = float(np.abs(_sorted_by_xyz(ai) - _sorted_by_xyz(bo)).max()) if ai.size else 0.0
+            ok = gd <= sorted_tol
+            max_delta = gd
+            per_object = {"_global": {"vertices": int(ai.shape[0]),
+                                      "sorted_max_abs_delta_m": gd,
+                                      "match": bool(ok)}}
+    detail = {
+        "tolerance_m": tol,
+        "sorted_tolerance_m": sorted_tol,
+        "tolerance_reason": "POSITION 为 float32，枢轴迁移改变局部坐标舍入，"
+                            "实测抖动 ~1e-9~1e-7 m；容差远小于任何真实几何变化",
+        "objects_in": names_i,
+        "objects_out": names_o,
+        "same_object_names": same_names,
+        "per_object": per_object,
+        "max_abs_delta_m": max_delta,
+    }
+    return ok, detail
+
+
 # ------------------------------------------------------------------ 材质/贴图
 
 def images_summary(gltf, bin_chunk):
@@ -337,12 +474,22 @@ def main(argv):
           and struct_o["cameras"] == 0,
           {k: struct_o[k] for k in ("animations", "skins", "cameras")})
 
+    # —— 世界空间几何守恒（第 17 号单：枢轴原点迁移的硬验收；应用节点 TRS 后逐顶点比对）
+    wok, wdetail = world_spatial_check(gi_gltf, gi_bin, go_gltf, go_bin)
+    check("世界空间位置守恒（应用节点变换后逐顶点世界坐标一致）", wok, wdetail)
+    node_trs_i = {name: [round(float(x), 9) for x in w[:3, 3]]
+                  for name, w, _ in node_world_matrices(gi_gltf)}
+    node_trs_o = {name: [round(float(x), 9) for x in w[:3, 3]]
+                  for name, w, _ in node_world_matrices(go_gltf)}
+
     verdict = "PASS" if all(c["pass"] for c in checks) else "FAIL"
     print("=" * 78)
     for c in checks:
         print("[%s] %s" % ("PASS" if c["pass"] else "FAIL", c["check"]))
     print("=" * 78)
     print("VERDICT=%s" % verdict)
+    print("节点世界平移（输入）: %s" % json.dumps(node_trs_i, ensure_ascii=False))
+    print("节点世界平移（输出）: %s" % json.dumps(node_trs_o, ensure_ascii=False))
     for c in checks:
         if not c["pass"]:
             print("---- 未通过: %s ----" % c["check"])
@@ -356,13 +503,15 @@ def main(argv):
                   "triangles": int(tri_i.shape[0]),
                   "position_groups": int(uniq.shape[0]),
                   "tri_hash_by_group_ignore_winding": tp_i,
-                  "tri_hash_by_group_winding": tpv_i},
+                  "tri_hash_by_group_winding": tpv_i,
+                  "node_world_translation": node_trs_i},
         "output": {"path": out_path, "file_bytes": size_o, "structural": struct_o,
                    "images": imgs_o, "materials": mats_o, "accessor_layout": lay_o,
                    "vertices": int(vo["POSITION"].shape[0]),
                    "triangles": int(tri_o.shape[0]),
                    "tri_hash_by_group_ignore_winding": tp_o,
-                   "tri_hash_by_group_winding": tpv_o},
+                   "tri_hash_by_group_winding": tpv_o,
+                   "node_world_translation": node_trs_o},
         "drift": drift,
         "checks": checks,
     }

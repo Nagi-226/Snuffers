@@ -9,6 +9,12 @@
 
 拆分只允许"分组/分离已有几何"：分离按连通分量整块搬移，不增删改任何顶点与 UV。
 
+## 第 17 号单新增：弹匣枢轴原点
+对 PROFILES 里带 `pivot_part` 的武器，拆分后把该部件的**对象原点**迁到"部件顶面
+（世界 +Z 最高面）的面积加权中心"，供换弹动画以此点为枢轴做拔插/旋转。
+只动原点不动世界几何：脚本内用世界坐标量化哈希（1 nm 网格）逐对象自证零位移；
+导出后该平移量即 glTF 节点的 `translation`，Godot 侧即 MeshInstance3D 的变换原点。
+
 ## 通用化方式
 不同武器的尺寸与布局差异很大（EM-68A 全枪 1.0 m 长、EM-57P 手枪握把内藏弹匣），
 因此**部件划分规则按武器分档**（见 PROFILES）：每档一套 classify() + 部件名单，
@@ -91,11 +97,23 @@ def _classify_em57p(stats):
     return labels
 
 
+# pivot_part：该部件的对象原点要迁到"它自身顶面（世界 +Z 最高面）的面积加权中心"，
+# 供程序化换弹动画以该点为枢轴做拔插/旋转（第 17 号单）。只动原点，不动世界几何。
+#
+# file_vertex_delta_allowance：导出 GLB 相对输入 GLB 的**文件级顶点数**允许增量。
+#   - em68a：0（实测逐字节相同）
+#   - em57p：39 = 13 个平坦面 × 3 角点。原因：输入里这 13 个面不带 smooth 标记，
+#     走 glTF 导出的"按面拆角点"路径，而 Blender 侧顶点数仍是 708,475（相等）。
+#     该增量与拆分/枢轴无关：零拆分对照实验（只 import→export）同样得 708,514。
+#     2026-10-18 蜂后裁决：em57p 以「与自身迁移前比」为口径，+39 列为已知基线。
 PROFILES = {
     "em68a": {"parts": ("body", "magazine", "optic", "gl_module"),
-              "classify": _classify_em68a},
+              "classify": _classify_em68a, "pivot_part": "magazine",
+              "file_vertex_delta_allowance": 0},
     "em57p": {"parts": ("body", "magazine", "optic", "laser_module"),
-              "classify": _classify_em57p},
+              "classify": _classify_em57p, "pivot_part": "magazine",
+              "file_vertex_delta_allowance": 39,
+              "file_vertex_delta_reason": "13 个非平滑面按角点拆分（零拆分对照实验同样 +39）"},
 }
 
 
@@ -326,6 +344,87 @@ def strip_vertex_groups(obj):
 
 # ---------------------------------------------------------------- 主流程
 
+# ---------------------------------------------------------------- 枢轴原点（第 17 号单）
+# 目标：把某个部件的**对象原点**迁到"部件自身顶面（世界 +Z 最高的那一面）的面积加权中心"，
+# 世界空间几何逐点零变化。做法是 mesh 局部坐标整体平移 -local_pivot，
+# 同时对象矩阵右乘 Translation(local_pivot) 补偿：
+#     M_new = M_old @ T(local)  ，co_new = co_old - local
+#     => M_new @ co_new = M_old @ (co_old - local + local) = M_old @ co_old   （世界坐标不变）
+#     => 原点（局部 0）落到世界 M_old @ local = 目标点
+# 导出时该 Translation 会写成 glTF 节点的 translation，Godot 侧即 MeshInstance3D 的变换原点。
+
+def world_positions(objects):
+    """{对象名: (N,3) float64 世界坐标}，用于迁移前后世界空间守恒自检。"""
+    import numpy as np
+    out = {}
+    for o in objects:
+        mw = o.matrix_world
+        mats = [list(mw @ v.co) for v in o.data.vertices]
+        out[o.name] = np.asarray(mats, dtype=np.float64) if mats else np.zeros((0, 3))
+    return out
+
+
+def top_face_center(obj, band=0.002):
+    """返回 (世界坐标目标点, 明细)。顶面 = 世界 +Z 最大处上下 band 米内完全落入的三角形。"""
+    import numpy as np
+    from mathutils import Vector
+    mw = obj.matrix_world
+    mesh = obj.data
+    mesh.calc_loop_triangles()
+    co = np.asarray([list(mw @ v.co) for v in mesh.vertices], dtype=np.float64)
+    z_max = float(co[:, 2].max())
+    z_cut = z_max - band
+    band_vert_idx = np.nonzero(co[:, 2] >= z_cut)[0]
+    area_sum = 0.0
+    centroid_acc = np.zeros(3, dtype=np.float64)
+    tri_in_band = 0
+    tri_total = 0
+    for tri in mesh.loop_triangles:
+        tri_total += 1
+        idx = tri.vertices
+        p = co[list(idx)]
+        if p[:, 2].min() < z_cut:
+            continue
+        tri_in_band += 1
+        a = p[1] - p[0]
+        b = p[2] - p[0]
+        area = 0.5 * float(np.linalg.norm(np.cross(a, b)))
+        if area <= 0.0:
+            continue
+        area_sum += area
+        centroid_acc += area * p.mean(axis=0)
+    if area_sum > 0.0:
+        point = centroid_acc / area_sum
+        method = "顶面三角形面积加权重心（完全落在 z>=z_max-%.4f 的三角形）" % band
+    else:
+        point = co[band_vert_idx].mean(axis=0)
+        method = "顶面顶点算术平均（无完全落入 band 的三角形，退化为顶点均值）"
+    info = {
+        "method": method,
+        "band_m": band,
+        "z_max_world": round(z_max, 9),
+        "band_vertex_count": int(band_vert_idx.size),
+        "triangles_total": int(tri_total),
+        "triangles_in_band": int(tri_in_band),
+        "top_face_area_m2": round(area_sum, 12),
+        "world_point": [round(float(x), 9) for x in point],
+    }
+    return Vector((float(point[0]), float(point[1]), float(point[2]))), info
+
+
+def move_origin_to(obj, world_point):
+    """把对象原点迁到世界点 world_point，世界空间几何零位移。返回 (前进原点, 后原点)。"""
+    from mathutils import Matrix
+    mw_before = obj.matrix_world.copy()
+    local = mw_before.inverted() @ world_point
+    before = list(mw_before.translation)
+    obj.data.transform(Matrix.Translation(-local))
+    obj.matrix_world = mw_before @ Matrix.Translation(local)
+    obj.data.update()
+    after = list(obj.matrix_world.translation)
+    return before, after
+
+
 def main():
     started = time.time()
     argv = sys.argv
@@ -356,6 +455,7 @@ def main():
         "script": "weapon_postprocess.py",
         "blender_version": bpy.app.version_string,
         "input": {}, "output": {}, "mesh": {}, "parts": {},
+        "pivot": None,
         "comparison": {}, "notes": [],
     }
 
@@ -483,6 +583,81 @@ def main():
     bpy.context.view_layer.objects.active = new_objects[0]
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
+    # 5.5) 枢轴原点迁移（第 17 号单）：只动对象原点，世界空间几何零变化
+    # 判定口径（为什么不比哈希）：拆分/迁移都不重排顶点，故做**逐顶点索引比对**；
+    # 容差 1e-6 m（1 µm）——Blender 顶点坐标以 float32 存储，把局部坐标整体平移后
+    # 相对舍入会带来 ~1e-8 m 量级抖动（实测 3.7e-9 m），1 nm 量化哈希会把这种
+    # 纯浮点抖动误判成几何变化（第一版就是这么失败的）。另做一次"排序后比对"
+    # 作为与顶点顺序无关的旁证，阈值放宽到 1e-5 m（10 µm）。
+    import numpy as np
+    WORLD_GEOM_TOL_M = 1e-6
+    WORLD_GEOM_SORTED_TOL_M = 1e-5
+    wp_before = world_positions(new_objects)
+    pivot_ok = True
+    pivot_part = profile.get("pivot_part")
+    if pivot_part:
+        t_pivot = time.time()
+        target_obj = bpy.data.objects.get(prefix + pivot_part)
+        if target_obj is None:
+            die("pivot_part=%r 对应对象不存在" % pivot_part)
+        target, info = top_face_center(target_obj)
+        origin_before, origin_after = move_origin_to(target_obj, target)
+        wp_after = world_positions(new_objects)
+        per_obj = {}
+        max_delta = 0.0
+        for name, arr in wp_after.items():
+            ref = wp_before[name]
+            if arr.shape != ref.shape:
+                per_obj[name] = {"shape_before": list(ref.shape),
+                                 "shape_after": list(arr.shape),
+                                 "index_delta_ok": False}
+                pivot_ok = False
+                continue
+            idx_delta = float(np.abs(arr - ref).max()) if arr.size else 0.0
+            ord_a = np.lexsort((arr[:, 2], arr[:, 1], arr[:, 0]))
+            ord_b = np.lexsort((ref[:, 2], ref[:, 1], ref[:, 0]))
+            sorted_delta = (float(np.abs(arr[ord_a] - ref[ord_b]).max())
+                            if arr.size else 0.0)
+            idx_ok = idx_delta <= WORLD_GEOM_TOL_M
+            # 排序比对只作参考、不参与判定：lexsort 用原始 float64 排序，两点在某轴相差
+            # <1e-9 而另轴相差很大时，浮点抖动会让顺序互换，从而把微小抖动放大成假差异。
+            per_obj[name] = {
+                "vertices": int(arr.shape[0]),
+                "max_abs_delta_m": idx_delta,
+                "index_delta_ok": idx_ok,
+                "sorted_max_abs_delta_m": sorted_delta,
+                "origin_after": [round(float(x), 9) for x in
+                                 list(bpy.data.objects[name].matrix_world.translation)],
+            }
+            max_delta = max(max_delta, idx_delta)
+            if not idx_ok:
+                pivot_ok = False
+        pivot_report = {
+            "part": pivot_part,
+            "object": prefix + pivot_part,
+            "origin_before": [round(float(x), 9) for x in origin_before],
+            "origin_after": [round(float(x), 9) for x in origin_after],
+            "top_face": info,
+            "tolerance_m": WORLD_GEOM_TOL_M,
+            "sorted_tolerance_m": WORLD_GEOM_SORTED_TOL_M,
+            "tolerance_reason": "Blender 顶点坐标为 float32，局部坐标平移后的相对舍入抖动"
+                                "实测 3.7e-9 m；1 µm 容差远大于该抖动、远小于任何真实几何变化",
+            "world_geometry_max_abs_delta_m": max_delta,
+            "objects": per_obj,
+            "world_geometry_unchanged": pivot_ok,
+            "seconds": round(time.time() - t_pivot, 2),
+        }
+        report["pivot"] = pivot_report
+        log("枢轴：%s 原点 %s → %s（顶面 z_max=%.6f，面积加权，顶点 %d 个，三角形 %d 个，%.2fs）"
+            % (pivot_report["object"],
+               ["%.6f" % v for v in origin_before], ["%.6f" % v for v in origin_after],
+               info["z_max_world"], info["band_vertex_count"], info["triangles_in_band"],
+               pivot_report["seconds"]))
+        log("枢轴：世界空间几何最大偏差=%.3e m（容差 %.0e m），守恒=%s"
+            % (max_delta, WORLD_GEOM_TOL_M, pivot_ok))
+        if not pivot_ok:
+            die("枢轴迁移改变了世界空间几何（见报告 pivot.objects）")
+
     # 6) 导出 GLB（贴图原样内嵌；Y-up 保持；不做任何压缩）
     out_dir = os.path.dirname(out_glb)
     if out_dir and not os.path.isdir(out_dir):
@@ -557,6 +732,8 @@ def main():
     sum_verts = sum(v["verts"] for v in actual.values())
     sum_tris = sum(v["tris"] for v in actual.values())
 
+    file_vertex_delta = out_summary["vertices"] - in_summary["vertices"]
+    vertex_allowance = int(profile.get("file_vertex_delta_allowance", 0))
     cmp = {
         "input_glb_triangles": in_summary["triangles"],
         "output_glb_triangles": out_summary["triangles"],
@@ -564,6 +741,10 @@ def main():
         "input_glb_vertices": in_summary["vertices"],
         "output_glb_vertices": out_summary["vertices"],
         "vertices_equal": in_summary["vertices"] == out_summary["vertices"],
+        "file_vertex_delta": file_vertex_delta,
+        "file_vertex_delta_allowance": vertex_allowance,
+        "vertices_equal_within_allowance": file_vertex_delta == vertex_allowance,
+        "file_vertex_delta_reason": profile.get("file_vertex_delta_reason"),
         "input_blender_triangles": in_blender["triangles"],
         "output_blender_triangles_sum": sum_tris,
         "blender_triangles_equal": in_blender["triangles"] == sum_tris,
@@ -592,9 +773,15 @@ def main():
     report["comparison"] = cmp
     report["total_seconds"] = round(time.time() - started, 2)
 
-    verdict_ok = (cmp["triangles_equal"] and cmp["vertices_equal"]
+    verdict_ok = (cmp["triangles_equal"] and cmp["vertices_equal_within_allowance"]
                   and cmp["blender_triangles_equal"] and cmp["blender_vertices_equal"]
-                  and cmp["images_byte_identical_as_set"])
+                  and cmp["images_byte_identical_as_set"] and pivot_ok)
+    if not cmp["vertices_equal"] and cmp["vertices_equal_within_allowance"]:
+        report["notes"].append(
+            "文件级顶点数 %d → %d（差 +%d），已在 profile 允许增量 %d 内：%s"
+            % (cmp["input_glb_vertices"], cmp["output_glb_vertices"],
+               cmp["file_vertex_delta"], cmp["file_vertex_delta_allowance"],
+               cmp.get("file_vertex_delta_reason") or "无说明"))
     if not cmp["attribute_keys_equal"]:
         report["notes"].append(
             "顶点属性集合与输入不一致：%s → %s"
@@ -618,9 +805,10 @@ def main():
     log("三角面  输入 GLB=%d  输出 GLB=%d  %s"
         % (cmp["input_glb_triangles"], cmp["output_glb_triangles"],
            "相等" if cmp["triangles_equal"] else "不相等"))
-    log("顶点数  输入 GLB=%d  输出 GLB=%d  %s"
+    log("顶点数  输入 GLB=%d  输出 GLB=%d  差 +%d（允许 %d）  %s"
         % (cmp["input_glb_vertices"], cmp["output_glb_vertices"],
-           "相等" if cmp["vertices_equal"] else "不相等"))
+           cmp["file_vertex_delta"], cmp["file_vertex_delta_allowance"],
+           "在允许增量内" if cmp["vertices_equal_within_allowance"] else "超出允许增量"))
     log("三角面  Blender 输入=%d  拆分后合计=%d  %s"
         % (cmp["input_blender_triangles"], cmp["output_blender_triangles_sum"],
            "相等" if cmp["blender_triangles_equal"] else "不相等"))

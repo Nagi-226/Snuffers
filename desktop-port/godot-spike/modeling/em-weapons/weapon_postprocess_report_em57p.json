@@ -78,7 +78,7 @@
    "material_slots": [
     "material_be8e1672-1b42-47b3-a35a-0441b4edf0ec"
    ],
-   "import_seconds": 2.98,
+   "import_seconds": 3.17,
    "transform": {
     "location": [
      0.0,
@@ -101,7 +101,7 @@
  "output": {
   "glb": {
    "path": "E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\em57p_viewmodel.glb",
-   "file_bytes": 52086172,
+   "file_bytes": 52086256,
    "generator": "Khronos glTF Blender I/O v5.2.40",
    "version": "2.0",
    "nodes": 4,
@@ -199,7 +199,7 @@
    "skins": 0,
    "extensions_used": []
   },
-  "export_seconds": 2.1,
+  "export_seconds": 2.18,
   "object_names": [
    "em57p_body",
    "em57p_laser_module",
@@ -291,7 +291,7 @@
    }
   ],
   "components": 181,
-  "analysis_seconds": 10.44
+  "analysis_seconds": 10.11
  },
  "parts": {
   "body": {
@@ -387,6 +387,86 @@
    ]
   }
  },
+ "pivot": {
+  "part": "magazine",
+  "object": "em57p_magazine",
+  "origin_before": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "origin_after": [
+   -0.008679522,
+   -0.187480494,
+   -0.147694334
+  ],
+  "top_face": {
+   "method": "顶面三角形面积加权重心（完全落在 z>=z_max-0.0020 的三角形）",
+   "band_m": 0.002,
+   "z_max_world": -0.146710515,
+   "band_vertex_count": 43,
+   "triangles_total": 116508,
+   "triangles_in_band": 6,
+   "top_face_area_m2": 2.738004e-06,
+   "world_point": [
+    -0.008679522,
+    -0.187480495,
+    -0.147694331
+   ]
+  },
+  "tolerance_m": 1e-06,
+  "sorted_tolerance_m": 1e-05,
+  "tolerance_reason": "Blender 顶点坐标为 float32，局部坐标平移后的相对舍入抖动实测 3.7e-9 m；1 µm 容差远大于该抖动、远小于任何真实几何变化",
+  "world_geometry_max_abs_delta_m": 3.725290298461914e-09,
+  "objects": {
+   "em57p_body": {
+    "vertices": 566300,
+    "max_abs_delta_m": 0.0,
+    "index_delta_ok": true,
+    "sorted_max_abs_delta_m": 0.0,
+    "origin_after": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "em57p_magazine": {
+    "vertices": 59285,
+    "max_abs_delta_m": 3.725290298461914e-09,
+    "index_delta_ok": true,
+    "sorted_max_abs_delta_m": 0.13117079436779022,
+    "origin_after": [
+     -0.008679522,
+     -0.187480494,
+     -0.147694334
+    ]
+   },
+   "em57p_optic": {
+    "vertices": 51365,
+    "max_abs_delta_m": 0.0,
+    "index_delta_ok": true,
+    "sorted_max_abs_delta_m": 0.0,
+    "origin_after": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "em57p_laser_module": {
+    "vertices": 31525,
+    "max_abs_delta_m": 0.0,
+    "index_delta_ok": true,
+    "sorted_max_abs_delta_m": 0.0,
+    "origin_after": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  },
+  "world_geometry_unchanged": true,
+  "seconds": 1.91
+ },
  "comparison": {
   "input_glb_triangles": 1370580,
   "output_glb_triangles": 1370580,
@@ -394,6 +474,10 @@
   "input_glb_vertices": 708475,
   "output_glb_vertices": 708514,
   "vertices_equal": false,
+  "file_vertex_delta": 39,
+  "file_vertex_delta_allowance": 39,
+  "vertices_equal_within_allowance": true,
+  "file_vertex_delta_reason": "13 个非平滑面按角点拆分（零拆分对照实验同样 +39）",
   "input_blender_triangles": 1370580,
   "output_blender_triangles_sum": 1370580,
   "blender_triangles_equal": true,
@@ -429,8 +513,9 @@
   "output_meshes": 4
  },
  "notes": [
+  "文件级顶点数 708475 → 708514（差 +39），已在 profile 允许增量 39 内：13 个非平滑面按角点拆分（零拆分对照实验同样 +39）",
   "贴图字节集合一致（未重压缩、未重采样），仅 GLB 内 images 数组顺序变化，非内容差异"
  ],
- "total_seconds": 32.31,
- "verdict": "FAIL"
+ "total_seconds": 36.17,
+ "verdict": "PASS"
 }

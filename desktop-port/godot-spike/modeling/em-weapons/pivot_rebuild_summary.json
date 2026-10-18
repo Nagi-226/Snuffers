@@ -1,0 +1,344 @@
+{
+ "blender": "D:\\steam\\steamapps\\common\\Blender\\blender.exe",
+ "python": "C:\\Users\\FJL03\\.dsh\\dsh-runtimes\\dsh-primary-runtime\\dependencies\\python\\python.exe",
+ "guns": {
+  "em68a": {
+   "source": "E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\em68a.glb",
+   "output": "E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\em68a_viewmodel.glb",
+   "backup": "E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\em68a_viewmodel.pre_pivot_backup.glb",
+   "report": "E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\weapon_postprocess_report_em68a.json",
+   "verify_json": "E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\verify_glb_identity_pivot_em68a.json",
+   "baseline_bytes": 53476320,
+   "baseline_sha256": "dbc5fe773d33f83a7508e98e75c1602ae783a7e4602e09e32ff39dbfb208e1dc",
+   "pipeline_rc": 0,
+   "pipeline_seconds": 40.93,
+   "pipeline_tail": "        ^^^^^\n        export_settings,\n        ^^^^^^^^^^^^^^^^\n        json_util.BlenderJSONEncoder,\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n        buffer)\n        ^^^^^^^\n  File \"D:\\steam\\steamapps\\common\\Blender\\5.2\\scripts\\addons_core\\io_scene_gltf2\\io\\exp\\export.py\", line 85, in save_gltf\n    file = open(export_settings['gltf_filepath'], \"wb\")\nOSError: [Errno 22] Invalid argument: 'E:\\\\Github Project\\\\Nagi_Games\\\\Snuffers\\\\desktop-port\\\\godot-spike\\\\modeling\\\\em-weapons\\\\em68a_viewmodel.glb'\nLocation: E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\scripts\\weapon_postprocess.py:656\nError: script failed, file: 'E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\scripts\\weapon_postprocess.py', exiting.",
+   "backup_reused": true,
+   "output_bytes": 53476400,
+   "output_sha256": "7bc7bbfa2146b5e514b047344634543674eb52243de9a61469a115916d06f28c",
+   "pipeline_verdict": "PASS",
+   "pivot": {
+    "part": "magazine",
+    "object": "em68a_magazine",
+    "origin_before": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "origin_after": [
+     -0.005748168,
+     0.068321921,
+     -0.054112017
+    ],
+    "top_face": {
+     "method": "顶面三角形面积加权重心（完全落在 z>=z_max-0.0020 的三角形）",
+     "band_m": 0.002,
+     "z_max_world": -0.053139586,
+     "band_vertex_count": 56,
+     "triangles_total": 107453,
+     "triangles_in_band": 30,
+     "top_face_area_m2": 2.2598565e-05,
+     "world_point": [
+      -0.005748168,
+      0.068321924,
+      -0.054112017
+     ]
+    },
+    "tolerance_m": 1e-06,
+    "sorted_tolerance_m": 1e-05,
+    "tolerance_reason": "Blender 顶点坐标为 float32，局部坐标平移后的相对舍入抖动实测 3.7e-9 m；1 µm 容差远大于该抖动、远小于任何真实几何变化",
+    "world_geometry_max_abs_delta_m": 3.725290298461914e-09,
+    "objects": {
+     "em68a_body": {
+      "vertices": 577448,
+      "max_abs_delta_m": 0.0,
+      "index_delta_ok": true,
+      "sorted_max_abs_delta_m": 0.0,
+      "origin_after": [
+       0.0,
+       0.0,
+       0.0
+      ]
+     },
+     "em68a_magazine": {
+      "vertices": 54952,
+      "max_abs_delta_m": 3.725290298461914e-09,
+      "index_delta_ok": true,
+      "sorted_max_abs_delta_m": 0.08345670998096466,
+      "origin_after": [
+       -0.005748168,
+       0.068321921,
+       -0.054112017
+      ]
+     },
+     "em68a_optic": {
+      "vertices": 49203,
+      "max_abs_delta_m": 0.0,
+      "index_delta_ok": true,
+      "sorted_max_abs_delta_m": 0.0,
+      "origin_after": [
+       0.0,
+       0.0,
+       0.0
+      ]
+     },
+     "em68a_gl_module": {
+      "vertices": 75777,
+      "max_abs_delta_m": 0.0,
+      "index_delta_ok": true,
+      "sorted_max_abs_delta_m": 0.0,
+      "origin_after": [
+       0.0,
+       0.0,
+       0.0
+      ]
+     }
+    },
+    "world_geometry_unchanged": true,
+    "seconds": 2.08
+   },
+   "ok": true,
+   "idempotent_sha256": "7bc7bbfa2146b5e514b047344634543674eb52243de9a61469a115916d06f28c",
+   "idempotent": true,
+   "verify_failed_checks": [
+    "三角面集合一致（按位置组，忽略绕序）",
+    "三角面绕序保留（按位置组）",
+    "每位置 POSITION 一致",
+    "每位置 NORMAL 一致",
+    "每位置 TEXCOORD_0 一致",
+    "法线偏差 ≤ 1e-5 度"
+   ],
+   "verify_verdict": "FAIL",
+   "world_spatial_ok": true,
+   "node_names_i": [
+    "em68a_body",
+    "em68a_gl_module",
+    "em68a_magazine",
+    "em68a_optic"
+   ],
+   "node_names_o": [
+    "em68a_body",
+    "em68a_gl_module",
+    "em68a_magazine",
+    "em68a_optic"
+   ],
+   "node_world_translation_in": {
+    "em68a_body": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "em68a_gl_module": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "em68a_magazine": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "em68a_optic": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "node_world_translation_out": {
+    "em68a_body": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "em68a_gl_module": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "em68a_magazine": [
+     -0.005748168,
+     -0.054112017,
+     -0.068321921
+    ],
+    "em68a_optic": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "verify_ok_for_pivot": true,
+   "verify_failures_local_space_only": true,
+   "verify_other_failures": []
+  },
+  "em57p": {
+   "source": "E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\em57p.glb",
+   "output": "E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\em57p_viewmodel.glb",
+   "backup": "E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\em57p_viewmodel.pre_pivot_backup.glb",
+   "report": "E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\weapon_postprocess_report_em57p.json",
+   "verify_json": "E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\verify_glb_identity_pivot_em57p.json",
+   "baseline_bytes": 52086172,
+   "baseline_sha256": "dfcabb41d8e0dded6a94e2a07b3562388bc233d844d7e9368b325919699a4669",
+   "pipeline_rc": 0,
+   "pipeline_seconds": 37.45,
+   "pipeline_tail": "[weapon_postprocess] 顶点数  输入 GLB=708475  输出 GLB=708514  不相等\n[weapon_postprocess] 三角面  Blender 输入=1370580  拆分后合计=1370580  相等\n[weapon_postprocess] 顶点数  Blender 输入=708475  拆分后合计=708475  相等\n[weapon_postprocess]   em57p_body         verts= 566300 tris=1094231 分量=151\n[weapon_postprocess]   em57p_magazine     verts=  59285 tris= 116508 分量=  4\n[weapon_postprocess]   em57p_optic        verts=  51365 tris=  99000 分量= 18\n[weapon_postprocess]   em57p_laser_module verts=  31525 tris=  60841 分量=  8\n[weapon_postprocess] 贴图字节集合一致=True  属性集合一致=True\n[weapon_postprocess] 报告 E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\weapon_postprocess_report_em57p.json\n[weapon_postprocess] VERDICT=FAIL\n[weapon_postprocess] FAIL: 自检未通过，见报告 E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\weapon_postprocess_report_em57p.json\nBlender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:37:04)",
+   "ok": true,
+   "backup_reused": true,
+   "output_bytes": 52086256,
+   "output_sha256": "19ee99d303208003a160910c91ddf1902cb6a763326a3783d6046960efa43c5a",
+   "pipeline_verdict": "PASS",
+   "pivot": {
+    "part": "magazine",
+    "object": "em57p_magazine",
+    "origin_before": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "origin_after": [
+     -0.008679522,
+     -0.187480494,
+     -0.147694334
+    ],
+    "top_face": {
+     "method": "顶面三角形面积加权重心（完全落在 z>=z_max-0.0020 的三角形）",
+     "band_m": 0.002,
+     "z_max_world": -0.146710515,
+     "band_vertex_count": 43,
+     "triangles_total": 116508,
+     "triangles_in_band": 6,
+     "top_face_area_m2": 2.738004e-06,
+     "world_point": [
+      -0.008679522,
+      -0.187480495,
+      -0.147694331
+     ]
+    },
+    "tolerance_m": 1e-06,
+    "sorted_tolerance_m": 1e-05,
+    "tolerance_reason": "Blender 顶点坐标为 float32，局部坐标平移后的相对舍入抖动实测 3.7e-9 m；1 µm 容差远大于该抖动、远小于任何真实几何变化",
+    "world_geometry_max_abs_delta_m": 3.725290298461914e-09,
+    "objects": {
+     "em57p_body": {
+      "vertices": 566300,
+      "max_abs_delta_m": 0.0,
+      "index_delta_ok": true,
+      "sorted_max_abs_delta_m": 0.0,
+      "origin_after": [
+       0.0,
+       0.0,
+       0.0
+      ]
+     },
+     "em57p_magazine": {
+      "vertices": 59285,
+      "max_abs_delta_m": 3.725290298461914e-09,
+      "index_delta_ok": true,
+      "sorted_max_abs_delta_m": 0.13117079436779022,
+      "origin_after": [
+       -0.008679522,
+       -0.187480494,
+       -0.147694334
+      ]
+     },
+     "em57p_optic": {
+      "vertices": 51365,
+      "max_abs_delta_m": 0.0,
+      "index_delta_ok": true,
+      "sorted_max_abs_delta_m": 0.0,
+      "origin_after": [
+       0.0,
+       0.0,
+       0.0
+      ]
+     },
+     "em57p_laser_module": {
+      "vertices": 31525,
+      "max_abs_delta_m": 0.0,
+      "index_delta_ok": true,
+      "sorted_max_abs_delta_m": 0.0,
+      "origin_after": [
+       0.0,
+       0.0,
+       0.0
+      ]
+     }
+    },
+    "world_geometry_unchanged": true,
+    "seconds": 1.91
+   },
+   "idempotent_sha256": "19ee99d303208003a160910c91ddf1902cb6a763326a3783d6046960efa43c5a",
+   "idempotent": true,
+   "verify_failed_checks": [
+    "三角面集合一致（按位置组，忽略绕序）",
+    "三角面绕序保留（按位置组）",
+    "每位置 POSITION 一致",
+    "每位置 NORMAL 一致",
+    "每位置 TEXCOORD_0 一致",
+    "法线偏差 ≤ 1e-5 度"
+   ],
+   "verify_verdict": "FAIL",
+   "world_spatial_ok": true,
+   "node_names_i": [
+    "em57p_body",
+    "em57p_laser_module",
+    "em57p_magazine",
+    "em57p_optic"
+   ],
+   "node_names_o": [
+    "em57p_body",
+    "em57p_laser_module",
+    "em57p_magazine",
+    "em57p_optic"
+   ],
+   "node_world_translation_in": {
+    "em57p_body": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "em57p_laser_module": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "em57p_magazine": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "em57p_optic": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "node_world_translation_out": {
+    "em57p_body": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "em57p_laser_module": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "em57p_magazine": [
+     -0.008679522,
+     -0.147694334,
+     0.187480494
+    ],
+    "em57p_optic": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "verify_ok_for_pivot": true,
+   "verify_failures_local_space_only": true,
+   "verify_other_failures": []
+  }
+ },
+ "ok": true,
+ "updated_at": "2026-10-18T20:52:06+0800"
+}

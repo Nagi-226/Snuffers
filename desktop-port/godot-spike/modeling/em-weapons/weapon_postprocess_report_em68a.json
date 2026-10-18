@@ -1,0 +1,520 @@
+{
+ "script": "weapon_postprocess.py",
+ "blender_version": "5.2.2 LTS",
+ "input": {
+  "glb": {
+   "path": "E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\em68a.glb",
+   "file_bytes": 54695528,
+   "generator": "3d_generator",
+   "version": "2.0",
+   "nodes": 1,
+   "meshes": 1,
+   "primitives": 1,
+   "vertices": 757380,
+   "triangles": 1464017,
+   "primitive_detail": [
+    {
+     "mesh": "mesh_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc",
+     "material": 0,
+     "mode": 4,
+     "verts": 757380,
+     "tris": 1464017,
+     "attributes": [
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+     ]
+    }
+   ],
+   "attribute_keys": [
+    "NORMAL",
+    "POSITION",
+    "TEXCOORD_0"
+   ],
+   "materials": [
+    {
+     "name": "material_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc",
+     "double_sided": false,
+     "alpha_mode": "OPAQUE",
+     "has_base_color_texture": true,
+     "has_mr_texture": true,
+     "has_normal_texture": true,
+     "has_occlusion_texture": false
+    }
+   ],
+   "images": [
+    {
+     "name": "Color_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc",
+     "mime_type": "image/jpeg",
+     "byte_length": 3623490,
+     "sha256": "6351eae8ae35efdf4bbae035c27a185227bc0a1819d7680f359104d018966b05"
+    },
+    {
+     "name": "ORM_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc",
+     "mime_type": "image/jpeg",
+     "byte_length": 1859061,
+     "sha256": "677c97eec951311e0234ec1762653b49f13e7cd5384e0c2224ac95186b55a4f9"
+    },
+    {
+     "name": "NormalGL_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc",
+     "mime_type": "image/png",
+     "byte_length": 7406595,
+     "sha256": "b458a4d73c9cd95b6b6058ac8bce8b710ad5f18c4c9d0ea65229f78397163a63"
+    }
+   ],
+   "animations": 0,
+   "skins": 0,
+   "extensions_used": []
+  },
+  "blender_import": {
+   "objects": 1,
+   "vertices": 757380,
+   "polygons": 1464017,
+   "triangles": 1464017,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "color_attributes": [],
+   "material_slots": [
+    "material_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc"
+   ],
+   "import_seconds": 3.52,
+   "transform": {
+    "location": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "rotation_euler": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   }
+  }
+ },
+ "output": {
+  "glb": {
+   "path": "E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\em68a_viewmodel.glb",
+   "file_bytes": 53476400,
+   "generator": "Khronos glTF Blender I/O v5.2.40",
+   "version": "2.0",
+   "nodes": 4,
+   "meshes": 4,
+   "primitives": 4,
+   "vertices": 757380,
+   "triangles": 1464017,
+   "primitive_detail": [
+    {
+     "mesh": "em68a_body",
+     "material": 0,
+     "mode": 4,
+     "verts": 577448,
+     "tris": 1112992,
+     "attributes": [
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mesh": "em68a_gl_module",
+     "material": 0,
+     "mode": 4,
+     "verts": 75777,
+     "tris": 147428,
+     "attributes": [
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mesh": "em68a_magazine",
+     "material": 0,
+     "mode": 4,
+     "verts": 54952,
+     "tris": 107453,
+     "attributes": [
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mesh": "em68a_optic",
+     "material": 0,
+     "mode": 4,
+     "verts": 49203,
+     "tris": 96144,
+     "attributes": [
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+     ]
+    }
+   ],
+   "attribute_keys": [
+    "NORMAL",
+    "POSITION",
+    "TEXCOORD_0"
+   ],
+   "materials": [
+    {
+     "name": "material_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc",
+     "double_sided": false,
+     "alpha_mode": "OPAQUE",
+     "has_base_color_texture": true,
+     "has_mr_texture": true,
+     "has_normal_texture": true,
+     "has_occlusion_texture": false
+    }
+   ],
+   "images": [
+    {
+     "name": "NormalGL_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc",
+     "mime_type": "image/png",
+     "byte_length": 7406595,
+     "sha256": "b458a4d73c9cd95b6b6058ac8bce8b710ad5f18c4c9d0ea65229f78397163a63"
+    },
+    {
+     "name": "Color_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc",
+     "mime_type": "image/jpeg",
+     "byte_length": 3623490,
+     "sha256": "6351eae8ae35efdf4bbae035c27a185227bc0a1819d7680f359104d018966b05"
+    },
+    {
+     "name": "ORM_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc",
+     "mime_type": "image/jpeg",
+     "byte_length": 1859061,
+     "sha256": "677c97eec951311e0234ec1762653b49f13e7cd5384e0c2224ac95186b55a4f9"
+    }
+   ],
+   "animations": 0,
+   "skins": 0,
+   "extensions_used": []
+  },
+  "export_seconds": 2.53,
+  "object_names": [
+   "em68a_body",
+   "em68a_gl_module",
+   "em68a_magazine",
+   "em68a_optic"
+  ],
+  "objects": {
+   "em68a_body": {
+    "verts": 577448,
+    "tris": 1112992,
+    "material_slots": [
+     "material_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc"
+    ],
+    "uv_layers": [
+     "UVMap"
+    ]
+   },
+   "em68a_gl_module": {
+    "verts": 75777,
+    "tris": 147428,
+    "material_slots": [
+     "material_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc"
+    ],
+    "uv_layers": [
+     "UVMap"
+    ]
+   },
+   "em68a_magazine": {
+    "verts": 54952,
+    "tris": 107453,
+    "material_slots": [
+     "material_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc"
+    ],
+    "uv_layers": [
+     "UVMap"
+    ]
+   },
+   "em68a_optic": {
+    "verts": 49203,
+    "tris": 96144,
+    "material_slots": [
+     "material_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc"
+    ],
+    "uv_layers": [
+     "UVMap"
+    ]
+   }
+  }
+ },
+ "mesh": {
+  "uv_layers": [
+   "UVMap"
+  ],
+  "color_attributes": [],
+  "shade_smooth_faces": 1464017,
+  "materials": [
+   {
+    "name": "material_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc",
+    "node_tree": true,
+    "images": [
+     {
+      "name": "Color_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc",
+      "size": [
+       4096,
+       4096
+      ],
+      "packed": true,
+      "file_format": "JPEG"
+     },
+     {
+      "name": "ORM_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc",
+      "size": [
+       4096,
+       4096
+      ],
+      "packed": true,
+      "file_format": "JPEG"
+     },
+     {
+      "name": "NormalGL_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc",
+      "size": [
+       4096,
+       4096
+      ],
+      "packed": true,
+      "file_format": "PNG"
+     }
+    ]
+   }
+  ],
+  "components": 203,
+  "analysis_seconds": 10.95
+ },
+ "parts": {
+  "body": {
+   "verts": 577448,
+   "tris": 1112992,
+   "material_slots": [
+    "material_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc"
+   ],
+   "uv_layers": [
+    "UVMap"
+   ],
+   "components": 169,
+   "expected_tris": 1112992,
+   "expected_verts": 577448,
+   "bbox_min": [
+    -0.049,
+    -0.5,
+    -0.16333
+   ],
+   "bbox_max": [
+    0.049,
+    0.5,
+    0.17279
+   ]
+  },
+  "magazine": {
+   "verts": 54952,
+   "tris": 107453,
+   "material_slots": [
+    "material_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc"
+   ],
+   "uv_layers": [
+    "UVMap"
+   ],
+   "components": 5,
+   "expected_tris": 107453,
+   "expected_verts": 54952,
+   "bbox_min": [
+    -0.03056,
+    -0.04097,
+    -0.22376
+   ],
+   "bbox_max": [
+    0.03119,
+    0.09522,
+    -0.05314
+   ]
+  },
+  "optic": {
+   "verts": 49203,
+   "tris": 96144,
+   "material_slots": [
+    "material_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc"
+   ],
+   "uv_layers": [
+    "UVMap"
+   ],
+   "components": 9,
+   "expected_tris": 96144,
+   "expected_verts": 49203,
+   "bbox_min": [
+    -0.04232,
+    -0.04284,
+    0.1334
+   ],
+   "bbox_max": [
+    0.04415,
+    0.08364,
+    0.22376
+   ]
+  },
+  "gl_module": {
+   "verts": 75777,
+   "tris": 147428,
+   "material_slots": [
+    "material_35a79196-e9c3-40fb-ba8f-3be1fcc4aebc"
+   ],
+   "uv_layers": [
+    "UVMap"
+   ],
+   "components": 20,
+   "expected_tris": 147428,
+   "expected_verts": 75777,
+   "bbox_min": [
+    -0.04646,
+    0.10658,
+    -0.0443
+   ],
+   "bbox_max": [
+    0.04613,
+    0.42608,
+    0.03457
+   ]
+  }
+ },
+ "pivot": {
+  "part": "magazine",
+  "object": "em68a_magazine",
+  "origin_before": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "origin_after": [
+   -0.005748168,
+   0.068321921,
+   -0.054112017
+  ],
+  "top_face": {
+   "method": "顶面三角形面积加权重心（完全落在 z>=z_max-0.0020 的三角形）",
+   "band_m": 0.002,
+   "z_max_world": -0.053139586,
+   "band_vertex_count": 56,
+   "triangles_total": 107453,
+   "triangles_in_band": 30,
+   "top_face_area_m2": 2.2598565e-05,
+   "world_point": [
+    -0.005748168,
+    0.068321924,
+    -0.054112017
+   ]
+  },
+  "tolerance_m": 1e-06,
+  "sorted_tolerance_m": 1e-05,
+  "tolerance_reason": "Blender 顶点坐标为 float32，局部坐标平移后的相对舍入抖动实测 3.7e-9 m；1 µm 容差远大于该抖动、远小于任何真实几何变化",
+  "world_geometry_max_abs_delta_m": 3.725290298461914e-09,
+  "objects": {
+   "em68a_body": {
+    "vertices": 577448,
+    "max_abs_delta_m": 0.0,
+    "index_delta_ok": true,
+    "sorted_max_abs_delta_m": 0.0,
+    "origin_after": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "em68a_magazine": {
+    "vertices": 54952,
+    "max_abs_delta_m": 3.725290298461914e-09,
+    "index_delta_ok": true,
+    "sorted_max_abs_delta_m": 0.08345670998096466,
+    "origin_after": [
+     -0.005748168,
+     0.068321921,
+     -0.054112017
+    ]
+   },
+   "em68a_optic": {
+    "vertices": 49203,
+    "max_abs_delta_m": 0.0,
+    "index_delta_ok": true,
+    "sorted_max_abs_delta_m": 0.0,
+    "origin_after": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "em68a_gl_module": {
+    "vertices": 75777,
+    "max_abs_delta_m": 0.0,
+    "index_delta_ok": true,
+    "sorted_max_abs_delta_m": 0.0,
+    "origin_after": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  },
+  "world_geometry_unchanged": true,
+  "seconds": 2.08
+ },
+ "comparison": {
+  "input_glb_triangles": 1464017,
+  "output_glb_triangles": 1464017,
+  "triangles_equal": true,
+  "input_glb_vertices": 757380,
+  "output_glb_vertices": 757380,
+  "vertices_equal": true,
+  "file_vertex_delta": 0,
+  "file_vertex_delta_allowance": 0,
+  "vertices_equal_within_allowance": true,
+  "file_vertex_delta_reason": null,
+  "input_blender_triangles": 1464017,
+  "output_blender_triangles_sum": 1464017,
+  "blender_triangles_equal": true,
+  "input_blender_vertices": 757380,
+  "output_blender_vertices_sum": 757380,
+  "blender_vertices_equal": true,
+  "input_attribute_keys": [
+   "NORMAL",
+   "POSITION",
+   "TEXCOORD_0"
+  ],
+  "output_attribute_keys": [
+   "NORMAL",
+   "POSITION",
+   "TEXCOORD_0"
+  ],
+  "attribute_keys_equal": true,
+  "input_image_sha256": [
+   "6351eae8ae35efdf4bbae035c27a185227bc0a1819d7680f359104d018966b05",
+   "677c97eec951311e0234ec1762653b49f13e7cd5384e0c2224ac95186b55a4f9",
+   "b458a4d73c9cd95b6b6058ac8bce8b710ad5f18c4c9d0ea65229f78397163a63"
+  ],
+  "output_image_sha256": [
+   "b458a4d73c9cd95b6b6058ac8bce8b710ad5f18c4c9d0ea65229f78397163a63",
+   "6351eae8ae35efdf4bbae035c27a185227bc0a1819d7680f359104d018966b05",
+   "677c97eec951311e0234ec1762653b49f13e7cd5384e0c2224ac95186b55a4f9"
+  ],
+  "images_byte_identical": false,
+  "images_byte_identical_as_set": true,
+  "input_nodes": 1,
+  "output_nodes": 4,
+  "input_meshes": 1,
+  "output_meshes": 4
+ },
+ "notes": [
+  "贴图字节集合一致（未重压缩、未重采样），仅 GLB 内 images 数组顺序变化，非内容差异"
+ ],
+ "total_seconds": 39.41,
+ "verdict": "PASS"
+}
