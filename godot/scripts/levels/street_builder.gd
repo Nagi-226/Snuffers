@@ -292,8 +292,11 @@ func _enterable_obstacles(b: Dictionary) -> Array:
 	var x1: float = b["x"] + b["w"] * 0.5
 	var z0: float = b["z"] - b["d"] * 0.5
 	var z1: float = b["z"] + b["d"] * 0.5
-	var dz0: float = b["z"] - SHELL_DOOR_W * 0.5
-	var dz1: float = b["z"] + SHELL_DOOR_W * 0.5
+	# 门洞中线与 _build_enterable_shell 同公式（套件开间网格对齐，偶数开间偏离 b.z 半开间）
+	var n_bays: int = maxi(1, int(floor(b["d"] / KIT_BAY)))
+	var door_c: float = b["z"] - n_bays * KIT_BAY * 0.5 + (n_bays / 2 + 0.5) * KIT_BAY
+	var dz0: float = door_c - SHELL_DOOR_W * 0.5
+	var dz1: float = door_c + SHELL_DOOR_W * 0.5
 	# 临街墙：东排楼（x>0）在西侧 x0，西排楼在东侧 x1
 	var sw0: float = x0 if b["x"] > 0.0 else x1 - SHELL_WALL_T
 	var sw1: float = x0 + SHELL_WALL_T if b["x"] > 0.0 else x1
@@ -326,11 +329,16 @@ func _build_enterable_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Co
 	var z0: float = b["z"] - b["d"] * 0.5
 	var z1: float = b["z"] + b["d"] * 0.5
 	var h_total: float = b["floors"] * floor_h
-	var dz0: float = b["z"] - SHELL_DOOR_W * 0.5
-	var dz1: float = b["z"] + SHELL_DOOR_W * 0.5
-	# 二楼阳台门洞中线（与 _dress_facade 中间开间对齐：f==1 && i==n/2，仅排楼主立面沿 Z 情形）
+	# 门洞中线对齐套件开间网格（与 _dress_facade 中间开间 i==n/2 同公式）：偶数开间楼
+	# 的居中开间偏离 b.z 半开间，门洞若仍取 b.z 会被相邻开间的商铺/窗套件盖住半扇门
+	# （2026-10-18 机主报修：E2 临街门与墙洞错位半宽）。奇数开间时 door_c == b.z，
+	# 与旧版逐米一致（E1 零回归）。
 	var n_bays: int = maxi(1, int(floor(b["d"] / KIT_BAY)))
-	var bz_c: float = b["z"] - n_bays * KIT_BAY * 0.5 + (n_bays / 2 + 0.5) * KIT_BAY
+	var door_c: float = b["z"] - n_bays * KIT_BAY * 0.5 + (n_bays / 2 + 0.5) * KIT_BAY
+	var dz0: float = door_c - SHELL_DOOR_W * 0.5
+	var dz1: float = door_c + SHELL_DOOR_W * 0.5
+	# 二楼阳台门洞中线 = 同一开间中线（临街门与阳台上下对齐，真实建筑做法）
+	var bz_c: float = door_c
 	var pal: String = b["palette"]
 	var east_side: bool = b["x"] > 0.0  # 东排楼门开在西墙
 	var sw_x: float = (x0 + SHELL_WALL_T * 0.5) if east_side else (x1 - SHELL_WALL_T * 0.5)
@@ -359,7 +367,7 @@ func _build_enterable_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Co
 		Vector3(0.36, SHELL_DOOR_H, 0.12), "metal_dark")
 	_add_box(row, "Bldg_%s_JAMB_B" % b["id"], Vector3(jamb_x, SHELL_DOOR_H * 0.5, dz1 + 0.06),
 		Vector3(0.36, SHELL_DOOR_H, 0.12), "metal_dark")
-	_add_box(row, "Bldg_%s_LINTEL" % b["id"], Vector3(jamb_x, SHELL_DOOR_H + 0.06, b["z"]),
+	_add_box(row, "Bldg_%s_LINTEL" % b["id"], Vector3(jamb_x, SHELL_DOOR_H + 0.06, door_c),
 		Vector3(0.36, 0.12, SHELL_DOOR_W + 0.24), "metal_dark")
 	# 二楼真阳台（内外打通：门洞已在临街墙开好，此处建外挑板+门槛坡道+门框+栏杆）
 	if b["floors"] >= 2:

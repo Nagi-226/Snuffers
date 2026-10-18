@@ -17,6 +17,7 @@ const KEY_WEAPON_RPG: Key = KEY_2 ## 网页版 2：切火箭筒
 const KEY_NIGHT_VISION: Key = KEY_N ## N：夜视仪切换（§11.2 机主裁决：V→N，与昼夜演示场景键位一致）
 const KEY_MEDKIT: Key = KEY_F ## 网页版 F：使用药包
 const KEY_HELI: Key = KEY_H ## 网页版 H：呼叫直升机
+const KEY_JUMP: Key = KEY_SPACE ## 空格：跳跃（2026-10-18 机主立项）
 const KEY_RELEASE_MOUSE: Key = KEY_ESCAPE ## Esc：释放鼠标（点击画面恢复捕获）
 
 var _pitch: float = 0.0
@@ -92,6 +93,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_use_medkit()
 			KEY_HELI:
 				_call_heli()
+			KEY_JUMP:
+				_try_jump()
 
 
 func _physics_process(delta: float) -> void:
@@ -127,7 +130,16 @@ func _physics_process(delta: float) -> void:
 	velocity.x = direction.x * speed
 	velocity.z = direction.z * speed
 
+	var pre_pos := global_position
+	var wish := Vector3(velocity.x, 0.0, velocity.z) * delta
 	move_and_slide()
+	# 自动上台阶（2026-10-18 机主立项：路缘 0.145m 免跳直上）：水平位移被挡掉大半
+	# 且在地面上时，按「抬升-前推-落回」三段 test_move 尝试跨上台阶；任何一段失败
+	# 都保持原位不动（真墙/头顶压顶/前方悬空均不触发）。
+	if is_on_floor() and wish.length() > 0.001:
+		var actual := Vector3(global_position.x - pre_pos.x, 0.0, global_position.z - pre_pos.z)
+		if actual.length() < wish.length() * 0.4:
+			_try_step_up(wish)
 
 	# 世界边界钳制。
 	global_position.x = clampf(global_position.x, -GameConfig.WORLD_BOUND_X, GameConfig.WORLD_BOUND_X)
@@ -139,6 +151,37 @@ func _physics_process(delta: float) -> void:
 
 	_update_speed_state()
 	_update_still_time(delta)
+
+
+## 跳跃（空格）：仅站立在地面时触发；趴下状态忽略（趴下跳不符合战术动作设定）。
+func _try_jump() -> void:
+	if GameState.is_prone or not is_on_floor():
+		return
+	velocity.y = GameConfig.JUMP_VELOCITY
+
+
+## 自动上台阶：抬 STEP_MAX_HEIGHT → 前推 → 向下落回台阶面（三段 test_move，
+## 任一段被挡即放弃，全程不穿透任何碰撞；落点必须高于原地面才认定为台阶）。
+func _try_step_up(wish: Vector3) -> void:
+	var step_h: float = GameConfig.STEP_MAX_HEIGHT
+	var from := global_transform
+	var up := Vector3(0.0, step_h, 0.0)
+	if test_move(from, up):
+		return  # 头顶无抬升余量（低门楣/楼板下）
+	var forward: Vector3 = wish.normalized() * minf(wish.length() + 0.15, 0.45)
+	var lifted := from.translated(up)
+	if test_move(lifted, forward):
+		return  # 抬高后前方仍被挡 → 是真墙不是台阶
+	var stepped := lifted.translated(forward)
+	var col := KinematicCollision3D.new()
+	var down := Vector3(0.0, -(step_h + 0.05), 0.0)
+	if not test_move(stepped, down, col):
+		return  # 前方悬空（坑/悬崖），不挪
+	var landing := stepped.translated(col.get_travel())
+	if landing.origin.y - from.origin.y < 0.03:
+		return  # 落点不比原地面高，不是台阶
+	global_position = landing.origin
+	velocity.y = 0.0
 
 
 func _process(delta: float) -> void:

@@ -70,7 +70,7 @@ const NV_GAIN := 1.15                  ## 曝光增益（乘在 lift 之后）
 const NV_SHADOW_LIFT_GAMMA := 0.55     ## <1 抬暗部；越小暗部越亮
 const NV_BLACK_FLOOR := 0.02           ## 纯黑抬底（管底噪）
 const NV_DESATURATION := 0.88          ## 去饱和度（1 = 全灰）
-const NV_PHOSPHOR := Vector3(0.42, 1.0, 0.50)  ## 绿磷光色调（乘性）
+const NV_PHOSPHOR := Vector3(0.35, 0.92, 1.0)  ## 青蓝磷光色调（乘性；2026-10-18 机主裁决：绿→青蓝，贴合雷暴部队夜视仪形象设定）
 const NV_BLOOM_START := 0.62           ## 过曝趋白的亮度阈值
 const NV_BLOOM_WIDTH := 0.35           ## 过曝趋白的过渡宽度
 const NV_BLOOM_STRENGTH := 0.75        ## 过曝区回灌到白的比例
