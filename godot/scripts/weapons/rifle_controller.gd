@@ -20,9 +20,17 @@ extends WeaponController
 var _fire_cooldown: float = 0.0
 var _is_reloading: bool = false
 
+# 程序化换弹动画（2026-10-19 上枪配套）：弹匣节点带枢轴原点（匣顶面心，DSH 派单 17），
+# 绕原点旋转/平移即自然脱匣-插匣。无杂志节点时静默跳过（灰盒/测试场景兼容）。
+@onready var _magazine: Node3D = get_node_or_null("ViewModel/EM68A/em68a_magazine")
+var _mag_home: Vector3 = Vector3.ZERO
+var _mag_tween: Tween = null
+
 
 func _ready() -> void:
 	super()
+	if _magazine != null:
+		_mag_home = _magazine.position
 	Events.weapon_reload_started.connect(_on_reload_started)
 	Events.weapon_reloaded.connect(_on_weapon_reloaded)
 
@@ -138,6 +146,31 @@ func _start_reload() -> void:
 func _on_reload_started(weapon_id: StringName) -> void:
 	if weapon_id == &"rifle":
 		_is_reloading = true
+		_play_reload_anim()
+
+
+## 程序化换弹动画：reload_time 内三段——卸匣（下坠+绕枢轴前倒，28% 时长）
+## → 空窗滞留（34%）→ 插回复位（30%，EASE_OUT 末端归位干脆）。
+## 中途被打断（切枪等）时杂志变换由下一次换弹/重建接管，不残留半开状态。
+func _play_reload_anim() -> void:
+	if _magazine == null:
+		return
+	if _mag_tween != null and _mag_tween.is_valid():
+		_mag_tween.kill()
+	var t: float = weapon_data.reload_time
+	_magazine.position = _mag_home
+	_magazine.rotation_degrees = Vector3.ZERO
+	_mag_tween = create_tween()
+	_mag_tween.tween_property(_magazine, "position",
+		_mag_home + Vector3(0.0, -0.22, 0.02), t * 0.28) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	_mag_tween.parallel().tween_property(_magazine, "rotation_degrees:x",
+		28.0, t * 0.28).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	_mag_tween.tween_interval(t * 0.34)
+	_mag_tween.tween_property(_magazine, "position", _mag_home, t * 0.30) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_mag_tween.parallel().tween_property(_magazine, "rotation_degrees:x",
+		0.0, t * 0.30).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 
 ## 换弹完成：标准弹药迁移（弹匣缺口 ← 备弹），广播 ammo_changed。

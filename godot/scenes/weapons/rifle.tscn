@@ -2,15 +2,19 @@
 
 [ext_resource type="Script" path="res://scripts/weapons/rifle_controller.gd" id="1_rifle"]
 [ext_resource type="Resource" path="res://scenes/weapons/rifle.tres" id="2_data"]
-
-; 灰盒占位视图模型（正式枪模属资产管线拉伸项；后坐变换由脚本驱动）
-[sub_resource type="BoxMesh" id="BoxMesh_view_model"]
-size = Vector3(0.08, 0.14, 0.6)
+[ext_resource type="PackedScene" path="res://assets/models/weapons/em68a_viewmodel.glb" id="3_em68a"]
 
 ; 挂载约定：实例化到 player.tscn 的 Camera3D/WeaponMount 下（W1 已预留）。
 [node name="Rifle" type="Node3D"]
 script = ExtResource("1_rifle")
 weapon_data = ExtResource("2_data")
 
-[node name="ViewModel" type="MeshInstance3D" parent="."]
-mesh = SubResource("BoxMesh_view_model")
+; EM-68A 真枪视图模型（2026-10-19 上枪：BoxMesh 灰盒占位退役）
+; GLB 验收口径（DSH 派单 14/17）：枪口 -Z、几何中心在原点、四子对象
+; （body/magazine/optic/gl_module）、弹匣带枢轴原点（顶部面心）。
+; ViewModel 容器承接后坐变换（基类 _update_view_recoil 驱动 position/rotation）。
+[node name="ViewModel" type="Node3D" parent="."]
+
+; 摆位：z 后移 0.12 让枪身重心贴射手、枪托入肩位；y 微抬贴眼下视线
+[node name="EM68A" parent="ViewModel" instance=ExtResource("3_em68a")]
+position = Vector3(0, 0.02, 0.12)

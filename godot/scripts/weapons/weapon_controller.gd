@@ -32,7 +32,7 @@ var _camera_kick: float = 0.0
 var _view_offset: float = 0.0
 var _view_model_base_pos: Vector3 = Vector3.ZERO
 
-@onready var _view_model: MeshInstance3D = $ViewModel
+@onready var _view_model: Node3D = $ViewModel
 
 
 func _ready() -> void:

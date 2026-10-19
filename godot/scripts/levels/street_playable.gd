@@ -8,3 +8,31 @@ func _ready() -> void:
 	var cam := get_node_or_null("StreetTest/OverviewCamera")
 	if cam:
 		cam.queue_free()
+	# 取证钩子：--vm-shot <输出路径> [reload] —— 窗口模式跑真实场景（autoload/脚本
+	# 全量生效，比自定义 SceneTree 探针保真），20 帧稳定后截图退出；带 reload 时
+	# 先触发步枪换弹再在动画中段（约 0.7s）抓拍弹匣脱落姿态。正常游玩路径零变化。
+	var args := OS.get_cmdline_user_args()
+	if args.has("--vm-shot"):
+		_vm_shot(args)
+
+
+func _vm_shot(args: PackedStringArray) -> void:
+	var out_path := "user://vm_shot.png"
+	var idx := args.find("--vm-shot")
+	if idx + 1 < args.size():
+		out_path = args[idx + 1]
+	for i in 20:
+		await get_tree().process_frame
+	if args.has("reload"):
+		var rifle := get_node_or_null("Player/Camera3D/WeaponMount/Rifle")
+		if rifle != null and rifle.has_method("_play_reload_anim"):
+			rifle.call("_play_reload_anim")  # 直触动画面数，绕过满弹匣的 _start_reload 守卫
+		for i in 42:
+			await get_tree().process_frame
+		var mag: Node3D = rifle.get_node_or_null("ViewModel/EM68A/em68a_magazine")
+		if mag != null:
+			print("VM_SHOT mag pos=", mag.position, " rot=", mag.rotation_degrees)
+	var img := get_viewport().get_texture().get_image()
+	img.save_png(out_path)
+	print("VM_SHOT saved=", out_path)
+	get_tree().quit()
