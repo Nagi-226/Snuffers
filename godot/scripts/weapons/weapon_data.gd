@@ -24,7 +24,8 @@ enum Kind { HITSCAN, PROJECTILE } ## 0=即时命中（步枪），1=投射物（
 @export var dmg_vs_sniper: float = 999.0 ## 对狙击手固定伤害（GameConfig.RIFLE_DMG_VS_SNIPER）
 
 # ===== 射速 / 弹药 / 换弹（hitscan）=====
-@export var fire_interval: float = 0.1 ## 射速 s/发（GameConfig.RIFLE_FIRE_INTERVAL）
+@export var fire_interval: float = 0.1 ## 全自动/点射射速 s/发（GameConfig.RIFLE_FIRE_INTERVAL）
+@export var semi_fire_interval: float = 0.1 ## 半自动击发间隔 s/发（GameConfig.RIFLE_SEMI_FIRE_INTERVAL / PISTOL_SEMI_FIRE_INTERVAL，2026-10-19 机主口径：半自动射速独立于连发档位）
 @export var mag_size: int = 30 ## 弹匣（GameConfig.RIFLE_MAG）
 @export var reserve_size: int = 150 ## 备弹（GameConfig.RIFLE_RESERVE）
 @export var reload_time: float = 2.0 ## 换弹 s（GameConfig.RIFLE_RELOAD_TIME）
@@ -76,6 +77,7 @@ func sync_from_config() -> void:
 			headshot_factor = GameConfig.RIFLE_DMG_HEAD_FACTOR
 			dmg_vs_sniper = GameConfig.RIFLE_DMG_VS_SNIPER
 			fire_interval = GameConfig.RIFLE_FIRE_INTERVAL
+			semi_fire_interval = GameConfig.RIFLE_SEMI_FIRE_INTERVAL
 			mag_size = GameConfig.RIFLE_MAG
 			reserve_size = GameConfig.RIFLE_RESERVE
 			reload_time = GameConfig.RIFLE_RELOAD_TIME
@@ -96,6 +98,7 @@ func sync_from_config() -> void:
 			headshot_factor = GameConfig.PISTOL_DMG_HEAD_FACTOR
 			dmg_vs_sniper = GameConfig.PISTOL_DMG_VS_SNIPER
 			fire_interval = GameConfig.PISTOL_FIRE_INTERVAL
+			semi_fire_interval = GameConfig.PISTOL_SEMI_FIRE_INTERVAL
 			mag_size = GameConfig.PISTOL_MAG
 			reserve_size = GameConfig.PISTOL_RESERVE
 			reload_time = GameConfig.PISTOL_RELOAD_TIME

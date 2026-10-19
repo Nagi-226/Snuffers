@@ -309,7 +309,7 @@ mouse_filter = 2
 theme_override_colors/font_color = Color(0.55, 0.9, 1.0, 1)
 theme_override_font_sizes/font_size = 20
 horizontal_alignment = 2
-text = "步枪 [全自动] 弹药：60 / 150"
+text = "步枪 [全自动] 弹药：60 / 600"
 
 [node name="KillLabel" type="Label" parent="."]
 unique_name_in_owner = true

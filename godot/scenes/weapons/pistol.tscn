@@ -14,7 +14,8 @@ weapon_data = ExtResource("2_data")
 ; 弹匣带枢轴原点（顶部面心）。ViewModel 容器承接后坐变换（基类 _update_view_recoil 驱动）。
 [node name="ViewModel" type="Node3D" parent="."]
 
-; 摆位：y 抬至眼下；scale 0.55 —— GLB 与 EM-68A 同为 1m 级归一化长度，但 EM-57P
-; 是无托手枪（实枪应 ~0.45m 级），缩放只作用于场景实例变换，不动 GLB 几何（零改动纪律）
+; 摆位：y 抬至眼下；scale 0.45 —— GLB 与 EM-68A 同为 1m 级归一化长度，但 EM-57P
+; 是无托手枪（实枪应 ~0.45m 级），缩放只作用于场景实例变换，不动 GLB 几何（零改动纪律）。
+; 2026-10-19 机主反馈：0.55 观感拉得像长枪，再收至 0.45 并前移贴近，回归短枪手持感。
 [node name="EM57P" parent="ViewModel" instance=ExtResource("3_em57p")]
-transform = Transform3D(0.55, 0, 0, 0, 0.55, 0, 0, 0, 0.55, 0, 0.04, 0.02)
+transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, 0, 0.03, 0.04)

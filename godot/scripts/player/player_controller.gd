@@ -48,6 +48,12 @@ var _mount_hip_pos: Vector3 = Vector3.ZERO ## 腰射挂载位（_ready 从 playe
 var _ads_mount_targets: Dictionary = {} ## weapon_id → 开镜挂载位（optic 中心对中）
 var _ads_fov_targets: Dictionary = {} ## weapon_id → 开镜 FOV
 var _ads_reticle: AdsReticle = null
+## EM-68A 瞄具网格（2026-10-19 机主反馈：全息瞄具外壳不透明挡死前方视野）；
+## 开镜权重升高时按 transparency 淡出，满开镜完全透明，由青蓝全息准星覆盖层接管。
+## 参考 Claude-of-Duty viewmodel.js：红点/全息为准直光路，视线必须能穿透镜筒。
+var _rifle_optic_mesh: MeshInstance3D = null
+## 护甲回充脱战计时（受击清零，≥ARMOR_REGEN_DELAY 后按 ARMOR_REGEN_RATE 回充）
+var _armor_regen_wait: float = 0.0
 
 @onready var _weapon_mount: Marker3D = $Camera3D/WeaponMount
 
@@ -120,22 +126,32 @@ func _calibrate_ads() -> void:
 			var c: Vector3 = center
 			# optic 相机空间坐标 = 挂载位 + c；令其 x/y 归零 → 挂载位取 -c（z 保持腰射纵距）
 			_ads_mount_targets[pair[0]] = Vector3(-c.x, -c.y, _mount_hip_pos.z)
+		# EM-68A 瞄具外壳开镜淡出（手枪点状瞄具无遮挡问题，不注册）
+		if pair[0] == &"rifle":
+			_rifle_optic_mesh = _find_optic_mesh(weapon_root)
 
 
-## 在武器子树中找名字含 optic 的网格，返回其瞄窗中心在 WeaponMount 局部空间的坐标。
-## 瞄窗 ≈ AABB 中心 + 高度 15% 上移（外壳下沿拉低 AABB 中心，视窗偏上半部）。
-func _find_optic_center_in_mount(weapon_root: Node) -> Variant:
+## 在武器子树中找名字含 optic 的网格实例（无则返回 null）。
+func _find_optic_mesh(weapon_root: Node) -> MeshInstance3D:
 	var stack: Array = [weapon_root]
 	while not stack.is_empty():
 		var n: Node = stack.pop_back()
 		stack.append_array(n.get_children())
 		if n is MeshInstance3D and String(n.name).to_lower().contains("optic"):
-			var mi := n as MeshInstance3D
-			var aabb := mi.get_aabb()
-			var window_local: Vector3 = aabb.get_center() + Vector3(0.0, aabb.size.y * 0.15, 0.0)
-			var global_pos: Vector3 = mi.global_transform * window_local
-			return _weapon_mount.global_transform.affine_inverse() * global_pos
+			return n as MeshInstance3D
 	return null
+
+
+## 在武器子树中找名字含 optic 的网格，返回其瞄窗中心在 WeaponMount 局部空间的坐标。
+## 瞄窗 ≈ AABB 中心 + 高度 15% 上移（外壳下沿拉低 AABB 中心，视窗偏上半部）。
+func _find_optic_center_in_mount(weapon_root: Node) -> Variant:
+	var mi := _find_optic_mesh(weapon_root)
+	if mi == null:
+		return null
+	var aabb := mi.get_aabb()
+	var window_local: Vector3 = aabb.get_center() + Vector3(0.0, aabb.size.y * 0.15, 0.0)
+	var global_pos: Vector3 = mi.global_transform * window_local
+	return _weapon_mount.global_transform.affine_inverse() * global_pos
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -251,6 +267,22 @@ func _physics_process(delta: float) -> void:
 
 	_update_speed_state()
 	_update_still_time(delta)
+	_update_armor_regen(delta)
+
+
+## 护甲能量回充（2026-10-19 机主立项，孤岛危机纳米服式）：受击后 ARMOR_REGEN_DELAY 秒
+## 未再受击，则按 ARMOR_REGEN_RATE 逐渐回充至 ARMOR_MAX；任务结束态不回充。
+func _update_armor_regen(delta: float) -> void:
+	if GameState.armor >= GameConfig.ARMOR_MAX:
+		return
+	if GameState.mission_phase == GameState.MissionPhase.COMPLETED \
+			or GameState.mission_phase == GameState.MissionPhase.GAME_OVER:
+		return
+	_armor_regen_wait += delta
+	if _armor_regen_wait < GameConfig.ARMOR_REGEN_DELAY:
+		return
+	GameState.armor = minf(GameState.armor + GameConfig.ARMOR_REGEN_RATE * delta, GameConfig.ARMOR_MAX)
+	Events.armor_changed.emit(GameState.armor, GameConfig.ARMOR_MAX)
 
 
 ## 跳跃（空格）：趴下状态忽略；置排队位由物理帧落地消费（输入回调直接写 velocity.y
@@ -330,6 +362,12 @@ func _process(delta: float) -> void:
 			_ads_mount_targets.get(GameState.current_weapon, _mount_hip_pos), _ads_weight)
 		_camera.fov = lerpf(GameConfig.FOV_BASE,
 			_ads_fov_targets.get(GameState.current_weapon, GameConfig.FOV_BASE), _ads_weight)
+	# EM-68A 瞄具外壳随开镜淡出（0.3 起淡 → 0.75 全透明；切枪/关镜即恢复不透明）。
+	if _rifle_optic_mesh != null:
+		var optic_t := clampf((_ads_weight - 0.3) / 0.45, 0.0, 1.0) \
+				if GameState.current_weapon == &"rifle" else 0.0
+		if not is_equal_approx(_rifle_optic_mesh.transparency, optic_t):
+			_rifle_optic_mesh.transparency = optic_t
 	# 准星覆盖层：权重过 60% 才显形（过渡中段不闪半吊子准星）；RPG 无覆盖层。
 	if _ads_reticle != null:
 		var mode: StringName = &"none"
@@ -479,6 +517,8 @@ func _apply_damage(part: StringName, amount: float) -> void:
 			or GameState.mission_phase == GameState.MissionPhase.GAME_OVER:
 		return
 	var actual := amount
+	# 受击即打断护甲回充计时（2026-10-19 纳米服式回充）。
+	_armor_regen_wait = 0.0
 	# 头盔吸收（仅头部）；击穿时提示（web L3262-3267）。
 	if part == &"head" and GameState.helmet > 0.0:
 		var helmet_absorb := minf(GameState.helmet, actual)
@@ -491,6 +531,7 @@ func _apply_damage(part: StringName, amount: float) -> void:
 		var armor_absorb := minf(GameState.armor, amount * GameConfig.ARMOR_ABSORB_FACTOR)
 		GameState.armor -= armor_absorb
 		actual -= armor_absorb
+		Events.armor_changed.emit(GameState.armor, GameConfig.ARMOR_MAX)
 	# 部位系数 + 趴下爆头减免（web L3275-3278）。
 	if part == &"head":
 		actual *= GameConfig.DMG_TAKEN_HEAD_FACTOR

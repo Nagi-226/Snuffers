@@ -55,6 +55,9 @@ const DMG_TAKEN_HEAD_FACTOR: float = 1.5 ## 命中头部伤害系数（L3276）
 const DMG_TAKEN_LEGS_FACTOR: float = 0.8 ## 命中腿部伤害系数（L3277）
 const DMG_TAKEN_PRONE_HEAD_FACTOR: float = 0.6 ## 趴下被爆头再系数（L3278）
 const ARMOR_ABSORB_FACTOR: float = 0.6 ## 护甲吸收上限 = 伤害×0.6（L3271）
+# —— 护甲能量自动回复（2026-10-19 机主立项：孤岛危机纳米服式——脱战一小段时间后逐渐回充）——
+const ARMOR_REGEN_DELAY: float = 4.0 ## 最后一次受击后进入回充的脱战时长 s
+const ARMOR_REGEN_RATE: float = 12.0 ## 回充速率 点/s（满充 100 约 8.3s）
 const MEDKIT_HEAL: float = 50.0 ## 三部位各 +50（L866）
 const MEDKIT_PICKUP_RADIUS: float = 3.0 ## 拾取半径（L849）
 const MEDKIT_MAX_CARRY: int = 5 ## 携带上限（L2305）
@@ -62,8 +65,8 @@ const MEDKIT_MAX_CARRY: int = 5 ## 携带上限（L2305）
 # ===== 拾取（2026-10-07 机主裁决冻结：居民区室内补给 = 电池组/医疗注射/取证终端，无 RPG）=====
 const BATTERY_PICKUP_ROUNDS: int = 60 ## 电池组补充步枪备弹数
 const PISTOL_AMMO_PICKUP_ROUNDS: int = 60 ## 手枪弹匣组补充手枪备弹数（2026-10-19 机主立项）
-const RIFLE_RESERVE_MAX: int = 300 ## 步枪备弹携带上限（达上限不可拾取，2026-10-19 机主口径）
-const PISTOL_RESERVE_MAX: int = 240 ## 手枪备弹携带上限（同口径）
+const RIFLE_RESERVE_MAX: int = 600 ## 步枪备弹携带上限（达上限不可拾取，2026-10-19 机主口径：与初始备弹拉平 600）
+const PISTOL_RESERVE_MAX: int = 600 ## 手枪备弹携带上限（同口径：600）
 const PICKUP_TRIGGER_RADIUS: float = 0.7 ## 拾取触发半径（贴近即拾，无需按键）
 const PICKUP_BOB_AMP: float = 0.05 ## 浮动振幅 m
 const PICKUP_BOB_HZ: float = 1.2 ## 浮动频率 Hz
@@ -73,9 +76,10 @@ const PICKUP_SPIN_DEG: float = 45.0 ## 自转角速度 度/s
 const RIFLE_DMG_BODY: float = 25.0 ## 身体伤害（L2985）
 const RIFLE_DMG_HEAD_FACTOR: float = 2.0 ## 爆头倍率 → 50（L2985）
 const RIFLE_DMG_VS_SNIPER: float = 999.0 ## 对狙击手固定伤害（L3014）
-const RIFLE_FIRE_INTERVAL: float = 0.1 ## 射速 s/发 = 600 RPM（L2609）
+const RIFLE_FIRE_INTERVAL: float = 0.075 ## 全自动/三发点射射速 s/发 = 800 RPM（2026-10-19 机主裁决：原 600 RPM L2609 提速）
+const RIFLE_SEMI_FIRE_INTERVAL: float = 0.1 ## 半自动最小击发间隔 s（机主口径：半自动维持原 600 RPM 手感上限不变）
 const RIFLE_MAG: int = 60 ## 弹匣（2026-10-19 机主裁决：按 EDAA 雷械设定 EM-68A 通用弹匣 60 发，原 30 为网页版 L327 值）
-const RIFLE_RESERVE: int = 150 ## 备弹（L327）
+const RIFLE_RESERVE: int = 600 ## 备弹（2026-10-19 机主裁决：60/600，原 150 为网页版 L327 值）
 const RIFLE_RELOAD_TIME: float = 2.0 ## 换弹 s（L2714）
 const RIFLE_RANGE: float = 100.0 ## 射程上限 u（L2971）
 const RIFLE_SPREAD_HIP: float = 0.004 ## 腰射散布（L2966）
@@ -97,9 +101,10 @@ const SCOPE_BREATH_PIXELS: float = 1.5 ## 呼吸摆动 ±px（L3225）
 const PISTOL_DMG_BODY: float = 15.0 ## 身体伤害（冲锋枪与步枪之间取轻档）
 const PISTOL_DMG_HEAD_FACTOR: float = 2.0 ## 爆头倍率
 const PISTOL_DMG_VS_SNIPER: float = 999.0 ## 对狙击手固定伤害（沿用步枪语义）
-const PISTOL_FIRE_INTERVAL: float = 0.15 ## 半自动最小击发间隔 s（≈400 RPM 上限）
+const PISTOL_FIRE_INTERVAL: float = 0.06 ## 全自动/三发点射射速 s/发 = 1000 RPM（2026-10-19 机主裁决）
+const PISTOL_SEMI_FIRE_INTERVAL: float = 0.15 ## 半自动最小击发间隔 s（≈400 RPM 上限，机主口径：半自动不变）
 const PISTOL_MAG: int = 30 ## 弹匣（EDAA 设定：30 发制式弹匣）
-const PISTOL_RESERVE: int = 120 ## 备弹
+const PISTOL_RESERVE: int = 600 ## 备弹（2026-10-19 机主裁决：30/600，原 120）
 const PISTOL_RELOAD_TIME: float = 1.6 ## 换弹 s（无托手枪快于步枪）
 const PISTOL_RANGE: float = 80.0 ## 射程上限 u
 const PISTOL_SPREAD_HIP: float = 0.006 ## 腰射散布（略劣于步枪）

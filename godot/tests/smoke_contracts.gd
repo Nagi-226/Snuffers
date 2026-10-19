@@ -55,7 +55,8 @@ func _run() -> void:
 
 	# -- game_config.gd: frozen feel parameters must keep contract values --
 	_assert(config.SPEED_STAND == 4.5, "game_config.gd SPEED_STAND == 4.5")
-	_assert(config.RIFLE_FIRE_INTERVAL == 0.1, "game_config.gd RIFLE_FIRE_INTERVAL == 0.1")
+	_assert(config.RIFLE_FIRE_INTERVAL == 0.075, "game_config.gd RIFLE_FIRE_INTERVAL == 0.075 (800 RPM, 2026-10-19 机主裁决)")
+	_assert(config.RIFLE_SEMI_FIRE_INTERVAL == 0.1, "game_config.gd RIFLE_SEMI_FIRE_INTERVAL == 0.1 (半自动维持原档)")
 	# G2 冻结新增参数全量锁定（commit 99dc010；RPG 后坐/步兵调参/狙杀 lethal/UI 动效四组）。
 	# 步枪后坐组（网页版永久上跳缺陷修正，Godot 版指数恢复）
 	_assert(config.RIFLE_RECOIL_RECOVER_RATE == 6.0, "game_config.gd RIFLE_RECOIL_RECOVER_RATE == 6.0")

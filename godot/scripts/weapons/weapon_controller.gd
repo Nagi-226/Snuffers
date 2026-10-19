@@ -124,9 +124,11 @@ func _tick_weapon(delta: float) -> void:
 
 
 ## 击发一发并置冷却；返回是否真正击发（子类 _fire 口径）。
+## 冷却按模式分档（2026-10-19 机主口径：半自动维持原间隔，全自动/点射走提速档）。
 func _try_fire() -> bool:
 	if _fire():
-		_fire_cooldown = weapon_data.fire_interval
+		_fire_cooldown = weapon_data.semi_fire_interval \
+				if _current_fire_mode() == &"semi" else weapon_data.fire_interval
 		return true
 	return false
 

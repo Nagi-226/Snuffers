@@ -14,6 +14,8 @@ signal player_damaged(part: StringName, amount: float)
 signal player_hit_direction(from_position: Vector3)
 ## 某部位血量变化（含治疗）。用于 HUD 血条刷新。
 signal player_health_changed(part: StringName, current: float, maximum: float)
+## 护甲能量变化（2026-10-19 机主立项：纳米服式脱战回充，回充期无受击事件，HUD 需专用信号刷新）。
+signal armor_changed(current: float, maximum: float)
 ## 趴下状态切换。
 signal player_prone_changed(is_prone: bool)
 ## 瞄准状态切换。

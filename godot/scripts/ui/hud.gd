@@ -104,6 +104,7 @@ func _set_bar(bar: ProgressBar, current: float, maximum: float) -> void:
 func _connect_events() -> void:
 	Events.player_health_changed.connect(_on_player_health_changed)
 	Events.player_damaged.connect(_on_player_damaged)
+	Events.armor_changed.connect(_on_armor_changed)
 	Events.player_aim_changed.connect(_on_player_aim_changed)
 	Events.ammo_changed.connect(_on_ammo_changed)
 	Events.weapon_switched.connect(_on_weapon_switched)
@@ -126,6 +127,7 @@ func _connect_events() -> void:
 func _disconnect_events() -> void:
 	Events.player_health_changed.disconnect(_on_player_health_changed)
 	Events.player_damaged.disconnect(_on_player_damaged)
+	Events.armor_changed.disconnect(_on_armor_changed)
 	Events.player_aim_changed.disconnect(_on_player_aim_changed)
 	Events.ammo_changed.disconnect(_on_ammo_changed)
 	Events.weapon_switched.disconnect(_on_weapon_switched)
@@ -161,6 +163,11 @@ func _on_player_health_changed(part: StringName, current: float, maximum: float)
 func _on_player_damaged(_part: StringName, _amount: float) -> void:
 	_refresh_vitals()
 	_flash_damage_vignette()
+
+
+## 护甲能量变化（脱战回充专用信号，2026-10-19 机主立项）。
+func _on_armor_changed(current: float, maximum: float) -> void:
+	_set_bar(_armor_bar, current, maximum)
 
 
 ## 受击红晕：全屏红层瞬间到峰值后淡出；连续受击重新起峰（派单口径）。
