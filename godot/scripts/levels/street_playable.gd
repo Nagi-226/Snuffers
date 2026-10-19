@@ -23,6 +23,18 @@ func _vm_shot(args: PackedStringArray) -> void:
 		out_path = args[idx + 1]
 	for i in 20:
 		await get_tree().process_frame
+	if args.has("pistol"):
+		# 切到手枪（2 号键位等效；直写状态+广播，与 player_controller._switch_weapon 同序列）
+		GameState.current_weapon = &"pistol"
+		Events.weapon_switched.emit(&"pistol")
+		for i in 10:
+			await get_tree().process_frame
+	if args.has("ads"):
+		# 按住开镜等效：置位后等 20 帧让 ADS_LERP_TIME 插值走满（挂载归中+FOV+准星层）
+		GameState.is_aiming = true
+		Events.player_aim_changed.emit(true)
+		for i in 20:
+			await get_tree().process_frame
 	if args.has("reload"):
 		var rifle := get_node_or_null("Player/Camera3D/WeaponMount/Rifle")
 		if rifle != null and rifle.has_method("_play_reload_anim"):

@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_controller"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/rifle.tscn" id="2_rifle"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/rpg.tscn" id="3_rpg"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/pistol.tscn" id="4_pistol"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 ; 占位数值：_ready 时由脚本按 GameConfig（PLAYER_RADIUS × PLAYER_HEIGHT_STAND）逐项覆盖
@@ -27,8 +28,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, -0.3, -0.5)
 ; 武器挂载（W2 域场景，实例化只读；输入门控/可见性由 weapon_controller 自治）
 [node name="Rifle" parent="Camera3D/WeaponMount" instance=ExtResource("2_rifle")]
 
+[node name="Pistol" parent="Camera3D/WeaponMount" instance=ExtResource("4_pistol")]
+
 [node name="RPG" parent="Camera3D/WeaponMount" instance=ExtResource("3_rpg")]
 
 ; 后坐通路（蜂后裁决：不上 Events 总线，player 场景内局部连接到相机 pitch）
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Rifle" to="." method="_on_weapon_recoil_kick"]
+[connection signal="recoil_kick" from="Camera3D/WeaponMount/Pistol" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/RPG" to="." method="_on_weapon_recoil_kick"]

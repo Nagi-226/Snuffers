@@ -13,16 +13,19 @@ const KEY_STRAFE_LEFT: Key = KEY_A ## 网页版 A：左移
 const KEY_STRAFE_RIGHT: Key = KEY_D ## 网页版 D：右移
 const KEY_PRONE: Key = KEY_C ## 网页版 C：趴下切换
 const KEY_WEAPON_RIFLE: Key = KEY_1 ## 网页版 1：切步枪
-const KEY_WEAPON_RPG: Key = KEY_2 ## 网页版 2：切火箭筒
+const KEY_WEAPON_PISTOL: Key = KEY_2 ## 2：切手枪 EM-57P（2026-10-19 机主立项）
+const KEY_WEAPON_RPG: Key = KEY_3 ## 3：切火箭筒（2026-10-19 由 2 挪 3，手枪入 2 号位）
 const KEY_NIGHT_VISION: Key = KEY_N ## N：夜视仪切换（§11.2 机主裁决：V→N，与昼夜演示场景键位一致）
 const KEY_MEDKIT: Key = KEY_F ## 网页版 F：使用药包
 const KEY_HELI: Key = KEY_H ## 网页版 H：呼叫直升机
 const KEY_JUMP: Key = KEY_SPACE ## 空格：跳跃（2026-10-18 机主立项）
+const KEY_SPRINT: Key = KEY_SHIFT ## 左 Shift+W：疾跑（2026-10-19 机主立项）
 const KEY_INTERACT: Key = KEY_E ## E：通用交互（2026-10-18 机主立项：开门等；拾取物不走此键，贴近自动捡拾）
 const KEY_RELEASE_MOUSE: Key = KEY_ESCAPE ## Esc：释放鼠标（点击画面恢复捕获）
 
 var _pitch: float = 0.0
 var _is_moving: bool = false
+var _jump_queued: bool = false ## 跳跃排队位（2026-10-19 修复：输入帧置位、物理帧消费，避免被重力清零）
 var _speed_state: StringName = &"normal"
 var _still_broadcast_second: int = 0
 
@@ -36,6 +39,16 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", 
 # E 键通用交互（2026-10-18 机主立项）：准星射线命中带 interact() 方法的节点即生效
 var _interact_target: Node = null
 var _prompt_label: Label = null
+
+# —— 按住开镜（ADS，2026-10-19 机主立项）——
+# 开镜权重 0..1 插值驱动：WeaponMount 位移（optic 归中相机轴）+ FOV 收窄 + 准星覆盖层。
+var _ads_weight: float = 0.0
+var _mount_hip_pos: Vector3 = Vector3.ZERO ## 腰射挂载位（_ready 从 player.tscn 实测读取）
+var _ads_mount_targets: Dictionary = {} ## weapon_id → 开镜挂载位（optic 中心对中）
+var _ads_fov_targets: Dictionary = {} ## weapon_id → 开镜 FOV
+var _ads_reticle: AdsReticle = null
+
+@onready var _weapon_mount: Marker3D = $Camera3D/WeaponMount
 
 @onready var _collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var _camera: Camera3D = $Camera3D
@@ -69,8 +82,59 @@ func _ready() -> void:
 	_prompt_label.visible = false
 	prompt_layer.add_child(_prompt_label)
 	add_child(prompt_layer)
+	# 开镜准星覆盖层（ADS）：脚本自建 CanvasLayer，同 InteractPrompt 模式不动 W5 域 HUD；
+	# 步枪=全息圆环+心点，手枪=点状，RPG 无覆盖层（沿用 HUD 准星+FOV_SCOPE）。
+	var reticle_layer := CanvasLayer.new()
+	reticle_layer.name = "AdsReticle"
+	reticle_layer.layer = 3
+	_ads_reticle = AdsReticle.new()
+	_ads_reticle.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_ads_reticle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	reticle_layer.add_child(_ads_reticle)
+	add_child(reticle_layer)
+	_calibrate_ads()
 	# 承伤管线挂接（发射侧在 enemy_base._damage_player；结算收口在本类 _apply_damage）。
 	Events.player_damaged.connect(_apply_damage)
+
+
+## 开镜标定：从 player.tscn 实测腰射挂载位；步枪/手枪按 optic 网格 AABB 中心反推
+## 开镜挂载位（optic 归中相机轴），免手调免硬编码几何；找不到 optic 时回退 x 归中。
+func _calibrate_ads() -> void:
+	_mount_hip_pos = _weapon_mount.position
+	_ads_fov_targets = {
+		&"rifle": GameConfig.RIFLE_ADS_FOV,
+		&"pistol": GameConfig.PISTOL_ADS_FOV,
+		&"rpg": GameConfig.FOV_SCOPE,
+	}
+	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"]]:
+		var weapon_root := _weapon_mount.get_node_or_null(pair[1]) as Node3D
+		var fallback := Vector3(0.0, _mount_hip_pos.y, _mount_hip_pos.z)
+		if weapon_root == null:
+			_ads_mount_targets[pair[0]] = fallback
+			continue
+		var center: Variant = _find_optic_center_in_mount(weapon_root)
+		if center == null:
+			_ads_mount_targets[pair[0]] = fallback
+		else:
+			var c: Vector3 = center
+			# optic 相机空间坐标 = 挂载位 + c；令其 x/y 归零 → 挂载位取 -c（z 保持腰射纵距）
+			_ads_mount_targets[pair[0]] = Vector3(-c.x, -c.y, _mount_hip_pos.z)
+
+
+## 在武器子树中找名字含 optic 的网格，返回其瞄窗中心在 WeaponMount 局部空间的坐标。
+## 瞄窗 ≈ AABB 中心 + 高度 15% 上移（外壳下沿拉低 AABB 中心，视窗偏上半部）。
+func _find_optic_center_in_mount(weapon_root: Node) -> Variant:
+	var stack: Array = [weapon_root]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		stack.append_array(n.get_children())
+		if n is MeshInstance3D and String(n.name).to_lower().contains("optic"):
+			var mi := n as MeshInstance3D
+			var aabb := mi.get_aabb()
+			var window_local: Vector3 = aabb.get_center() + Vector3(0.0, aabb.size.y * 0.15, 0.0)
+			var global_pos: Vector3 = mi.global_transform * window_local
+			return _weapon_mount.global_transform.affine_inverse() * global_pos
+	return null
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -87,13 +151,12 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event is InputEventMouseButton:
 		var button := event as InputEventMouseButton
-		if not button.pressed:
-			return
-		if button.button_index == MOUSE_BUTTON_LEFT and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		if button.button_index == MOUSE_BUTTON_LEFT and button.pressed and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 			get_viewport().set_input_as_handled()
 		elif button.button_index == MOUSE_BUTTON_RIGHT and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			_toggle_aim()
+			# 按住开镜（2026-10-19 机主立项：原切换式改为按住式，松开即关镜）
+			_set_aiming(button.pressed)
 		return
 
 	if event is InputEventKey:
@@ -107,6 +170,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_toggle_prone()
 			KEY_WEAPON_RIFLE:
 				_switch_weapon(&"rifle")
+			KEY_WEAPON_PISTOL:
+				_switch_weapon(&"pistol")
 			KEY_WEAPON_RPG:
 				_switch_weapon(&"rpg")
 			KEY_NIGHT_VISION:
@@ -122,10 +187,16 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	# 重力（引擎全局设置，非手感参数）。
+	# 重力（引擎全局设置，非手感参数）；跳跃排队位在落地帧消费（修复：原先输入回调
+	# 直接写 velocity.y，下一物理帧此处 is_on_floor 仍为 true 被清零，跳跃失效）。
 	if is_on_floor():
-		velocity.y = 0.0
+		if _jump_queued:
+			_jump_queued = false
+			velocity.y = GameConfig.JUMP_VELOCITY
+		else:
+			velocity.y = 0.0
 	else:
+		_jump_queued = false  # 离地期间不保留排队（不做土狼时间，与立项口径一致）
 		velocity.y -= _gravity * delta
 
 	# WASD 输入，对角线归一化；yaw 在根节点上，故用根节点 basis 变换。
@@ -159,8 +230,8 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	# 自动上台阶（2026-10-18 机主立项：路缘 0.145m 免跳直上）：水平位移被挡掉大半
 	# 且在地面上时，按「抬升-前推-落回」三段 test_move 尝试跨上台阶；任何一段失败
-	# 都保持原位不动（真墙/头顶压顶/前方悬空均不触发）。
-	if is_on_floor() and wish.length() > 0.001:
+	# 都保持原位不动（真墙/头顶压顶/前方悬空均不触发）。起跳上升帧不触发（防吞跳跃速度）。
+	if is_on_floor() and velocity.y <= 0.01 and wish.length() > 0.001:
 		var actual := Vector3(global_position.x - pre_pos.x, 0.0, global_position.z - pre_pos.z)
 		if actual.length() < wish.length() * 0.4:
 			_try_step_up(wish)
@@ -179,11 +250,12 @@ func _physics_process(delta: float) -> void:
 	_update_still_time(delta)
 
 
-## 跳跃（空格）：仅站立在地面时触发；趴下状态忽略（趴下跳不符合战术动作设定）。
+## 跳跃（空格）：趴下状态忽略；置排队位由物理帧落地消费（输入回调直接写 velocity.y
+## 会被下一物理帧重力清零，2026-10-19 修复）。
 func _try_jump() -> void:
-	if GameState.is_prone or not is_on_floor():
+	if GameState.is_prone:
 		return
-	velocity.y = GameConfig.JUMP_VELOCITY
+	_jump_queued = true
 
 
 ## E 键通用交互：当前射线目标（_update_interact_target 每物理帧刷新）响应即调用。
@@ -247,14 +319,34 @@ func _process(delta: float) -> void:
 		var t := clampf(_cam_lerp_elapsed / GameConfig.CAM_HEIGHT_LERP_TIME, 0.0, 1.0)
 		_camera.position.y = lerpf(_cam_height_from, _cam_height_target, t)
 
+	# 开镜插值（ADS_LERP_TIME）：挂载位移 + FOV + 准星覆盖层同步驱动。
+	var ads_target := 1.0 if GameState.is_aiming else 0.0
+	if not is_equal_approx(_ads_weight, ads_target):
+		_ads_weight = move_toward(_ads_weight, ads_target, delta / GameConfig.ADS_LERP_TIME)
+		_weapon_mount.position = _mount_hip_pos.lerp(
+			_ads_mount_targets.get(GameState.current_weapon, _mount_hip_pos), _ads_weight)
+		_camera.fov = lerpf(GameConfig.FOV_BASE,
+			_ads_fov_targets.get(GameState.current_weapon, GameConfig.FOV_BASE), _ads_weight)
+	# 准星覆盖层：权重过 60% 才显形（过渡中段不闪半吊子准星）；RPG 无覆盖层。
+	if _ads_reticle != null:
+		var mode: StringName = &"none"
+		if GameState.current_weapon != &"rpg":
+			mode = GameState.current_weapon
+		if _ads_reticle.mode != mode or not is_equal_approx(_ads_reticle.weight, _ads_weight):
+			_ads_reticle.mode = mode
+			_ads_reticle.weight = _ads_weight
+			_ads_reticle.queue_redraw()
 
-## 当前移速：趴下 > 瞄准 > 站立取基速，再按腿部状态乘系数。
+
+## 当前移速：趴下 > 瞄准 > 疾跑（Shift+W 前进中）> 站立取基速，再按腿部状态乘系数。
 func _current_speed() -> float:
 	var base: float
 	if GameState.is_prone:
 		base = GameConfig.SPEED_PRONE
 	elif GameState.is_aiming:
 		base = GameConfig.SPEED_AIM
+	elif Input.is_physical_key_pressed(KEY_SPRINT) and Input.is_physical_key_pressed(KEY_FORWARD):
+		base = GameConfig.SPEED_SPRINT
 	else:
 		base = GameConfig.SPEED_STAND
 	match GameState.leg_state:
@@ -318,10 +410,13 @@ func _start_cam_height_lerp(target: float) -> void:
 	_cam_lerp_elapsed = 0.0
 
 
-## 右键：瞄准切换式（非按住）。
-func _toggle_aim() -> void:
-	GameState.is_aiming = not GameState.is_aiming
-	Events.player_aim_changed.emit(GameState.is_aiming)
+## 右键按住开镜（2026-10-19 机主立项重做：原切换式只减速像潜行，现带挂载归中 +
+## FOV 收窄 + 青蓝准星覆盖层三件套）。is_aiming 语义不变（散布/移速/灵敏度下游零改动）。
+func _set_aiming(aiming: bool) -> void:
+	if GameState.is_aiming == aiming:
+		return
+	GameState.is_aiming = aiming
+	Events.player_aim_changed.emit(aiming)
 
 
 ## 武器后坐接收（蜂后裁决：recoil_kick 不上总线，player.tscn 内局部连接）。
@@ -438,3 +533,29 @@ func _part_max_health(part: StringName) -> float:
 func _call_heli() -> void:
 	if GameState.heli_unlocked:
 		Events.heli_called.emit()
+
+
+## 开镜准星覆盖层（2026-10-19 机主立项）：青蓝 (0.4,0.95,1.0) 全息风。
+## rifle = 全息圆环 + 心点 + 四向刻度；pistol = 点状准星；none/rpg = 不画。
+## 权重 <0.6 不显形（开镜过渡中段由 HUD 准星交接，避免双准星）。
+class AdsReticle extends Control:
+	var mode: StringName = &"none"
+	var weight: float = 0.0
+
+	func _draw() -> void:
+		if weight < 0.6 or mode == &"none":
+			return
+		var alpha: float = clampf((weight - 0.6) / 0.4, 0.0, 1.0) * 0.9
+		var color := Color(0.4, 0.95, 1.0, alpha)
+		var center := size * 0.5
+		match mode:
+			&"rifle":
+				# 全息环：外环 + 心点 + 四向短刻度
+				draw_arc(center, 22.0, 0.0, TAU, 64, color, 1.6, true)
+				draw_circle(center, 2.2, color)
+				for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
+					draw_line(center + dir * 26.0, center + dir * 31.0, color, 1.6, true)
+			&"pistol":
+				# 点状准星：心点 + 微光晕圈
+				draw_arc(center, 5.0, 0.0, TAU, 32, Color(color, alpha * 0.45), 1.2, true)
+				draw_circle(center, 2.0, color)

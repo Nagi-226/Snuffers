@@ -104,6 +104,7 @@ func _set_bar(bar: ProgressBar, current: float, maximum: float) -> void:
 func _connect_events() -> void:
 	Events.player_health_changed.connect(_on_player_health_changed)
 	Events.player_damaged.connect(_on_player_damaged)
+	Events.player_aim_changed.connect(_on_player_aim_changed)
 	Events.ammo_changed.connect(_on_ammo_changed)
 	Events.weapon_switched.connect(_on_weapon_switched)
 	Events.leg_state_changed.connect(_on_leg_state_changed)
@@ -124,6 +125,7 @@ func _connect_events() -> void:
 func _disconnect_events() -> void:
 	Events.player_health_changed.disconnect(_on_player_health_changed)
 	Events.player_damaged.disconnect(_on_player_damaged)
+	Events.player_aim_changed.disconnect(_on_player_aim_changed)
 	Events.ammo_changed.disconnect(_on_ammo_changed)
 	Events.weapon_switched.disconnect(_on_weapon_switched)
 	Events.leg_state_changed.disconnect(_on_leg_state_changed)
@@ -175,22 +177,34 @@ func _on_ammo_changed(weapon_id: StringName, mag: int, reserve: int) -> void:
 	_set_ammo_text(weapon_id, mag, reserve)
 
 
-## 切枪后按 GameState 刷新（ammo_changed 不一定随切枪重播）。
+## 切枪后按 GameState 刷新（ammo_changed 不一定随切枪重播）；准星显隐同步复评。
 func _on_weapon_switched(_weapon_id: StringName) -> void:
 	_refresh_ammo()
+	_on_player_aim_changed(GameState.is_aiming)
+
+
+## 开镜时隐藏 HUD 腰射准星（ADS 覆盖层接管；RPG 无覆盖层，准星保留）。
+## （2026-10-19 机主立项：右键按住开镜配套）
+func _on_player_aim_changed(aiming: bool) -> void:
+	_crosshair.visible = not (aiming and GameState.current_weapon != &"rpg")
 
 
 func _refresh_ammo() -> void:
-	if GameState.current_weapon == &"rpg":
-		_set_ammo_text(&"rpg", GameState.rpg_ammo, -1)
-	else:
-		_set_ammo_text(&"rifle", GameState.rifle_mag, GameState.rifle_reserve)
+	match GameState.current_weapon:
+		&"rpg":
+			_set_ammo_text(&"rpg", GameState.rpg_ammo, -1)
+		&"pistol":
+			_set_ammo_text(&"pistol", GameState.pistol_mag, GameState.pistol_reserve)
+		_:
+			_set_ammo_text(&"rifle", GameState.rifle_mag, GameState.rifle_reserve)
 
 
 ## RPG 无弹匣概念：reserve = -1 时只显示火箭弹数（events.gd ammo_changed 注释）。
 func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 	if weapon_id == &"rpg" or reserve < 0:
 		_ammo_label.text = "火箭弹：%d" % mag
+	elif weapon_id == &"pistol":
+		_ammo_label.text = "手枪 弹药：%d / %d" % [mag, reserve]
 	else:
 		_ammo_label.text = "步枪 弹药：%d / %d" % [mag, reserve]
 

@@ -90,6 +90,26 @@ func sync_from_config() -> void:
 			view_recoil_rot_factor = GameConfig.RIFLE_RECOIL_VIEW_ROT
 			view_recoil_y_factor = GameConfig.RIFLE_RECOIL_VIEW_Y_FACTOR
 			view_recoil_z_factor = GameConfig.RIFLE_RECOIL_VIEW_Z_FACTOR
+		&"pistol":
+			# EM-57P「掣」（2026-10-19 冻结新增；EDAA 雷械谱系，GameConfig.PISTOL_* 契约组）
+			damage_body = GameConfig.PISTOL_DMG_BODY
+			headshot_factor = GameConfig.PISTOL_DMG_HEAD_FACTOR
+			dmg_vs_sniper = GameConfig.PISTOL_DMG_VS_SNIPER
+			fire_interval = GameConfig.PISTOL_FIRE_INTERVAL
+			mag_size = GameConfig.PISTOL_MAG
+			reserve_size = GameConfig.PISTOL_RESERVE
+			reload_time = GameConfig.PISTOL_RELOAD_TIME
+			hitscan_range = GameConfig.PISTOL_RANGE
+			spread_hip = GameConfig.PISTOL_SPREAD_HIP
+			spread_prone = GameConfig.PISTOL_SPREAD_PRONE
+			spread_aim = GameConfig.PISTOL_SPREAD_AIM
+			recoil_pitch = GameConfig.PISTOL_RECOIL_PITCH
+			recoil_view_offset = GameConfig.PISTOL_RECOIL_VIEW_OFFSET
+			recoil_decay = GameConfig.PISTOL_RECOIL_DECAY
+			recoil_recover_rate = GameConfig.PISTOL_RECOIL_RECOVER_RATE
+			view_recoil_rot_factor = GameConfig.PISTOL_RECOIL_VIEW_ROT
+			view_recoil_y_factor = GameConfig.PISTOL_RECOIL_VIEW_Y_FACTOR
+			view_recoil_z_factor = GameConfig.PISTOL_RECOIL_VIEW_Z_FACTOR
 		&"rpg":
 			projectile_speed = GameConfig.RPG_PROJECTILE_SPEED
 			projectile_gravity = GameConfig.RPG_GRAVITY

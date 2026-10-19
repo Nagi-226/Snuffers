@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
 
-; 步枪定义（G2 门禁基准，§7 对照表）。
+; 步枪定义（G2 门禁基准，§7 对照表；弹匣 60 发按 EDAA 雷械设定，2026-10-19 机主裁决）。
 ; GameConfig 已有字段运行时由 sync_from_config() 覆盖，此处数值必须与 GameConfig 一致（L2 校验项）。
 ; G2 契约冻结（2026-07-21）：recoil_recover_rate / view_*_factor 已由
 ; RIFLE_RECOIL_RECOVER_RATE / RIFLE_RECOIL_VIEW_ROT/Y_FACTOR/Z_FACTOR 契约接管，本文件同名字段
@@ -15,7 +15,7 @@ damage_body = 25.0
 headshot_factor = 2.0
 dmg_vs_sniper = 999.0
 fire_interval = 0.1
-mag_size = 30
+mag_size = 60
 reserve_size = 150
 reload_time = 2.0
 hitscan_range = 100.0

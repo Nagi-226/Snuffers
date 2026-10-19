@@ -15,6 +15,8 @@ var armor: float = 0.0
 
 var rifle_mag: int = 0
 var rifle_reserve: int = 0
+var pistol_mag: int = 0 ## EM-57P 弹匣（2026-10-19 冻结新增）
+var pistol_reserve: int = 0 ## EM-57P 备弹（2026-10-19 冻结新增）
 var rpg_ammo: int = 0
 var medkits: int = 0
 var kills: int = 0
@@ -63,6 +65,8 @@ func reset() -> void:
 	armor = GameConfig.ARMOR_MAX
 	rifle_mag = GameConfig.RIFLE_MAG
 	rifle_reserve = GameConfig.RIFLE_RESERVE
+	pistol_mag = GameConfig.PISTOL_MAG
+	pistol_reserve = GameConfig.PISTOL_RESERVE
 	rpg_ammo = GameConfig.RPG_AMMO
 	medkits = 0
 	kills = 0

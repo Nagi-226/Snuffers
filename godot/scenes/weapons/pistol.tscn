@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/pistol_controller.gd" id="1_pistol"]
+[ext_resource type="Resource" path="res://scenes/weapons/pistol.tres" id="2_data"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/em57p_viewmodel.glb" id="3_em57p"]
+
+; 挂载约定：实例化到 player.tscn 的 Camera3D/WeaponMount 下（W1 已预留）。
+[node name="Pistol" type="Node3D"]
+script = ExtResource("1_pistol")
+weapon_data = ExtResource("2_data")
+
+; EM-57P「掣」真枪视图模型（2026-10-19 上枪）
+; GLB 验收口径（DSH 派单 15/17）：枪口 -Z、四子对象（body/magazine/optic/laser_module）、
+; 弹匣带枢轴原点（顶部面心）。ViewModel 容器承接后坐变换（基类 _update_view_recoil 驱动）。
+[node name="ViewModel" type="Node3D" parent="."]
+
+; 摆位：y 抬至眼下；scale 0.55 —— GLB 与 EM-68A 同为 1m 级归一化长度，但 EM-57P
+; 是无托手枪（实枪应 ~0.45m 级），缩放只作用于场景实例变换，不动 GLB 几何（零改动纪律）
+[node name="EM57P" parent="ViewModel" instance=ExtResource("3_em57p")]
+transform = Transform3D(0.55, 0, 0, 0, 0.55, 0, 0, 0, 0.55, 0, 0.04, 0.02)

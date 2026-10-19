@@ -14,7 +14,7 @@ extends Node
 ## 按蜂后裁决以 .wav 入库，加载时先找 .mp3 再找 .wav）。
 const AUDIO_DIR: String = "res://assets/audio/"
 ## 枪声类音效：播放时附加 ±GameConfig.SFX_PITCH_JITTER 随机 pitch_scale（派单口径）。
-const GUN_SOUNDS: Array[StringName] = [&"rifle", &"rocket"]
+const GUN_SOUNDS: Array[StringName] = [&"rifle", &"pistol", &"rocket"]
 ## 敌人机枪音高基值：复用 rifle.mp3 降调以区分敌我枪声（G2 派单口径；契约冻结未含此项，
 ## 属听觉表现常量，如需调参由蜂后在下轮契约冻结迁入 GameConfig）。
 const ENEMY_MG_PITCH: float = 0.8
@@ -184,7 +184,7 @@ func _enable_loop(stream: AudioStream) -> void:
 
 
 ## Events 接线表（G2 契约冻结终态，2026-07-21；2026-08-20 机主指令修订）：
-## weapon_fired → 按 GameState.current_weapon 放 rifle/rocket（枪声带音高抖动）
+## weapon_fired → 按 GameState.current_weapon 放 rifle/pistol/rocket（枪声带音高抖动）
 ## weapon_reloaded → reload ｜ hit_confirmed → hitmark
 ## medkit_used → medkit ｜ night_vision_toggled → nightvision
 ## heli_called → helicopter（loop 总线循环）｜ mission_completed / game_over → 停全部 loop
@@ -235,6 +235,8 @@ func _on_weapon_fired(_weapon_id: StringName) -> void:
 	match GameState.current_weapon:
 		&"rifle":
 			play_sfx(&"rifle")
+		&"pistol":
+			play_sfx(&"pistol") ## EM-57P 独立枪声素材（2026-10-19 机主立项：两枪不共用音源）
 		&"rpg":
 			play_sfx(&"rocket")
 

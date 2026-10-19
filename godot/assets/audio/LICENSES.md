@@ -8,7 +8,7 @@
 
 ## 许可证说明
 
-- **Mixkit Free License**（https://mixkit.co/license/#sfxFree）：Mixkit 音效可免费用于商业与非商业项目，无需署名，可修改。本次下载的 12 个文件均来自 Mixkit 官方音效库，直接下载、无需登录、无付费项。**2026-08-20 机主指令移除 2 个人声呻吟条目（enemy_death「Man in pain」/ player_hurt「Ow exclamation of pain」，违和感太强），现库内 Mixkit 文件 10 个。**
+- **Mixkit Free License**（https://mixkit.co/license/#sfxFree）：Mixkit 音效可免费用于商业与非商业项目，无需署名，可修改。本次下载的 12 个文件均来自 Mixkit 官方音效库，直接下载、无需登录、无付费项。**2026-08-20 机主指令移除 2 个人声呻吟条目（enemy_death「Man in pain」/ player_hurt「Ow exclamation of pain」，违和感太强），现库内 Mixkit 文件 10 个。**2026-10-19 新增 pistol.mp3（Short laser gun shot，机主立项：EM-57P 手枪与步枪不共用枪声素材），现库内 Mixkit 文件 11 个。**
 - **程序合成占位**：`ambient.wav` 由本项目 Node 脚本程序化合成（棕噪声风声 + 随机远处枪声爆点 + 低频爆炸隆隆声），非第三方素材，可视为项目自有资产（等同于 CC0），无任何授权限制。
 
 ---
@@ -18,6 +18,7 @@
 | 文件名 | 用途 | 来源平台 | 原始条目 | 作者 | 原始 URL | 许可证 | 下载日期 |
 |---|---|---|---|---|---|---|---|
 | rifle.mp3 | 步枪单发 | Mixkit | Game gun shot | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/1662/ （直链 https://assets.mixkit.co/active_storage/sfx/1662/1662.mp3 ） | Mixkit Free License | 2026-07-14 |
+| pistol.mp3 | 手枪单发（EM-57P「掣」，电磁短促激光枪感，与步枪音源区分） | Mixkit | Short laser gun shot | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/1670/ （直链 https://assets.mixkit.co/active_storage/sfx/1670/1670-preview.mp3 ） | Mixkit Free License | 2026-10-19 |
 | rocket.mp3 | 火箭筒发射 | Mixkit | Fast rocket whoosh | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/1714/ （直链 https://assets.mixkit.co/active_storage/sfx/1714/1714-preview.mp3 ） | Mixkit Free License | 2026-07-14 |
 | explosion.mp3 | 爆炸 | Mixkit | Short explosion | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/1694/ （直链 https://assets.mixkit.co/active_storage/sfx/1694/1694-preview.mp3 ） | Mixkit Free License | 2026-07-14 |
 | reload.mp3 | 换弹/拉栓 | Mixkit | Shotgun long pump | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/1666/ （直链 https://assets.mixkit.co/active_storage/sfx/1666/1666-preview.mp3 ） | Mixkit Free License | 2026-07-14 |

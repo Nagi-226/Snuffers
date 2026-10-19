@@ -9,6 +9,7 @@ extends Node
 # ===== 玩家移动（G1 门禁基准）=====
 const SPEED_STAND: float = 4.5 ## 站立移速 u/s（0.15×0.5×60，L3432/L3244）
 const SPEED_AIM: float = 1.5 ## 瞄准移速 u/s（0.05×0.5×60，L3432）
+const SPEED_SPRINT: float = 6.75 ## 疾跑移速 u/s = 站立×1.5（2026-10-19 机主立项：W+左 Shift；网页版无对应项，Godot 版新增）
 const SPEED_PRONE: float = 0.72 ## 趴下移速 u/s（0.08×0.15×60，L3432/L3239）
 const LEG_INJURED_FACTOR: float = 0.5 ## 腿血 ≤60%：站立速度×0.5 → 2.25 u/s（倍率 0.25 vs 0.5，L3243）
 const LEG_CRITICAL_FACTOR: float = 0.25 ## 腿血 =0：站立速度×0.25 → 1.125 u/s（倍率 0.125，L3242）
@@ -29,7 +30,11 @@ const INTERACT_RANGE: float = 2.4 ## E 键通用交互距离 m（2026-10-18 机�
 const NV_SFX_CUT_TIME: float = 0.85 ## 夜视开关音效截短时长 s（2026-10-18 机主裁决：原音源偏长，播到此时长后 0.12s 淡出截停）
 
 const FOV_BASE: float = 75.0 ## 主相机 FOV（L465）
-const FOV_SCOPE: float = 25.0 ## 瞄准镜 FOV = 75/3（L512）
+const FOV_SCOPE: float = 25.0 ## RPG 瞄准镜 FOV = 75/3（L512）
+# —— 按住开镜（ADS，2026-10-19 机主立项：右键由「切换潜行观感」改为按住开镜）——
+const RIFLE_ADS_FOV: float = 60.0 ## EM-68A 全息瞄具开镜 FOV（全息=低倍率，微收窄）
+const PISTOL_ADS_FOV: float = 65.0 ## EM-57P 点状瞄具开镜 FOV
+const ADS_LERP_TIME: float = 0.12 ## 开镜/关镜过渡时长 s（挂载位移与 FOV 同步插值）
 
 const WORLD_BOUND_X: float = 98.0 ## 活动范围 x（L3438）
 const WORLD_BOUND_Z: float = 58.0 ## 活动范围 z（L3439）
@@ -66,7 +71,7 @@ const RIFLE_DMG_BODY: float = 25.0 ## 身体伤害（L2985）
 const RIFLE_DMG_HEAD_FACTOR: float = 2.0 ## 爆头倍率 → 50（L2985）
 const RIFLE_DMG_VS_SNIPER: float = 999.0 ## 对狙击手固定伤害（L3014）
 const RIFLE_FIRE_INTERVAL: float = 0.1 ## 射速 s/发 = 600 RPM（L2609）
-const RIFLE_MAG: int = 30 ## 弹匣（L327）
+const RIFLE_MAG: int = 60 ## 弹匣（2026-10-19 机主裁决：按 EDAA 雷械设定 EM-68A 通用弹匣 60 发，原 30 为网页版 L327 值）
 const RIFLE_RESERVE: int = 150 ## 备弹（L327）
 const RIFLE_RELOAD_TIME: float = 2.0 ## 换弹 s（L2714）
 const RIFLE_RANGE: float = 100.0 ## 射程上限 u（L2971）
@@ -83,6 +88,27 @@ const RIFLE_RECOIL_VIEW_Z_FACTOR: float = 0.05 ## 视图模型后坐位移系数
 const SCOPE_SHAKE_TIME: float = 0.2 ## 开镜击发抖动时长 s（L2960）
 const SCOPE_SHAKE_PIXELS: float = 6.0 ## 抖动幅度 ±px（L2962）
 const SCOPE_BREATH_PIXELS: float = 1.5 ## 呼吸摆动 ±px（L3225）
+
+# ===== 手枪（EM-57P「掣」，2026-10-19 机主立项：EDAA 雷械设定落地，2 号键位；
+#       网页版无手枪，数值按设定文档+手感类比定标，G4 试玩复核）=====
+const PISTOL_DMG_BODY: float = 15.0 ## 身体伤害（冲锋枪与步枪之间取轻档）
+const PISTOL_DMG_HEAD_FACTOR: float = 2.0 ## 爆头倍率
+const PISTOL_DMG_VS_SNIPER: float = 999.0 ## 对狙击手固定伤害（沿用步枪语义）
+const PISTOL_FIRE_INTERVAL: float = 0.15 ## 半自动最小击发间隔 s（≈400 RPM 上限）
+const PISTOL_MAG: int = 30 ## 弹匣（EDAA 设定：30 发制式弹匣）
+const PISTOL_RESERVE: int = 120 ## 备弹
+const PISTOL_RELOAD_TIME: float = 1.6 ## 换弹 s（无托手枪快于步枪）
+const PISTOL_RANGE: float = 80.0 ## 射程上限 u
+const PISTOL_SPREAD_HIP: float = 0.006 ## 腰射散布（略劣于步枪）
+const PISTOL_SPREAD_PRONE: float = 0.003 ## 趴下散布
+const PISTOL_SPREAD_AIM: float = 0.001 ## 瞄准散布
+const PISTOL_RECOIL_PITCH: float = 0.002 ## 每发上跳 rad（EDAA 设定：后坐仅 .22 级）
+const PISTOL_RECOIL_VIEW_OFFSET: float = 0.05 ## 视图模型后坐量（轻于步枪）
+const PISTOL_RECOIL_DECAY: float = 0.85 ## 后坐衰减/帧
+const PISTOL_RECOIL_RECOVER_RATE: float = 8.0 ## 相机后坐恢复速率 /s（轻快恢复）
+const PISTOL_RECOIL_VIEW_ROT: float = 2.0 ## 视图模型后坐旋转系数
+const PISTOL_RECOIL_VIEW_Y_FACTOR: float = 0.02 ## 视图模型后坐位移系数 Y
+const PISTOL_RECOIL_VIEW_Z_FACTOR: float = 0.04 ## 视图模型后坐位移系数 Z
 
 # ===== RPG =====
 const RPG_AMMO: int = 5 ## 火箭弹数（L327）
