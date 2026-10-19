@@ -1,18 +1,7 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemies/infantry.gd" id="1_infantry"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
-albedo_color = Color(0.29, 0.365, 0.137, 1)
-roughness = 0.9
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_head"]
-albedo_color = Color(0.239, 0.29, 0.118, 1)
-roughness = 0.9
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gun"]
-albedo_color = Color(0.165, 0.165, 0.165, 1)
-roughness = 0.9
+[ext_resource type="PackedScene" path="res://assets/models/enemies/host_parasite.glb" id="2_host"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -20,19 +9,6 @@ height = 1.7
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_head"]
 radius = 0.22
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_body"]
-top_radius = 0.35
-bottom_radius = 0.35
-height = 1.7
-
-[sub_resource type="SphereMesh" id="SphereMesh_head"]
-radius = 0.22
-height = 0.44
-
-[sub_resource type="BoxMesh" id="BoxMesh_gun"]
-material = SubResource("StandardMaterial3D_gun")
-size = Vector3(0.1, 0.15, 0.7)
 
 [node name="Infantry" type="CharacterBody3D"]
 script = ExtResource("1_infantry")
@@ -42,26 +18,20 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
 shape = SubResource("CapsuleShape3D_body")
 
 ; 头部 hitbox（W2 约定：Area3D + 元数据 hit_part=&"head"，命中即爆头）
+; 2026-10-19 真模化：宿主弓背低头，头顶约 1.55m（灰盒期 1.8m）
 [node name="HeadHitbox" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 metadata/hit_part = &"head"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HeadHitbox"]
 shape = SubResource("SphereShape3D_head")
 
-[node name="BodyMesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
-material_override = SubResource("StandardMaterial3D_body")
-mesh = SubResource("CylinderMesh_body")
-
-[node name="HeadMesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
-material_override = SubResource("StandardMaterial3D_head")
-mesh = SubResource("SphereMesh_head")
-
-[node name="GunMesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 1.3, -0.35)
-mesh = SubResource("BoxMesh_gun")
+; 寄生人类宿主真模（2026-10-19：model3d_generation v3.1 图生 3D，概念图
+; ae219-host-input-crop.png；灰盒三件套「圆柱身+球头+盒枪」退役）。
+; GLB 归一化 1m 高 → ×1.75 至真人量级，y 偏移落地（脚底=0）。
+; 节点名保留 BodyMesh：enemy_base 受击红闪挂点按名解析（容器模式自动下钻首个网格）。
+[node name="BodyMesh" parent="." instance=ExtResource("2_host")]
+transform = Transform3D(1.75, 0, 0, 0, 1.75, 0, 0, 0, 1.75, 0, 0.875, 0)
 
 [node name="Eye" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)

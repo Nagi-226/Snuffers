@@ -26,6 +26,10 @@ signal recoil_kick(pitch_delta: float)
 const HitSolver = preload("res://scripts/weapons/hit_solver.gd")
 
 var _trigger_held: bool = false
+## 击发冷却（射击模式机制收口在基类；2026-10-19 机主立项）
+var _fire_cooldown: float = 0.0
+## 三发点射剩余弹数（>0 时即使松开扳机也打完，经典点射语义）
+var _burst_left: int = 0
 ## 相机后坐未恢复累积量（rad）：开火 += recoil_pitch，随后按 recover_rate 指数回零。
 var _camera_kick: float = 0.0
 ## 视图模型后坐量：开火时置 recoil_view_offset，随后 ×decay/帧 衰减（语义对齐网页版 recoilOffset）。
@@ -83,14 +87,53 @@ func _is_current_weapon() -> bool:
 	return weapon_data != null and GameState.current_weapon == weapon_data.weapon_id
 
 
-## 左键按下边沿（半自动武器用；全自动武器在 _tick_weapon 轮询 _trigger_held）。
+## 当前射击模式（GameState.fire_modes 契约字段；字典无记录时默认全自动——RPG 不入字典，
+## 但 RPG 整体由 kind 门控旁路本机制，默认值不会生效于其开火路径）。
+func _current_fire_mode() -> StringName:
+	if weapon_data == null:
+		return &"semi"
+	return GameState.fire_modes.get(weapon_data.weapon_id, &"auto") as StringName
+
+
+## 左键按下边沿：半自动击发一次；三发点射起 3 连发；全自动交由 tick 轮询。
+## 仅 hitscan 武器参与模式机制；投射物武器（RPG）由子类整体覆盖本钩子（不调 super）。
 func _on_trigger_pressed() -> void:
-	pass
+	if weapon_data != null and weapon_data.kind != WeaponData.Kind.HITSCAN:
+		return
+	match _current_fire_mode():
+		&"semi":
+			_try_fire()
+		&"burst":
+			_burst_left = 3
 
 
-## 每物理帧 tick（全自动武器在此按 fire_interval 连发）。
-func _tick_weapon(_delta: float) -> void:
-	pass
+## 每物理帧 tick：冷却衰减；全自动按住连发；点射按计数消耗（打空/换弹立即中断）。
+func _tick_weapon(delta: float) -> void:
+	if weapon_data != null and weapon_data.kind != WeaponData.Kind.HITSCAN:
+		return
+	_fire_cooldown = maxf(_fire_cooldown - delta, 0.0)
+	if _fire_cooldown > 0.0:
+		return
+	if _current_fire_mode() == &"auto" and _trigger_held:
+		_try_fire()
+	elif _burst_left > 0:
+		if _try_fire():
+			_burst_left -= 1
+		else:
+			_burst_left = 0  # 弹尽/换弹中击发失败：点射立即中断，防恢复后幽灵续射
+
+
+## 击发一发并置冷却；返回是否真正击发（子类 _fire 口径）。
+func _try_fire() -> bool:
+	if _fire():
+		_fire_cooldown = weapon_data.fire_interval
+		return true
+	return false
+
+
+## 单发流程（子类实现：弹药门控 → 扣弹广播 → 后坐 → 命中结算）。返回是否真正击发。
+func _fire() -> bool:
+	return false
 
 
 # ===== 后坐 =====

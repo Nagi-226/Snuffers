@@ -37,16 +37,39 @@ var _flash_material: StandardMaterial3D
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
 
 @onready var _eye: Marker3D = $Eye
-@onready var _body_mesh: MeshInstance3D = $BodyMesh
+var _body_mesh: MeshInstance3D = null
 
 
 func _ready() -> void:
 	add_to_group(&"enemy")
-	# 复制材质实例，避免受击红闪污染共享 .tscn 子资源的其他实例。
-	if _body_mesh != null and _body_mesh.material_override is StandardMaterial3D:
-		_flash_material = (_body_mesh.material_override as StandardMaterial3D).duplicate()
-		_body_mesh.material_override = _flash_material
+	# 受击红闪材质挂点解析：灰盒期 BodyMesh 即网格节点；真模期 BodyMesh 是 GLB 容器
+	# （节点名保留不变，往下找第一个网格子节点）。复制材质实例，避免红闪污染共享资源。
+	var bm: Node = get_node_or_null("BodyMesh")
+	if bm is MeshInstance3D:
+		_body_mesh = bm
+	elif bm != null:
+		_body_mesh = _find_first_mesh(bm)
+	if _body_mesh != null:
+		if _body_mesh.material_override is StandardMaterial3D:
+			_flash_material = (_body_mesh.material_override as StandardMaterial3D).duplicate()
+		else:
+			var src := _body_mesh.get_active_material(0)
+			if src is StandardMaterial3D:
+				_flash_material = (src as StandardMaterial3D).duplicate()
+		if _flash_material != null:
+			_body_mesh.material_override = _flash_material
 	Events.enemies_alerted.connect(_on_enemies_alerted)
+
+
+## 递归找子树第一个 MeshInstance3D（GLB 容器解析用）。
+func _find_first_mesh(root: Node) -> MeshInstance3D:
+	for c in root.get_children():
+		if c is MeshInstance3D:
+			return c
+		var found := _find_first_mesh(c)
+		if found != null:
+			return found
+	return null
 
 
 func _exit_tree() -> void:

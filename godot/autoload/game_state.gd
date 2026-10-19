@@ -24,6 +24,8 @@ var kills: int = 0
 var intel: int = 0
 
 var current_weapon: StringName = &"rifle"
+## 射击模式（2026-10-19 机主立项：X 键循环）：weapon_id → &"semi" / &"burst" / &"auto"
+var fire_modes: Dictionary = {}
 var is_prone: bool = false
 var is_aiming: bool = false
 ## 腿部状态：&"healthy" / &"injured" / &"critical"（驱动移速与 HUD 警告）
@@ -72,6 +74,7 @@ func reset() -> void:
 	kills = 0
 	intel = 0
 	current_weapon = &"rifle"
+	fire_modes = {&"rifle": &"auto", &"pistol": &"semi"}  # 出厂档：步枪全自动 / 手枪半自动
 	is_prone = false
 	is_aiming = false
 	leg_state = &"healthy"

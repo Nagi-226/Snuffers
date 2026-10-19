@@ -210,6 +210,7 @@ func _connect_events() -> void:
 	# 拾取（2026-10-07 冻结新增）：battery_picked → reload（备弹补充感）；
 	#   medkit_picked → medkit ｜ intel_picked → ui_click（终端回收感）
 	Events.battery_picked.connect(_on_battery_picked)
+	Events.pistol_ammo_picked.connect(_on_pistol_ammo_picked)
 	Events.medkit_picked.connect(_on_medkit_picked)
 	Events.intel_picked.connect(_on_intel_picked)
 
@@ -227,6 +228,7 @@ func _disconnect_events() -> void:
 	Events.player_moving_changed.disconnect(_on_player_moving_changed)
 	Events.enemy_fired.disconnect(_on_enemy_fired)
 	Events.battery_picked.disconnect(_on_battery_picked)
+	Events.pistol_ammo_picked.disconnect(_on_pistol_ammo_picked)
 	Events.medkit_picked.disconnect(_on_medkit_picked)
 	Events.intel_picked.disconnect(_on_intel_picked)
 
@@ -254,6 +256,10 @@ func _on_medkit_used(_remaining: int) -> void:
 
 
 func _on_battery_picked(_reserve: int) -> void:
+	play_sfx(&"reload")
+
+
+func _on_pistol_ammo_picked(_reserve: int) -> void:
 	play_sfx(&"reload")
 
 

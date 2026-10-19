@@ -107,6 +107,7 @@ func _connect_events() -> void:
 	Events.player_aim_changed.connect(_on_player_aim_changed)
 	Events.ammo_changed.connect(_on_ammo_changed)
 	Events.weapon_switched.connect(_on_weapon_switched)
+	Events.fire_mode_changed.connect(_on_fire_mode_changed)
 	Events.leg_state_changed.connect(_on_leg_state_changed)
 	Events.message_posted.connect(_on_message_posted)
 	Events.kills_changed.connect(_refresh_kills)
@@ -128,6 +129,7 @@ func _disconnect_events() -> void:
 	Events.player_aim_changed.disconnect(_on_player_aim_changed)
 	Events.ammo_changed.disconnect(_on_ammo_changed)
 	Events.weapon_switched.disconnect(_on_weapon_switched)
+	Events.fire_mode_changed.disconnect(_on_fire_mode_changed)
 	Events.leg_state_changed.disconnect(_on_leg_state_changed)
 	Events.message_posted.disconnect(_on_message_posted)
 	Events.kills_changed.disconnect(_refresh_kills)
@@ -199,14 +201,30 @@ func _refresh_ammo() -> void:
 			_set_ammo_text(&"rifle", GameState.rifle_mag, GameState.rifle_reserve)
 
 
+## 射击模式切换（X 键，2026-10-19 机主立项）：仅当报告的是当前武器才刷新显示。
+func _on_fire_mode_changed(weapon_id: StringName, _mode: StringName) -> void:
+	if weapon_id == GameState.current_weapon:
+		_refresh_ammo()
+
+
 ## RPG 无弹匣概念：reserve = -1 时只显示火箭弹数（events.gd ammo_changed 注释）。
+## 步枪/手枪附加当前射击模式标（GameState.fire_modes 契约字段）。
 func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 	if weapon_id == &"rpg" or reserve < 0:
 		_ammo_label.text = "火箭弹：%d" % mag
-	elif weapon_id == &"pistol":
-		_ammo_label.text = "手枪 弹药：%d / %d" % [mag, reserve]
+		return
+	var mode_tag := ""
+	match GameState.fire_modes.get(weapon_id, &"auto") as StringName:
+		&"auto":
+			mode_tag = "[全自动]"
+		&"burst":
+			mode_tag = "[三点射]"
+		&"semi":
+			mode_tag = "[半自动]"
+	if weapon_id == &"pistol":
+		_ammo_label.text = "手枪 %s 弹药：%d / %d" % [mode_tag, mag, reserve]
 	else:
-		_ammo_label.text = "步枪 弹药：%d / %d" % [mag, reserve]
+		_ammo_label.text = "步枪 %s 弹药：%d / %d" % [mode_tag, mag, reserve]
 
 
 ## 腿部警告分级：injured 显示橙色「⚠ 腿部受伤」，critical 显示红色「⚠ 腿部重伤」。

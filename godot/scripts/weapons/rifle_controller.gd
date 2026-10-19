@@ -17,7 +17,8 @@
 ## 弹尽自动换弹（网页版 L2954）与 R 键手动换弹共用 _start_reload，两条路径信号序列一致。
 extends WeaponController
 
-var _fire_cooldown: float = 0.0
+## 射击模式机制已上收基类（2026-10-19：半自动/三发点射/全自动三档，X 键切换）；
+## 本子类只保留弹药结算、散布射线与换弹三件套。
 var _is_reloading: bool = false
 
 # 程序化换弹动画（2026-10-19 上枪配套）：弹匣节点带枢轴原点（匣顶面心，DSH 派单 17），
@@ -55,12 +56,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	_start_reload()
 
 
-## 全自动：按住左键按 fire_interval 连发（600 RPM）。
-func _tick_weapon(delta: float) -> void:
-	_fire_cooldown = maxf(_fire_cooldown - delta, 0.0)
-	if _trigger_held and _fire_cooldown <= 0.0:
-		if _fire():
-			_fire_cooldown = weapon_data.fire_interval
+## 全自动/点射 tick 已收口基类（_tick_weapon）；本子类仅实现单发流程。
 
 
 ## 单发流程：弹药门控 → 扣弹广播 → 后坐 → 散布射线 → 命中结算。返回是否真正击发。

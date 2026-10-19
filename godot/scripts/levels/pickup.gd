@@ -1,5 +1,6 @@
 extends Area3D
-## Pickup — 室内拾取物（2026-10-07 机主裁决：电池组/医疗注射/取证终端三类，贴近即拾）。
+## Pickup — 室内拾取物（2026-10-07 机主裁决：电池组/医疗注射/取证终端三类，贴近即拾；
+## 2026-10-19 机主立项新增 pistol_ammo 手枪弹匣组，与电池组视觉/效果区分）。
 ##
 ## 契约（已冻结）：Events.battery_picked / medkit_picked（既有）/ intel_picked；
 ## 状态写入 GameState（rifle_reserve / medkits / intel），反馈走 Events.message_posted 中央飘字。
@@ -15,6 +16,7 @@ var _collected: bool = false
 
 const MODELS := {
 	&"battery": "res://assets/models/pickup_battery.glb",
+	&"pistol_ammo": "res://assets/models/pickup_pistol_ammo.glb",
 	&"medkit": "res://assets/models/pickup_medkit.glb",
 	&"intel": "res://assets/models/pickup_intel.glb",
 }
@@ -51,10 +53,21 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	match kind:
 		&"battery":
-			GameState.rifle_reserve += GameConfig.BATTERY_PICKUP_ROUNDS
+			if GameState.rifle_reserve >= GameConfig.RIFLE_RESERVE_MAX:
+				return  # 备弹达携带上限：留在原地不吞件（2026-10-19 机主口径）
+			GameState.rifle_reserve = mini(GameState.rifle_reserve + GameConfig.BATTERY_PICKUP_ROUNDS,
+				GameConfig.RIFLE_RESERVE_MAX)
 			Events.ammo_changed.emit(&"rifle", GameState.rifle_mag, GameState.rifle_reserve)
 			Events.battery_picked.emit(GameState.rifle_reserve)
 			Events.message_posted.emit("E 系列电池组  备弹 +%d" % GameConfig.BATTERY_PICKUP_ROUNDS)
+		&"pistol_ammo":
+			if GameState.pistol_reserve >= GameConfig.PISTOL_RESERVE_MAX:
+				return  # 同上：达上限不吞件
+			GameState.pistol_reserve = mini(GameState.pistol_reserve + GameConfig.PISTOL_AMMO_PICKUP_ROUNDS,
+				GameConfig.PISTOL_RESERVE_MAX)
+			Events.ammo_changed.emit(&"pistol", GameState.pistol_mag, GameState.pistol_reserve)
+			Events.pistol_ammo_picked.emit(GameState.pistol_reserve)
+			Events.message_posted.emit("EM-57P 弹匣组  手枪备弹 +%d" % GameConfig.PISTOL_AMMO_PICKUP_ROUNDS)
 		&"medkit":
 			if GameState.medkits >= GameConfig.MEDKIT_MAX_CARRY:
 				return  # 携带上限：留在原地不吞件

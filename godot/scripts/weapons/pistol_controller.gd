@@ -9,7 +9,8 @@
 ## - 弹药走 GameState.pistol_mag / pistol_reserve 契约字段。
 extends WeaponController
 
-var _fire_cooldown: float = 0.0
+## 射击模式机制已上收基类（2026-10-19：半自动/三发点射/全自动三档，X 键切换）；
+## 本子类只保留弹药结算、散布射线与换弹三件套。
 var _is_reloading: bool = false
 
 # 程序化换弹动画（同 EM-68A 方案）：弹匣节点带枢轴原点（匣顶面心，DSH 派单 15/17），
@@ -46,16 +47,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	_start_reload()
 
 
-## 半自动：左键按下边沿击发一发（fire_interval 仅作最小击发间隔防抖）。
-func _on_trigger_pressed() -> void:
-	if _fire_cooldown > 0.0:
-		return
-	if _fire():
-		_fire_cooldown = weapon_data.fire_interval
-
-
-func _tick_weapon(delta: float) -> void:
-	_fire_cooldown = maxf(_fire_cooldown - delta, 0.0)
+## 半自动/点射/全自动 tick 已收口基类（_on_trigger_pressed/_tick_weapon）；本子类仅实现单发流程。
 
 
 ## 单发流程：弹药门控 → 扣弹广播 → 后坐 → 散布射线 → 命中结算。返回是否真正击发。

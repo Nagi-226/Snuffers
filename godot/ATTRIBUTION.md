@@ -79,6 +79,8 @@
 | `assets/textures/skyline/facade_office.png` | 玻璃幕墙办公楼立面贴图（1024×1488） | 同上 | 项目自有（AI 生成） | 2026-09-27 |
 | `assets/textures/skyline/facade_residential.png` | 住宅塔楼立面贴图（1024×1488） | 同上 | 项目自有（AI 生成） | 2026-09-27 |
 | `assets/textures/skyline/facade_neon.png` | 霓虹媒体立面塔楼贴图（1024×1488，无文字版） | 同上 | 项目自有（AI 生成） | 2026-09-27 |
+| `assets/models/enemies/host_parasite.glb`（含同名 .preview.png） | 寄生人类宿主敌人真模（源自项目自有概念图 `concept-art/ae219-host-input-crop.png` 图生 3D） | Kimi model3d_generation 插件（v3.1，face-limit 30000） | 项目自有（AI 生成） | 2026-10-19 |
+| `assets/models/pickup_pistol_ammo.glb` | EM-57P 手枪弹匣组拾取道具（立式三联弹匣+琥珀电量窗） | 本项目程序化建模（Blender 脚本 `desktop-port/godot-spike/modeling/build_pistol_ammo.py` 烘焙） | 项目自有 | 2026-10-19 |
 
 ---
 

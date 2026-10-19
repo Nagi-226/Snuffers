@@ -21,6 +21,7 @@ const KEY_HELI: Key = KEY_H ## 网页版 H：呼叫直升机
 const KEY_JUMP: Key = KEY_SPACE ## 空格：跳跃（2026-10-18 机主立项）
 const KEY_SPRINT: Key = KEY_SHIFT ## 左 Shift+W：疾跑（2026-10-19 机主立项）
 const KEY_INTERACT: Key = KEY_E ## E：通用交互（2026-10-18 机主立项：开门等；拾取物不走此键，贴近自动捡拾）
+const KEY_FIRE_MODE: Key = KEY_X ## X：射击模式循环 全自动→三发点射→半自动（2026-10-19 机主立项）
 const KEY_RELEASE_MOUSE: Key = KEY_ESCAPE ## Esc：释放鼠标（点击画面恢复捕获）
 
 var _pitch: float = 0.0
@@ -184,6 +185,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_try_jump()
 			KEY_INTERACT:
 				_try_interact()
+			KEY_FIRE_MODE:
+				_cycle_fire_mode()
 
 
 func _physics_process(delta: float) -> void:
@@ -433,6 +436,18 @@ func _switch_weapon(weapon_id: StringName) -> void:
 		return
 	GameState.current_weapon = weapon_id
 	Events.weapon_switched.emit(weapon_id)
+
+
+## X：射击模式循环（2026-10-19 机主立项）——全自动 → 三发点射 → 半自动 → 回全自动。
+## RPG 投射物无模式概念，直接忽略。状态入 GameState.fire_modes 契约字段 + 发信号。
+func _cycle_fire_mode() -> void:
+	var w := GameState.current_weapon
+	if w == &"rpg":
+		return
+	const ORDER: Array[StringName] = [&"auto", &"burst", &"semi"]
+	var cur: StringName = GameState.fire_modes.get(w, &"auto")
+	GameState.fire_modes[w] = ORDER[(ORDER.find(cur) + 1) % ORDER.size()]
+	Events.fire_mode_changed.emit(w, GameState.fire_modes[w])
 
 
 ## N：夜视仪切换占位。白天禁开（§11.2）：白天且当前未开启时直接返回；关闭不限时段。

@@ -61,7 +61,8 @@ const CASES: Array = [
 	{
 		"scene": "res://scenes/enemies/infantry.tscn",
 		"optional": false,
-		"expect": ["CollisionShape3D", "HeadHitbox", "BodyMesh", "HeadMesh", "GunMesh", "Eye", "Muzzle"],
+		# 2026-10-19 真模化：HeadMesh/GunMesh 灰盒件退役，BodyMesh 现为宿主 GLB 容器节点
+		"expect": ["CollisionShape3D", "HeadHitbox", "BodyMesh", "Eye", "Muzzle"],
 	},
 	{
 		"scene": "res://scenes/enemies/machine_gunner.tscn",

@@ -1,60 +1,66 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/ui/damage_direction_arc.gd" id="2_arc"]
+[ext_resource type="Script" path="res://scripts/ui/visor_frame.gd" id="3_visor"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel_bg"]
-bg_color = Color(0.1, 0.11, 0.1, 0.55)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
+bg_color = Color(0.02, 0.07, 0.1, 0.5)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.95, 1.0, 0.3)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 content_margin_left = 10.0
 content_margin_top = 8.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_bg"]
-bg_color = Color(0.16, 0.17, 0.15, 0.9)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
+bg_color = Color(0.04, 0.1, 0.14, 0.85)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill_head"]
-bg_color = Color(0.58, 0.36, 0.32, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
+bg_color = Color(0.62, 0.9, 1.0, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill_body"]
-bg_color = Color(0.44, 0.5, 0.35, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
+bg_color = Color(0.35, 0.78, 0.95, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill_legs"]
-bg_color = Color(0.55, 0.47, 0.33, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
+bg_color = Color(0.3, 0.68, 0.82, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill_helmet"]
-bg_color = Color(0.4, 0.46, 0.5, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
+bg_color = Color(0.5, 0.72, 0.85, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill_armor"]
-bg_color = Color(0.47, 0.49, 0.5, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
+bg_color = Color(0.45, 0.65, 0.78, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1")
@@ -73,13 +79,20 @@ color = Color(0.6, 0.05, 0.05, 0)
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 262.0
-offset_bottom = 196.0
+offset_bottom = 218.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel_bg")
 
 [node name="Rows" type="VBoxContainer" parent="StatusPanel"]
 mouse_filter = 2
 theme_override_constants/separation = 6
+
+; 灯塔 ASI 接入标头（2026-10-19 机主立项：HUD 科幻化——战术屏显视角的「在线链路」标识）
+[node name="AsiHeader" type="Label" parent="StatusPanel/Rows"]
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 1.0, 0.75)
+theme_override_font_sizes/font_size = 12
+text = "▮ 灯塔ASI · 战术链接在线"
 
 [node name="HeadRow" type="HBoxContainer" parent="StatusPanel/Rows"]
 mouse_filter = 2
@@ -89,7 +102,7 @@ theme_override_constants/separation = 8
 custom_minimum_size = Vector2(48, 0)
 mouse_filter = 2
 size_flags_vertical = 4
-theme_override_colors/font_color = Color(0.85, 0.83, 0.78, 1)
+theme_override_colors/font_color = Color(0.55, 0.9, 1.0, 1)
 text = "头部"
 
 [node name="HeadBar" type="ProgressBar" parent="StatusPanel/Rows/HeadRow"]
@@ -111,7 +124,7 @@ theme_override_constants/separation = 8
 custom_minimum_size = Vector2(48, 0)
 mouse_filter = 2
 size_flags_vertical = 4
-theme_override_colors/font_color = Color(0.85, 0.83, 0.78, 1)
+theme_override_colors/font_color = Color(0.55, 0.9, 1.0, 1)
 text = "躯体"
 
 [node name="BodyBar" type="ProgressBar" parent="StatusPanel/Rows/BodyRow"]
@@ -133,7 +146,7 @@ theme_override_constants/separation = 8
 custom_minimum_size = Vector2(48, 0)
 mouse_filter = 2
 size_flags_vertical = 4
-theme_override_colors/font_color = Color(0.85, 0.83, 0.78, 1)
+theme_override_colors/font_color = Color(0.55, 0.9, 1.0, 1)
 text = "腿部"
 
 [node name="LegsBar" type="ProgressBar" parent="StatusPanel/Rows/LegsRow"]
@@ -155,7 +168,7 @@ theme_override_constants/separation = 8
 custom_minimum_size = Vector2(48, 0)
 mouse_filter = 2
 size_flags_vertical = 4
-theme_override_colors/font_color = Color(0.85, 0.83, 0.78, 1)
+theme_override_colors/font_color = Color(0.55, 0.9, 1.0, 1)
 text = "头盔"
 
 [node name="HelmetBar" type="ProgressBar" parent="StatusPanel/Rows/HelmetRow"]
@@ -177,7 +190,7 @@ theme_override_constants/separation = 8
 custom_minimum_size = Vector2(48, 0)
 mouse_filter = 2
 size_flags_vertical = 4
-theme_override_colors/font_color = Color(0.85, 0.83, 0.78, 1)
+theme_override_colors/font_color = Color(0.55, 0.9, 1.0, 1)
 text = "护甲"
 
 [node name="ArmorBar" type="ProgressBar" parent="StatusPanel/Rows/ArmorRow"]
@@ -202,7 +215,7 @@ offset_right = -16.0
 offset_bottom = 44.0
 grow_horizontal = 0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.85, 0.83, 0.78, 1)
+theme_override_colors/font_color = Color(0.55, 0.9, 1.0, 1)
 theme_override_font_sizes/font_size = 20
 horizontal_alignment = 2
 text = "击杀：0"
@@ -221,7 +234,7 @@ offset_right = -16.0
 offset_bottom = 74.0
 grow_horizontal = 0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.62, 0.78, 0.68, 1)
+theme_override_colors/font_color = Color(0.45, 0.85, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 horizontal_alignment = 2
 text = "取证终端：0 / 0"
@@ -238,7 +251,7 @@ offset_right = 160.0
 offset_bottom = 48.0
 grow_horizontal = 2
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
+theme_override_colors/font_color = Color(0.5, 0.88, 1.0, 1)
 theme_override_font_sizes/font_size = 20
 horizontal_alignment = 1
 text = "直升机抵达：60 秒"
@@ -274,7 +287,7 @@ offset_bottom = -120.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.85, 0.83, 0.78, 1)
+theme_override_colors/font_color = Color(0.55, 0.9, 1.0, 1)
 theme_override_font_sizes/font_size = 22
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -293,10 +306,10 @@ offset_bottom = -28.0
 grow_horizontal = 0
 grow_vertical = 0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.85, 0.83, 0.78, 1)
+theme_override_colors/font_color = Color(0.55, 0.9, 1.0, 1)
 theme_override_font_sizes/font_size = 20
 horizontal_alignment = 2
-text = "步枪 弹药：30 / 150"
+text = "步枪 [全自动] 弹药：60 / 150"
 
 [node name="KillLabel" type="Label" parent="."]
 unique_name_in_owner = true
@@ -334,7 +347,7 @@ offset_bottom = 48.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.85, 0.83, 0.78, 1)
+theme_override_colors/font_color = Color(0.55, 0.9, 1.0, 1)
 theme_override_font_sizes/font_size = 16
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -362,7 +375,7 @@ offset_top = 1.0
 offset_right = 13.0
 offset_bottom = 9.0
 mouse_filter = 2
-color = Color(0.85, 0.83, 0.78, 0.9)
+color = Color(0.4, 0.95, 1.0, 0.9)
 
 [node name="Bottom" type="ColorRect" parent="Crosshair"]
 offset_left = 11.0
@@ -370,7 +383,7 @@ offset_top = 15.0
 offset_right = 13.0
 offset_bottom = 23.0
 mouse_filter = 2
-color = Color(0.85, 0.83, 0.78, 0.9)
+color = Color(0.4, 0.95, 1.0, 0.9)
 
 [node name="Left" type="ColorRect" parent="Crosshair"]
 offset_left = 1.0
@@ -378,7 +391,7 @@ offset_top = 11.0
 offset_right = 9.0
 offset_bottom = 13.0
 mouse_filter = 2
-color = Color(0.85, 0.83, 0.78, 0.9)
+color = Color(0.4, 0.95, 1.0, 0.9)
 
 [node name="Right" type="ColorRect" parent="Crosshair"]
 offset_left = 15.0
@@ -386,7 +399,7 @@ offset_top = 11.0
 offset_right = 23.0
 offset_bottom = 13.0
 mouse_filter = 2
-color = Color(0.85, 0.83, 0.78, 0.9)
+color = Color(0.4, 0.95, 1.0, 0.9)
 
 ; 受击方向指示弧（§11.1 A 方案三件套之三，2026-08-19 Phase 0b）：
 ; 全屏 Control，自包含监听 player_hit_direction，屏幕中心外圈画弧。
@@ -399,3 +412,14 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("2_arc")
+
+; 头盔面甲屏显边框（2026-10-19 机主立项：HUD 科幻化，灯塔 ASI 战术屏显视角）。
+; 全屏纯绘制层，置于最上层但低透明不抢信息。
+[node name="VisorFrame" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_visor")

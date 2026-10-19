@@ -28,8 +28,11 @@ signal player_still_time_changed(seconds: float)
 signal leg_state_changed(state: StringName)
 
 # ===== 武器 =====
-## 开火。weapon_id: &"rifle" / &"rpg"
+## 开火。weapon_id: &"rifle" / &"pistol" / &"rpg"
 signal weapon_fired(weapon_id: StringName)
+## 射击模式切换（2026-10-19 机主立项：X 键循环 全自动→三发点射→半自动；RPG 不参与）。
+## mode: &"semi" / &"burst" / &"auto"
+signal fire_mode_changed(weapon_id: StringName, mode: StringName)
 ## 切枪完成。
 signal weapon_switched(weapon_id: StringName)
 ## 换弹开始（RPG 无此事件）。
@@ -79,6 +82,9 @@ signal medkit_used(remaining: int)
 ## 拾取电池组（E 系列电磁武器备弹补充；reserve 为补充后的步枪备弹总数）。
 ## 2026-10-07 机主裁决冻结新增：居民区室内补给只出电池组/医疗注射，不出 RPG 战斗部。
 signal battery_picked(reserve: int)
+## 拾取手枪弹匣组（EM-57P 备弹补充；reserve 为补充后的手枪备弹总数）。
+## 2026-10-19 机主立项：两种弹药拾取道具视觉/效果区分。
+signal pistol_ammo_picked(reserve: int)
 ## 拾取取证终端（叙事收集品，提灯人前置情报遗留）。collected 已收集数，total 本图总数。
 signal intel_picked(collected: int, total: int)
 ## 触发地雷（Day 0 裁决：HP 清零即触发 game_over，修复网页版缺陷）。
