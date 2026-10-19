@@ -35,7 +35,8 @@ const FOV_SCOPE: float = 25.0 ## RPG 瞄准镜 FOV = 75/3（L512）
 const RIFLE_ADS_FOV: float = 60.0 ## EM-68A 全息瞄具开镜 FOV（全息=低倍率，微收窄）
 const PISTOL_ADS_FOV: float = 65.0 ## EM-57P 点状瞄具开镜 FOV
 const ADS_LERP_TIME: float = 0.12 ## 开镜/关镜过渡时长 s（挂载位移与 FOV 同步插值）
-const ADS_OPTIC_FADE_MAX: float = 0.8 ## EM-68A 瞄具外壳开镜淡出上限（2026-10-19 机主裁决：不全隐，保留镜筒幽灵轮廓；1=完全消失）
+const ADS_RIFLE_OPTIC_BORE_LOCAL := Vector3(0.00092, 0.18047, -0.0204) ## EM-68A 镜孔轴心（网格局部空间，Blender 实测，轴系已换算 glTF；2026-10-19 开窗手术配套）
+const ADS_PISTOL_OPTIC_WINDOW_LIFT: float = 0.15 ## 手枪瞄窗自 AABB 中心上移比例（EM-57P 维持原标定）
 
 const WORLD_BOUND_X: float = 98.0 ## 活动范围 x（L3438）
 const WORLD_BOUND_Z: float = 58.0 ## 活动范围 z（L3439）

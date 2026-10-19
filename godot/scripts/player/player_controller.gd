@@ -48,10 +48,6 @@ var _mount_hip_pos: Vector3 = Vector3.ZERO ## 腰射挂载位（_ready 从 playe
 var _ads_mount_targets: Dictionary = {} ## weapon_id → 开镜挂载位（optic 中心对中）
 var _ads_fov_targets: Dictionary = {} ## weapon_id → 开镜 FOV
 var _ads_reticle: AdsReticle = null
-## EM-68A 瞄具网格（2026-10-19 机主反馈：全息瞄具外壳不透明挡死前方视野）；
-## 开镜权重升高时按 transparency 淡出，满开镜完全透明，由青蓝全息准星覆盖层接管。
-## 参考 Claude-of-Duty viewmodel.js：红点/全息为准直光路，视线必须能穿透镜筒。
-var _rifle_optic_mesh: MeshInstance3D = null
 ## 护甲回充脱战计时（受击清零，≥ARMOR_REGEN_DELAY 后按 ARMOR_REGEN_RATE 回充）
 var _armor_regen_wait: float = 0.0
 
@@ -119,16 +115,13 @@ func _calibrate_ads() -> void:
 		if weapon_root == null:
 			_ads_mount_targets[pair[0]] = fallback
 			continue
-		var center: Variant = _find_optic_center_in_mount(weapon_root)
+		var center: Variant = _find_optic_center_in_mount(weapon_root, pair[0])
 		if center == null:
 			_ads_mount_targets[pair[0]] = fallback
 		else:
 			var c: Vector3 = center
 			# optic 相机空间坐标 = 挂载位 + c；令其 x/y 归零 → 挂载位取 -c（z 保持腰射纵距）
 			_ads_mount_targets[pair[0]] = Vector3(-c.x, -c.y, _mount_hip_pos.z)
-		# EM-68A 瞄具外壳开镜淡出（手枪点状瞄具无遮挡问题，不注册）
-		if pair[0] == &"rifle":
-			_rifle_optic_mesh = _find_optic_mesh(weapon_root)
 
 
 ## 在武器子树中找名字含 optic 的网格实例（无则返回 null）。
@@ -143,13 +136,18 @@ func _find_optic_mesh(weapon_root: Node) -> MeshInstance3D:
 
 
 ## 在武器子树中找名字含 optic 的网格，返回其瞄窗中心在 WeaponMount 局部空间的坐标。
-## 瞄窗 ≈ AABB 中心 + 高度 15% 上移（外壳下沿拉低 AABB 中心，视窗偏上半部）。
-func _find_optic_center_in_mount(weapon_root: Node) -> Variant:
+## 步枪：用开窗手术实测的镜孔轴心（GameConfig.ADS_RIFLE_OPTIC_BORE_LOCAL），准星正对筒心；
+## 手枪：AABB 中心 + ADS_PISTOL_OPTIC_WINDOW_LIFT 上移（外壳下沿拉低 AABB 中心，视窗偏上半部）。
+func _find_optic_center_in_mount(weapon_root: Node, weapon_id: StringName) -> Variant:
 	var mi := _find_optic_mesh(weapon_root)
 	if mi == null:
 		return null
-	var aabb := mi.get_aabb()
-	var window_local: Vector3 = aabb.get_center() + Vector3(0.0, aabb.size.y * 0.15, 0.0)
+	var window_local: Vector3
+	if weapon_id == &"rifle":
+		window_local = GameConfig.ADS_RIFLE_OPTIC_BORE_LOCAL
+	else:
+		var aabb := mi.get_aabb()
+		window_local = aabb.get_center() + Vector3(0.0, aabb.size.y * GameConfig.ADS_PISTOL_OPTIC_WINDOW_LIFT, 0.0)
 	var global_pos: Vector3 = mi.global_transform * window_local
 	return _weapon_mount.global_transform.affine_inverse() * global_pos
 
@@ -379,13 +377,6 @@ func _process(delta: float) -> void:
 			_ads_mount_targets.get(GameState.current_weapon, _mount_hip_pos), _ads_weight)
 		_camera.fov = lerpf(GameConfig.FOV_BASE,
 			_ads_fov_targets.get(GameState.current_weapon, GameConfig.FOV_BASE), _ads_weight)
-	# EM-68A 瞄具外壳随开镜淡出（0.3 起淡 → 0.75 触及 ADS_OPTIC_FADE_MAX 上限；
-	# 机主裁决：不全隐，保留 20% 幽灵轮廓维持镜筒存在感；切枪/关镜即恢复不透明）。
-	if _rifle_optic_mesh != null:
-		var optic_t := clampf((_ads_weight - 0.3) / 0.45, 0.0, 1.0) * GameConfig.ADS_OPTIC_FADE_MAX \
-				if GameState.current_weapon == &"rifle" else 0.0
-		if not is_equal_approx(_rifle_optic_mesh.transparency, optic_t):
-			_rifle_optic_mesh.transparency = optic_t
 	# 准星覆盖层：权重过 60% 才显形（过渡中段不闪半吊子准星）；RPG 无覆盖层。
 	if _ads_reticle != null:
 		var mode: StringName = &"none"
