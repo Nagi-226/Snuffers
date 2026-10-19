@@ -35,6 +35,7 @@ const FOV_SCOPE: float = 25.0 ## RPG 瞄准镜 FOV = 75/3（L512）
 const RIFLE_ADS_FOV: float = 60.0 ## EM-68A 全息瞄具开镜 FOV（全息=低倍率，微收窄）
 const PISTOL_ADS_FOV: float = 65.0 ## EM-57P 点状瞄具开镜 FOV
 const ADS_LERP_TIME: float = 0.12 ## 开镜/关镜过渡时长 s（挂载位移与 FOV 同步插值）
+const ADS_OPTIC_FADE_MAX: float = 0.8 ## EM-68A 瞄具外壳开镜淡出上限（2026-10-19 机主裁决：不全隐，保留镜筒幽灵轮廓；1=完全消失）
 
 const WORLD_BOUND_X: float = 98.0 ## 活动范围 x（L3438）
 const WORLD_BOUND_Z: float = 58.0 ## 活动范围 z（L3439）
@@ -49,7 +50,7 @@ const SNIPER_STILL_TIME: float = 1.0 ## 静止多久触发狙杀 s（L1086）
 const HEALTH_HEAD: float = 35.0 ## 头部 HP（L327）
 const HEALTH_BODY: float = 85.0 ## 躯体 HP（L327）
 const HEALTH_LEGS: float = 65.0 ## 腿部 HP（L327）
-const HELMET_MAX: float = 50.0 ## 头盔（L327）
+const HELMET_MAX: float = 50.0 ## 【已废弃 2026-10-19 机主裁决：头盔耐久模块取消，头盔归并入护甲耐久概念】保留常量防外部引用断裂，下游已不消费
 const ARMOR_MAX: float = 100.0 ## 护甲（L327）
 const DMG_TAKEN_HEAD_FACTOR: float = 1.5 ## 命中头部伤害系数（L3276）
 const DMG_TAKEN_LEGS_FACTOR: float = 0.8 ## 命中腿部伤害系数（L3277）
@@ -57,7 +58,8 @@ const DMG_TAKEN_PRONE_HEAD_FACTOR: float = 0.6 ## 趴下被爆头再系数（L32
 const ARMOR_ABSORB_FACTOR: float = 0.6 ## 护甲吸收上限 = 伤害×0.6（L3271）
 # —— 护甲能量自动回复（2026-10-19 机主立项：孤岛危机纳米服式——脱战一小段时间后逐渐回充）——
 const ARMOR_REGEN_DELAY: float = 4.0 ## 最后一次受击后进入回充的脱战时长 s
-const ARMOR_REGEN_RATE: float = 12.0 ## 回充速率 点/s（满充 100 约 8.3s）
+const ARMOR_REGEN_RATE: float = 12.0 ## 护甲回充速率 点/s（满充 100 约 8.3s）
+const HEALTH_REGEN_RATE: float = 8.0 ## 部位血量回复速率 点/s（2026-10-19 机主裁决：与护甲同延迟同步回复，慢于护甲）
 const MEDKIT_HEAL: float = 50.0 ## 三部位各 +50（L866）
 const MEDKIT_PICKUP_RADIUS: float = 3.0 ## 拾取半径（L849）
 const MEDKIT_MAX_CARRY: int = 5 ## 携带上限（L2305）
@@ -235,6 +237,17 @@ const TRACER_WIDTH: float = 0.03 ## 曳光束粗细 u
 const MUZZLE_FLASH_LIFETIME: float = 0.05 ## 枪口火光驻留 s
 const MUZZLE_FLASH_ENERGY: float = 2.0 ## 枪口火光 OmniLight 能量
 const DAMAGE_ARC_SHOW_TIME: float = 1.0 ## 受击方向指示弧显示 s
+
+# ===== 玩家弹道特效（2026-10-19 机主立项：弹坑贴花 + 金属溅射火星 + 微弱青蓝枪口焰）=====
+const PLAYER_MUZZLE_OFFSET: float = 0.55 ## 枪口焰沿枪管前移量 m（视图模型炮口近似位）
+const PLAYER_MUZZLE_FLASH_ENERGY: float = 0.7 ## 枪口焰 OmniLight 能量（微弱口径，电磁武器青蓝焰）
+const PLAYER_MUZZLE_FLASH_RANGE: float = 2.5 ## 枪口焰光照半径 m
+const BULLET_DECAL_SIZE: float = 0.14 ## 弹坑贴花投影尺寸 m
+const BULLET_DECAL_POOL: int = 64 ## 弹坑池上限（FIFO 复用最旧，防贴花无限累积）
+const BULLET_SPARK_COUNT: int = 14 ## 金属命中火花粒子数
+const BULLET_SPARK_LIFETIME: float = 0.35 ## 火花粒子寿命 s
+## 金属表面关键词（命中物祖先节点名含其一即溅火星；自行车/铁护栏/阳台栏杆/篮架等）
+const BULLET_METAL_KEYWORDS: PackedStringArray = ["bicycle", "fence", "railing", "balcony", "gate", "barrier", "hoop", "shutter"]
 
 # ===== 氛围：浓雾能见度定标（P2，文档10 §1-P2 散射/消光分离思想）=====
 # 定标法：先定目标能见度，再反推消光系数，而非直接手调 density

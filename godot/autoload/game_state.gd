@@ -10,7 +10,6 @@ enum MissionPhase { INFILTRATE, DEFEND, BOARD, COMPLETED, GAME_OVER }
 
 ## 部位血量。键：&"head" / &"body" / &"legs"
 var health: Dictionary = {}
-var helmet: float = 0.0
 var armor: float = 0.0
 
 var rifle_mag: int = 0
@@ -63,7 +62,6 @@ func reset() -> void:
 		&"body": GameConfig.HEALTH_BODY,
 		&"legs": GameConfig.HEALTH_LEGS,
 	}
-	helmet = GameConfig.HELMET_MAX
 	armor = GameConfig.ARMOR_MAX
 	rifle_mag = GameConfig.RIFLE_MAG
 	rifle_reserve = GameConfig.RIFLE_RESERVE

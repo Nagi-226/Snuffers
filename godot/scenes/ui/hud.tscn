@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/ui/damage_direction_arc.gd" id="2_arc"]
@@ -48,13 +48,6 @@ corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill_helmet"]
-bg_color = Color(0.5, 0.72, 0.85, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill_armor"]
 bg_color = Color(0.45, 0.65, 0.78, 1)
 corner_radius_top_left = 2
@@ -79,7 +72,7 @@ color = Color(0.6, 0.05, 0.05, 0)
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 262.0
-offset_bottom = 218.0
+offset_bottom = 194.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel_bg")
 
@@ -158,28 +151,6 @@ theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_fill_legs")
 max_value = 65.0
 value = 65.0
-show_percentage = false
-
-[node name="HelmetRow" type="HBoxContainer" parent="StatusPanel/Rows"]
-mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="HelmetLabel" type="Label" parent="StatusPanel/Rows/HelmetRow"]
-custom_minimum_size = Vector2(48, 0)
-mouse_filter = 2
-size_flags_vertical = 4
-theme_override_colors/font_color = Color(0.55, 0.9, 1.0, 1)
-text = "头盔"
-
-[node name="HelmetBar" type="ProgressBar" parent="StatusPanel/Rows/HelmetRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 16)
-mouse_filter = 2
-size_flags_vertical = 4
-theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
-theme_override_styles/fill = SubResource("StyleBoxFlat_fill_helmet")
-max_value = 50.0
-value = 50.0
 show_percentage = false
 
 [node name="ArmorRow" type="HBoxContainer" parent="StatusPanel/Rows"]

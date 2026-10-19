@@ -1,13 +1,12 @@
 ## HUD — 战斗抬头显示（CanvasLayer）
 ##
 ## 布局（W5 派单）：
-##   左上：头/躯/腿三部位血条 + 头盔/护甲条；右上：击杀数；
+##   左上：头/躯/腿三部位血条 + 护甲条；右上：击杀数；
 ##   右下：弹药；顶部中央：腿部警告（分级 injured/critical）+ 直升机倒计时；
 ##   中央：飘字 + 十字准星；准星上方：击杀反馈；全屏底层：受击红晕闪屏。
 ##
 ## 数据来源：全部经 Events 信号驱动 + GameState 读取（契约约束 #2/#3）。
-## 头盔/护甲无专用变更信号，在 player_damaged / player_health_changed 触发时
-## 从 GameState 刷新（见交付报告「需蜂后裁决」）。
+## 护甲有专用信号 armor_changed（2026-10-19 纳米服式回充配套；头盔模块同日取消）。
 ## UI 反馈数值（准星放大/停留、飘字停留、红晕峰值/淡出、击杀反馈停留）已随 G2 契约
 ## 冻结迁入 GameConfig「UI 反馈动效」组，本文件不再保留同名常量；其余纯视觉样式常量
 ## （颜色/字号/过渡时长/上飘像素）契约未含，集中在本文件头部。
@@ -43,7 +42,6 @@ const LEG_WARN_COLOR_CRITICAL: Color = Color(0.8, 0.3, 0.25)
 @onready var _head_bar: ProgressBar = %HeadBar
 @onready var _body_bar: ProgressBar = %BodyBar
 @onready var _legs_bar: ProgressBar = %LegsBar
-@onready var _helmet_bar: ProgressBar = %HelmetBar
 @onready var _armor_bar: ProgressBar = %ArmorBar
 @onready var _kills_label: Label = %KillsLabel
 @onready var _ammo_label: Label = %AmmoLabel
@@ -87,12 +85,11 @@ func _refresh_all_from_state() -> void:
 	_on_leg_state_changed(GameState.leg_state)
 
 
-## 五条条：三部位血量 + 头盔 + 护甲（max 取自 GameConfig，禁止硬编码）。
+## 四条条：三部位血量 + 护甲（max 取自 GameConfig，禁止硬编码；头盔模块 2026-10-19 取消）。
 func _refresh_vitals() -> void:
 	_set_bar(_head_bar, float(GameState.health.get(&"head", GameConfig.HEALTH_HEAD)), GameConfig.HEALTH_HEAD)
 	_set_bar(_body_bar, float(GameState.health.get(&"body", GameConfig.HEALTH_BODY)), GameConfig.HEALTH_BODY)
 	_set_bar(_legs_bar, float(GameState.health.get(&"legs", GameConfig.HEALTH_LEGS)), GameConfig.HEALTH_LEGS)
-	_set_bar(_helmet_bar, GameState.helmet, GameConfig.HELMET_MAX)
 	_set_bar(_armor_bar, GameState.armor, GameConfig.ARMOR_MAX)
 
 

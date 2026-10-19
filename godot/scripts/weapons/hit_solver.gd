@@ -11,7 +11,21 @@
 ## - 头部 hitbox：节点元数据 "hit_part" = &"head"。
 ## - 狙击手：group "sniper"（命中即 RIFLE_DMG_VS_SNIPER 固定伤害）。
 ## - 碉堡：group "bunker"（步枪跳弹；RPG 爆径+bonus 内 destroy()）。
+## - 金属表面判定（2026-10-19 机主立项：弹着火花用）：沿 collider 祖先链节点名
+##   小写匹配 GameConfig.BULLET_METAL_KEYWORDS（自行车/铁护栏/栏杆/篮架/卷帘门等）。
 extends RefCounted
+
+
+## 是否金属表面：祖先链任一节点名小写后含关键词列表任一项。
+static func is_metal_surface(collider: Object) -> bool:
+	var node := collider as Node
+	while node != null:
+		var lower := String(node.name).to_lower()
+		for kw: String in GameConfig.BULLET_METAL_KEYWORDS:
+			if lower.contains(kw):
+				return true
+		node = node.get_parent()
+	return false
 
 
 ## 沿 collider 向上找最近实现 take_damage(amount, is_headshot) 的节点；找不到返回 null。

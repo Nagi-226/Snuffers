@@ -71,6 +71,9 @@ func _fire() -> bool:
 	GameState.rifle_mag -= 1
 	Events.ammo_changed.emit(&"rifle", GameState.rifle_mag, GameState.rifle_reserve)
 	Events.weapon_fired.emit(&"rifle")
+	# 微弱青蓝枪口焰（2026-10-19 机主立项）：炮口近似位 = 武器原点沿 -Z 前移 PLAYER_MUZZLE_OFFSET。
+	Events.player_muzzle_flash.emit(&"rifle",
+		global_position + (-global_transform.basis.z) * GameConfig.PLAYER_MUZZLE_OFFSET)
 	_apply_recoil()
 
 	var hit := _cast_spread_ray()
@@ -78,13 +81,16 @@ func _fire() -> bool:
 		return true
 	var collider: Object = hit.collider
 
-	# 碉堡跳弹：提示需用火箭筒（index.html L2973-2980）。
+	# 碉堡跳弹：提示需用火箭筒（index.html L2973-2980）；碉体为金属，附带火星+弹痕。
 	if HitSolver.find_group_ancestor(collider, &"bunker") != null:
+		Events.bullet_impacted.emit(hit.position, hit.normal, true)
 		Events.ricochet_on_bunker.emit()
 		return true
 
 	var target := HitSolver.find_damageable(collider)
 	if target == null:
+		# 命中环境（墙/地/金属物件）：弹坑贴花；金属表面加溅射火星（2026-10-19 机主立项）。
+		Events.bullet_impacted.emit(hit.position, hit.normal, HitSolver.is_metal_surface(collider))
 		return true
 
 	var is_head := HitSolver.is_headshot(collider)

@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_controller"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/rifle.tscn" id="2_rifle"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/rpg.tscn" id="3_rpg"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/pistol.tscn" id="4_pistol"]
+[ext_resource type="Script" path="res://scripts/weapons/player_combat_fx.gd" id="5_fx"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 ; 占位数值：_ready 时由脚本按 GameConfig（PLAYER_RADIUS × PLAYER_HEIGHT_STAND）逐项覆盖
@@ -31,6 +32,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, -0.3, -0.5)
 [node name="Pistol" parent="Camera3D/WeaponMount" instance=ExtResource("4_pistol")]
 
 [node name="RPG" parent="Camera3D/WeaponMount" instance=ExtResource("3_rpg")]
+
+; 玩家弹道特效（2026-10-19 机主立项：青蓝枪口焰/弹坑贴花/金属火星；只监听 Events 总线）
+[node name="PlayerCombatFx" type="Node3D" parent="."]
+script = ExtResource("5_fx")
 
 ; 后坐通路（蜂后裁决：不上 Events 总线，player 场景内局部连接到相机 pitch）
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Rifle" to="." method="_on_weapon_recoil_kick"]

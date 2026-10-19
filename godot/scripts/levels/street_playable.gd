@@ -44,6 +44,25 @@ func _vm_shot(args: PackedStringArray) -> void:
 		var mag: Node3D = rifle.get_node_or_null("ViewModel/EM68A/em68a_magazine")
 		if mag != null:
 			print("VM_SHOT mag pos=", mag.position, " rot=", mag.rotation_degrees)
+	if args.has("fire"):
+		# 弹道特效抓拍（2026-10-19）：压低枪口让弹着点落在前方路面，
+		# 连射数发铺弹坑/火星，最后一发留在截图前 2 帧让枪口焰（0.05s≈3帧）入镜。
+		var cam := get_node_or_null("Player/Camera3D") as Camera3D
+		var player := get_node_or_null("Player")
+		if cam != null and player != null:
+			cam.rotation.x = -0.5
+			player.set("_pitch", -0.5)  # 同步内部俯仰：开火后坐回调会按 _pitch 重置相机
+		var w := get_node_or_null("Player/Camera3D/WeaponMount/Rifle")
+		if args.has("pistol"):
+			w = get_node_or_null("Player/Camera3D/WeaponMount/Pistol")
+		if w != null and w.has_method("_fire"):
+			for i in 6:
+				w.call("_fire")
+				for j in 4:
+					await get_tree().process_frame
+			w.call("_fire")
+			for i in 2:
+				await get_tree().process_frame
 	var img := get_viewport().get_texture().get_image()
 	img.save_png(out_path)
 	print("VM_SHOT saved=", out_path)

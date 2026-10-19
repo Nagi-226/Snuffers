@@ -270,19 +270,36 @@ func _physics_process(delta: float) -> void:
 	_update_armor_regen(delta)
 
 
-## 护甲能量回充（2026-10-19 机主立项，孤岛危机纳米服式）：受击后 ARMOR_REGEN_DELAY 秒
-## 未再受击，则按 ARMOR_REGEN_RATE 逐渐回充至 ARMOR_MAX；任务结束态不回充。
+## 纳米服式回充（2026-10-19 机主立项，孤岛危机式）：受击后 ARMOR_REGEN_DELAY 秒未再受击，
+## 护甲按 ARMOR_REGEN_RATE、头/躯/腿三部位按 HEALTH_REGEN_RATE 同步回复至各自上限；
+## 任务结束态不回复；腿部回复后自动解除 injured/critical 状态。
 func _update_armor_regen(delta: float) -> void:
-	if GameState.armor >= GameConfig.ARMOR_MAX:
-		return
 	if GameState.mission_phase == GameState.MissionPhase.COMPLETED \
 			or GameState.mission_phase == GameState.MissionPhase.GAME_OVER:
+		return
+	var needs := GameState.armor < GameConfig.ARMOR_MAX
+	if not needs:
+		for part: StringName in GameState.health:
+			if GameState.health[part] < _part_max_health(part):
+				needs = true
+				break
+	if not needs:
 		return
 	_armor_regen_wait += delta
 	if _armor_regen_wait < GameConfig.ARMOR_REGEN_DELAY:
 		return
-	GameState.armor = minf(GameState.armor + GameConfig.ARMOR_REGEN_RATE * delta, GameConfig.ARMOR_MAX)
-	Events.armor_changed.emit(GameState.armor, GameConfig.ARMOR_MAX)
+	if GameState.armor < GameConfig.ARMOR_MAX:
+		GameState.armor = minf(GameState.armor + GameConfig.ARMOR_REGEN_RATE * delta, GameConfig.ARMOR_MAX)
+		Events.armor_changed.emit(GameState.armor, GameConfig.ARMOR_MAX)
+	var health_changed := false
+	for part: StringName in GameState.health:
+		var maximum := _part_max_health(part)
+		if GameState.health[part] < maximum:
+			GameState.health[part] = minf(GameState.health[part] + GameConfig.HEALTH_REGEN_RATE * delta, maximum)
+			Events.player_health_changed.emit(part, GameState.health[part], maximum)
+			health_changed = true
+	if health_changed:
+		_update_leg_state()
 
 
 ## 跳跃（空格）：趴下状态忽略；置排队位由物理帧落地消费（输入回调直接写 velocity.y
@@ -362,9 +379,10 @@ func _process(delta: float) -> void:
 			_ads_mount_targets.get(GameState.current_weapon, _mount_hip_pos), _ads_weight)
 		_camera.fov = lerpf(GameConfig.FOV_BASE,
 			_ads_fov_targets.get(GameState.current_weapon, GameConfig.FOV_BASE), _ads_weight)
-	# EM-68A 瞄具外壳随开镜淡出（0.3 起淡 → 0.75 全透明；切枪/关镜即恢复不透明）。
+	# EM-68A 瞄具外壳随开镜淡出（0.3 起淡 → 0.75 触及 ADS_OPTIC_FADE_MAX 上限；
+	# 机主裁决：不全隐，保留 20% 幽灵轮廓维持镜筒存在感；切枪/关镜即恢复不透明）。
 	if _rifle_optic_mesh != null:
-		var optic_t := clampf((_ads_weight - 0.3) / 0.45, 0.0, 1.0) \
+		var optic_t := clampf((_ads_weight - 0.3) / 0.45, 0.0, 1.0) * GameConfig.ADS_OPTIC_FADE_MAX \
 				if GameState.current_weapon == &"rifle" else 0.0
 		if not is_equal_approx(_rifle_optic_mesh.transparency, optic_t):
 			_rifle_optic_mesh.transparency = optic_t
@@ -517,15 +535,9 @@ func _apply_damage(part: StringName, amount: float) -> void:
 			or GameState.mission_phase == GameState.MissionPhase.GAME_OVER:
 		return
 	var actual := amount
-	# 受击即打断护甲回充计时（2026-10-19 纳米服式回充）。
+	# 受击即打断护甲/部位回充计时（2026-10-19 纳米服式回充）。
 	_armor_regen_wait = 0.0
-	# 头盔吸收（仅头部）；击穿时提示（web L3262-3267）。
-	if part == &"head" and GameState.helmet > 0.0:
-		var helmet_absorb := minf(GameState.helmet, actual)
-		GameState.helmet -= helmet_absorb
-		actual -= helmet_absorb
-		if GameState.helmet <= 0.0:
-			Events.message_posted.emit("头盔被击穿!")
+	# （头盔吸收模块已于 2026-10-19 机主裁决取消：头盔耐久归并入护甲，头部承伤直接走部位系数。）
 	# 护甲吸收（仅躯体；上限 = 原始伤害 × ARMOR_ABSORB_FACTOR，web L3269-3273 既有口径）。
 	if part == &"body" and GameState.armor > 0.0:
 		var armor_absorb := minf(GameState.armor, amount * GameConfig.ARMOR_ABSORB_FACTOR)

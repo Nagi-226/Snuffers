@@ -43,6 +43,10 @@ signal weapon_reload_started(weapon_id: StringName)
 signal weapon_reloaded(weapon_id: StringName)
 ## 弹药数变化。reserve 对 RPG 为 -1（无弹匣概念）。
 signal ammo_changed(weapon_id: StringName, mag: int, reserve: int)
+## 玩家枪口焰（2026-10-19 机主立项：微弱青蓝电磁焰）。position 为炮口世界坐标。
+signal player_muzzle_flash(weapon_id: StringName, position: Vector3)
+## 玩家弹丸命中环境（非可伤害目标）。metal=true 时命中金属表面（溅火星口径）。
+signal bullet_impacted(position: Vector3, normal: Vector3, metal: bool)
 ## 命中确认（准星放大 1.3× / 爆头 1.8× + hitmark 音效）。
 signal hit_confirmed(is_headshot: bool)
 ## 步枪打碉堡跳弹（提示「需用火箭筒摧毁碉堡」）。
