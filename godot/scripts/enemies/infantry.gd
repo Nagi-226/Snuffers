@@ -30,6 +30,7 @@ var _patrol_time: float = 0.0
 var _patrol_center: Vector3 = Vector3.ZERO
 var _attack_cooldown: float = 0.0
 var _strafe_time: float = 0.0
+var _lose_sight_timer: float = 0.0 ## 持续丢视线时长（脱战用）
 
 @onready var _muzzle: Marker3D = $Muzzle
 
@@ -68,11 +69,18 @@ func _physics_process(delta: float) -> void:
 	_attack_cooldown -= delta
 	_strafe_time += delta
 
+	# 脱战计时（2026-10-20 机主裁决）：持续丢视线累加，复见清零；
+	# ENGAGE 中超 INFANTRY_LOSE_SIGHT_TIME → 回巡逻（见 _update_engage）。
+	if can_see:
+		_lose_sight_timer = 0.0
+	else:
+		_lose_sight_timer += delta
+
 	match current_state:
 		State.PATROL:
 			_update_patrol(delta, player_pos, dist, can_see)
 		State.ALERT:
-			_update_alert(player_pos, dist)
+			_update_alert(player_pos, dist, can_see)
 		State.TAKE_COVER:
 			_update_take_cover(player_pos)
 		State.PEEK:
@@ -108,11 +116,16 @@ func _update_patrol(delta: float, player_pos: Vector3, dist: float, can_see: boo
 
 
 ## ALERT：面向玩家减速戒备；计时到 → 有掩体且距玩家够远则 TAKE_COVER，否则 ENGAGE（L1217-1233）。
-func _update_alert(player_pos: Vector3, dist: float) -> void:
+## 2026-10-20 机主裁决：计时到必须仍看得见才升级交战，否则回巡逻——
+## 杜绝「瞄到一眼后隔墙锁定、绕楼追打」。
+func _update_alert(player_pos: Vector3, dist: float, can_see: bool) -> void:
 	_face_position(player_pos)
 	velocity.x *= 0.5
 	velocity.z *= 0.5
 	if _state_timer <= 0.0:
+		if not can_see:
+			_set_state(State.PATROL)
+			return
 		var cover := _find_nearest_cover(player_pos)
 		if cover["found"] and dist > GameConfig.INFANTRY_COVER_MIN_DIST:
 			_set_state(State.TAKE_COVER)
@@ -164,7 +177,12 @@ func _update_peek(delta: float, player_pos: Vector3, dist: float, can_see: bool)
 
 ## ENGAGE：距离带移动（逼近/后退横移/横移），0.25s/发；
 ## 计时耗尽或打满点射 → TAKE_COVER（L1277-1304）。
+## 2026-10-20 机主裁决：持续丢视线 > INFANTRY_LOSE_SIGHT_TIME → 回巡逻脱战。
 func _update_engage(player_pos: Vector3, dist: float, can_see: bool) -> void:
+	if _lose_sight_timer > GameConfig.INFANTRY_LOSE_SIGHT_TIME:
+		_set_state(State.PATROL)
+		_lose_sight_timer = 0.0
+		return
 	_face_position(player_pos)
 	if dist > GameConfig.INFANTRY_ENGAGE_APPROACH_DIST:
 		var dir := player_pos - global_position
