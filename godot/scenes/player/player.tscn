@@ -24,7 +24,7 @@ current = true
 fov = 75.0
 
 [node name="WeaponMount" type="Marker3D" parent="Camera3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, -0.3, -0.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.27, -0.62)
 
 ; 武器挂载（W2 域场景，实例化只读；输入门控/可见性由 weapon_controller 自治）
 [node name="Rifle" parent="Camera3D/WeaponMount" instance=ExtResource("2_rifle")]
