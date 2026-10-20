@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/weapons/rifle_controller.gd" id="1_rifle"]
 [ext_resource type="Resource" path="res://scenes/weapons/rifle.tres" id="2_data"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/em68a_viewmodel.glb" id="3_em68a"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/arms_em68a.glb" id="4_arms"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/arms_rifle.glb" id="4_arms"]
 
 ; 挂载约定：实例化到 player.tscn 的 Camera3D/WeaponMount 下（W1 已预留）。
 [node name="Rifle" type="Node3D"]
@@ -20,7 +20,8 @@ weapon_data = ExtResource("2_data")
 [node name="EM68A" parent="ViewModel" instance=ExtResource("3_em68a")]
 position = Vector3(0, 0.02, 0.12)
 
-; 第一人称手臂（DSH 派单 18，2026-10-20）：与武器 GLB 共享同一局部原点，
-; 必须复用 EM68A 实例的同款变换（position 0,0.02,0.12），否则手枪错位。
+; 第一人称手臂（2026-10-20 方案A重制：Sketchfab Rigged FPS Arms by RafaP/DJMaesen，
+; CC-BY 4.0，见 assets/models/weapons/ATTRIBUTION.md）：导出空间即武器局部空间，
+; 必须复用 EM68A 实例的同款变换（position 0,0.02,0.12），否则手臂错位。
 [node name="ArmsEM68A" parent="ViewModel" instance=ExtResource("4_arms")]
 position = Vector3(0, 0.02, 0.12)
