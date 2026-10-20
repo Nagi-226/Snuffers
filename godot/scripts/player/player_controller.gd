@@ -48,6 +48,13 @@ var _mount_hip_pos: Vector3 = Vector3.ZERO ## 腰射挂载位（_ready 从 playe
 var _ads_mount_targets: Dictionary = {} ## weapon_id → 开镜挂载位（optic 中心对中）
 var _ads_fov_targets: Dictionary = {} ## weapon_id → 开镜 FOV
 var _ads_reticle: AdsReticle = null
+## 瞄具双网格切换（2026-10-20 机主立项）：常规视角用完整瞄具（外观完好），
+## 开镜过半把 optic 网格换成独立开孔版（透视镜筒），收镜过半换回。
+## 开孔版由 extract_optic_bored.py 从完整 GLB 提取，几何同源、坐标系一致，直接换 mesh 即可。
+const OPTIC_BORED_GLB := "res://assets/models/weapons/em68a_optic_bored.glb"
+var _rifle_optic_mesh: MeshInstance3D = null
+var _optic_mesh_intact: Mesh = null
+var _optic_mesh_bored: Mesh = null
 ## 护甲回充脱战计时（受击清零，≥ARMOR_REGEN_DELAY 后按 ARMOR_REGEN_RATE 回充）
 var _armor_regen_wait: float = 0.0
 
@@ -96,8 +103,29 @@ func _ready() -> void:
 	reticle_layer.add_child(_ads_reticle)
 	add_child(reticle_layer)
 	_calibrate_ads()
+	_load_optic_meshes()
 	# 承伤管线挂接（发射侧在 enemy_base._damage_player；结算收口在本类 _apply_damage）。
 	Events.player_damaged.connect(_apply_damage)
+
+
+## 瞄具双网格加载：完整网格从场景内步枪子树实测持有，开孔网格从独立 GLB 提取。
+## 加载失败保持 null，切换逻辑自动跳过（常规视角外观不受影响）。
+func _load_optic_meshes() -> void:
+	var rifle_root := _weapon_mount.get_node_or_null("Rifle") as Node3D
+	if rifle_root == null:
+		return
+	_rifle_optic_mesh = _find_optic_mesh(rifle_root)
+	if _rifle_optic_mesh == null:
+		return
+	_optic_mesh_intact = _rifle_optic_mesh.mesh
+	var bored_scene: PackedScene = load(OPTIC_BORED_GLB)
+	if bored_scene == null:
+		return
+	var bored_root := bored_scene.instantiate()
+	var bored_mi := _find_optic_mesh(bored_root)
+	if bored_mi != null:
+		_optic_mesh_bored = bored_mi.mesh
+	bored_root.free()
 
 
 ## 开镜标定：从 player.tscn 实测腰射挂载位；步枪/手枪按 optic 网格 AABB 中心反推
@@ -386,6 +414,13 @@ func _process(delta: float) -> void:
 			_ads_reticle.mode = mode
 			_ads_reticle.weight = _ads_weight
 			_ads_reticle.queue_redraw()
+	# 瞄具双网格切换：仅步枪且开镜过半用开孔版，其余情况回完整版。
+	# 切换点取过渡中点（0.5），此时镜筒正在归中途中，换网格肉眼不可察。
+	if _rifle_optic_mesh != null and _optic_mesh_bored != null:
+		var want_bored := GameState.current_weapon == &"rifle" and _ads_weight > 0.5
+		var target_mesh: Mesh = _optic_mesh_bored if want_bored else _optic_mesh_intact
+		if _rifle_optic_mesh.mesh != target_mesh:
+			_rifle_optic_mesh.mesh = target_mesh
 
 
 ## 当前移速：趴下 > 瞄准 > 疾跑（Shift+W 前进中）> 站立取基速，再按腿部状态乘系数。
