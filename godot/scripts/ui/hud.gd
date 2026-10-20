@@ -226,9 +226,9 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 		&"semi":
 			mode_tag = "[半自动]"
 	if weapon_id == &"pistol":
-		_ammo_label.text = "手枪 %s 弹药：%d / %d" % [mode_tag, mag, reserve]
+		_ammo_label.text = "EM-57P %s EC-57 无壳手枪弹：%d / %d" % [mode_tag, mag, reserve]
 	else:
-		_ammo_label.text = "步枪 %s 弹药：%d / %d" % [mode_tag, mag, reserve]
+		_ammo_label.text = "EM-68A %s EC-68 无壳步枪弹：%d / %d" % [mode_tag, mag, reserve]
 
 
 ## 腿部警告分级：injured 显示橙色「⚠ 腿部受伤」，critical 显示红色「⚠ 腿部重伤」。
