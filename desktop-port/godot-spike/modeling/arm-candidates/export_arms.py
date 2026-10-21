@@ -240,6 +240,25 @@ baked.select_set(True)
 bpy.context.view_layer.objects.active = baked
 bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
+# ---- remove_groups: 删除指定顶点组主导的网格段 ----
+# 2026-10-21 机主裁决（手枪 ADS）：上臂段在镜筒视角两侧形成鼓包，删去只留
+# 平直前臂，肘端藏到屏幕底缘之外。顶点组随 new_from_object 保留在烘焙网格上。
+_rg = P.get("remove_groups", [])
+if _rg:
+    import bmesh
+    _thresh = P.get("remove_group_weight", 0.4)
+    _idxs = [g.index for g in baked.vertex_groups
+             if any(g.name.startswith(p) for p in _rg)]
+    _bm = bmesh.new()
+    _bm.from_mesh(baked_me)
+    _dl = _bm.verts.layers.deform.active
+    _doomed = [v for v in _bm.verts
+               if any(v[_dl].get(gi, 0.0) > _thresh for gi in _idxs)]
+    bmesh.ops.delete(_bm, geom=_doomed, context='VERTS')
+    _bm.to_mesh(baked_me)
+    _bm.free()
+    print("REMOVE_GROUPS", _rg, "verts", len(_doomed))
+
 # ---- emissive cyan bands around forearms ----
 band_mat = bpy.data.materials.new("edaa_glow")
 band_mat.use_nodes = True
@@ -283,8 +302,9 @@ for side in ("R", "L"):
             c = wrist + axis * t
             add_band(c, axis, "glow_%s_%d" % (side, i))
 
-# ---- EDAA patch on right upper arm ----
-upperR = lm["upper_R"]
+# ---- EDAA patch（默认右上臂；patch_target="forearm" 时贴右前臂外侧——
+# 上臂段被 remove_groups 删除后 EDAA 臂章不能丢，改贴前臂袖面）----
+upperR = lm["elbow_R"] if P.get("patch_target") == "forearm" else lm["upper_R"]
 out_dir = Vector((1, 0, 0))
 img = bpy.data.images.load(emblem_png)
 patch_mat = bpy.data.materials.new("edaa_patch")
@@ -344,6 +364,8 @@ ebsdf.inputs["Roughness"].default_value = 1.0
 ebsdf.inputs["Emission Strength"].default_value = 0.0
 
 for side in ("R", "L"):
+    if P.get("skip_sleeve_ext", False):
+        break
     elbow, upper = lm["elbow_" + side], lm["upper_" + side]
     axis = upper - elbow
     if axis.length < 1e-6:

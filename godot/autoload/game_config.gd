@@ -242,8 +242,13 @@ const PLAYER_MUZZLE_FLASH_ENERGY: float = 0.7 ## 枪口焰 OmniLight 能量（�
 const PLAYER_MUZZLE_FLASH_RANGE: float = 2.5 ## 枪口焰光照半径 m
 const BULLET_DECAL_SIZE: float = 0.14 ## 弹坑贴花投影尺寸 m
 const BULLET_DECAL_POOL: int = 64 ## 弹坑池上限（FIFO 复用最旧，防贴花无限累积）
-const BULLET_SPARK_COUNT: int = 14 ## 金属命中火花粒子数
-const BULLET_SPARK_LIFETIME: float = 0.35 ## 火花粒子寿命 s
+const BULLET_SPARK_COUNT: int = 5 ## 金属命中火花粒子数（2026-10-21 机主裁决：HL2 撬棍击金属式几颗微火星，勿放大）
+const BULLET_SPARK_LIFETIME: float = 0.22 ## 火花粒子寿命 s
+const BULLET_SPARK_VELOCITY_MIN: float = 1.0 ## 火花初速下限 m/s
+const BULLET_SPARK_VELOCITY_MAX: float = 2.2 ## 火花初速上限 m/s
+const BULLET_SPARK_SCALE_MIN: float = 0.004 ## 火花粒径下限 m
+const BULLET_SPARK_SCALE_MAX: float = 0.009 ## 火花粒径上限 m
+const BULLET_SPARK_SPREAD: float = 30.0 ## 火花喷射散布角 °
 ## 金属表面关键词（命中物祖先节点名含其一即溅火星；自行车/铁护栏/阳台栏杆/篮架等）
 const BULLET_METAL_KEYWORDS: PackedStringArray = ["bicycle", "fence", "railing", "balcony", "gate", "barrier", "hoop", "shutter"]
 
@@ -322,3 +327,15 @@ const EMERGENCY_FLICKER_MIN_S: float = 0.05 ## 闪烁最短间隔 s
 const EMERGENCY_FLICKER_MAX_S: float = 0.35 ## 闪烁最长间隔 s
 const EMERGENCY_DARK_PROB: float = 0.15 ## 每次跳变为长灭（接触不良）的概率
 const EMERGENCY_DIM_RATIO: float = 0.25 ## 暗态亮度比例（不完全熄灭，留底光）
+
+# ===== HUD 圆形小地图（2026-10-21 机主立项：灯塔 ASI 战术探测视图；
+#       地形为离线俯视渲染底图，随玩家位置实时推进；红点=敌人（ASI 探测信息））=====
+const MINIMAP_SIZE_PX: int = 176 ## 小地图直径 px
+const MINIMAP_RANGE_M: float = 55.0 ## 显示半径 m（以玩家为圆心）
+const MINIMAP_MAP_TEXTURE: String = "res://assets/ui/minimap_street.png" ## 俯视地形底图（tools/capture_minimap.gd 离线渲染）
+const MINIMAP_MAP_CALIB: String = "res://assets/ui/minimap_street.json" ## 世界→像素标定（与底图同批生成）
+const MINIMAP_ENEMY_COLOR := Color(1.0, 0.28, 0.22, 0.95) ## 敌人红点（ASI 威胁标记）
+const MINIMAP_PLAYER_COLOR := Color(0.45, 0.95, 1.0, 1.0) ## 玩家箭头（青蓝，HUD 主色）
+const MINIMAP_BORDER_COLOR := Color(0.4, 0.95, 1.0, 0.55) ## 圆环边框
+const MINIMAP_BG_COLOR := Color(0.02, 0.06, 0.09, 0.78) ## 底图未覆盖区域底色
+const MINIMAP_ENEMY_DOT_R: float = 3.0 ## 红点半径 px

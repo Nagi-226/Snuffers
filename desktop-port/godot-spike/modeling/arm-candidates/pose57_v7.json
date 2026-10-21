@@ -252,5 +252,11 @@
    "strength": 0.7,
    "taper": 0.35
   }
- }
+ },
+ "remove_groups": [
+  "upper_arm"
+ ],
+ "remove_group_weight": 0.4,
+ "patch_target": "forearm",
+ "skip_sleeve_ext": true
 }
