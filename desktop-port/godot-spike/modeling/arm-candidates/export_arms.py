@@ -57,6 +57,72 @@ def pb(prefix):
 
 vg = {g.index: g.name for g in mesh.vertex_groups}
 
+# ---- slim: rest-pose 网格编辑（与 pose_arms.py 同语义，保证预览=导出）----
+def _group_index(prefix_name):
+    for g in mesh.vertex_groups:
+        if g.name.startswith(prefix_name):
+            return g.index
+    return None
+
+def _rest_centroid(prefix_name):
+    gi = _group_index(prefix_name)
+    if gi is None:
+        return None
+    mw = mesh.matrix_world
+    acc = Vector(); n = 0
+    for v in mesh.data.vertices:
+        for g in v.groups:
+            if g.group == gi and g.weight > 0.5:
+                acc += mw @ v.co; n += 1
+                break
+    return acc / n if n else None
+
+def apply_slim():
+    slim = P.get("slim")
+    if not slim:
+        return
+    import numpy as np
+    mw = mesh.matrix_world
+    mw_inv = mw.inverted()
+    for prefix, cfg in slim.items():
+        strength = cfg.get("strength", 0.5)
+        taper = cfg.get("taper", 0.35)
+        for side in ("R", "L"):
+            gi = _group_index("%s.%s" % (prefix, side))
+            if gi is None:
+                print("SLIM MISS %s.%s" % (prefix, side)); continue
+            pts = []
+            for v in mesh.data.vertices:
+                w = 0.0
+                for g in v.groups:
+                    if g.group == gi:
+                        w = g.weight
+                        break
+                if w > 0.05:
+                    pts.append((v.index, w, mw @ v.co))
+            if len(pts) < 10:
+                continue
+            elbow_c = _rest_centroid("forearm." + side)
+            arr = np.array([[p[2].x, p[2].y, p[2].z] for p in pts])
+            c = arr.mean(axis=0)
+            cov = np.cov((arr - c).T)
+            vals, vecs = np.linalg.eigh(cov)
+            axis = Vector(vecs[:, int(np.argmax(vals))]).normalized()
+            if elbow_c is not None and (elbow_c - Vector(c)).dot(axis) < 0:
+                axis = -axis
+            cv = Vector(c)
+            ts = [(p[2] - cv).dot(axis) for p in pts]
+            tmin, tmax = min(ts), max(ts)
+            for (vi, w, pw), tt in zip(pts, ts):
+                tn = (tt - tmin) / max(tmax - tmin, 1e-9)
+                s = min(strength * w * (taper + (1.0 - taper) * (1.0 - tn)), 0.7)
+                radial = (pw - cv) - axis * tt
+                newp = cv + axis * tt + radial * (1.0 - s)
+                mesh.data.vertices[vi].co = mw_inv @ newp
+            print("SLIM %s.%s n=%d strength=%.2f taper=%.2f" % (prefix, side, len(pts), strength, taper))
+
+apply_slim()
+
 def centroid(match):
     dg = bpy.context.evaluated_depsgraph_get()
     ev = mesh.evaluated_get(dg)
