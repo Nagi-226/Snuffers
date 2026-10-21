@@ -10,6 +10,8 @@ extends Node3D
 
 ## 曳光材质（加色混合发光，夜战可见性核心）。
 var _tracer_material: StandardMaterial3D
+## 孢子团轨迹材质（2026-10-21 机主裁决：寄生体投掷物，黏绿发光区别于敌弹曳光）。
+var _spore_material: StandardMaterial3D
 ## 存活特效池：[{node, remaining}]，_process 统一倒计时回收。
 var _live: Array = []
 
@@ -21,6 +23,12 @@ func _ready() -> void:
 	_tracer_material.albedo_color = Color(1.0, 0.85, 0.45)
 	_tracer_material.emission_enabled = true
 	_tracer_material.emission = Color(1.0, 0.8, 0.4)
+	_spore_material = StandardMaterial3D.new()
+	_spore_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_spore_material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	_spore_material.albedo_color = Color(0.55, 0.9, 0.35)
+	_spore_material.emission_enabled = true
+	_spore_material.emission = Color(0.45, 0.85, 0.3)
 	Events.enemy_fired.connect(_on_enemy_fired)
 
 
@@ -37,9 +45,9 @@ func _process(delta: float) -> void:
 			_live.remove_at(i)
 
 
-func _on_enemy_fired(_kind: StringName, muzzle_position: Vector3) -> void:
+func _on_enemy_fired(kind: StringName, muzzle_position: Vector3) -> void:
 	_spawn_muzzle_flash(muzzle_position)
-	_spawn_tracer(muzzle_position)
+	_spawn_tracer(muzzle_position, kind == &"spore")
 
 
 ## 枪口火光：OmniLight3D 短促点亮（夜战敌位暴露的关键反馈）。
@@ -53,17 +61,19 @@ func _spawn_muzzle_flash(pos: Vector3) -> void:
 	_live.append({"node": light, "remaining": GameConfig.MUZZLE_FLASH_LIFETIME})
 
 
-## 曳光：枪口 → 玩家胸口的细长发光盒，驻留 TRACER_LIFETIME 秒。
-func _spawn_tracer(from: Vector3) -> void:
+## 曳光：出手点 → 玩家胸口的细长发光盒，驻留 TRACER_LIFETIME 秒。
+## spore=true 时用黏绿材质且加粗（孢子团体量感，2026-10-21 机主裁决）。
+func _spawn_tracer(from: Vector3, spore: bool = false) -> void:
 	var to := GameState.player_position + Vector3(0.0, 1.2, 0.0)
 	var length := from.distance_to(to)
 	if length < 0.1:
 		return
+	var width: float = GameConfig.TRACER_WIDTH * (3.0 if spore else 1.0)
 	var mesh := BoxMesh.new()
-	mesh.size = Vector3(GameConfig.TRACER_WIDTH, GameConfig.TRACER_WIDTH, length)
+	mesh.size = Vector3(width, width, length)
 	var beam := MeshInstance3D.new()
 	beam.mesh = mesh
-	beam.material_override = _tracer_material
+	beam.material_override = _spore_material if spore else _tracer_material
 	add_child(beam)
 	beam.global_position = (from + to) * 0.5
 	beam.look_at(to, Vector3.UP)

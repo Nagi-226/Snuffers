@@ -296,19 +296,14 @@ func _physics_process(delta: float) -> void:
 	_update_armor_regen(delta)
 
 
-## 纳米服式回充（2026-10-19 机主立项，孤岛危机式）：受击后 ARMOR_REGEN_DELAY 秒未再受击，
-## 护甲按 ARMOR_REGEN_RATE、头/躯/腿三部位按 HEALTH_REGEN_RATE 同步回复至各自上限；
-## 任务结束态不回复；腿部回复后自动解除 injured/critical 状态。
+## 纳米服式回充（2026-10-19 机主立项，孤岛危机式；2026-10-21 单一生命值制简化）：
+## 受击后 ARMOR_REGEN_DELAY 秒未再受击，护甲按 ARMOR_REGEN_RATE、生命值按
+## HEALTH_REGEN_RATE 同步回复至各自上限；任务结束态不回复。
 func _update_armor_regen(delta: float) -> void:
 	if GameState.mission_phase == GameState.MissionPhase.COMPLETED \
 			or GameState.mission_phase == GameState.MissionPhase.GAME_OVER:
 		return
-	var needs := GameState.armor < GameConfig.ARMOR_MAX
-	if not needs:
-		for part: StringName in GameState.health:
-			if GameState.health[part] < _part_max_health(part):
-				needs = true
-				break
+	var needs := GameState.armor < GameConfig.ARMOR_MAX or GameState.hp < GameConfig.HEALTH_MAX
 	if not needs:
 		return
 	_armor_regen_wait += delta
@@ -317,15 +312,9 @@ func _update_armor_regen(delta: float) -> void:
 	if GameState.armor < GameConfig.ARMOR_MAX:
 		GameState.armor = minf(GameState.armor + GameConfig.ARMOR_REGEN_RATE * delta, GameConfig.ARMOR_MAX)
 		Events.armor_changed.emit(GameState.armor, GameConfig.ARMOR_MAX)
-	var health_changed := false
-	for part: StringName in GameState.health:
-		var maximum := _part_max_health(part)
-		if GameState.health[part] < maximum:
-			GameState.health[part] = minf(GameState.health[part] + GameConfig.HEALTH_REGEN_RATE * delta, maximum)
-			Events.player_health_changed.emit(part, GameState.health[part], maximum)
-			health_changed = true
-	if health_changed:
-		_update_leg_state()
+	if GameState.hp < GameConfig.HEALTH_MAX:
+		GameState.hp = minf(GameState.hp + GameConfig.HEALTH_REGEN_RATE * delta, GameConfig.HEALTH_MAX)
+		Events.player_health_changed.emit(&"hp", GameState.hp, GameConfig.HEALTH_MAX)
 
 
 ## 跳跃（空格）：趴下状态忽略；置排队位由物理帧落地消费（输入回调直接写 velocity.y
@@ -423,7 +412,8 @@ func _process(delta: float) -> void:
 			_rifle_optic_mesh.mesh = target_mesh
 
 
-## 当前移速：趴下 > 瞄准 > 疾跑（Shift+W 前进中）> 站立取基速，再按腿部状态乘系数。
+## 当前移速：趴下 > 瞄准 > 疾跑（Shift+W 前进中）> 站立取基速。
+## （2026-10-21 单一生命值制：腿部受伤减速机制随三部位耐久一同退役。）
 func _current_speed() -> float:
 	var base: float
 	if GameState.is_prone:
@@ -434,11 +424,6 @@ func _current_speed() -> float:
 		base = GameConfig.SPEED_SPRINT
 	else:
 		base = GameConfig.SPEED_STAND
-	match GameState.leg_state:
-		&"injured":
-			base *= GameConfig.LEG_INJURED_FACTOR
-		&"critical":
-			base *= GameConfig.LEG_CRITICAL_FACTOR
 	return base
 
 
@@ -447,10 +432,6 @@ func _update_speed_state() -> void:
 	var state: StringName = &"normal"
 	if GameState.is_prone:
 		state = &"prone"
-	elif GameState.leg_state == &"critical":
-		state = &"critical"
-	elif GameState.leg_state == &"injured":
-		state = &"injured"
 	if state != _speed_state:
 		_speed_state = state
 		Events.player_speed_state_changed.emit(state)
@@ -540,87 +521,37 @@ func _toggle_night_vision() -> void:
 	Events.night_vision_toggled.emit(GameState.night_vision)
 
 
-## F：药包占位——三部位各 +MEDKIT_HEAL（不超上限），库存 -1，广播信号。
+## F：药包占位——生命值 +MEDKIT_HEAL（不超上限），库存 -1，广播信号。
 func _use_medkit() -> void:
 	if GameState.medkits <= 0:
 		return
 	GameState.medkits -= 1
 	Events.medkit_used.emit(GameState.medkits)
-	for part: StringName in GameState.health:
-		var maximum := _part_max_health(part)
-		GameState.health[part] = minf(GameState.health[part] + GameConfig.MEDKIT_HEAL, maximum)
-		Events.player_health_changed.emit(part, GameState.health[part], maximum)
-	_update_leg_state()
+	GameState.hp = minf(GameState.hp + GameConfig.MEDKIT_HEAL, GameConfig.HEALTH_MAX)
+	Events.player_health_changed.emit(&"hp", GameState.hp, GameConfig.HEALTH_MAX)
 
 
-## 玩家承伤管线（§6 既定修复落地 + web takeDamage L3252-3292 复刻，2026-08-19 Phase 0b）。
-## 发射侧（enemy_base._damage_player）只随机部位发信号；护甲/头盔吸收、部位系数、
-## 溢出分摊、致死判定全部在本函数收口。任务结束态（COMPLETED/GAME_OVER）不再承伤。
-func _apply_damage(part: StringName, amount: float) -> void:
+## 玩家承伤管线（2026-10-21 机主裁决：单一生命值制——先扣护甲能量（任意命中，
+## 吸收上限 = 原始伤害 × ARMOR_ABSORB_FACTOR），剩余扣生命值；生命值清零即结算。
+## 发射侧（enemy_base._damage_player）的 part 标签不再参与结算。
+## 任务结束态（COMPLETED/GAME_OVER）不再承伤。
+func _apply_damage(_part: StringName, amount: float) -> void:
 	if GameState.mission_phase == GameState.MissionPhase.COMPLETED \
 			or GameState.mission_phase == GameState.MissionPhase.GAME_OVER:
 		return
 	var actual := amount
-	# 受击即打断护甲/部位回充计时（2026-10-19 纳米服式回充）。
+	# 受击即打断生命值/护甲回充计时（纳米服式回充）。
 	_armor_regen_wait = 0.0
-	# （头盔吸收模块已于 2026-10-19 机主裁决取消：头盔耐久归并入护甲，头部承伤直接走部位系数。）
-	# 护甲吸收（仅躯体；上限 = 原始伤害 × ARMOR_ABSORB_FACTOR，web L3269-3273 既有口径）。
-	if part == &"body" and GameState.armor > 0.0:
+	if GameState.armor > 0.0:
 		var armor_absorb := minf(GameState.armor, amount * GameConfig.ARMOR_ABSORB_FACTOR)
 		GameState.armor -= armor_absorb
 		actual -= armor_absorb
 		Events.armor_changed.emit(GameState.armor, GameConfig.ARMOR_MAX)
-	# 部位系数 + 趴下爆头减免（web L3275-3278）。
-	if part == &"head":
-		actual *= GameConfig.DMG_TAKEN_HEAD_FACTOR
-		if GameState.is_prone:
-			actual *= GameConfig.DMG_TAKEN_PRONE_HEAD_FACTOR
-	elif part == &"legs":
-		actual *= GameConfig.DMG_TAKEN_LEGS_FACTOR
-	GameState.health[part] -= actual
-	# 溢出分摊（§6 修复 web 死代码：先算溢出再清零，均摊到仍有血的部位，单趟不连锁）。
-	if GameState.health[part] <= 0.0:
-		var overflow: float = -GameState.health[part]
-		GameState.health[part] = 0.0
-		var others: Array = []
-		for p: StringName in GameState.health:
-			if p != part and GameState.health[p] > 0.0:
-				others.append(p)
-		if overflow > 0.0 and not others.is_empty():
-			var per_part: float = overflow / others.size()
-			for p: StringName in others:
-				GameState.health[p] = maxf(0.0, GameState.health[p] - per_part)
-				Events.player_health_changed.emit(p, GameState.health[p], _part_max_health(p))
-	Events.player_health_changed.emit(part, GameState.health[part], _part_max_health(part))
-	_update_leg_state()
-	# 致死判定（web L3290：头/躯清零即结算；腿部清零不致死）。
-	if GameState.health[&"head"] <= 0.0 or GameState.health[&"body"] <= 0.0:
+	GameState.hp = maxf(0.0, GameState.hp - actual)
+	Events.player_health_changed.emit(&"hp", GameState.hp, GameConfig.HEALTH_MAX)
+	if GameState.hp <= 0.0:
 		GameState.mission_phase = GameState.MissionPhase.GAME_OVER
 		Events.game_over.emit(&"enemy")
-
-
-## 腿部状态派生：≤0 → critical（×0.25），≤60% → injured（×0.5）（阈值契约 L3242-3243 既有）。
-func _update_leg_state() -> void:
-	var legs: float = GameState.health[&"legs"]
-	var new_state: StringName = &"healthy"
-	if legs <= 0.0:
-		new_state = &"critical"
-	elif legs <= GameConfig.HEALTH_LEGS * GameConfig.LEG_INJURED_THRESHOLD:
-		new_state = &"injured"
-	if new_state != GameState.leg_state:
-		GameState.leg_state = new_state
-		Events.leg_state_changed.emit(new_state)
-
-
-func _part_max_health(part: StringName) -> float:
-	match part:
-		&"head":
-			return GameConfig.HEALTH_HEAD
-		&"body":
-			return GameConfig.HEALTH_BODY
-		&"legs":
-			return GameConfig.HEALTH_LEGS
-	return 0.0
 
 
 ## H：呼叫直升机占位——仅在已解锁时发信号。

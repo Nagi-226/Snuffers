@@ -1,11 +1,13 @@
 # export_arms.py — pose + bake + stripes + EDAA patch + GLB export
 # usage: blender -b --python export_arms.py -- <arms_glb> <weapon_proxy> <out_glb> <params.json> <emblem_png> <render_prefix> [base_tex_override]
-import bpy, sys, math, json
+import bpy, sys, math, json, os
 from mathutils import Vector, Euler, Matrix
 
 argv = sys.argv[sys.argv.index("--")+1:]
 arms_glb, weapon_proxy, out_glb, params_path, emblem_png, render_prefix = argv[:6]
 tex_override = argv[6] if len(argv) > 6 else None
+if not os.path.isabs(render_prefix):
+    render_prefix = os.path.join(os.path.dirname(os.path.abspath(__file__)), render_prefix)
 P = json.load(open(params_path, encoding="utf-8"))
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -325,6 +327,42 @@ if hit:
     print("PATCH_OK", tuple(round(v, 3) for v in ploc))
 else:
     print("PATCH_MISS")
+
+# ---- sleeve extenders: 延长上臂袖管越过相机近平面，消除开镜视角的手臂截断面 ----
+# 原理：烘焙网格在肩端被源模型截断，开镜时相机直视截断面。沿上臂轴线（肘→肩方向
+# 继续延伸）加一段渐缩圆锥管接续袖子，末端伸到近平面之后/视野之外，截断面即不可见。
+# 半径取固定值（收细后的袖子约 0.07~0.09m 半径），比实测稳健——实测会被腋部/对侧
+# 沿轴投影的杂散顶点污染。深色材质 + 与手臂一致的自发光强度（tex_override 设 0.35），
+# 夜景下与深色袖面观感一致。
+ext_mat = bpy.data.materials.new("sleeve_ext")
+ext_mat.use_nodes = True
+ebsdf = ext_mat.node_tree.nodes["Principled BSDF"]
+ebsdf.inputs["Base Color"].default_value = (0.001, 0.001, 0.001, 1)
+ebsdf.inputs["Roughness"].default_value = 1.0
+# 夜景关卡里纯黑延长管即「隐形接续」：藏住截断面又不引入任何可见轮廓，
+# 比试图匹配袖面颜色稳健（臂面贴图极暗，任何有限反照率在暗渲染下都会显白）。
+ebsdf.inputs["Emission Strength"].default_value = 0.0
+
+for side in ("R", "L"):
+    elbow, upper = lm["elbow_" + side], lm["upper_" + side]
+    axis = upper - elbow
+    if axis.length < 1e-6:
+        continue
+    axis = axis.normalized()
+    start = upper - axis * 0.04
+    end = upper + axis * 0.6
+    mid = (start + end) * 0.5
+    bpy.ops.mesh.primitive_cone_add(vertices=16, radius1=0.06, radius2=0.035,
+                                    depth=(end - start).length,
+                                    end_fill_type='NGON', location=mid)
+    tube = bpy.context.view_layer.objects.active
+    tube.name = "sleeve_ext_" + side
+    tube.rotation_mode = 'QUATERNION'
+    # cone 的 radius1 在 -Z 端：让 -Z 指向 start（肘侧），+Z 朝肩后渐缩
+    tube.rotation_quaternion = Vector((0, 0, 1)).rotation_difference(axis)
+    tube.data.materials.append(ext_mat)
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    print("SLEEVE_EXT %s" % side)
 
 # ---- render validation ----
 sc = bpy.context.scene

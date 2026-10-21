@@ -11,9 +11,8 @@ const SPEED_STAND: float = 4.5 ## 站立移速 u/s（0.15×0.5×60，L3432/L3244
 const SPEED_AIM: float = 1.5 ## 瞄准移速 u/s（0.05×0.5×60，L3432）
 const SPEED_SPRINT: float = 6.75 ## 疾跑移速 u/s = 站立×1.5（2026-10-19 机主立项：W+左 Shift；网页版无对应项，Godot 版新增）
 const SPEED_PRONE: float = 0.72 ## 趴下移速 u/s（0.08×0.15×60，L3432/L3239）
-const LEG_INJURED_FACTOR: float = 0.5 ## 腿血 ≤60%：站立速度×0.5 → 2.25 u/s（倍率 0.25 vs 0.5，L3243）
-const LEG_CRITICAL_FACTOR: float = 0.25 ## 腿血 =0：站立速度×0.25 → 1.125 u/s（倍率 0.125，L3242）
-const LEG_INJURED_THRESHOLD: float = 0.6 ## 腿血比例阈值（L3243）
+# （LEG_INJURED_FACTOR / LEG_CRITICAL_FACTOR / LEG_INJURED_THRESHOLD 随 2026-10-21
+#  三部位耐久制取消一并退役——腿部受伤减速机制不再存在。）
 
 const MOUSE_SENS_BASE: float = 0.002 ## 视角系数 movement×0.002×sens（L2815）
 const AIM_SENS_FACTOR: float = 0.3 ## 开镜灵敏度倍率（L2814）
@@ -48,20 +47,16 @@ const STILL_SPEED_THRESHOLD: float = 0.05 ## 静止判定 u/s（L3458）
 const SNIPER_STILL_TIME: float = 1.0 ## 静止多久触发狙杀 s（L1086）
 
 # ===== 玩家生存 =====
-const HEALTH_HEAD: float = 35.0 ## 头部 HP（L327）
-const HEALTH_BODY: float = 85.0 ## 躯体 HP（L327）
-const HEALTH_LEGS: float = 65.0 ## 腿部 HP（L327）
-const HELMET_MAX: float = 50.0 ## 【已废弃 2026-10-19 机主裁决：头盔耐久模块取消，头盔归并入护甲耐久概念】保留常量防外部引用断裂，下游已不消费
-const ARMOR_MAX: float = 100.0 ## 护甲（L327）
-const DMG_TAKEN_HEAD_FACTOR: float = 1.5 ## 命中头部伤害系数（L3276）
-const DMG_TAKEN_LEGS_FACTOR: float = 0.8 ## 命中腿部伤害系数（L3277）
-const DMG_TAKEN_PRONE_HEAD_FACTOR: float = 0.6 ## 趴下被爆头再系数（L3278）
-const ARMOR_ABSORB_FACTOR: float = 0.6 ## 护甲吸收上限 = 伤害×0.6（L3271）
-# —— 护甲能量自动回复（2026-10-19 机主立项：孤岛危机纳米服式——脱战一小段时间后逐渐回充）——
-const ARMOR_REGEN_DELAY: float = 4.0 ## 最后一次受击后进入回充的脱战时长 s
+# 2026-10-21 机主裁决：取消头/躯/腿三部位耐久，改为单一生命值 + 护甲能量双轨，
+# 两者均脱战后自动恢复（沿用 10-19 纳米服式回充延迟）。旧三部位常量退役。
+const HEALTH_MAX: float = 100.0 ## 生命值上限（2026-10-21 机主裁决：替代 HEALTH_HEAD/BODY/LEGS 三部位制）
+const ARMOR_MAX: float = 100.0 ## 护甲能量（L327）
+const ARMOR_ABSORB_FACTOR: float = 0.6 ## 护甲吸收上限 = 伤害×0.6（L3271；2026-10-21 起不再限躯体，任意命中先扣护甲）
+# —— 生命值/护甲能量自动回复（2026-10-19 机主立项：孤岛危机纳米服式——脱战一小段时间后逐渐回充）——
+const ARMOR_REGEN_DELAY: float = 4.0 ## 最后一次受击后进入回充的脱战时长 s（生命值与护甲共用同一延迟）
 const ARMOR_REGEN_RATE: float = 12.0 ## 护甲回充速率 点/s（满充 100 约 8.3s）
-const HEALTH_REGEN_RATE: float = 8.0 ## 部位血量回复速率 点/s（2026-10-19 机主裁决：与护甲同延迟同步回复，慢于护甲）
-const MEDKIT_HEAL: float = 50.0 ## 三部位各 +50（L866）
+const HEALTH_REGEN_RATE: float = 8.0 ## 生命值回复速率 点/s（与护甲同延迟同步回复，慢于护甲）
+const MEDKIT_HEAL: float = 50.0 ## 生命值 +50（2026-10-21 单一生命值制）
 const MEDKIT_PICKUP_RADIUS: float = 3.0 ## 拾取半径（L849）
 const MEDKIT_MAX_CARRY: int = 5 ## 携带上限（L2305）
 
@@ -162,9 +157,10 @@ const INFANTRY_PEEK_CYCLE_TIME: float = 1.0 ## 探头周期 s
 const INFANTRY_PEEK_REPEAT_CHANCE: float = 0.3 ## 重复探头概率
 const INFANTRY_PEEK_ENGAGE_TIME: float = 1.5 ## 探头转交战时长 s
 const INFANTRY_ALERT_ENGAGE_TIME: float = 2.0 ## 警戒转交战时长 s
-const INFANTRY_ENGAGE_APPROACH_DIST: float = 12.0 ## 交战逼近距离
+const INFANTRY_ENGAGE_APPROACH_DIST: float = 8.0 ## 交战逼近距离（2026-10-21 机主裁决：12→8——孢子射程 10m，逼近到射程内才出手）
 const INFANTRY_ENGAGE_BACKOFF_DIST: float = 5.0 ## 交战后退距离
 const INFANTRY_BLIND_FIRE_DIST: float = 3.0 ## 盲射距离
+const INFANTRY_SPORE_RANGE: float = 10.0 ## 孢子投掷命中上限距离 m（2026-10-21 机主裁决：寄生体远程手段=孢子团，超过 10m 够不到玩家）
 const INFANTRY_LOSE_SIGHT_TIME: float = 4.0 ## 脱战时长 s（2026-10-20 机主裁决新增：持续丢失视线超过该时长 → 回巡逻，杜绝"隔墙锁定后无限追打"）
 const INFANTRY_FALLBACK_COVER_DIST: float = 5.0 ## 撤退掩体距离
 const INFANTRY_COMPANION_COVER_DIST: float = 5.0 ## 同伴掩体距离

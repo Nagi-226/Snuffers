@@ -35,17 +35,13 @@ const DAMAGE_TEXT_FONT_SIZE_HEADSHOT: int = 22
 ## 伤害飘字颜色：普通米白 / 爆头警示橙（视觉样式常量）。
 const DAMAGE_TEXT_COLOR: Color = Color(0.85, 0.83, 0.78)
 const DAMAGE_TEXT_COLOR_HEADSHOT: Color = Color(0.9, 0.55, 0.25)
-## 腿部警告分级颜色（视觉样式常量）：受伤橙 / 重伤红。
-const LEG_WARN_COLOR_INJURED: Color = Color(0.78, 0.62, 0.35)
-const LEG_WARN_COLOR_CRITICAL: Color = Color(0.8, 0.3, 0.25)
+## 腿部警告分级颜色与「⚠ 腿部受伤」机制已于 2026-10-21 随三部位耐久制一同退役
+## （场景内 LegWarningLabel 节点保留但隐藏，HUD 编辑时清理）。
 
-@onready var _head_bar: ProgressBar = %HeadBar
 @onready var _body_bar: ProgressBar = %BodyBar
-@onready var _legs_bar: ProgressBar = %LegsBar
 @onready var _armor_bar: ProgressBar = %ArmorBar
 @onready var _kills_label: Label = %KillsLabel
 @onready var _ammo_label: Label = %AmmoLabel
-@onready var _leg_warning_label: Label = %LegWarningLabel
 @onready var _message_label: Label = %MessageLabel
 @onready var _heli_timer_label: Label = %HeliTimerLabel
 @onready var _intel_label: Label = %IntelLabel
@@ -82,14 +78,12 @@ func _refresh_all_from_state() -> void:
 	_refresh_vitals()
 	_refresh_ammo()
 	_refresh_kills(GameState.kills)
-	_on_leg_state_changed(GameState.leg_state)
 
 
-## 四条条：三部位血量 + 护甲（max 取自 GameConfig，禁止硬编码；头盔模块 2026-10-19 取消）。
+## 两条条：生命值 + 护甲能量（2026-10-21 机主裁决：三部位耐久制取消；
+## 场景内头部/腿部行保留但脚本不再驱动，HUD 编辑时隐藏）。
 func _refresh_vitals() -> void:
-	_set_bar(_head_bar, float(GameState.health.get(&"head", GameConfig.HEALTH_HEAD)), GameConfig.HEALTH_HEAD)
-	_set_bar(_body_bar, float(GameState.health.get(&"body", GameConfig.HEALTH_BODY)), GameConfig.HEALTH_BODY)
-	_set_bar(_legs_bar, float(GameState.health.get(&"legs", GameConfig.HEALTH_LEGS)), GameConfig.HEALTH_LEGS)
+	_set_bar(_body_bar, GameState.hp, GameConfig.HEALTH_MAX)
 	_set_bar(_armor_bar, GameState.armor, GameConfig.ARMOR_MAX)
 
 
@@ -106,7 +100,6 @@ func _connect_events() -> void:
 	Events.ammo_changed.connect(_on_ammo_changed)
 	Events.weapon_switched.connect(_on_weapon_switched)
 	Events.fire_mode_changed.connect(_on_fire_mode_changed)
-	Events.leg_state_changed.connect(_on_leg_state_changed)
 	Events.message_posted.connect(_on_message_posted)
 	Events.kills_changed.connect(_refresh_kills)
 	Events.intel_picked.connect(_on_intel_picked)
@@ -129,7 +122,6 @@ func _disconnect_events() -> void:
 	Events.ammo_changed.disconnect(_on_ammo_changed)
 	Events.weapon_switched.disconnect(_on_weapon_switched)
 	Events.fire_mode_changed.disconnect(_on_fire_mode_changed)
-	Events.leg_state_changed.disconnect(_on_leg_state_changed)
 	Events.message_posted.disconnect(_on_message_posted)
 	Events.kills_changed.disconnect(_refresh_kills)
 	Events.intel_picked.disconnect(_on_intel_picked)
@@ -144,19 +136,13 @@ func _disconnect_events() -> void:
 	Events.game_over.disconnect(_on_game_over)
 
 
-## 部位血量变化：刷新对应条；头盔/护甲顺带从 GameState 同步（无专用信号）。
-func _on_player_health_changed(part: StringName, current: float, maximum: float) -> void:
-	match part:
-		&"head":
-			_set_bar(_head_bar, current, maximum)
-		&"body":
-			_set_bar(_body_bar, current, maximum)
-		&"legs":
-			_set_bar(_legs_bar, current, maximum)
+## 生命值变化：刷新生命条 + 全量同步（part 恒为 &"hp"，2026-10-21 单一生命值制）。
+func _on_player_health_changed(_part: StringName, current: float, maximum: float) -> void:
+	_set_bar(_body_bar, current, maximum)
 	_refresh_vitals()
 
 
-## 受伤（含护甲全吸收不掉血的情况）：五条全量同步 + 受击红晕闪屏。
+## 受伤（含护甲全吸收不掉血的情况）：两条全量同步 + 受击红晕闪屏。
 func _on_player_damaged(_part: StringName, _amount: float) -> void:
 	_refresh_vitals()
 	_flash_damage_vignette()
@@ -231,19 +217,7 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 		_ammo_label.text = "EM-68A %s EC-68 无壳步枪弹：%d / %d" % [mode_tag, mag, reserve]
 
 
-## 腿部警告分级：injured 显示橙色「⚠ 腿部受伤」，critical 显示红色「⚠ 腿部重伤」。
-func _on_leg_state_changed(state: StringName) -> void:
-	match state:
-		&"injured":
-			_leg_warning_label.text = "⚠ 腿部受伤"
-			_leg_warning_label.add_theme_color_override("font_color", LEG_WARN_COLOR_INJURED)
-			_leg_warning_label.visible = true
-		&"critical":
-			_leg_warning_label.text = "⚠ 腿部重伤"
-			_leg_warning_label.add_theme_color_override("font_color", LEG_WARN_COLOR_CRITICAL)
-			_leg_warning_label.visible = true
-		_:
-			_leg_warning_label.visible = false
+## 腿部警告分级（2026-10-21 随三部位耐久制退役，函数移除）。
 
 
 ## 中央飘字：显示 GameConfig.MESSAGE_HOLD_TIME 秒后淡出；新消息顶替旧消息。

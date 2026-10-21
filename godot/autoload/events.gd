@@ -7,12 +7,14 @@
 extends Node
 
 # ===== 玩家 =====
-## 玩家受到伤害。part: &"head" / &"body" / &"legs"
+## 玩家受到伤害。part 为发射侧语义标签（敌人随机池遗留），结算侧自 2026-10-21
+## 单一生命值制起不再按部位区分。
 signal player_damaged(part: StringName, amount: float)
 ## 受击来源方向（HUD 受击方向指示弧用，§11.1 A 方案三件套，2026-08-19 蜂后冻结新增）。
 ## 与 player_damaged 同点发射（enemy_base._damage_player / 狙击直发路径），纯增量不改既有签名。
 signal player_hit_direction(from_position: Vector3)
-## 某部位血量变化（含治疗）。用于 HUD 血条刷新。
+## 生命值变化（含治疗与脱战回复）。用于 HUD 生命条刷新。
+## 2026-10-21 机主裁决：三部位耐久制取消，改单一生命值；签名保留，part 恒为 &"hp"。
 signal player_health_changed(part: StringName, current: float, maximum: float)
 ## 护甲能量变化（2026-10-19 机主立项：纳米服式脱战回充，回充期无受击事件，HUD 需专用信号刷新）。
 signal armor_changed(current: float, maximum: float)
@@ -26,8 +28,6 @@ signal player_speed_state_changed(state: StringName)
 signal player_moving_changed(is_moving: bool)
 ## 连续静止时长（秒），狙击手秒杀判定与 HUD 警告共用。仅在越过 1.0s 阈值时必需持续广播。
 signal player_still_time_changed(seconds: float)
-## 腿部状态警告（&"healthy" / &"injured" / &"critical"），HUD「⚠ 腿部受伤」条。
-signal leg_state_changed(state: StringName)
 
 # ===== 武器 =====
 ## 开火。weapon_id: &"rifle" / &"pistol" / &"rpg"

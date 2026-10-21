@@ -249,7 +249,7 @@
  },
  "slim": {
   "upper_arm": {
-   "strength": 0.55,
+   "strength": 0.7,
    "taper": 0.35
   }
  }

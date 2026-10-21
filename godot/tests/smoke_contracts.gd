@@ -84,9 +84,12 @@ func _run() -> void:
 	_assert(config.INFANTRY_PEEK_REPEAT_CHANCE == 0.3, "game_config.gd INFANTRY_PEEK_REPEAT_CHANCE == 0.3")
 	_assert(config.INFANTRY_PEEK_ENGAGE_TIME == 1.5, "game_config.gd INFANTRY_PEEK_ENGAGE_TIME == 1.5")
 	_assert(config.INFANTRY_ALERT_ENGAGE_TIME == 2.0, "game_config.gd INFANTRY_ALERT_ENGAGE_TIME == 2.0")
-	_assert(config.INFANTRY_ENGAGE_APPROACH_DIST == 12.0, "game_config.gd INFANTRY_ENGAGE_APPROACH_DIST == 12.0")
+	# 2026-10-21 机主裁决：12→8（孢子射程 10m，逼近到射程内才出手）
+	_assert(config.INFANTRY_ENGAGE_APPROACH_DIST == 8.0, "game_config.gd INFANTRY_ENGAGE_APPROACH_DIST == 8.0")
 	_assert(config.INFANTRY_ENGAGE_BACKOFF_DIST == 5.0, "game_config.gd INFANTRY_ENGAGE_BACKOFF_DIST == 5.0")
 	_assert(config.INFANTRY_BLIND_FIRE_DIST == 3.0, "game_config.gd INFANTRY_BLIND_FIRE_DIST == 3.0")
+	# 2026-10-21 机主裁决新增：寄生体孢子投掷命中上限 10m
+	_assert(config.INFANTRY_SPORE_RANGE == 10.0, "game_config.gd INFANTRY_SPORE_RANGE == 10.0")
 	_assert(config.INFANTRY_FALLBACK_COVER_DIST == 5.0, "game_config.gd INFANTRY_FALLBACK_COVER_DIST == 5.0")
 	_assert(config.INFANTRY_COMPANION_COVER_DIST == 5.0, "game_config.gd INFANTRY_COMPANION_COVER_DIST == 5.0")
 	_assert(config.INFANTRY_COMPANION_ENGAGE_TIME == 10.0, "game_config.gd INFANTRY_COMPANION_ENGAGE_TIME == 10.0")
@@ -135,12 +138,11 @@ func _run() -> void:
 	_assert(config.PICKUP_BOB_HZ == 1.2, "game_config.gd PICKUP_BOB_HZ == 1.2")
 	_assert(config.PICKUP_SPIN_DEG == 45.0, "game_config.gd PICKUP_SPIN_DEG == 45.0")
 
-	# -- game_state.gd: reset() must restore the three body-part health keys --
+	# -- game_state.gd: reset() must restore the single HP pool (2026-10-21 单一生命值制) --
 	# 挂载时 _ready 已跑过一次 reset()（含 Events.enemy_died 连接）；再调一次验证幂等。
 	state.reset()
-	_assert(state.health.has(&"head"), "game_state.gd reset() health has key 'head'")
-	_assert(state.health.has(&"body"), "game_state.gd reset() health has key 'body'")
-	_assert(state.health.has(&"legs"), "game_state.gd reset() health has key 'legs'")
+	_assert(state.hp == config.HEALTH_MAX, "game_state.gd reset() hp == HEALTH_MAX")
+	_assert(state.armor == config.ARMOR_MAX, "game_state.gd reset() armor == ARMOR_MAX")
 	# 取证终端计数（2026-10-07 冻结新增状态字段）：reset() 必须归零（换图/重开不串档）。
 	_assert(state.intel == 0, "game_state.gd reset() intel == 0")
 

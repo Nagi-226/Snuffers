@@ -8,8 +8,9 @@ extends Node
 ## 任务阶段：渗透 → 坚守 → 登机 → 已完成 / 已失败
 enum MissionPhase { INFILTRATE, DEFEND, BOARD, COMPLETED, GAME_OVER }
 
-## 部位血量。键：&"head" / &"body" / &"legs"
-var health: Dictionary = {}
+## 单一生命值（2026-10-21 机主裁决：替代原头/躯/腿三部位 Dictionary）。
+## 信号 player_health_changed(part, current, maximum) 保留签名，part 恒为 &"hp"。
+var hp: float = 0.0
 var armor: float = 0.0
 
 var rifle_mag: int = 0
@@ -27,8 +28,6 @@ var current_weapon: StringName = &"rifle"
 var fire_modes: Dictionary = {}
 var is_prone: bool = false
 var is_aiming: bool = false
-## 腿部状态：&"healthy" / &"injured" / &"critical"（驱动移速与 HUD 警告）
-var leg_state: StringName = &"healthy"
 ## 连续静止时长（狙击手判定用）
 var still_time: float = 0.0
 ## 玩家世界坐标（W1 每帧写入；敌人感知/AI 共用，替代 group 软引用——G2 冻结新增）
@@ -57,11 +56,7 @@ func _on_enemy_died(_enemy: Node) -> void:
 
 ## 回到开局状态（对应网页版 initGame L327 初始值）。
 func reset() -> void:
-	health = {
-		&"head": GameConfig.HEALTH_HEAD,
-		&"body": GameConfig.HEALTH_BODY,
-		&"legs": GameConfig.HEALTH_LEGS,
-	}
+	hp = GameConfig.HEALTH_MAX
 	armor = GameConfig.ARMOR_MAX
 	rifle_mag = GameConfig.RIFLE_MAG
 	rifle_reserve = GameConfig.RIFLE_RESERVE
@@ -75,7 +70,6 @@ func reset() -> void:
 	fire_modes = {&"rifle": &"auto", &"pistol": &"semi"}  # 出厂档：步枪全自动 / 手枪半自动
 	is_prone = false
 	is_aiming = false
-	leg_state = &"healthy"
 	still_time = 0.0
 	player_yaw = 0.0
 	heli_unlocked = false

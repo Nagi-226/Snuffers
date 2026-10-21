@@ -111,22 +111,10 @@ func _on_minefield_triggered() -> void:
 	if GameState.mission_phase == GameState.MissionPhase.COMPLETED \
 			or GameState.mission_phase == GameState.MissionPhase.GAME_OVER:
 		return
-	for part: StringName in GameState.health:
-		GameState.health[part] = 0.0
-		Events.player_health_changed.emit(part, 0.0, _part_max(part))
+	GameState.hp = 0.0
+	Events.player_health_changed.emit(&"hp", 0.0, GameConfig.HEALTH_MAX)
 	GameState.mission_phase = GameState.MissionPhase.GAME_OVER
 	Events.game_over.emit(&"mine")
-
-
-func _part_max(part: StringName) -> float:
-	match part:
-		&"head":
-			return GameConfig.HEALTH_HEAD
-		&"body":
-			return GameConfig.HEALTH_BODY
-		&"legs":
-			return GameConfig.HEALTH_LEGS
-	return 0.0
 
 
 ## 结束态同步（幂等：狙击秒杀与承伤管线可能双发 game_over，先到先得；结束态不互相覆盖）。

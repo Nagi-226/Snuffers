@@ -208,22 +208,26 @@ func _update_engage(player_pos: Vector3, dist: float, can_see: bool) -> void:
 		_has_target = true
 
 
-## 单发攻击：web attack() L1416-1425，直接结算 5 伤（命中判定由调用方视线门控）。
-## 开火广播 Events.enemy_fired(&"rifle", 枪口位置)（G2 冻结信号，W5 音效/火光锚点）。
-## 2026-10-21 机主裁决：开火瞬间做一次真实射线复核（Eye→玩家胸口），被墙体
-## 阻挡则只响枪/喷特效、不结算伤害——堵死盲射（dist<BLIND_FIRE_DIST 旁路）、
-## 节流缓存过期等一切穿墙伤害路径。
+## 单发攻击（2026-10-21 机主裁决重定性：寄生体远程手段 = 孢子团投掷，非枪械）：
+## 广播 Events.enemy_fired(&"spore", 出手位置)（黏性孢子音效/特效锚点）；
+## 命中结算双门控——①开火瞬间真实视线复核（Eye→玩家胸口，0.1m 严容差堵薄墙穿透）；
+## ②距离 ≤ INFANTRY_SPORE_RANGE（10m，超出则孢子够不到，只出手不结算）。
 func _attack(interval: float) -> void:
 	_attack_cooldown = interval
 	_shots_in_burst += 1
 	var muzzle_pos := _muzzle.global_position if _muzzle != null else global_position
-	Events.enemy_fired.emit(&"rifle", muzzle_pos)
+	Events.enemy_fired.emit(&"spore", muzzle_pos)
+	var dist := global_position.distance_to(_get_player_position())
+	if dist > GameConfig.INFANTRY_SPORE_RANGE:
+		return
 	if _fire_ray_clear():
 		_damage_player(GameConfig.INFANTRY_DAMAGE)
 
 
 ## 开火瞬间实时射线：Eye → 玩家胸口（脚底原点 +1.2m）无遮挡才算命中。
 ## 不复用 _cached_can_see（2 帧节流缓存，开火判定必须现查）。
+## 2026-10-21 收紧：命中容差 0.5→0.1m——旧 0.5m 容差会把「贴薄墙另一侧」的墙体
+## 命中当作不遮挡，玩家贴墙站时隔墙掉血；0.1m 只豁免射线端点贴到玩家胶囊的误差。
 func _fire_ray_clear() -> bool:
 	if _eye == null:
 		return false
@@ -237,7 +241,7 @@ func _fire_ray_clear() -> bool:
 	var hit := world.direct_space_state.intersect_ray(query)
 	if hit.is_empty():
 		return true
-	return from.distance_to(hit["position"]) > from.distance_to(target) - 0.5
+	return from.distance_to(hit["position"]) > from.distance_to(target) - 0.1
 
 
 ## 掩体搜索：group "cover_point" 候选，25u 内按

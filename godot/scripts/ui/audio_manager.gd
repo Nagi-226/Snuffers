@@ -301,10 +301,13 @@ func _on_player_moving_changed(is_moving: bool) -> void:
 		stop_loop(&"footstep")
 
 
-## 敌人枪声：步枪兵用 rifle；机枪手复用步枪音源按 ENEMY_MG_PITCH 降调区分。
+## 敌人攻击音：步枪兵/狙击手用 rifle；机枪手复用步枪音源按 ENEMY_MG_PITCH 降调区分；
+## 寄生体孢子投掷用 spore（2026-10-21 机主裁决：黏性物质质感，与枪声彻底区分）。
 func _on_enemy_fired(kind: StringName, _position: Vector3) -> void:
 	match kind:
 		&"rifle":
 			play_sfx(&"rifle")
 		&"machine_gun":
 			play_sfx_pitched(&"rifle", ENEMY_MG_PITCH)
+		&"spore":
+			play_sfx(&"spore")

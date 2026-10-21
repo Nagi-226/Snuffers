@@ -29,6 +29,7 @@
 | medkit.mp3 | 治疗/包扎 | Mixkit | Duct tape bandage | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/3102/ （直链 https://assets.mixkit.co/active_storage/sfx/3102/3102-preview.mp3 ） | Mixkit Free License | 2026-07-14 |
 | ui_click.mp3 | UI 点击 | Mixkit | Cool interface click tone | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/2568/ （直链 https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3 ） | Mixkit Free License | 2026-07-14 |
 | ambient.wav | 战场环境音（风声+远处枪声，可循环 34s） | **程序合成占位** | Node 脚本合成（棕噪声风声 LFO + 随机远处枪声/爆炸，22050Hz 单声道 16bit WAV，首尾各 1s 淡化便于循环） | 本项目自生成 | 无（本地合成） | 项目自有资产（等同 CC0） | 2026-07-14 |
+| spore.mp3 | 寄生体孢子团投掷（黏性有机喷吐质感，2026-10-21 机主裁决：与枪声彻底区分，参考《半衰期》牛乌贼喷酸） | **AI 生成** | Kimi audio_generation 插件 sound-effects 流程（英文描述生成，1.5s） | 本项目自生成 | 无（AI 生成） | 项目自有资产（等同 CC0） | 2026-10-21 |
 
 ---
 

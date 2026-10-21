@@ -88,6 +88,7 @@ theme_override_font_sizes/font_size = 12
 text = "▮ 灯塔ASI · 战术链接在线"
 
 [node name="HeadRow" type="HBoxContainer" parent="StatusPanel/Rows"]
+visible = false
 mouse_filter = 2
 theme_override_constants/separation = 8
 
@@ -118,7 +119,7 @@ custom_minimum_size = Vector2(48, 0)
 mouse_filter = 2
 size_flags_vertical = 4
 theme_override_colors/font_color = Color(0.55, 0.9, 1.0, 1)
-text = "躯体"
+text = "生命值"
 
 [node name="BodyBar" type="ProgressBar" parent="StatusPanel/Rows/BodyRow"]
 unique_name_in_owner = true
@@ -127,11 +128,12 @@ mouse_filter = 2
 size_flags_vertical = 4
 theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_fill_body")
-max_value = 85.0
-value = 85.0
+max_value = 100.0
+value = 100.0
 show_percentage = false
 
 [node name="LegsRow" type="HBoxContainer" parent="StatusPanel/Rows"]
+visible = false
 mouse_filter = 2
 theme_override_constants/separation = 8
 
