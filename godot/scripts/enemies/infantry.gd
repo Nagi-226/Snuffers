@@ -210,12 +210,34 @@ func _update_engage(player_pos: Vector3, dist: float, can_see: bool) -> void:
 
 ## 单发攻击：web attack() L1416-1425，直接结算 5 伤（命中判定由调用方视线门控）。
 ## 开火广播 Events.enemy_fired(&"rifle", 枪口位置)（G2 冻结信号，W5 音效/火光锚点）。
+## 2026-10-21 机主裁决：开火瞬间做一次真实射线复核（Eye→玩家胸口），被墙体
+## 阻挡则只响枪/喷特效、不结算伤害——堵死盲射（dist<BLIND_FIRE_DIST 旁路）、
+## 节流缓存过期等一切穿墙伤害路径。
 func _attack(interval: float) -> void:
 	_attack_cooldown = interval
 	_shots_in_burst += 1
 	var muzzle_pos := _muzzle.global_position if _muzzle != null else global_position
 	Events.enemy_fired.emit(&"rifle", muzzle_pos)
-	_damage_player(GameConfig.INFANTRY_DAMAGE)
+	if _fire_ray_clear():
+		_damage_player(GameConfig.INFANTRY_DAMAGE)
+
+
+## 开火瞬间实时射线：Eye → 玩家胸口（脚底原点 +1.2m）无遮挡才算命中。
+## 不复用 _cached_can_see（2 帧节流缓存，开火判定必须现查）。
+func _fire_ray_clear() -> bool:
+	if _eye == null:
+		return false
+	var world := get_world_3d()
+	if world == null:
+		return false
+	var from := _eye.global_position
+	var target := _get_player_position() + Vector3(0.0, 1.2, 0.0)
+	var query := PhysicsRayQueryParameters3D.create(from, target)
+	query.exclude = _los_exclude_rids()
+	var hit := world.direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return true
+	return from.distance_to(hit["position"]) > from.distance_to(target) - 0.5
 
 
 ## 掩体搜索：group "cover_point" 候选，25u 内按
