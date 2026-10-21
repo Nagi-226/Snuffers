@@ -110,6 +110,33 @@ for chain in P.get("ik", []):
                 break
     print("IK %-10s final_dist %.4f" % (meas, dist))
 
+# ---- hand_aim: world-space hand orientation (same semantics as pose_arms.py) ----
+def _aim_basis(f, p):
+    y = f.normalized()
+    z = (p - y * p.dot(y)).normalized()
+    x = y.cross(z)
+    m = Matrix.Identity(3)
+    m.col[0], m.col[1], m.col[2] = x, y, z
+    return m
+
+for name, aim in P.get("hand_aim", {}).items():
+    b = pb(name)
+    if not b:
+        print("MISS AIM BONE", name); continue
+    f_tgt = Vector(aim["fingers"])
+    p_tgt = Vector(aim["palm"])
+    p_axis = Vector(aim.get("palm_axis", [0, 0, 1]))
+    f_axis = Vector(aim.get("finger_axis", [0, 1, 0]))
+    bpy.context.view_layer.update()
+    R = (arm_ob.matrix_world @ b.matrix).to_3x3()
+    f_cur = R @ f_axis
+    p_cur = R @ p_axis
+    C = (_aim_basis(f_tgt, p_tgt) @ _aim_basis(f_cur, p_cur).inverted()).to_4x4()
+    new_world = C @ (arm_ob.matrix_world @ b.matrix)
+    b.matrix = arm_ob.matrix_world.inverted() @ new_world
+    bpy.context.view_layer.update()
+    print("AIM %-8s fingers->%s palm->%s" % (name, aim["fingers"], aim["palm"]))
+
 for prefix, ang in P.get("bones", {}).items():
     b = pb(prefix)
     if b:

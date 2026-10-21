@@ -1,8 +1,10 @@
-import bpy, sys, math, json
+import bpy, sys, math, json, os
 from mathutils import Vector, Euler, Matrix
 
 argv = sys.argv[sys.argv.index("--")+1:]
 arms_glb, weapon_proxy, out_prefix, params_path = argv[0], argv[1], argv[2], argv[3]
+if not os.path.isabs(out_prefix):
+    out_prefix = os.path.join(os.path.dirname(os.path.abspath(__file__)), out_prefix)
 P = json.load(open(params_path, encoding="utf-8"))
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -102,6 +104,38 @@ for chain in P.get("ik", []):
             if step < math.radians(0.15):
                 break
     print("IK %-10s final_dist %.4f" % (meas, dist))
+
+# ---- hand_aim: world-space hand orientation (palm/finger direction semantics) ----
+# JSON: "hand_aim": {"hand.R": {"fingers": [x,y,z], "palm": [x,y,z], "palm_axis": [0,0,1]}, ...}
+# fingers = 世界空间中手指（掌骨）指向；palm = 掌心朝向。
+# palm_axis = 掌心法向对应的骨骼局部轴（默认 [0,0,1]，若实测掌心偏 90° 试 [±1,0,0]）。
+def _aim_basis(f, p):
+    y = f.normalized()
+    z = (p - y * p.dot(y)).normalized()
+    x = y.cross(z)
+    m = Matrix.Identity(3)
+    m.col[0], m.col[1], m.col[2] = x, y, z
+    return m
+
+for name, aim in P.get("hand_aim", {}).items():
+    b = pb(name)
+    if not b:
+        print("MISS AIM BONE", name); continue
+    f_tgt = Vector(aim["fingers"])
+    p_tgt = Vector(aim["palm"])
+    p_axis = Vector(aim.get("palm_axis", [0, 0, 1]))
+    f_axis = Vector(aim.get("finger_axis", [0, 1, 0]))
+    bpy.context.view_layer.update()
+    R = (arm_ob.matrix_world @ b.matrix).to_3x3()
+    f_cur = R @ f_axis
+    p_cur = R @ p_axis
+    M_cur = _aim_basis(f_cur, p_cur)
+    M_des = _aim_basis(f_tgt, p_tgt)
+    C = (M_des @ M_cur.inverted()).to_4x4()
+    new_world = C @ (arm_ob.matrix_world @ b.matrix)
+    b.matrix = arm_ob.matrix_world.inverted() @ new_world
+    bpy.context.view_layer.update()
+    print("AIM %-8s fingers->%s palm->%s paxis=%s" % (name, aim["fingers"], aim["palm"], list(p_axis)))
 
 # apply FK rotations (XYZ euler degrees, in bone local space)
 for prefix, ang in P.get("bones", {}).items():
