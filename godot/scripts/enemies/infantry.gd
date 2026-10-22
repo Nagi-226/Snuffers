@@ -9,9 +9,7 @@
 extends "res://scripts/enemies/enemy_base.gd"
 
 ## ===== web 内联行为值（G2 冻结契约未收录的残留调参，已登记交付报告）=====
-const STRAFE_SPEED_CLOSE: float = 2.5 ## 交战近距离横移速度（L1284）
-const STRAFE_SPEED_MID: float = 2.0 ## 交战中距离横移速度（L1289）
-const BACKOFF_FACTOR: float = 0.45 ## 交战后退系数（-1.5×0.3，L1285-1287）
+## （2026-10-22 机主裁决：寄生体近战定位重排距离带，web 交战横移/后退三组残留随之后退逻辑一并退役）
 
 enum State { PATROL, ALERT, TAKE_COVER, PEEK, ENGAGE }
 
@@ -29,7 +27,6 @@ var _max_burst: int = 0
 var _patrol_time: float = 0.0
 var _patrol_center: Vector3 = Vector3.ZERO
 var _attack_cooldown: float = 0.0
-var _strafe_time: float = 0.0
 var _lose_sight_timer: float = 0.0 ## 持续丢视线时长（脱战用）
 
 @onready var _muzzle: Marker3D = $Muzzle
@@ -67,7 +64,6 @@ func _physics_process(delta: float) -> void:
 
 	_state_timer -= delta
 	_attack_cooldown -= delta
-	_strafe_time += delta
 
 	# 脱战计时（2026-10-20 机主裁决）：持续丢视线累加，复见清零；
 	# ENGAGE 中超 INFANTRY_LOSE_SIGHT_TIME → 回巡逻（见 _update_engage）。
@@ -156,12 +152,17 @@ func _update_take_cover(player_pos: Vector3) -> void:
 		_face_position(player_pos)
 
 
-## PEEK：隐蔽 0.5s → 探头窗口开火（0.2s/发）→ 周期末 30% 再探头，否则 ENGAGE（L1253-1276）。
+## PEEK：隐蔽 0.5s → 探头窗口孢子（0.2s/发）→ 周期末 30% 再探头，否则 ENGAGE（L1253-1276）。
+## 2026-10-22 机主裁决：出手必须 can_see——盲射旁路（dist<3m 无视视线）退役，
+## 该旁路是「隔墙听见建筑内敌人出手声」的根因；玩家贴近至逼近分界内 → 放弃掩体转 ENGAGE 近身。
 func _update_peek(delta: float, player_pos: Vector3, dist: float, can_see: bool) -> void:
 	_peek_timer += delta
+	if dist <= GameConfig.INFANTRY_ENGAGE_APPROACH_DIST:
+		_set_state(State.ENGAGE, GameConfig.INFANTRY_PEEK_ENGAGE_TIME)
+		return
 	if _peek_timer > GameConfig.INFANTRY_PEEK_FIRE_DELAY and _peek_timer < GameConfig.INFANTRY_PEEK_CYCLE_TIME:
 		_face_position(player_pos)
-		if (can_see or dist < GameConfig.INFANTRY_BLIND_FIRE_DIST) and _attack_cooldown <= 0.0:
+		if can_see and _attack_cooldown <= 0.0:
 			_attack(GameConfig.INFANTRY_PEEK_INTERVAL)
 	elif _peek_timer >= GameConfig.INFANTRY_PEEK_CYCLE_TIME:
 		_peek_timer = 0.0
@@ -175,7 +176,8 @@ func _update_peek(delta: float, player_pos: Vector3, dist: float, can_see: bool)
 		velocity.z *= 0.1
 
 
-## ENGAGE：距离带移动（逼近/后退横移/横移），0.25s/发；
+## ENGAGE（2026-10-22 机主裁决重排攻击距离带）：逼近至近身距离为止（寄生体近战定位，不后退），
+## 出手必须 can_see；≤ MELEE_RANGE 近身重击，APPROACH_DIST–SPORE_RANGE 带（10–15m）投掷孢子。
 ## 计时耗尽或打满点射 → TAKE_COVER（L1277-1304）。
 ## 2026-10-20 机主裁决：持续丢视线 > INFANTRY_LOSE_SIGHT_TIME → 回巡逻脱战。
 func _update_engage(player_pos: Vector3, dist: float, can_see: bool) -> void:
@@ -184,21 +186,20 @@ func _update_engage(player_pos: Vector3, dist: float, can_see: bool) -> void:
 		_lose_sight_timer = 0.0
 		return
 	_face_position(player_pos)
-	if dist > GameConfig.INFANTRY_ENGAGE_APPROACH_DIST:
+	if dist > GameConfig.INFANTRY_MELEE_RANGE:
 		var dir := player_pos - global_position
 		dir.y = 0.0
 		dir = dir.normalized()
 		velocity.x = dir.x * GameConfig.INFANTRY_SPEED
 		velocity.z = dir.z * GameConfig.INFANTRY_SPEED
-	elif dist < GameConfig.INFANTRY_ENGAGE_BACKOFF_DIST:
-		var strafe := sin(_strafe_time / 0.3) * STRAFE_SPEED_CLOSE
-		velocity.x = (player_pos.x - global_position.x) * -BACKOFF_FACTOR + strafe
-		velocity.z = (player_pos.z - global_position.z) * -BACKOFF_FACTOR
 	else:
-		velocity.x = sin(_strafe_time / 0.4) * STRAFE_SPEED_MID
-		velocity.z *= 0.5
-	if (can_see or dist < GameConfig.INFANTRY_BLIND_FIRE_DIST) and _attack_cooldown <= 0.0:
-		_attack(GameConfig.INFANTRY_ENGAGE_INTERVAL)
+		velocity.x *= 0.2
+		velocity.z *= 0.2
+	if can_see and _attack_cooldown <= 0.0:
+		if dist <= GameConfig.INFANTRY_MELEE_RANGE:
+			_melee()
+		elif dist > GameConfig.INFANTRY_ENGAGE_APPROACH_DIST and dist <= GameConfig.INFANTRY_SPORE_RANGE:
+			_attack(GameConfig.INFANTRY_ENGAGE_INTERVAL)
 	if _state_timer <= 0.0 or _shots_in_burst >= _max_burst:
 		_shots_in_burst = 0
 		var cover := _find_nearest_cover(player_pos)
@@ -208,10 +209,11 @@ func _update_engage(player_pos: Vector3, dist: float, can_see: bool) -> void:
 		_has_target = true
 
 
-## 单发攻击（2026-10-21 机主裁决重定性：寄生体远程手段 = 孢子团投掷，非枪械）：
+## 孢子投掷（寄生体远程手段，非枪械）：
 ## 广播 Events.enemy_fired(&"spore", 出手位置)（黏性孢子音效/特效锚点）；
 ## 命中结算双门控——①开火瞬间真实视线复核（Eye→玩家胸口，0.1m 严容差堵薄墙穿透）；
-## ②距离 ≤ INFANTRY_SPORE_RANGE（10m，超出则孢子够不到，只出手不结算）。
+## ②距离 ≤ INFANTRY_SPORE_RANGE（15m，2026-10-22 机主裁决 10→15；超出则孢子够不到，只出手不结算——
+##   调用方已按 10–15m 带门控，本检查为兜底）。
 func _attack(interval: float) -> void:
 	_attack_cooldown = interval
 	_shots_in_burst += 1
@@ -222,6 +224,15 @@ func _attack(interval: float) -> void:
 		return
 	if _fire_ray_clear():
 		_damage_player(GameConfig.INFANTRY_DAMAGE)
+
+
+## 近身重击（2026-10-22 机主裁决：寄生体主战手段，≤ MELEE_RANGE 出手）。
+## 不广播 enemy_fired——音频侧无近战分支，发了会错放枪声；近战音效资产待补（见 handoff）。
+## 命中同样过 _fire_ray_clear() 实时射线复核，防隔薄墙抓伤。
+func _melee() -> void:
+	_attack_cooldown = GameConfig.INFANTRY_MELEE_INTERVAL
+	if _fire_ray_clear():
+		_damage_player(GameConfig.INFANTRY_MELEE_DAMAGE)
 
 
 ## 开火瞬间实时射线：Eye → 玩家胸口（脚底原点 +1.2m）无遮挡才算命中。

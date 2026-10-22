@@ -17,7 +17,9 @@ var rifle_mag: int = 0
 var rifle_reserve: int = 0
 var pistol_mag: int = 0 ## EM-57P 弹匣（2026-10-19 冻结新增）
 var pistol_reserve: int = 0 ## EM-57P 备弹（2026-10-19 冻结新增）
-var rpg_ammo: int = 0
+## EM-40G「滚雷」榴弹余量（2026-10-22 冻结新增：并入步枪第四射击档，模块 6 发弹匣
+## =雷池，总数制无换弹；旧 rpg_ammo 随 RPG 武器退役移除）
+var rifle_grenades: int = 0
 var medkits: int = 0
 var kills: int = 0
 ## 取证终端已收集数（叙事收集品，2026-10-07 冻结新增）
@@ -62,7 +64,7 @@ func reset() -> void:
 	rifle_reserve = GameConfig.RIFLE_RESERVE
 	pistol_mag = GameConfig.PISTOL_MAG
 	pistol_reserve = GameConfig.PISTOL_RESERVE
-	rpg_ammo = GameConfig.RPG_AMMO
+	rifle_grenades = GameConfig.GRENADE_AMMO
 	medkits = 0
 	kills = 0
 	intel = 0

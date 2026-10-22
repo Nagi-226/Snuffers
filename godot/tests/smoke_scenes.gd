@@ -55,7 +55,6 @@ const CASES: Array = [
 	},
 	# ===== W2 火力蜂武器场景（已交付入库，G2 转正式断言；expect 按 .tscn 实际节点补全）=====
 	{"scene": "res://scenes/weapons/rifle.tscn", "optional": false, "expect": ["ViewModel"]},
-	{"scene": "res://scenes/weapons/rpg.tscn", "optional": false, "expect": ["ViewModel"]},
 	{"scene": "res://scenes/weapons/rpg_projectile.tscn", "optional": false, "expect": ["Body"]},
 	# ===== W3 敌智蜂兵种场景（已交付入库，G2 转正式断言；Eye/Muzzle 为 AI 感知/开火锚点）=====
 	{

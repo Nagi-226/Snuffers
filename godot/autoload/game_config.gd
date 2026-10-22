@@ -29,7 +29,6 @@ const INTERACT_RANGE: float = 2.4 ## E 键通用交互距离 m（2026-10-18 机�
 const NV_SFX_CUT_TIME: float = 0.85 ## 夜视开关音效截短时长 s（2026-10-18 机主裁决：原音源偏长，播到此时长后 0.12s 淡出截停）
 
 const FOV_BASE: float = 75.0 ## 主相机 FOV（L465）
-const FOV_SCOPE: float = 25.0 ## RPG 瞄准镜 FOV = 75/3（L512）
 # —— 按住开镜（ADS，2026-10-19 机主立项：右键由「切换潜行观感」改为按住开镜）——
 const RIFLE_ADS_FOV: float = 60.0 ## EM-68A 全息瞄具开镜 FOV（全息=低倍率，微收窄）
 const PISTOL_ADS_FOV: float = 65.0 ## EM-57P 点状瞄具开镜 FOV
@@ -116,21 +115,21 @@ const PISTOL_RECOIL_VIEW_ROT: float = 2.0 ## 视图模型后坐旋转系数
 const PISTOL_RECOIL_VIEW_Y_FACTOR: float = 0.02 ## 视图模型后坐位移系数 Y
 const PISTOL_RECOIL_VIEW_Z_FACTOR: float = 0.04 ## 视图模型后坐位移系数 Z
 
-# ===== RPG =====
-const RPG_AMMO: int = 5 ## 火箭弹数（L327）
-const RPG_PROJECTILE_SPEED: float = 120.0 ## 初速 u/s（L3127）
-const RPG_GRAVITY: float = 9.8 ## 弹道下坠（L3139）
-const RPG_MAX_RANGE: float = 300.0 ## 最大射程 u（L3131）
-const RPG_EXPLODE_RADIUS: float = 10.0 ## 爆炸半径 u（L1511）
-const RPG_BUNKER_RADIUS_BONUS: float = 5.0 ## 对碉堡判定半径加成（L1593）
-const RPG_SELF_DAMAGE: bool = false ## 网页版爆炸对玩家零伤害（L1645-1657）；G2 复核是否保留
-const RPG_RECOIL_PITCH: float = 0.01 ## RPG 独立后坐上跳 rad（修复网页版后坐永不触发缺陷；暂定值，G2 试玩手感裁决）
-const RPG_RECOIL_RECOVER_RATE: float = 6.0 ## RPG 后坐恢复速率 /s（Godot 版新增，网页版无）
-const RPG_RECOIL_VIEW_ROT: float = 2.5 ## 视图模型后坐旋转系数（L3189-3191）
-const RPG_RECOIL_VIEW_Y_FACTOR: float = 0.025 ## 视图模型后坐位移系数 Y（L3189-3191）
-const RPG_RECOIL_VIEW_Z_FACTOR: float = 0.075 ## 视图模型后坐位移系数 Z（L3189-3191）
-const RPG_EXPLODE_DAMAGE: float = 9999.0 ## 爆径内即杀伤害（L1556-1591）
-const RPG_EXPLODE_BELOW_Y: float = -10.0 ## 坠地自爆高度（L3172）
+# ===== EM-40G「滚雷」下挂榴弹模块（2026-10-22 机主裁决：并入 EM-68A 第四射击档，
+#       X 键闭环 全自动→半自动→三发点射→榴→全自动；旧 3 号位 RPG 火箭筒整体退役）=====
+# 设定出处（E系列电磁轻武器-概念图谱）：直射档=EC-40P「破垒」全功率平直弹道；
+# 模块自带 6 发弹匣即雷池（换匣即换电）；「闸不合，榴不发」=榴档与实弹击发互斥；
+# 投射物场景复用 rpg_projectile.tscn（抛物线/爆炸/碉堡结算链路原样接管）。
+const GRENADE_AMMO: int = 6 ## 榴弹总数（模块 6 发弹匣=雷池，无备弹/换弹概念）
+const GRENADE_FIRE_INTERVAL: float = 0.8 ## 榴弹击发间隔 s（合闸-复位节奏，半自动边沿触发）
+const GRENADE_PROJECTILE_SPEED: float = 90.0 ## 直射档初速 u/s（全功率平直弹道）
+const GRENADE_GRAVITY: float = 2.0 ## 直射档微下坠（远小于旧火箭 9.8，弹道平直）
+const GRENADE_MAX_RANGE: float = 200.0 ## 最大射程 u
+const GRENADE_EXPLODE_RADIUS: float = 6.0 ## 爆炸半径 u（破垒弹，小于旧火箭 10）
+const GRENADE_BUNKER_RADIUS_BONUS: float = 5.0 ## 对碉堡判定半径加成（破垒本职，沿用 L1593）
+const GRENADE_SELF_DAMAGE: bool = false ## 爆炸对玩家零伤害（沿用网页版口径 L1645-1657）
+const GRENADE_EXPLODE_DAMAGE: float = 9999.0 ## 爆径内即杀伤害（沿用旧火箭口径 L1556-1591）
+const GRENADE_EXPLODE_BELOW_Y: float = -10.0 ## 坠地自爆高度（L3172）
 
 # ===== 敌人（G2 门禁基准）=====
 const INFANTRY_HP: float = 50.0 ## 步兵血量（L1139）
@@ -157,10 +156,12 @@ const INFANTRY_PEEK_CYCLE_TIME: float = 1.0 ## 探头周期 s
 const INFANTRY_PEEK_REPEAT_CHANCE: float = 0.3 ## 重复探头概率
 const INFANTRY_PEEK_ENGAGE_TIME: float = 1.5 ## 探头转交战时长 s
 const INFANTRY_ALERT_ENGAGE_TIME: float = 2.0 ## 警戒转交战时长 s
-const INFANTRY_ENGAGE_APPROACH_DIST: float = 8.0 ## 交战逼近距离（2026-10-21 机主裁决：12→8——孢子射程 10m，逼近到射程内才出手）
-const INFANTRY_ENGAGE_BACKOFF_DIST: float = 5.0 ## 交战后退距离
-const INFANTRY_BLIND_FIRE_DIST: float = 3.0 ## 盲射距离
-const INFANTRY_SPORE_RANGE: float = 10.0 ## 孢子投掷命中上限距离 m（2026-10-21 机主裁决：寄生体远程手段=孢子团，超过 10m 够不到玩家）
+const INFANTRY_ENGAGE_APPROACH_DIST: float = 10.0 ## 交战逼近/孢子分界（2026-10-22 机主裁决：10m 内优先近身，孢子带 10–15m）
+const INFANTRY_ENGAGE_BACKOFF_DIST: float = 5.0 ## 交战后退距离（2026-10-22 起脚本不再消费——寄生体近战定位不后退；常量保留护 G2 断言）
+const INFANTRY_SPORE_RANGE: float = 15.0 ## 孢子投掷命中上限距离 m（2026-10-22 机主裁决：10→15；须已发现玩家[视线确认]才出手，盲射旁路退役）
+const INFANTRY_MELEE_RANGE: float = 2.2 ## 近身攻击出手距离 m（2026-10-22 机主裁决：寄生体主战手段）
+const INFANTRY_MELEE_DAMAGE: float = 15.0 ## 近身攻击伤害（重击，高于孢子 5.0）
+const INFANTRY_MELEE_INTERVAL: float = 1.0 ## 近身攻击间隔 s
 const INFANTRY_LOSE_SIGHT_TIME: float = 4.0 ## 脱战时长 s（2026-10-20 机主裁决新增：持续丢失视线超过该时长 → 回巡逻，杜绝"隔墙锁定后无限追打"）
 const INFANTRY_FALLBACK_COVER_DIST: float = 5.0 ## 撤退掩体距离
 const INFANTRY_COMPANION_COVER_DIST: float = 5.0 ## 同伴掩体距离
@@ -242,12 +243,12 @@ const PLAYER_MUZZLE_FLASH_ENERGY: float = 0.7 ## 枪口焰 OmniLight 能量（�
 const PLAYER_MUZZLE_FLASH_RANGE: float = 2.5 ## 枪口焰光照半径 m
 const BULLET_DECAL_SIZE: float = 0.14 ## 弹坑贴花投影尺寸 m
 const BULLET_DECAL_POOL: int = 64 ## 弹坑池上限（FIFO 复用最旧，防贴花无限累积）
-const BULLET_SPARK_COUNT: int = 5 ## 金属命中火花粒子数（2026-10-21 机主裁决：HL2 撬棍击金属式几颗微火星，勿放大）
-const BULLET_SPARK_LIFETIME: float = 0.22 ## 火花粒子寿命 s
-const BULLET_SPARK_VELOCITY_MIN: float = 1.0 ## 火花初速下限 m/s
-const BULLET_SPARK_VELOCITY_MAX: float = 2.2 ## 火花初速上限 m/s
-const BULLET_SPARK_SCALE_MIN: float = 0.004 ## 火花粒径下限 m
-const BULLET_SPARK_SCALE_MAX: float = 0.009 ## 火花粒径上限 m
+const BULLET_SPARK_COUNT: int = 8 ## 金属命中火花粒子数（2026-10-22 机主裁决：颗数不减，体积大幅缩小）
+const BULLET_SPARK_LIFETIME: float = 0.18 ## 火花粒子寿命 s
+const BULLET_SPARK_VELOCITY_MIN: float = 0.8 ## 火花初速下限 m/s
+const BULLET_SPARK_VELOCITY_MAX: float = 1.6 ## 火花初速上限 m/s
+const BULLET_SPARK_SCALE_MIN: float = 0.0015 ## 火花粒径下限 m（微火星口径，勿放大）
+const BULLET_SPARK_SCALE_MAX: float = 0.0035 ## 火花粒径上限 m
 const BULLET_SPARK_SPREAD: float = 30.0 ## 火花喷射散布角 °
 ## 金属表面关键词（命中物祖先节点名含其一即溅火星；自行车/铁护栏/阳台栏杆/篮架等）
 const BULLET_METAL_KEYWORDS: PackedStringArray = ["bicycle", "fence", "railing", "balcony", "gate", "barrier", "hoop", "shutter"]

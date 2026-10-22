@@ -14,7 +14,7 @@ const KEY_STRAFE_RIGHT: Key = KEY_D ## 网页版 D：右移
 const KEY_PRONE: Key = KEY_C ## 网页版 C：趴下切换
 const KEY_WEAPON_RIFLE: Key = KEY_1 ## 网页版 1：切步枪
 const KEY_WEAPON_PISTOL: Key = KEY_2 ## 2：切手枪 EM-57P（2026-10-19 机主立项）
-const KEY_WEAPON_RPG: Key = KEY_3 ## 3：切火箭筒（2026-10-19 由 2 挪 3，手枪入 2 号位）
+## （旧 3 号位 RPG 火箭筒已于 2026-10-22 退役：榴弹并入步枪第四射击档，X 键循环）
 const KEY_NIGHT_VISION: Key = KEY_N ## N：夜视仪切换（§11.2 机主裁决：V→N，与昼夜演示场景键位一致）
 const KEY_MEDKIT: Key = KEY_F ## 网页版 F：使用药包
 const KEY_HELI: Key = KEY_H ## 网页版 H：呼叫直升机
@@ -93,7 +93,7 @@ func _ready() -> void:
 	prompt_layer.add_child(_prompt_label)
 	add_child(prompt_layer)
 	# 开镜准星覆盖层（ADS）：脚本自建 CanvasLayer，同 InteractPrompt 模式不动 W5 域 HUD；
-	# 步枪=全息圆环+心点，手枪=点状，RPG 无覆盖层（沿用 HUD 准星+FOV_SCOPE）。
+	# 步枪=全息圆环+心点，手枪=点状（榴档沿用步枪全息环，直射档直瞄）。
 	var reticle_layer := CanvasLayer.new()
 	reticle_layer.name = "AdsReticle"
 	reticle_layer.layer = 3
@@ -135,7 +135,6 @@ func _calibrate_ads() -> void:
 	_ads_fov_targets = {
 		&"rifle": GameConfig.RIFLE_ADS_FOV,
 		&"pistol": GameConfig.PISTOL_ADS_FOV,
-		&"rpg": GameConfig.FOV_SCOPE,
 	}
 	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"]]:
 		var weapon_root := _weapon_mount.get_node_or_null(pair[1]) as Node3D
@@ -215,8 +214,6 @@ func _unhandled_input(event: InputEvent) -> void:
 				_switch_weapon(&"rifle")
 			KEY_WEAPON_PISTOL:
 				_switch_weapon(&"pistol")
-			KEY_WEAPON_RPG:
-				_switch_weapon(&"rpg")
 			KEY_NIGHT_VISION:
 				_toggle_night_vision()
 			KEY_MEDKIT:
@@ -394,11 +391,10 @@ func _process(delta: float) -> void:
 			_ads_mount_targets.get(GameState.current_weapon, _mount_hip_pos), _ads_weight)
 		_camera.fov = lerpf(GameConfig.FOV_BASE,
 			_ads_fov_targets.get(GameState.current_weapon, GameConfig.FOV_BASE), _ads_weight)
-	# 准星覆盖层：权重过 60% 才显形（过渡中段不闪半吊子准星）；RPG 无覆盖层。
+	# 准星覆盖层：权重过 60% 才显形（过渡中段不闪半吊子准星）；榴档沿用步枪全息准星
+	# （直射档平直弹道，全息环直瞄即可）。
 	if _ads_reticle != null:
-		var mode: StringName = &"none"
-		if GameState.current_weapon != &"rpg":
-			mode = GameState.current_weapon
+		var mode: StringName = GameState.current_weapon
 		if _ads_reticle.mode != mode or not is_equal_approx(_ads_reticle.weight, _ads_weight):
 			_ads_reticle.mode = mode
 			_ads_reticle.weight = _ads_weight
@@ -501,15 +497,16 @@ func _switch_weapon(weapon_id: StringName) -> void:
 	Events.weapon_switched.emit(weapon_id)
 
 
-## X：射击模式循环（2026-10-19 机主立项）——全自动 → 三发点射 → 半自动 → 回全自动。
-## RPG 投射物无模式概念，直接忽略。状态入 GameState.fire_modes 契约字段 + 发信号。
+## X：射击模式循环。步枪四态闭环（2026-10-22 机主裁决：EM-40G 滚雷榴档并入）：
+## 全自动 → 半自动 → 三发点射 → 榴 → 回全自动；手枪维持三档。
+## 状态入 GameState.fire_modes 契约字段 + 发信号。
 func _cycle_fire_mode() -> void:
 	var w := GameState.current_weapon
-	if w == &"rpg":
-		return
-	const ORDER: Array[StringName] = [&"auto", &"burst", &"semi"]
+	const ORDER_RIFLE: Array[StringName] = [&"auto", &"semi", &"burst", &"grenade"]
+	const ORDER_PISTOL: Array[StringName] = [&"auto", &"burst", &"semi"]
+	var order: Array[StringName] = ORDER_RIFLE if w == &"rifle" else ORDER_PISTOL
 	var cur: StringName = GameState.fire_modes.get(w, &"auto")
-	GameState.fire_modes[w] = ORDER[(ORDER.find(cur) + 1) % ORDER.size()]
+	GameState.fire_modes[w] = order[(order.find(cur) + 1) % order.size()]
 	Events.fire_mode_changed.emit(w, GameState.fire_modes[w])
 
 
@@ -561,7 +558,7 @@ func _call_heli() -> void:
 
 
 ## 开镜准星覆盖层（2026-10-19 机主立项）：青蓝 (0.4,0.95,1.0) 全息风。
-## rifle = 全息圆环 + 心点 + 四向刻度；pistol = 点状准星；none/rpg = 不画。
+## rifle = 全息圆环 + 心点 + 四向刻度（榴档共用）；pistol = 点状准星；none = 不画。
 ## 权重 <0.6 不显形（开镜过渡中段由 HUD 准星交接，避免双准星）。
 class AdsReticle extends Control:
 	var mode: StringName = &"none"

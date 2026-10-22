@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/rpg_projectile.tscn" id="2_projectile"]
 
 ; 步枪定义（G2 门禁基准，§7 对照表；弹匣 60 发按 EDAA 雷械设定，2026-10-19 机主裁决）。
 ; GameConfig 已有字段运行时由 sync_from_config() 覆盖，此处数值必须与 GameConfig 一致（L2 校验项）。
@@ -30,3 +31,5 @@ recoil_recover_rate = 6.0
 view_recoil_rot_factor = 2.25
 view_recoil_y_factor = 0.025
 view_recoil_z_factor = 0.05
+; EM-40G「滚雷」下挂榴弹模块（2026-10-22 机主立项，旧 RPG 并入步枪）：榴档投射物场景。
+projectile_scene = ExtResource("2_projectile")

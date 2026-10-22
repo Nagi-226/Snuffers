@@ -233,14 +233,16 @@ func _disconnect_events() -> void:
 	Events.intel_picked.disconnect(_on_intel_picked)
 
 
-func _on_weapon_fired(_weapon_id: StringName) -> void:
-	match GameState.current_weapon:
+## 2026-10-22 修订：按 weapon_id 入参放音（EM-40G 榴档由步枪发出 weapon_fired(&"grenade")，
+## 若按 current_weapon 判定会错放步枪音）。
+func _on_weapon_fired(weapon_id: StringName) -> void:
+	match weapon_id:
 		&"rifle":
 			play_sfx(&"rifle")
 		&"pistol":
 			play_sfx(&"pistol") ## EM-57P 独立枪声素材（2026-10-19 机主立项：两枪不共用音源）
-		&"rpg":
-			play_sfx(&"rocket")
+		&"grenade":
+			play_sfx(&"rocket") ## EM-40G 榴弹出膛复用 rocket 音源；爆炸音走 rpg_exploded→explosion
 
 
 func _on_weapon_reloaded(_reloaded_id: StringName) -> void:

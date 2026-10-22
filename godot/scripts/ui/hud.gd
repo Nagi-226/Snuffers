@@ -175,16 +175,13 @@ func _on_weapon_switched(_weapon_id: StringName) -> void:
 	_on_player_aim_changed(GameState.is_aiming)
 
 
-## 开镜时隐藏 HUD 腰射准星（ADS 覆盖层接管；RPG 无覆盖层，准星保留）。
-## （2026-10-19 机主立项：右键按住开镜配套）
+## 开镜时隐藏 HUD 腰射准星（ADS 覆盖层接管；榴档开镜同样接管）。
 func _on_player_aim_changed(aiming: bool) -> void:
-	_crosshair.visible = not (aiming and GameState.current_weapon != &"rpg")
+	_crosshair.visible = not aiming
 
 
 func _refresh_ammo() -> void:
 	match GameState.current_weapon:
-		&"rpg":
-			_set_ammo_text(&"rpg", GameState.rpg_ammo, -1)
 		&"pistol":
 			_set_ammo_text(&"pistol", GameState.pistol_mag, GameState.pistol_reserve)
 		_:
@@ -197,14 +194,16 @@ func _on_fire_mode_changed(weapon_id: StringName, _mode: StringName) -> void:
 		_refresh_ammo()
 
 
-## RPG 无弹匣概念：reserve = -1 时只显示火箭弹数（events.gd ammo_changed 注释）。
-## 步枪/手枪附加当前射击模式标（GameState.fire_modes 契约字段）。
+## 弹药行：步枪/手枪附加当前射击模式标（GameState.fire_modes 契约字段）。
+## 步枪榴档（&"grenade"，EM-40G 滚雷，2026-10-22 并入）显示榴弹余量而非弹匣——
+## 模块总数制无备弹，余量直读 GameState.rifle_grenades。
 func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
-	if weapon_id == &"rpg" or reserve < 0:
-		_ammo_label.text = "火箭弹：%d" % mag
+	var mode: StringName = GameState.fire_modes.get(weapon_id, &"auto")
+	if weapon_id == &"rifle" and mode == &"grenade":
+		_ammo_label.text = "EM-68A [滚雷] EC-40P 破垒榴弹：%d" % GameState.rifle_grenades
 		return
 	var mode_tag := ""
-	match GameState.fire_modes.get(weapon_id, &"auto") as StringName:
+	match mode:
 		&"auto":
 			mode_tag = "[全自动]"
 		&"burst":

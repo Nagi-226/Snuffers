@@ -59,8 +59,11 @@ func _unhandled_input(event: InputEvent) -> void:
 ## 全自动/点射 tick 已收口基类（_tick_weapon）；本子类仅实现单发流程。
 
 
-## 单发流程：弹药门控 → 扣弹广播 → 后坐 → 散布射线 → 命中结算。返回是否真正击发。
+## 单发流程：榴档分流投射物；否则弹药门控 → 扣弹广播 → 后坐 → 散布射线 → 命中结算。
+## 返回是否真正击发。
 func _fire() -> bool:
+	if _current_fire_mode() == &"grenade":
+		return _fire_grenade()
 	if _is_reloading:
 		return false
 	if GameState.rifle_mag <= 0:
@@ -102,6 +105,38 @@ func _fire() -> bool:
 	# G2 冻结契约：HUD 伤害飘字（与 hit_confirmed 互补；狙击手固定伤害如实广播）。
 	Events.damage_dealt.emit(damage, is_head)
 	Events.hit_confirmed.emit(is_head)
+	return true
+
+
+## 榴档单发（EM-40G「滚雷」，2026-10-22 机主裁决并入第四射击档）：
+## 模块 6 发弹匣=雷池（GameState.rifle_grenades 总数制，无换弹）；投射物复用
+## rpg_projectile 链路（直射档参数：GRENADE_* 契约组，平直弹道微下坠）。
+## 「闸不合，榴不发」——本路径只在 &"grenade" 档下可达，实弹击发互斥。
+func _fire_grenade() -> bool:
+	if _is_reloading:
+		return false
+	if GameState.rifle_grenades <= 0:
+		Events.message_posted.emit("滚雷模块弹药耗尽")
+		return false
+	if weapon_data.projectile_scene == null:
+		push_error("rifle.tres 未配置 projectile_scene（EM-40G 投射物）")
+		return false
+	GameState.rifle_grenades -= 1
+	Events.ammo_changed.emit(&"rifle", GameState.rifle_grenades, -1)
+	Events.weapon_fired.emit(&"grenade")
+	_apply_recoil()
+	var projectile: Node3D = weapon_data.projectile_scene.instantiate()
+	# 投射物挂到关卡根（武器随玩家移动，投射物需独立存在于世界空间）。
+	var container: Node = get_tree().current_scene
+	if container == null:
+		container = get_tree().root
+	container.add_child(projectile)
+	projectile.global_transform = global_transform
+	projectile.setup(
+		-global_transform.basis.z,
+		HitSolver.collect_owner_rids(self),
+		weapon_data
+	)
 	return true
 
 

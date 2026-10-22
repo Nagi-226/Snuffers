@@ -1,4 +1,4 @@
-## RPGProjectile — 火箭弹投射物（W2 火力蜂）
+## RPGProjectile — 火箭弹/EM-40G「滚雷」榴弹共用投射物（W2 火力蜂）
 ##
 ## 弹道忠实复刻网页版 updateRocket（index.html L3133-3180）：
 ## 恒定初速 + vy -= g·delta 手动积分 + 每帧扫掠射线碰撞 + 朝向速度方向 +
@@ -6,14 +6,15 @@
 ## 不用 RigidBody3D：网页版为纯运动学弹道，手动积分才能 1:1 对齐 §7 参数表。
 ##
 ## 爆炸结算（explode，index.html L1510-1625）：
-## - 爆径 10u 内可伤害目标即杀（explode_damage 由 GameConfig.RPG_EXPLODE_DAMAGE 契约接管；
+## - 爆径内可伤害目标即杀（explode_damage 由 GameConfig.GRENADE_EXPLODE_DAMAGE 契约接管；
 ##   网页版不经 HP 直接移除）；
-## - group "bunker" 目标在 爆径+5u 内特杀（destroy() 鸭子调用保留为投递机制，
+## - group "bunker" 目标在 爆径+bonus 内特杀（destroy() 鸭子调用保留为投递机制，
 ##   随后发 Events.bunker_destroyed() 供碉堡机枪停火/HUD/任务判定消费——G2 冻结信号）；
-## - 每次爆炸发 Events.rpg_exploded(position)（音效/特效锚点，G2 冻结信号）；
+## - 每次爆炸发 Events.rpg_exploded(position)（音效/特效锚点，G2 冻结信号名保留，
+##   2026-10-22 起由 EM-40G 榴弹爆炸发射）；
 ## - 每次伤害投递发 Events.damage_dealt(amount, false)（HUD 飘字，G2 冻结信号；
-##   RPG 爆炸不分部位，is_headshot 恒 false）；
-## - 玩家零自伤（GameConfig.RPG_SELF_DAMAGE=false，经发射方 RID 排除实现）。
+##   爆炸不分部位，is_headshot 恒 false）；
+## - 玩家零自伤（GameConfig.GRENADE_SELF_DAMAGE=false，经发射方 RID 排除实现）。
 extends Node3D
 
 const HitSolver = preload("res://scripts/weapons/hit_solver.gd")
@@ -25,7 +26,7 @@ var _traveled: float = 0.0
 var _exploded: bool = false
 
 
-## 由 rpg_controller 在实例化后调用：方向、发射方排除 RID、武器数据。
+## 由发射方（rifle_controller._fire_grenade）在实例化后调用：方向、发射方排除 RID、武器数据。
 func setup(direction: Vector3, excludes: Array[RID], data: WeaponData) -> void:
 	_data = data
 	_velocity = direction.normalized() * data.projectile_speed
@@ -35,7 +36,7 @@ func setup(direction: Vector3, excludes: Array[RID], data: WeaponData) -> void:
 func _physics_process(delta: float) -> void:
 	if _exploded:
 		return
-	# 守卫：setup() 由 rpg_controller 实例化后调用；未 setup 时（如场景单独冒烟）静止待销毁。
+	# 守卫：setup() 由发射方实例化后调用；未 setup 时（如场景单独冒烟）静止待销毁。
 	if _data == null:
 		return
 

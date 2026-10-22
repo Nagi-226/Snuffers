@@ -63,14 +63,14 @@ func _run() -> void:
 	_assert(config.RIFLE_RECOIL_VIEW_ROT == 2.25, "game_config.gd RIFLE_RECOIL_VIEW_ROT == 2.25")
 	_assert(config.RIFLE_RECOIL_VIEW_Y_FACTOR == 0.025, "game_config.gd RIFLE_RECOIL_VIEW_Y_FACTOR == 0.025")
 	_assert(config.RIFLE_RECOIL_VIEW_Z_FACTOR == 0.05, "game_config.gd RIFLE_RECOIL_VIEW_Z_FACTOR == 0.05")
-	# RPG 后坐 + 爆炸组（修复网页版 RPG 后坐永不触发缺陷）
-	_assert(config.RPG_RECOIL_PITCH == 0.01, "game_config.gd RPG_RECOIL_PITCH == 0.01")
-	_assert(config.RPG_RECOIL_RECOVER_RATE == 6.0, "game_config.gd RPG_RECOIL_RECOVER_RATE == 6.0")
-	_assert(config.RPG_RECOIL_VIEW_ROT == 2.5, "game_config.gd RPG_RECOIL_VIEW_ROT == 2.5")
-	_assert(config.RPG_RECOIL_VIEW_Y_FACTOR == 0.025, "game_config.gd RPG_RECOIL_VIEW_Y_FACTOR == 0.025")
-	_assert(config.RPG_RECOIL_VIEW_Z_FACTOR == 0.075, "game_config.gd RPG_RECOIL_VIEW_Z_FACTOR == 0.075")
-	_assert(config.RPG_EXPLODE_DAMAGE == 9999.0, "game_config.gd RPG_EXPLODE_DAMAGE == 9999.0")
-	_assert(config.RPG_EXPLODE_BELOW_Y == -10.0, "game_config.gd RPG_EXPLODE_BELOW_Y == -10.0")
+	# EM-40G「滚雷」榴弹组（2026-10-22 机主立项并入步枪第四档；旧 RPG_RECOIL_* / RPG_EXPLODE_* 组随 RPG 退役移除）
+	_assert(config.GRENADE_AMMO == 6, "game_config.gd GRENADE_AMMO == 6")
+	_assert(config.GRENADE_FIRE_INTERVAL == 0.8, "game_config.gd GRENADE_FIRE_INTERVAL == 0.8")
+	_assert(config.GRENADE_PROJECTILE_SPEED == 90.0, "game_config.gd GRENADE_PROJECTILE_SPEED == 90.0")
+	_assert(config.GRENADE_EXPLODE_RADIUS == 6.0, "game_config.gd GRENADE_EXPLODE_RADIUS == 6.0")
+	_assert(config.GRENADE_BUNKER_RADIUS_BONUS == 5.0, "game_config.gd GRENADE_BUNKER_RADIUS_BONUS == 5.0")
+	_assert(config.GRENADE_EXPLODE_DAMAGE == 9999.0, "game_config.gd GRENADE_EXPLODE_DAMAGE == 9999.0")
+	_assert(config.GRENADE_EXPLODE_BELOW_Y == -10.0, "game_config.gd GRENADE_EXPLODE_BELOW_Y == -10.0")
 	# 步兵行为调参组（G2 冻结自 W3 脚本常量迁入）
 	_assert(config.INFANTRY_PATROL_RADIUS == 40.0, "game_config.gd INFANTRY_PATROL_RADIUS == 40.0")
 	_assert(config.INFANTRY_ALERT_DELAY == 1.0, "game_config.gd INFANTRY_ALERT_DELAY == 1.0")
@@ -84,12 +84,14 @@ func _run() -> void:
 	_assert(config.INFANTRY_PEEK_REPEAT_CHANCE == 0.3, "game_config.gd INFANTRY_PEEK_REPEAT_CHANCE == 0.3")
 	_assert(config.INFANTRY_PEEK_ENGAGE_TIME == 1.5, "game_config.gd INFANTRY_PEEK_ENGAGE_TIME == 1.5")
 	_assert(config.INFANTRY_ALERT_ENGAGE_TIME == 2.0, "game_config.gd INFANTRY_ALERT_ENGAGE_TIME == 2.0")
-	# 2026-10-21 机主裁决：12→8（孢子射程 10m，逼近到射程内才出手）
-	_assert(config.INFANTRY_ENGAGE_APPROACH_DIST == 8.0, "game_config.gd INFANTRY_ENGAGE_APPROACH_DIST == 8.0")
+	# 2026-10-22 机主裁决：交战逼近/孢子分界 8→10（10m 内优先近身攻击）
+	_assert(config.INFANTRY_ENGAGE_APPROACH_DIST == 10.0, "game_config.gd INFANTRY_ENGAGE_APPROACH_DIST == 10.0")
 	_assert(config.INFANTRY_ENGAGE_BACKOFF_DIST == 5.0, "game_config.gd INFANTRY_ENGAGE_BACKOFF_DIST == 5.0")
-	_assert(config.INFANTRY_BLIND_FIRE_DIST == 3.0, "game_config.gd INFANTRY_BLIND_FIRE_DIST == 3.0")
-	# 2026-10-21 机主裁决新增：寄生体孢子投掷命中上限 10m
-	_assert(config.INFANTRY_SPORE_RANGE == 10.0, "game_config.gd INFANTRY_SPORE_RANGE == 10.0")
+	# 2026-10-22 机主裁决：孢子射程 10→15，且必须已发现玩家（视线确认）才出手；盲射旁路退役（隔墙出声根因）
+	_assert(config.INFANTRY_SPORE_RANGE == 15.0, "game_config.gd INFANTRY_SPORE_RANGE == 15.0")
+	_assert(config.INFANTRY_MELEE_RANGE == 2.2, "game_config.gd INFANTRY_MELEE_RANGE == 2.2")
+	_assert(config.INFANTRY_MELEE_DAMAGE == 15.0, "game_config.gd INFANTRY_MELEE_DAMAGE == 15.0")
+	_assert(config.INFANTRY_MELEE_INTERVAL == 1.0, "game_config.gd INFANTRY_MELEE_INTERVAL == 1.0")
 	_assert(config.INFANTRY_FALLBACK_COVER_DIST == 5.0, "game_config.gd INFANTRY_FALLBACK_COVER_DIST == 5.0")
 	_assert(config.INFANTRY_COMPANION_COVER_DIST == 5.0, "game_config.gd INFANTRY_COMPANION_COVER_DIST == 5.0")
 	_assert(config.INFANTRY_COMPANION_ENGAGE_TIME == 10.0, "game_config.gd INFANTRY_COMPANION_ENGAGE_TIME == 10.0")

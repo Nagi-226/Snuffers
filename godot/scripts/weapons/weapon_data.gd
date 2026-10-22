@@ -7,8 +7,7 @@
 ## - GameConfig 已有的字段，运行时由 sync_from_config() 逐项覆盖（以 GameConfig 为准）；
 ##   .tres 中的同名字段仅供编辑器查看与 L2 契约对照，填写时必须与 GameConfig 一致。
 ## - G2 契约冻结（2026-07-21）后，原「契约缺口」字段已全部补参接管；
-##   仅 RPG 的 recoil_view_offset / recoil_decay 契约无 RPG 专属项，沿用 .tres 值
-##   （与步枪同值 0.08 / 0.82；若后续需 RPG 独立值须先改契约）。
+##   2026-10-22 旧 RPG 退役，RPG_RECOIL_* 契约组随之移除，榴弹参数改由 GRENADE_* 组接管。
 class_name WeaponData
 extends Resource
 
@@ -37,34 +36,30 @@ enum Kind { HITSCAN, PROJECTILE } ## 0=即时命中（步枪），1=投射物（
 @export var spread_aim: float = 0.0005 ## 瞄准（GameConfig.RIFLE_SPREAD_AIM）
 
 # ===== 后坐 =====
-@export var recoil_pitch: float = 0.003 ## 每发相机上跳 rad（步枪=GameConfig.RIFLE_RECOIL_PITCH，
-## RPG=GameConfig.RPG_RECOIL_PITCH；G2 冻结采纳暂定值 0.01，
-## 修复网页版 RPG 后坐永不触发缺陷，index.html L2959）
-@export var recoil_view_offset: float = 0.08 ## 视图模型后坐量（步枪=GameConfig.RIFLE_RECOIL_VIEW_OFFSET；
-## RPG 契约无专属项，沿用 .tres 值）
-@export var recoil_decay: float = 0.82 ## 视图模型衰减/帧（步枪=GameConfig.RIFLE_RECOIL_DECAY；
-## RPG 契约无专属项，沿用 .tres 值）
+@export var recoil_pitch: float = 0.003 ## 每发相机上跳 rad（GameConfig.RIFLE_RECOIL_PITCH / PISTOL_RECOIL_PITCH）
+@export var recoil_view_offset: float = 0.08 ## 视图模型后坐量（GameConfig.RIFLE_RECOIL_VIEW_OFFSET / PISTOL_RECOIL_VIEW_OFFSET）
+@export var recoil_decay: float = 0.82 ## 视图模型衰减/帧（GameConfig.RIFLE_RECOIL_DECAY / PISTOL_RECOIL_DECAY）
 @export var recoil_recover_rate: float = 6.0 ## 相机上跳恢复速率 /s
-## （步枪=GameConfig.RIFLE_RECOIL_RECOVER_RATE，RPG=GameConfig.RPG_RECOIL_RECOVER_RATE；
+## （GameConfig.RIFLE_RECOIL_RECOVER_RATE / PISTOL_RECOIL_RECOVER_RATE；
 ## Godot 版有意改进：网页版 rotY 永久上跳不恢复，index.html L2959）
 @export var view_recoil_rot_factor: float = 2.25 ## 视图模型俯仰系数
-## （步枪=GameConfig.RIFLE_RECOIL_VIEW_ROT，RPG=GameConfig.RPG_RECOIL_VIEW_ROT；index.html L3205/L3189）
+## （GameConfig.RIFLE_RECOIL_VIEW_ROT / PISTOL_RECOIL_VIEW_ROT；index.html L3205/L3189）
 @export var view_recoil_y_factor: float = 0.025 ## 视图模型上移系数
-## （步枪=GameConfig.RIFLE_RECOIL_VIEW_Y_FACTOR，RPG=GameConfig.RPG_RECOIL_VIEW_Y_FACTOR；L3206/L3190）
+## （GameConfig.RIFLE_RECOIL_VIEW_Y_FACTOR / PISTOL_RECOIL_VIEW_Y_FACTOR；L3206/L3190）
 @export var view_recoil_z_factor: float = 0.05 ## 视图模型后缩系数
-## （步枪=GameConfig.RIFLE_RECOIL_VIEW_Z_FACTOR，RPG=GameConfig.RPG_RECOIL_VIEW_Z_FACTOR；L3207/L3191）
+## （GameConfig.RIFLE_RECOIL_VIEW_Z_FACTOR / PISTOL_RECOIL_VIEW_Z_FACTOR；L3207/L3191）
 
-# ===== 投射物（RPG）=====
+# ===== 投射物（EM-40G 榴弹 / 旧 RPG 共用 rpg_projectile.tscn）=====
 @export var projectile_scene: PackedScene ## 投射物场景（rpg_projectile.tscn）
-@export var projectile_speed: float = 120.0 ## 初速 u/s（GameConfig.RPG_PROJECTILE_SPEED）
-@export var projectile_gravity: float = 9.8 ## 弹道下坠（GameConfig.RPG_GRAVITY）
-@export var projectile_max_range: float = 300.0 ## 最大射程 u（GameConfig.RPG_MAX_RANGE）
-@export var projectile_explode_below_y: float = -10.0 ## 低于此高度自爆（GameConfig.RPG_EXPLODE_BELOW_Y，index.html L3172）
-@export var explode_radius: float = 10.0 ## 爆炸半径 u（GameConfig.RPG_EXPLODE_RADIUS）
-@export var explode_damage: float = 9999.0 ## 爆径内伤害（GameConfig.RPG_EXPLODE_DAMAGE；网页版爆径内即杀，不经 HP，L1556-1591）
-@export var bunker_radius_bonus: float = 5.0 ## 对碉堡判定半径加成（GameConfig.RPG_BUNKER_RADIUS_BONUS）
-@export var self_damage: bool = false ## 爆炸是否伤玩家（GameConfig.RPG_SELF_DAMAGE）
-@export var ammo_count: int = 5 ## 总弹数（GameConfig.RPG_AMMO）
+@export var projectile_speed: float = 90.0 ## 初速 u/s（GameConfig.GRENADE_PROJECTILE_SPEED）
+@export var projectile_gravity: float = 2.0 ## 弹道下坠（GameConfig.GRENADE_GRAVITY）
+@export var projectile_max_range: float = 200.0 ## 最大射程 u（GameConfig.GRENADE_MAX_RANGE）
+@export var projectile_explode_below_y: float = -10.0 ## 低于此高度自爆（GameConfig.GRENADE_EXPLODE_BELOW_Y）
+@export var explode_radius: float = 6.0 ## 爆炸半径 u（GameConfig.GRENADE_EXPLODE_RADIUS）
+@export var explode_damage: float = 9999.0 ## 爆径内伤害（GameConfig.GRENADE_EXPLODE_DAMAGE；爆径内即杀不经 HP）
+@export var bunker_radius_bonus: float = 5.0 ## 对碉堡判定半径加成（GameConfig.GRENADE_BUNKER_RADIUS_BONUS）
+@export var self_damage: bool = false ## 爆炸是否伤玩家（GameConfig.GRENADE_SELF_DAMAGE）
+@export var grenade_fire_interval: float = 0.8 ## 榴弹击发间隔 s（GameConfig.GRENADE_FIRE_INTERVAL，仅步枪榴档用）
 
 
 ## 以 GameConfig 为准覆盖运行时字段（武器脚本 _ready 时调用）。
@@ -92,6 +87,16 @@ func sync_from_config() -> void:
 			view_recoil_rot_factor = GameConfig.RIFLE_RECOIL_VIEW_ROT
 			view_recoil_y_factor = GameConfig.RIFLE_RECOIL_VIEW_Y_FACTOR
 			view_recoil_z_factor = GameConfig.RIFLE_RECOIL_VIEW_Z_FACTOR
+			# EM-40G「滚雷」榴档投射物参数（2026-10-22 机主裁决并入步枪第四档）
+			projectile_speed = GameConfig.GRENADE_PROJECTILE_SPEED
+			projectile_gravity = GameConfig.GRENADE_GRAVITY
+			projectile_max_range = GameConfig.GRENADE_MAX_RANGE
+			projectile_explode_below_y = GameConfig.GRENADE_EXPLODE_BELOW_Y
+			explode_radius = GameConfig.GRENADE_EXPLODE_RADIUS
+			explode_damage = GameConfig.GRENADE_EXPLODE_DAMAGE
+			bunker_radius_bonus = GameConfig.GRENADE_BUNKER_RADIUS_BONUS
+			self_damage = GameConfig.GRENADE_SELF_DAMAGE
+			grenade_fire_interval = GameConfig.GRENADE_FIRE_INTERVAL
 		&"pistol":
 			# EM-57P「掣」（2026-10-19 冻结新增；EDAA 雷械谱系，GameConfig.PISTOL_* 契约组）
 			damage_body = GameConfig.PISTOL_DMG_BODY
@@ -113,18 +118,4 @@ func sync_from_config() -> void:
 			view_recoil_rot_factor = GameConfig.PISTOL_RECOIL_VIEW_ROT
 			view_recoil_y_factor = GameConfig.PISTOL_RECOIL_VIEW_Y_FACTOR
 			view_recoil_z_factor = GameConfig.PISTOL_RECOIL_VIEW_Z_FACTOR
-		&"rpg":
-			projectile_speed = GameConfig.RPG_PROJECTILE_SPEED
-			projectile_gravity = GameConfig.RPG_GRAVITY
-			projectile_max_range = GameConfig.RPG_MAX_RANGE
-			projectile_explode_below_y = GameConfig.RPG_EXPLODE_BELOW_Y
-			explode_radius = GameConfig.RPG_EXPLODE_RADIUS
-			explode_damage = GameConfig.RPG_EXPLODE_DAMAGE
-			bunker_radius_bonus = GameConfig.RPG_BUNKER_RADIUS_BONUS
-			self_damage = GameConfig.RPG_SELF_DAMAGE
-			ammo_count = GameConfig.RPG_AMMO
-			recoil_pitch = GameConfig.RPG_RECOIL_PITCH
-			recoil_recover_rate = GameConfig.RPG_RECOIL_RECOVER_RATE
-			view_recoil_rot_factor = GameConfig.RPG_RECOIL_VIEW_ROT
-			view_recoil_y_factor = GameConfig.RPG_RECOIL_VIEW_Y_FACTOR
-			view_recoil_z_factor = GameConfig.RPG_RECOIL_VIEW_Z_FACTOR
+## （旧 &"rpg" 分支已于 2026-10-22 随 RPG 退役删除；榴弹参数并入 &"rifle" 分支）

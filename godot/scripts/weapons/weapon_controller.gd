@@ -1,7 +1,8 @@
 ## WeaponController — 武器基类（W2 火力蜂）
 ##
 ## 职责：输入门控（仅当前武器响应开火）、后坐状态机（相机 kick + 视图模型）、
-## 可见性跟随切枪。子类：rifle_controller.gd（hitscan 全自动）、rpg_controller.gd（投射物半自动）。
+## 可见性跟随切枪。子类：rifle_controller.gd（hitscan 多档 + EM-40G 榴档投射物分流）、pistol_controller.gd。
+## （旧 rpg_controller.gd 已随 RPG 于 2026-10-22 退役删除）
 ##
 ## 契约约束（AGENTS.md）：
 ## - 全部手感参数经 WeaponData（.tres）← GameConfig（sync_from_config），脚本零硬编码数值。
@@ -87,21 +88,22 @@ func _is_current_weapon() -> bool:
 	return weapon_data != null and GameState.current_weapon == weapon_data.weapon_id
 
 
-## 当前射击模式（GameState.fire_modes 契约字段；字典无记录时默认全自动——RPG 不入字典，
-## 但 RPG 整体由 kind 门控旁路本机制，默认值不会生效于其开火路径）。
+## 当前射击模式（GameState.fire_modes 契约字段；字典无记录时默认全自动——
+## 步枪四档闭环含 &"grenade" 榴档，榴档击发由 rifle_controller 分流投射物）。
 func _current_fire_mode() -> StringName:
 	if weapon_data == null:
 		return &"semi"
 	return GameState.fire_modes.get(weapon_data.weapon_id, &"auto") as StringName
 
 
-## 左键按下边沿：半自动击发一次；三发点射起 3 连发；全自动交由 tick 轮询。
-## 仅 hitscan 武器参与模式机制；投射物武器（RPG）由子类整体覆盖本钩子（不调 super）。
+## 左键按下边沿：半自动/榴档击发一次；三发点射起 3 连发；全自动交由 tick 轮询。
+## 榴档（&"grenade"，EM-40G 滚雷并入步枪第四档，2026-10-22）按半自动边沿语义击发——
+## 「闸不合，榴不发」：榴档下打不出实弹（rifle_controller._fire 分流投射物）。
 func _on_trigger_pressed() -> void:
 	if weapon_data != null and weapon_data.kind != WeaponData.Kind.HITSCAN:
 		return
 	match _current_fire_mode():
-		&"semi":
+		&"semi", &"grenade":
 			_try_fire()
 		&"burst":
 			_burst_left = 3
@@ -124,11 +126,17 @@ func _tick_weapon(delta: float) -> void:
 
 
 ## 击发一发并置冷却；返回是否真正击发（子类 _fire 口径）。
-## 冷却按模式分档（2026-10-19 机主口径：半自动维持原间隔，全自动/点射走提速档）。
+## 冷却按模式分档：半自动维持原间隔；榴档走合闸节奏（GRENADE_FIRE_INTERVAL）；
+## 全自动/点射走提速档（2026-10-19 机主口径）。
 func _try_fire() -> bool:
 	if _fire():
-		_fire_cooldown = weapon_data.semi_fire_interval \
-				if _current_fire_mode() == &"semi" else weapon_data.fire_interval
+		var mode := _current_fire_mode()
+		if mode == &"grenade":
+			_fire_cooldown = weapon_data.grenade_fire_interval
+		elif mode == &"semi":
+			_fire_cooldown = weapon_data.semi_fire_interval
+		else:
+			_fire_cooldown = weapon_data.fire_interval
 		return true
 	return false
 

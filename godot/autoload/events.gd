@@ -30,18 +30,18 @@ signal player_moving_changed(is_moving: bool)
 signal player_still_time_changed(seconds: float)
 
 # ===== 武器 =====
-## 开火。weapon_id: &"rifle" / &"pistol" / &"rpg"
+## 开火。weapon_id: &"rifle" / &"pistol" / &"grenade"（2026-10-22 EM-40G 榴档由步枪发出 &"grenade"）。
 signal weapon_fired(weapon_id: StringName)
-## 射击模式切换（2026-10-19 机主立项：X 键循环 全自动→三发点射→半自动；RPG 不参与）。
-## mode: &"semi" / &"burst" / &"auto"
+## 射击模式切换（2026-10-19 机主立项：X 键循环；2026-10-22 步枪追加 &"grenade" 榴档，闭环 全自动→半自动→三发点射→滚雷）。
+## mode: &"semi" / &"burst" / &"auto" / &"grenade"
 signal fire_mode_changed(weapon_id: StringName, mode: StringName)
 ## 切枪完成。
 signal weapon_switched(weapon_id: StringName)
-## 换弹开始（RPG 无此事件）。
+## 换弹开始（榴弹档无此事件，雷池由模块自持）。
 signal weapon_reload_started(weapon_id: StringName)
 ## 换弹完成。
 signal weapon_reloaded(weapon_id: StringName)
-## 弹药数变化。reserve 对 RPG 为 -1（无弹匣概念）。
+## 弹药数变化。reserve 对榴弹档为 -1（雷池独立于备弹）。
 signal ammo_changed(weapon_id: StringName, mag: int, reserve: int)
 ## 玩家枪口焰（2026-10-19 机主立项：微弱青蓝电磁焰）。position 为炮口世界坐标。
 signal player_muzzle_flash(weapon_id: StringName, position: Vector3)
@@ -49,13 +49,13 @@ signal player_muzzle_flash(weapon_id: StringName, position: Vector3)
 signal bullet_impacted(position: Vector3, normal: Vector3, metal: bool)
 ## 命中确认（准星放大 1.3× / 爆头 1.8× + hitmark 音效）。
 signal hit_confirmed(is_headshot: bool)
-## 步枪打碉堡跳弹（提示「需用火箭筒摧毁碉堡」）。
+## 步枪打碉堡跳弹（提示「需用滚雷榴弹摧毁碉堡」）。
 signal ricochet_on_bunker()
-## RPG 爆炸（爆炸音效/特效锚点，G2 冻结新增）。
+## 榴弹爆炸（爆炸音效/特效锚点，G2 冻结新增）。信号名保留护 G2 冻结面，现由 EM-40G 榴弹爆炸发射（2026-10-22 旧 RPG 已退役并入步枪榴档）。
 signal rpg_exploded(position: Vector3)
 ## 对敌人造成伤害（HUD 伤害飘字用，G2 冻结新增）。与 hit_confirmed 互补；伤害投递仍走 take_damage 鸭子接口。
 signal damage_dealt(amount: float, is_headshot: bool)
-## 碉堡被 RPG 摧毁（碉堡机枪停火 / HUD 提示 / 任务判定共用，G2 冻结新增）。碉堡全图唯一，无需参数。
+## 碉堡被榴弹摧毁（碉堡机枪停火 / HUD 提示 / 任务判定共用，G2 冻结新增）。碉堡全图唯一，无需参数。
 signal bunker_destroyed()
 
 # ===== 敌人 =====
