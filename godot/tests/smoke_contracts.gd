@@ -69,10 +69,18 @@ func _run() -> void:
 	_assert(config.GRENADE_PROJECTILE_SPEED == 90.0, "game_config.gd GRENADE_PROJECTILE_SPEED == 90.0")
 	_assert(config.GRENADE_LAUNCH_FORWARD == 0.7, "game_config.gd GRENADE_LAUNCH_FORWARD == 0.7")
 	_assert(config.GRENADE_LAUNCH_DROP == 0.15, "game_config.gd GRENADE_LAUNCH_DROP == 0.15")
-	_assert(config.GRENADE_EXPLODE_RADIUS == 6.0, "game_config.gd GRENADE_EXPLODE_RADIUS == 6.0")
+	_assert(config.GRENADE_EXPLODE_RADIUS == 10.0, "game_config.gd GRENADE_EXPLODE_RADIUS == 10.0 (10m 外无伤)")
+	_assert(config.GRENADE_EXPLODE_KILL_RADIUS == 5.0, "game_config.gd GRENADE_EXPLODE_KILL_RADIUS == 5.0 (5m 内必杀)")
+	_assert(config.GRENADE_EXPLODE_KILL_DAMAGE == 9999.0, "game_config.gd GRENADE_EXPLODE_KILL_DAMAGE == 9999.0")
+	_assert(config.GRENADE_EXPLODE_FALLOFF_FACTOR == 0.5, "game_config.gd GRENADE_EXPLODE_FALLOFF_FACTOR == 0.5 (5-10m 半伤 225)")
 	_assert(config.GRENADE_BUNKER_RADIUS_BONUS == 5.0, "game_config.gd GRENADE_BUNKER_RADIUS_BONUS == 5.0")
-	_assert(config.GRENADE_EXPLODE_DAMAGE == 9999.0, "game_config.gd GRENADE_EXPLODE_DAMAGE == 9999.0")
+	_assert(config.GRENADE_EXPLODE_DAMAGE == 450.0, "game_config.gd GRENADE_EXPLODE_DAMAGE == 450.0")
 	_assert(config.GRENADE_EXPLODE_BELOW_Y == -10.0, "game_config.gd GRENADE_EXPLODE_BELOW_Y == -10.0")
+	# 弹药口径伤害组（2026-10-22 机主裁决：伤害绑弹药不绑枪；EC-68=75 / EC-57=45）
+	_assert(config.AMMO_DMG_EC68 == 75.0, "game_config.gd AMMO_DMG_EC68 == 75.0")
+	_assert(config.AMMO_DMG_EC57 == 45.0, "game_config.gd AMMO_DMG_EC57 == 45.0")
+	# 寄生体宿主强化（2026-10-22 机主裁决 50→150）
+	_assert(config.INFANTRY_HP == 150.0, "game_config.gd INFANTRY_HP == 150.0")
 	# 步兵行为调参组（G2 冻结自 W3 脚本常量迁入）
 	_assert(config.INFANTRY_PATROL_RADIUS == 40.0, "game_config.gd INFANTRY_PATROL_RADIUS == 40.0")
 	_assert(config.INFANTRY_ALERT_DELAY == 1.0, "game_config.gd INFANTRY_ALERT_DELAY == 1.0")

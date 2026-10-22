@@ -18,7 +18,7 @@ enum Kind { HITSCAN, PROJECTILE } ## 0=即时命中（步枪），1=投射物（
 @export var kind: Kind = Kind.HITSCAN
 
 # ===== 伤害（hitscan）=====
-@export var damage_body: float = 25.0 ## 身体伤害（GameConfig.RIFLE_DMG_BODY）
+@export var damage_body: float = 25.0 ## 身体伤害（按弹药口径：GameConfig.AMMO_DMG_EC68 / AMMO_DMG_EC57）
 @export var headshot_factor: float = 2.0 ## 爆头倍率（GameConfig.RIFLE_DMG_HEAD_FACTOR）
 @export var dmg_vs_sniper: float = 999.0 ## 对狙击手固定伤害（GameConfig.RIFLE_DMG_VS_SNIPER）
 
@@ -55,8 +55,11 @@ enum Kind { HITSCAN, PROJECTILE } ## 0=即时命中（步枪），1=投射物（
 @export var projectile_gravity: float = 2.0 ## 弹道下坠（GameConfig.GRENADE_GRAVITY）
 @export var projectile_max_range: float = 200.0 ## 最大射程 u（GameConfig.GRENADE_MAX_RANGE）
 @export var projectile_explode_below_y: float = -10.0 ## 低于此高度自爆（GameConfig.GRENADE_EXPLODE_BELOW_Y）
-@export var explode_radius: float = 6.0 ## 爆炸半径 u（GameConfig.GRENADE_EXPLODE_RADIUS）
-@export var explode_damage: float = 9999.0 ## 爆径内伤害（GameConfig.GRENADE_EXPLODE_DAMAGE；爆径内即杀不经 HP）
+@export var explode_radius: float = 10.0 ## 伤害半径上限 u（GameConfig.GRENADE_EXPLODE_RADIUS，超出无伤）
+@export var explode_kill_radius: float = 5.0 ## 必杀半径 u（GameConfig.GRENADE_EXPLODE_KILL_RADIUS，圈内即杀）
+@export var explode_kill_damage: float = 9999.0 ## 必杀圈伤害（GameConfig.GRENADE_EXPLODE_KILL_DAMAGE）
+@export var explode_falloff_factor: float = 0.5 ## 过渡带伤害系数（GameConfig.GRENADE_EXPLODE_FALLOFF_FACTOR；kill_radius–explode_radius 半伤）
+@export var explode_damage: float = 450.0 ## 爆炸基准伤害（GameConfig.GRENADE_EXPLODE_DAMAGE）
 @export var bunker_radius_bonus: float = 5.0 ## 对碉堡判定半径加成（GameConfig.GRENADE_BUNKER_RADIUS_BONUS）
 @export var self_damage: bool = false ## 爆炸是否伤玩家（GameConfig.GRENADE_SELF_DAMAGE）
 @export var grenade_fire_interval: float = 0.8 ## 榴弹击发间隔 s（GameConfig.GRENADE_FIRE_INTERVAL，仅步枪榴档用）
@@ -68,7 +71,7 @@ enum Kind { HITSCAN, PROJECTILE } ## 0=即时命中（步枪），1=投射物（
 func sync_from_config() -> void:
 	match weapon_id:
 		&"rifle":
-			damage_body = GameConfig.RIFLE_DMG_BODY
+			damage_body = GameConfig.AMMO_DMG_EC68 ## EM-68A 用 EC-68 步枪弹（伤害绑口径不绑枪，2026-10-22 机主裁决）
 			headshot_factor = GameConfig.RIFLE_DMG_HEAD_FACTOR
 			dmg_vs_sniper = GameConfig.RIFLE_DMG_VS_SNIPER
 			fire_interval = GameConfig.RIFLE_FIRE_INTERVAL
@@ -93,13 +96,16 @@ func sync_from_config() -> void:
 			projectile_max_range = GameConfig.GRENADE_MAX_RANGE
 			projectile_explode_below_y = GameConfig.GRENADE_EXPLODE_BELOW_Y
 			explode_radius = GameConfig.GRENADE_EXPLODE_RADIUS
+			explode_kill_radius = GameConfig.GRENADE_EXPLODE_KILL_RADIUS
+			explode_kill_damage = GameConfig.GRENADE_EXPLODE_KILL_DAMAGE
+			explode_falloff_factor = GameConfig.GRENADE_EXPLODE_FALLOFF_FACTOR
 			explode_damage = GameConfig.GRENADE_EXPLODE_DAMAGE
 			bunker_radius_bonus = GameConfig.GRENADE_BUNKER_RADIUS_BONUS
 			self_damage = GameConfig.GRENADE_SELF_DAMAGE
 			grenade_fire_interval = GameConfig.GRENADE_FIRE_INTERVAL
 		&"pistol":
 			# EM-57P「掣」（2026-10-19 冻结新增；EDAA 雷械谱系，GameConfig.PISTOL_* 契约组）
-			damage_body = GameConfig.PISTOL_DMG_BODY
+			damage_body = GameConfig.AMMO_DMG_EC57 ## EM-57P 用 EC-57 手枪弹（伤害绑口径不绑枪，2026-10-22 机主裁决）
 			headshot_factor = GameConfig.PISTOL_DMG_HEAD_FACTOR
 			dmg_vs_sniper = GameConfig.PISTOL_DMG_VS_SNIPER
 			fire_interval = GameConfig.PISTOL_FIRE_INTERVAL

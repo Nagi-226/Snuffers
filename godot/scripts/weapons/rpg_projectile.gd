@@ -104,10 +104,15 @@ func _apply_area_damage(at: Vector3) -> void:
 		if target == null or damaged.has(target):
 			continue
 		damaged.append(target)
-		# 爆径内即杀（网页版不经 HP 直接移除，L1556-1591）；不分部位。
-		target.take_damage(_data.explode_damage, false)
+		# 两段伤害圈（2026-10-22 机主裁决）：爆心 KILL_RADIUS(5m) 内必杀；
+		# 必杀圈–EXPLODE_RADIUS(10m) 过渡带半伤（450×0.5=225）；10m 外球形查询本身不覆盖。
+		# 不分部位；玩家由发射方 RID 排除（SELF_DAMAGE=false 口径）。
+		var blast_dist: float = (target as Node3D).global_position.distance_to(at)
+		var dmg: float = _data.explode_kill_damage if blast_dist <= _data.explode_kill_radius \
+			else _data.explode_damage * _data.explode_falloff_factor
+		target.take_damage(dmg, false)
 		# G2 冻结契约：HUD 伤害飘字；take_damage 鸭子调用保留为投递机制。
-		Events.damage_dealt.emit(_data.explode_damage, false)
+		Events.damage_dealt.emit(dmg, false)
 
 
 ## 灰盒占位视觉：半透明火球 1.0s 放大淡出（正式爆炸特效属 W5 域，经 Events.rpg_exploded 接入）。

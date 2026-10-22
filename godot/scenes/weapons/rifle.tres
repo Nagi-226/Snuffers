@@ -12,7 +12,7 @@
 script = ExtResource("1_data")
 weapon_id = &"rifle"
 kind = 0
-damage_body = 25.0
+damage_body = 75.0
 headshot_factor = 2.0
 dmg_vs_sniper = 999.0
 fire_interval = 0.075

@@ -69,9 +69,14 @@ const PICKUP_BOB_AMP: float = 0.05 ## 浮动振幅 m
 const PICKUP_BOB_HZ: float = 1.2 ## 浮动频率 Hz
 const PICKUP_SPIN_DEG: float = 45.0 ## 自转角速度 度/s
 
+# ===== 弹药口径伤害（2026-10-22 机主裁决：单发伤害绑定弹药口径而非具体枪——
+#       凡用 EC-68 无壳步枪弹的武器一律 75，凡用 EC-57 无壳手枪弹的一律 45；
+#       新增武器按所用弹药取本组值，不再单独设枪伤）=====
+const AMMO_DMG_EC68: float = 75.0 ## EC-68 无壳步枪弹单发身体伤害
+const AMMO_DMG_EC57: float = 45.0 ## EC-57 无壳手枪弹单发身体伤害
+
 # ===== 步枪（G2 门禁基准）=====
-const RIFLE_DMG_BODY: float = 25.0 ## 身体伤害（L2985）
-const RIFLE_DMG_HEAD_FACTOR: float = 2.0 ## 爆头倍率 → 50（L2985）
+const RIFLE_DMG_HEAD_FACTOR: float = 2.0 ## 爆头倍率（L2985）
 const RIFLE_DMG_VS_SNIPER: float = 999.0 ## 对狙击手固定伤害（L3014）
 const RIFLE_FIRE_INTERVAL: float = 0.075 ## 全自动/三发点射射速 s/发 = 800 RPM（2026-10-19 机主裁决：原 600 RPM L2609 提速）
 const RIFLE_SEMI_FIRE_INTERVAL: float = 0.1 ## 半自动最小击发间隔 s（机主口径：半自动维持原 600 RPM 手感上限不变）
@@ -95,7 +100,6 @@ const SCOPE_BREATH_PIXELS: float = 1.5 ## 呼吸摆动 ±px（L3225）
 
 # ===== 手枪（EM-57P「掣」，2026-10-19 机主立项：EDAA 雷械设定落地，2 号键位；
 #       网页版无手枪，数值按设定文档+手感类比定标，G4 试玩复核）=====
-const PISTOL_DMG_BODY: float = 15.0 ## 身体伤害（冲锋枪与步枪之间取轻档）
 const PISTOL_DMG_HEAD_FACTOR: float = 2.0 ## 爆头倍率
 const PISTOL_DMG_VS_SNIPER: float = 999.0 ## 对狙击手固定伤害（沿用步枪语义）
 const PISTOL_FIRE_INTERVAL: float = 0.06 ## 全自动/三发点射射速 s/发 = 1000 RPM（2026-10-19 机主裁决）
@@ -125,17 +129,21 @@ const GRENADE_FIRE_INTERVAL: float = 0.8 ## 榴弹击发间隔 s（合闸-复位
 const GRENADE_PROJECTILE_SPEED: float = 90.0 ## 直射档初速 u/s（全功率平直弹道）
 const GRENADE_GRAVITY: float = 2.0 ## 直射档微下坠（远小于旧火箭 9.8，弹道平直）
 const GRENADE_MAX_RANGE: float = 200.0 ## 最大射程 u
-const GRENADE_EXPLODE_RADIUS: float = 6.0 ## 爆炸半径 u（破垒弹，小于旧火箭 10）
+const GRENADE_EXPLODE_RADIUS: float = 10.0 ## 伤害半径上限 m（2026-10-22 机主裁决：超出炸不到）
+const GRENADE_EXPLODE_KILL_RADIUS: float = 5.0 ## 必杀半径 m（爆心 5m 内即杀）
+const GRENADE_EXPLODE_KILL_DAMAGE: float = 9999.0 ## 必杀圈伤害（即杀口径，不经 HP 量级）
+const GRENADE_EXPLODE_FALLOFF_FACTOR: float = 0.5 ## 5–10m 过渡带伤害系数（450×0.5=225）
 const GRENADE_BUNKER_RADIUS_BONUS: float = 5.0 ## 对碉堡判定半径加成（破垒本职，沿用 L1593）
 const GRENADE_SELF_DAMAGE: bool = false ## 爆炸对玩家零伤害（沿用网页版口径 L1645-1657）
-const GRENADE_EXPLODE_DAMAGE: float = 9999.0 ## 爆径内即杀伤害（沿用旧火箭口径 L1556-1591）
+const GRENADE_EXPLODE_DAMAGE: float = 450.0 ## 爆炸基准伤害（2026-10-22 机主裁决 9999→450：
+## 5m 内用 KILL_DAMAGE 必杀，5–10m 半伤 225，10m 外无伤）
 const GRENADE_EXPLODE_BELOW_Y: float = -10.0 ## 坠地自爆高度（L3172）
 const GRENADE_LAUNCH_FORWARD: float = 0.7 ## 出膛点沿枪管前移量 m（下挂发射器位于护木前下方，
 ## 从武器原点直接出膛会显得"从手臂处发射"）
 const GRENADE_LAUNCH_DROP: float = 0.15 ## 出膛点下移量 m（发射管挂在枪管下方）
 
 # ===== 敌人（G2 门禁基准）=====
-const INFANTRY_HP: float = 50.0 ## 步兵血量（L1139）
+const INFANTRY_HP: float = 150.0 ## 步兵血量（2026-10-22 机主裁决 50→150：寄生体宿主强化，步枪 75 伤 2 发/手枪 45 伤 4 发击杀；原 50 为网页版 L1139 值）
 const INFANTRY_SPEED: float = 3.5 ## 步兵移动速度 u/s（L1140）
 const INFANTRY_COVER_SPEED_FACTOR: float = 1.2 ## 找掩体加速（L1140）
 const INFANTRY_PATROL_SPEED: float = 2.0 ## 巡逻速度 u/s（L1210）
