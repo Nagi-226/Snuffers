@@ -1,13 +1,12 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/weapons/rpg_projectile.gd" id="1_projectile"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/em40g_grenade.glb" id="2_grenade"]
 
-; 灰盒占位弹体（弹头朝 -Z，脚本按速度方向 look_at）
-[sub_resource type="BoxMesh" id="BoxMesh_body"]
-size = Vector3(0.14, 0.14, 0.8)
-
+; EM-40G「滚雷」榴弹真模（2026-10-22 机主裁决：AI 图生 GLB 替换灰色方柱占位）。
+; 模型已烘焙归一化：全长 0.20m（40mm 榴弹观感），弹头朝 -Z（脚本按速度方向 look_at）。
+; 节点名 Body 保留（smoke_scenes 断言项）。
 [node name="RPGProjectile" type="Node3D"]
 script = ExtResource("1_projectile")
 
-[node name="Body" type="MeshInstance3D" parent="."]
-mesh = SubResource("BoxMesh_body")
+[node name="Body" parent="." instance=ExtResource("2_grenade")]

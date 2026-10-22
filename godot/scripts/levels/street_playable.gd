@@ -63,6 +63,26 @@ func _vm_shot(args: PackedStringArray) -> void:
 			w.call("_fire")
 			for i in 2:
 				await get_tree().process_frame
+	if args.has("grenade"):
+		# 榴档取证（2026-10-22）：置步枪射击模式为 &"grenade" 后走真实 _fire 分流——
+		# 投射物 90m/s，抬枪口 0.25rad 让弹道留窗更久；逐帧打印投射物位置定位可见性。
+		GameState.fire_modes[&"rifle"] = &"grenade"
+		Events.fire_mode_changed.emit(&"rifle", &"grenade")
+		var camg := get_node_or_null("Player/Camera3D") as Camera3D
+		var playerg := get_node_or_null("Player")
+		if camg != null and playerg != null:
+			camg.rotation.x = 0.25
+			playerg.set("_pitch", 0.25)
+		for i in 5:
+			await get_tree().process_frame
+		var wg := get_node_or_null("Player/Camera3D/WeaponMount/Rifle")
+		if wg != null and wg.has_method("_fire"):
+			wg.call("_fire")
+			for i in 6:
+				await get_tree().process_frame
+				var proj := get_node_or_null("RPGProjectile")
+				if proj != null:
+					print("VM_SHOT grenade t+", i, " pos=", (proj as Node3D).global_position)
 	var img := get_viewport().get_texture().get_image()
 	img.save_png(out_path)
 	print("VM_SHOT saved=", out_path)

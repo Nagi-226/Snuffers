@@ -1,0 +1,5 @@
+upstream task_id: e8eeb882-85b2-41b9-90e8-1e530f665ef1
+Saved generated 3D model to: E:\Github Project\Nagi_Games\Snuffers\desktop-port\godot-spike\modeling\em-weapons\em40g_grenade.glb
+model mime_type: model/gltf-binary
+Saved rendered preview image to: E:\Github Project\Nagi_Games\Snuffers\desktop-port\godot-spike\modeling\em-weapons\em40g_grenade.preview.png
+Now display the preview image to the user by calling the readFile tool on that path. Reading the image to show it is the model's job, not this plugin's.

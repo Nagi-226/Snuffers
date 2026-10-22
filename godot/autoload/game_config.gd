@@ -120,7 +120,7 @@ const PISTOL_RECOIL_VIEW_Z_FACTOR: float = 0.04 ## 视图模型后坐位移系�
 # 设定出处（E系列电磁轻武器-概念图谱）：直射档=EC-40P「破垒」全功率平直弹道；
 # 模块自带 6 发弹匣即雷池（换匣即换电）；「闸不合，榴不发」=榴档与实弹击发互斥；
 # 投射物场景复用 rpg_projectile.tscn（抛物线/爆炸/碉堡结算链路原样接管）。
-const GRENADE_AMMO: int = 6 ## 榴弹总数（模块 6 发弹匣=雷池，无备弹/换弹概念）
+const GRENADE_AMMO: int = 30 ## 榴弹总数（2026-10-22 机主裁决 6→30：雷池总数制，无备弹/换弹概念）
 const GRENADE_FIRE_INTERVAL: float = 0.8 ## 榴弹击发间隔 s（合闸-复位节奏，半自动边沿触发）
 const GRENADE_PROJECTILE_SPEED: float = 90.0 ## 直射档初速 u/s（全功率平直弹道）
 const GRENADE_GRAVITY: float = 2.0 ## 直射档微下坠（远小于旧火箭 9.8，弹道平直）
@@ -130,6 +130,9 @@ const GRENADE_BUNKER_RADIUS_BONUS: float = 5.0 ## 对碉堡判定半径加成（
 const GRENADE_SELF_DAMAGE: bool = false ## 爆炸对玩家零伤害（沿用网页版口径 L1645-1657）
 const GRENADE_EXPLODE_DAMAGE: float = 9999.0 ## 爆径内即杀伤害（沿用旧火箭口径 L1556-1591）
 const GRENADE_EXPLODE_BELOW_Y: float = -10.0 ## 坠地自爆高度（L3172）
+const GRENADE_LAUNCH_FORWARD: float = 0.7 ## 出膛点沿枪管前移量 m（下挂发射器位于护木前下方，
+## 从武器原点直接出膛会显得"从手臂处发射"）
+const GRENADE_LAUNCH_DROP: float = 0.15 ## 出膛点下移量 m（发射管挂在枪管下方）
 
 # ===== 敌人（G2 门禁基准）=====
 const INFANTRY_HP: float = 50.0 ## 步兵血量（L1139）

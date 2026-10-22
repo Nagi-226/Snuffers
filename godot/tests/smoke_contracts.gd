@@ -64,9 +64,11 @@ func _run() -> void:
 	_assert(config.RIFLE_RECOIL_VIEW_Y_FACTOR == 0.025, "game_config.gd RIFLE_RECOIL_VIEW_Y_FACTOR == 0.025")
 	_assert(config.RIFLE_RECOIL_VIEW_Z_FACTOR == 0.05, "game_config.gd RIFLE_RECOIL_VIEW_Z_FACTOR == 0.05")
 	# EM-40G「滚雷」榴弹组（2026-10-22 机主立项并入步枪第四档；旧 RPG_RECOIL_* / RPG_EXPLODE_* 组随 RPG 退役移除）
-	_assert(config.GRENADE_AMMO == 6, "game_config.gd GRENADE_AMMO == 6")
+	_assert(config.GRENADE_AMMO == 30, "game_config.gd GRENADE_AMMO == 30 (2026-10-22 机主裁决 6→30)")
 	_assert(config.GRENADE_FIRE_INTERVAL == 0.8, "game_config.gd GRENADE_FIRE_INTERVAL == 0.8")
 	_assert(config.GRENADE_PROJECTILE_SPEED == 90.0, "game_config.gd GRENADE_PROJECTILE_SPEED == 90.0")
+	_assert(config.GRENADE_LAUNCH_FORWARD == 0.7, "game_config.gd GRENADE_LAUNCH_FORWARD == 0.7")
+	_assert(config.GRENADE_LAUNCH_DROP == 0.15, "game_config.gd GRENADE_LAUNCH_DROP == 0.15")
 	_assert(config.GRENADE_EXPLODE_RADIUS == 6.0, "game_config.gd GRENADE_EXPLODE_RADIUS == 6.0")
 	_assert(config.GRENADE_BUNKER_RADIUS_BONUS == 5.0, "game_config.gd GRENADE_BUNKER_RADIUS_BONUS == 5.0")
 	_assert(config.GRENADE_EXPLODE_DAMAGE == 9999.0, "game_config.gd GRENADE_EXPLODE_DAMAGE == 9999.0")

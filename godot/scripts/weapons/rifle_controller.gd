@@ -131,7 +131,12 @@ func _fire_grenade() -> bool:
 	if container == null:
 		container = get_tree().root
 	container.add_child(projectile)
-	projectile.global_transform = global_transform
+	# 出膛点 = 武器原点 前移 GRENADE_LAUNCH_FORWARD + 下移 GRENADE_LAUNCH_DROP
+	# （下挂发射管位于护木前下方；方向仍取相机 -Z 保证准星所指即弹道所向）。
+	var launch_xform := global_transform
+	launch_xform.origin += (-global_transform.basis.z) * GameConfig.GRENADE_LAUNCH_FORWARD \
+		+ Vector3.DOWN * GameConfig.GRENADE_LAUNCH_DROP
+	projectile.global_transform = launch_xform
 	projectile.setup(
 		-global_transform.basis.z,
 		HitSolver.collect_owner_rids(self),
