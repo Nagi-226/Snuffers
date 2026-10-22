@@ -169,13 +169,18 @@ func _build_spark_pool() -> void:
 		pm.gravity = Vector3(0.0, -12.0, 0.0)
 		pm.damping_min = 1.5
 		pm.damping_max = 3.0
-		pm.scale_min = GameConfig.BULLET_SPARK_SCALE_MIN
-		pm.scale_max = GameConfig.BULLET_SPARK_SCALE_MAX
 		p.process_material = pm
-		var quad := QuadMesh.new()
-		quad.size = Vector2(1.0, 1.0)  # 实际尺寸由 process_material scale 控制
-		quad.material = spark_mat
-		p.draw_pass_1 = quad
+		# 4.6.2 引擎坑（2026-10-22 探针实证）：BILLBOARD_PARTICLES 下
+		# process_material 的 scale_min/max 不生效，粒径须烘进 draw pass 网格。
+		# 双通道 = 契约下限/上限两档粒径均分（此前 scale 写法实际渲染 1m 方块）。
+		var quad_min := QuadMesh.new()
+		quad_min.size = Vector2(GameConfig.BULLET_SPARK_SCALE_MIN, GameConfig.BULLET_SPARK_SCALE_MIN)
+		quad_min.material = spark_mat
+		var quad_max := QuadMesh.new()
+		quad_max.size = Vector2(GameConfig.BULLET_SPARK_SCALE_MAX, GameConfig.BULLET_SPARK_SCALE_MAX)
+		quad_max.material = spark_mat
+		p.draw_pass_1 = quad_min
+		p.draw_pass_2 = quad_max
 		add_child(p)
 		_sparks.append(p)
 

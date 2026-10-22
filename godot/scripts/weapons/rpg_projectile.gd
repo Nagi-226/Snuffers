@@ -63,7 +63,8 @@ func _physics_process(delta: float) -> void:
 		_explode(global_position)
 
 
-## 爆炸：球形范围查询结算 + 灰盒占位视觉（火球放大淡出，对应网页版 animExplosion）。
+## 爆炸：球形范围查询结算 + Events.rpg_exploded 广播（视觉由 ExplosionFx 消费，
+## 2026-10-22 程序化多层爆炸特效替换灰盒占位橙球）。
 func _explode(at: Vector3) -> void:
 	if _exploded:
 		return
@@ -72,7 +73,6 @@ func _explode(at: Vector3) -> void:
 	# 爆炸锚点广播（G2 冻结契约）：音效/特效由消费方接入。
 	Events.rpg_exploded.emit(at)
 	_apply_area_damage(at)
-	_spawn_explosion_placeholder(at)
 	queue_free()
 
 
@@ -113,27 +113,3 @@ func _apply_area_damage(at: Vector3) -> void:
 		target.take_damage(dmg, false)
 		# G2 冻结契约：HUD 伤害飘字；take_damage 鸭子调用保留为投递机制。
 		Events.damage_dealt.emit(dmg, false)
-
-
-## 灰盒占位视觉：半透明火球 1.0s 放大淡出（正式爆炸特效属 W5 域，经 Events.rpg_exploded 接入）。
-func _spawn_explosion_placeholder(at: Vector3) -> void:
-	var ball := MeshInstance3D.new()
-	var sphere := SphereMesh.new()
-	sphere.radius = _data.explode_radius
-	sphere.height = _data.explode_radius * 2.0
-	ball.mesh = sphere
-	var material := StandardMaterial3D.new()
-	material.albedo_color = Color(1.0, 0.27, 0.0, 0.6)
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	ball.material_override = material
-	var container: Node = get_tree().current_scene
-	if container == null:
-		container = get_tree().root
-	container.add_child(ball)
-	ball.global_position = at
-	var tween := ball.create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(ball, "scale", Vector3.ONE * 1.5, 1.0)
-	tween.tween_property(material, "albedo_color:a", 0.0, 1.0)
-	tween.chain().tween_callback(ball.queue_free)

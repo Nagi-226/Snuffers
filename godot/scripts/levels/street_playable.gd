@@ -66,23 +66,42 @@ func _vm_shot(args: PackedStringArray) -> void:
 	if args.has("grenade"):
 		# 榴档取证（2026-10-22）：置步枪射击模式为 &"grenade" 后走真实 _fire 分流——
 		# 投射物 90m/s，抬枪口 0.25rad 让弹道留窗更久；逐帧打印投射物位置定位可见性。
+		# boom 子模式（爆炸特效取证）：枪口微压 -0.10rad 让榴弹约 14m 外落街爆炸（近距大画面），
+		# 等投射物消失（=已爆）后再过 N 帧（boom 后数字，默认 10）抓爆炸中段。
 		GameState.fire_modes[&"rifle"] = &"grenade"
 		Events.fire_mode_changed.emit(&"rifle", &"grenade")
+		var boom := args.has("boom")
+		var pitch: float = -0.10 if boom else 0.25
 		var camg := get_node_or_null("Player/Camera3D") as Camera3D
 		var playerg := get_node_or_null("Player")
 		if camg != null and playerg != null:
-			camg.rotation.x = 0.25
-			playerg.set("_pitch", 0.25)
+			camg.rotation.x = pitch
+			playerg.set("_pitch", pitch)
 		for i in 5:
 			await get_tree().process_frame
 		var wg := get_node_or_null("Player/Camera3D/WeaponMount/Rifle")
 		if wg != null and wg.has_method("_fire"):
 			wg.call("_fire")
-			for i in 6:
-				await get_tree().process_frame
-				var proj := get_node_or_null("RPGProjectile")
-				if proj != null:
-					print("VM_SHOT grenade t+", i, " pos=", (proj as Node3D).global_position)
+			if boom:
+				var delay := 10
+				var bidx := args.find("boom")
+				if bidx + 1 < args.size() and args[bidx + 1].is_valid_int():
+					delay = int(args[bidx + 1])
+				var proj_seen := false
+				for i in 180:
+					await get_tree().process_frame
+					if get_node_or_null("RPGProjectile") != null:
+						proj_seen = true
+					elif proj_seen:
+						break
+				for i in delay:
+					await get_tree().process_frame
+			else:
+				for i in 6:
+					await get_tree().process_frame
+					var proj := get_node_or_null("RPGProjectile")
+					if proj != null:
+						print("VM_SHOT grenade t+", i, " pos=", (proj as Node3D).global_position)
 	var img := get_viewport().get_texture().get_image()
 	img.save_png(out_path)
 	print("VM_SHOT saved=", out_path)

@@ -264,6 +264,31 @@ const BULLET_SPARK_SPREAD: float = 30.0 ## 火花喷射散布角 °
 ## 金属表面关键词（命中物祖先节点名含其一即溅火星；自行车/铁护栏/阳台栏杆/篮架等）
 const BULLET_METAL_KEYWORDS: PackedStringArray = ["bicycle", "fence", "railing", "balcony", "gate", "barrier", "hoop", "shutter"]
 
+# ===== 榴弹爆炸特效（2026-10-22 机主立项：替换灰盒占位橙球，程序化多层组合——
+#       爆闪/火球/烟/火花碎屑/冲击波环/地面焦痕；explosion_fx.gd 消费，零第三方资产）=====
+const EXPLOSION_FX_POOL: int = 3 ## 同屏爆炸特效实例池（连爆轮转复用）
+const EXPLOSION_FX_FLASH_ENERGY: float = 120.0 ## 爆闪 OmniLight 峰值能量（夜战照亮街面）
+const EXPLOSION_FX_FLASH_RANGE: float = 18.0 ## 爆闪光照半径 m
+const EXPLOSION_FX_FLASH_LIFETIME: float = 0.35 ## 爆闪衰减时长 s
+const EXPLOSION_FX_FIREBALL_SIZE: float = 7.0 ## 火球峰值直径 m
+const EXPLOSION_FX_FIREBALL_LIFETIME: float = 0.55 ## 火球驻留 s（白炽→橙→暗红褪色）
+const EXPLOSION_FX_FIREBALL_QUADS: int = 3 ## 火球错角叠加面片数（伪体积感）
+const EXPLOSION_FX_SMOKE_COUNT: int = 7 ## 烟团面片数
+const EXPLOSION_FX_SMOKE_SIZE: float = 5.0 ## 烟团峰值直径 m
+const EXPLOSION_FX_SMOKE_LIFETIME: float = 2.2 ## 烟团驻留 s（上升膨胀淡出）
+const EXPLOSION_FX_SMOKE_RISE: float = 2.5 ## 烟团上升速度 m/s
+const EXPLOSION_FX_SPARK_COUNT: int = 28 ## 爆炸火花/碎屑粒子数
+const EXPLOSION_FX_SPARK_LIFETIME: float = 0.8 ## 火花寿命 s
+const EXPLOSION_FX_SPARK_VELOCITY_MIN: float = 6.0 ## 火花初速下限 m/s
+const EXPLOSION_FX_SPARK_VELOCITY_MAX: float = 16.0 ## 火花初速上限 m/s
+const EXPLOSION_FX_SPARK_SCALE_MIN: float = 0.03 ## 火花粒径下限 m（爆炸级，大于子弹微火星）
+const EXPLOSION_FX_SPARK_SCALE_MAX: float = 0.09 ## 火花粒径上限 m
+const EXPLOSION_FX_RING_SIZE: float = 12.0 ## 地面冲击波环峰值直径 m
+const EXPLOSION_FX_RING_LIFETIME: float = 0.45 ## 冲击波环扩散时长 s
+const EXPLOSION_FX_SCORCH_SIZE: float = 6.0 ## 地面焦痕贴花直径 m
+const EXPLOSION_FX_SCORCH_POOL: int = 8 ## 焦痕池上限（FIFO 复用，同弹坑机制）
+const EXPLOSION_FX_SCORCH_MAX_HEIGHT: float = 2.5 ## 爆心低于此高度才留地面焦痕 m（空中/墙面爆炸不留）
+
 # ===== 氛围：浓雾能见度定标（P2，文档10 §1-P2 散射/消光分离思想）=====
 # 定标法：先定目标能见度，再反推消光系数，而非直接手调 density
 const FOG_VISIBILITY_TARGET_M: float = 30.0 ## 浓雾目标能见度 m（2% 对比度距离，浓雾部队氛围）
