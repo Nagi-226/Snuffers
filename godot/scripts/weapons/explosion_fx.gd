@@ -208,6 +208,8 @@ func _build_instance(idx: int) -> Dictionary:
 	# 4.6.2 引擎坑（2026-10-22 探针实证）：BILLBOARD_PARTICLES 材质下
 	# ParticleProcessMaterial.scale_min/max 不生效（粒子按网格原始尺寸渲染）。
 	# 故粒径直接烘进 draw pass 网格：双通道 = 下限/上限两档粒径均分。
+	# 注意：必须先声明 draw_passes=2 再挂第二通道，否则运行期报 p_pass 越界。
+	sparks.draw_passes = 2
 	var sq_min := QuadMesh.new()
 	sq_min.size = Vector2(GameConfig.EXPLOSION_FX_SPARK_SCALE_MIN, GameConfig.EXPLOSION_FX_SPARK_SCALE_MIN)
 	sq_min.material = spark_mat

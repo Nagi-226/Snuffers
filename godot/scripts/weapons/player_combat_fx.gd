@@ -173,6 +173,8 @@ func _build_spark_pool() -> void:
 		# 4.6.2 引擎坑（2026-10-22 探针实证）：BILLBOARD_PARTICLES 下
 		# process_material 的 scale_min/max 不生效，粒径须烘进 draw pass 网格。
 		# 双通道 = 契约下限/上限两档粒径均分（此前 scale 写法实际渲染 1m 方块）。
+		# 注意：必须先声明 draw_passes=2 再挂第二通道，否则运行期报 p_pass 越界。
+		p.draw_passes = 2
 		var quad_min := QuadMesh.new()
 		quad_min.size = Vector2(GameConfig.BULLET_SPARK_SCALE_MIN, GameConfig.BULLET_SPARK_SCALE_MIN)
 		quad_min.material = spark_mat
