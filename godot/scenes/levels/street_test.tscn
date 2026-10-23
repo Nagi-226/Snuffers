@@ -60,6 +60,8 @@ position = Vector3(12.5, 6.05, -1.5)
 ; 街头/巷弄游荡寄生体（2026-10-20 机主立项：街道巷子密度提升）
 ; 复用步兵状态机 PATROL（半径 40m 自然游荡全图，move_and_slide 撞墙滑行不会穿模）
 ; 主街三只（中段/北段/远北力场前），巷弄院落五只（WA 巷/EA 巷/小酒馆院/西院/横街东段）
+; 2026-10-23 机主报修：Host_COURT_W 原位 (-14, 17) 恰好卡在 W1/W2 接缝墙体内（探针实证
+; 双穿 Bldg_W1/Bldg_W2）→ 西移到院落开敞带（x -22..-16.5 无楼段）
 [node name="Host_ST1" parent="." instance=ExtResource("Scene_infantry")]
 position = Vector3(0.5, 0.3, -35.0)
 
@@ -79,7 +81,7 @@ position = Vector3(13.0, 0.3, -26.5)
 position = Vector3(22.5, 0.3, -30.0)
 
 [node name="Host_COURT_W" parent="." instance=ExtResource("Scene_infantry")]
-position = Vector3(-14.0, 0.3, 17.0)
+position = Vector3(-19.0, 0.3, 17.0)
 
 [node name="Host_CROSS" parent="." instance=ExtResource("Scene_infantry")]
 position = Vector3(22.0, 0.3, 33.0)
