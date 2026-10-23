@@ -84,10 +84,14 @@ func _run() -> void:
 			var verdict := "OK(幕墙)" if dist_to_field < 0.6 else "⚠ 空气墙? 距幕墙 %.2fm" % dist_to_field
 			print("  %s off=%+.2f: 首中 %s @ %.2f  %s" % [label, off, cname, hit_plane, verdict])
 	# ===== B2. 玩家胶囊扫掠（模拟行走，比射线更贴近真实体感）=====
+	# 2026-10-23 机主实拍报修：主街两处「没法继续往前走」→ 走廊拉长 + 车道加密全覆盖
 	print("== B2. 胶囊扫掠（半径 0.35 高 1.8，模拟玩家走向幕墙）==")
+	var ns_lanes: Array = []
+	for i in 9:
+		ns_lanes.append(-6.0 + float(i) * 1.5)
 	var sweeps: Array = [
-		["北场", Vector3(0, 0, -70), Vector3(0, 0, -30), -95.0, [-5.5, 0.0, 5.5]],
-		["南场", Vector3(0, 0, 45), Vector3(0, 0, 30), 68.0, [-5.5, 0.0, 5.5]],
+		["北场", Vector3(0, 0, -50), Vector3(0, 0, -50), -95.0, ns_lanes],
+		["南场", Vector3(0, 0, 40), Vector3(0, 0, 35), 68.0, ns_lanes],
 		["东场", Vector3(15, 0, 0), Vector3(30, 0, 0), 38.5, [31.0, 34.25, 37.5]],
 		["西场", Vector3(-15, 0, 0), Vector3(-30, 0, 0), -38.5, [31.0, 34.25, 37.5]],
 	]
@@ -113,8 +117,20 @@ func _run() -> void:
 			var frac: float = res[0]
 			var stop := o + motion * frac
 			var plane: float = stop.z if absf(motion.z) > 0.1 else stop.x
-			print("  %s off=%+.2f: 胶囊走到 %.2f（%s）" % [label, off, plane,
-				"幕墙面前" if absf(plane - s[3]) < 1.0 else "⚠ 提前被挡"])
+			# 提前被挡时找出凶手：在停点再做个小球相交查询报名字
+			var note := "幕墙面前"
+			if absf(plane - s[3]) >= 1.0:
+				var ball := SphereShape3D.new()
+				ball.radius = 0.6
+				var bq := PhysicsShapeQueryParameters3D.new()
+				bq.shape = ball
+				bq.transform = Transform3D(Basis.IDENTITY, stop + motion.normalized() * 0.5)
+				var hits := space.intersect_shape(bq, 4)
+				var names: Array[String] = []
+				for h: Dictionary in hits:
+					names.append(_cname(h["collider"]))
+				note = "⚠ 提前被挡 → " + ", ".join(names)
+			print("  %s off=%+.2f: 胶囊走到 %.2f（%s）" % [label, off, plane, note])
 	quit()
 
 

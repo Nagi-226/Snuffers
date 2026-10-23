@@ -37,7 +37,9 @@ const ADS_RIFLE_OPTIC_BORE_LOCAL := Vector3(0.00092, 0.18047, -0.0204) ## EM-68A
 const ADS_PISTOL_OPTIC_WINDOW_LIFT: float = 0.15 ## 手枪瞄窗自 AABB 中心上移比例（EM-57P 维持原标定）
 
 const WORLD_BOUND_X: float = 98.0 ## 活动范围 x（L3438）
-const WORLD_BOUND_Z: float = 58.0 ## 活动范围 z（L3439）
+const WORLD_BOUND_Z: float = 100.0 ## 活动范围 z（2026-10-23 机主裁决：58→100——58 是网页版灰盒残留钳制，
+## 在街景图形成力场幕墙前的「空气墙」（南场 z=68/北场 z=-95 永远无法走近）。放宽到幕墙之外，
+## 由幕墙实体碰撞做真实拦截；玩家/寄生体共用此钳制（player_controller/infantry 同口径）
 const PLAYER_RADIUS: float = 0.4 ## 碰撞半径（L3388）
 const PLAYER_HEIGHT_STAND: float = 1.8 ## 站立碰撞高（L3389）
 const PLAYER_HEIGHT_PRONE: float = 0.4 ## 趴下碰撞高（L3413）
