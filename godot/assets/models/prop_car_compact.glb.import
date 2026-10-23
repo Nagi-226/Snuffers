@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://ysfbao5iwu7f"
-path="res://.godot/imported/prop_car_taxi.glb-4c212d12f2b8c3c00e7c3aa20fff3852.scn"
+uid="uid://b65pr6j5egsxn"
+path="res://.godot/imported/prop_car_compact.glb-bee70caf9eebe088ee099c564646a802.scn"
 
 [deps]
 
-source_file="res://assets/models/prop_car_taxi.glb"
-dest_files=["res://.godot/imported/prop_car_taxi.glb-4c212d12f2b8c3c00e7c3aa20fff3852.scn"]
+source_file="res://assets/models/prop_car_compact.glb"
+dest_files=["res://.godot/imported/prop_car_compact.glb-bee70caf9eebe088ee099c564646a802.scn"]
 
 [params]
 

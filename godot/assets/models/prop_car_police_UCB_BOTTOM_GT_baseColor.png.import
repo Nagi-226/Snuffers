@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bbqqegulmwm50"
-path="res://.godot/imported/prop_car_taxi_citybits_texture.png-a367308b12041010a445cceb9210a8e8.ctex"
+uid="uid://b6ig20uqvba5w"
+path="res://.godot/imported/prop_car_police_UCB_BOTTOM_GT_baseColor.png-78572f8f846e82f74ce9c590edb76380.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "9738ca79d31e4c72699c55c62ca86c6f"
+"md5": "f57cf4a2c0b5a3675f67ec69b7852a36"
 }
 
 [deps]
 
-source_file="res://assets/models/prop_car_taxi_citybits_texture.png"
-dest_files=["res://.godot/imported/prop_car_taxi_citybits_texture.png-a367308b12041010a445cceb9210a8e8.ctex"]
+source_file="res://assets/models/prop_car_police_UCB_BOTTOM_GT_baseColor.png"
+dest_files=["res://.godot/imported/prop_car_police_UCB_BOTTOM_GT_baseColor.png-78572f8f846e82f74ce9c590edb76380.ctex"]
 
 [params]
 

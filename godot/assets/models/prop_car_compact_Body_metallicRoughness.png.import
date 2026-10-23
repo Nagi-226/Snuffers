@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://btcw5rahndfbv"
-path="res://.godot/imported/prop_car_stationwagon_citybits_texture.png-6ebb55239bcef4c2d232b786885b7c81.ctex"
+uid="uid://bvbsg1a2cgr32"
+path="res://.godot/imported/prop_car_compact_Body_metallicRoughness.png-bfae8128d4050744df23b996919b8673.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "9738ca79d31e4c72699c55c62ca86c6f"
+"md5": "5cbbe862e536dd2e3d4cb218cb34e395"
 }
 
 [deps]
 
-source_file="res://assets/models/prop_car_stationwagon_citybits_texture.png"
-dest_files=["res://.godot/imported/prop_car_stationwagon_citybits_texture.png-6ebb55239bcef4c2d232b786885b7c81.ctex"]
+source_file="res://assets/models/prop_car_compact_Body_metallicRoughness.png"
+dest_files=["res://.godot/imported/prop_car_compact_Body_metallicRoughness.png-bfae8128d4050744df23b996919b8673.ctex"]
 
 [params]
 

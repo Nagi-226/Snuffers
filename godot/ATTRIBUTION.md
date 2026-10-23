@@ -91,7 +91,8 @@
 |------|------|-----|--------|------|
 | prop_basketball_hoop.glb（「Basket ball and hoop」，巷弄篮球场道具） | Armory_3D（Poly Pizza 分发） | https://poly.pizza/m/i3LLacyQP4 | CC0 | 2026-09-27 |
 | prop_bicycle.glb（「Bicycle」，巷弄靠墙自行车道具） | Poly by Google（Poly Pizza 分发） | https://poly.pizza/m/0Lk0xuhWE3b | CC-BY（**需游戏内署名**） | 2026-09-27 |
-| prop_car_sedan.glb / prop_car_hatchback.glb / prop_car_stationwagon.glb / prop_car_taxi.glb / prop_car_police.glb（街道停放汽车五款，源自 KayKit City Builder Bits 1.0 的 car_*.gltf，经 `desktop-port/godot-spike/modeling/car-candidates/convert_cars.py` 烘焙为 GLB 单文件） | Kay Lousberg（KayKit） | https://github.com/KayKit-Game-Assets/KayKit-City-Builder-Bits-1.0 | CC0（包内 LICENSE.txt 明示，无署名义务） | 2026-10-23 |
+| prop_car_sedan.glb / prop_car_hatchback.glb / prop_car_stationwagon.glb / prop_car_compact.glb（街道停放民用汽车四款，源自「Generic passenger car pack」的 Sedan/Hatchback/Wagon/Compact 四车身+轮组拆件，经 `desktop-port/godot-spike/modeling/car-candidates/split_cars.py` 烘焙 GLB；KayKit 卡通版已于 2026-10-23 写实化换代退役） | Comrade1280（Sketchfab 分发） | https://sketchfab.com/3d-models/generic-passenger-car-pack-20f9af9b8a404d5cb022ac6fe87f21f5 | CC-BY 4.0（**需游戏内署名**："This work is based on \"Generic passenger car pack\" by Comrade1280, licensed under CC-BY-4.0"） | 2026-10-23 |
+| prop_car_police.glb（北力场前废弃警车哨卡，「Fairheaven LT '80 Cop Cruiser」整车烘焙，管线 `convert_cruiser.py`） | Daniel Zhabotinsky（Sketchfab 分发） | https://sketchfab.com/3d-models/fairheaven-lt-80-cop-cruiser-low-poly-model-61766c1e6e1e4b2b803c174f33433a74 | CC-BY 4.0（**需游戏内署名**："Fairheaven LT '80 Cop Cruiser by Daniel Zhabotinsky, licensed under CC-BY-4.0"） | 2026-10-23 |
 
 ---
 

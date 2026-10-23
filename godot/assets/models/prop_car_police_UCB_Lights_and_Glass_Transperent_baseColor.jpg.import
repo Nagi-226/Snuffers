@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://qnwh472ni1if"
-path="res://.godot/imported/prop_car_police_citybits_texture.png-c920f0fe56932446f5f75d83f9016348.ctex"
+uid="uid://d1yhh1ucyb4c"
+path="res://.godot/imported/prop_car_police_UCB_Lights_and_Glass_Transperent_baseColor.jpg-c20e07e70410cc4a1c48070d22afaa5b.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "9738ca79d31e4c72699c55c62ca86c6f"
+"md5": "d2a997f5d4ea053aaef3278a7d54348a"
 }
 
 [deps]
 
-source_file="res://assets/models/prop_car_police_citybits_texture.png"
-dest_files=["res://.godot/imported/prop_car_police_citybits_texture.png-c920f0fe56932446f5f75d83f9016348.ctex"]
+source_file="res://assets/models/prop_car_police_UCB_Lights_and_Glass_Transperent_baseColor.jpg"
+dest_files=["res://.godot/imported/prop_car_police_UCB_Lights_and_Glass_Transperent_baseColor.jpg-c20e07e70410cc4a1c48070d22afaa5b.ctex"]
 
 [params]
 

@@ -204,12 +204,12 @@ const PROPS := [
 	{"type": "trash_bin", "x": 6.2, "z": -55.5, "y": 0.145, "rot_y": -20.0},
 	{"type": "trash_bin", "x": -18.5, "z": -30.5, "y": 0.07, "rot_y": 0.0},
 	{"type": "trash_bin", "x": 20.0, "z": -35.5, "y": 0.07, "rot_y": 55.0},
-	# —— 路边停放汽车（2026-10-23 机主立项；KayKit City Builder Bits CC0）——
+	# —— 路边停放汽车（2026-10-23 机主立项；写实化换代：Sketchfab CC-BY，ATTRIBUTION 五）——
 	# 落位纪律：贴沥青边 x=±3.6（路面半宽 4.5 内、不碰人行道道具带 ±6.15）；
 	# 让开巷口/院落开口与寄生体巡逻密集点；rot_y 使车长顺街向（主街 0/180，横街 ±90）
 	{"type": "car_sedan", "x": 3.6, "z": -12.0, "y": 0.0, "rot_y": 0.0},
 	{"type": "car_hatchback", "x": -3.6, "z": -22.0, "y": 0.0, "rot_y": 180.0},
-	{"type": "car_taxi", "x": 3.6, "z": -48.0, "y": 0.0, "rot_y": 0.0},
+	{"type": "car_compact", "x": 3.6, "z": -48.0, "y": 0.0, "rot_y": 0.0},
 	{"type": "car_stationwagon", "x": -3.6, "z": -60.0, "y": 0.0, "rot_y": 180.0},
 	{"type": "car_sedan", "x": 3.6, "z": -74.0, "y": 0.0, "rot_y": 0.0},
 	# 废弃警车位：北端力场前哨卡意象（EDAA 封锁叙事）

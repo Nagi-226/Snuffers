@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b1q1bs4miec6u"
-path="res://.godot/imported/prop_car_hatchback_citybits_texture.png-4d7cc1236aeedbd87ac1b33520ee4159.ctex"
+uid="uid://bx8w5phiya6ha"
+path="res://.godot/imported/prop_car_compact_Optics_baseColor.jpg-8e2306562f9be5461ba3d4c0da5a3bf6.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "9738ca79d31e4c72699c55c62ca86c6f"
+"md5": "ad4096d54d7fd9c4312e0ae1215416fd"
 }
 
 [deps]
 
-source_file="res://assets/models/prop_car_hatchback_citybits_texture.png"
-dest_files=["res://.godot/imported/prop_car_hatchback_citybits_texture.png-4d7cc1236aeedbd87ac1b33520ee4159.ctex"]
+source_file="res://assets/models/prop_car_compact_Optics_baseColor.jpg"
+dest_files=["res://.godot/imported/prop_car_compact_Optics_baseColor.jpg-8e2306562f9be5461ba3d4c0da5a3bf6.ctex"]
 
 [params]
 
