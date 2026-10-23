@@ -28,6 +28,7 @@ var _patrol_time: float = 0.0
 var _patrol_center: Vector3 = Vector3.ZERO
 var _attack_cooldown: float = 0.0
 var _lose_sight_timer: float = 0.0 ## 持续丢视线时长（脱战用）
+var _animation_player: AnimationPlayer = null
 
 @onready var _muzzle: Marker3D = $Muzzle
 
@@ -39,6 +40,55 @@ func _ready() -> void:
 	_patrol_center = global_position
 	_patrol_time = randf() * 100.0
 	_max_burst = randi_range(GameConfig.INFANTRY_BURST_MIN, GameConfig.INFANTRY_BURST_MAX)
+	var players := $BodyMesh.find_children("*", "AnimationPlayer", true, false)
+	if not players.is_empty():
+		_animation_player = players[0] as AnimationPlayer
+		_animation_player.animation_finished.connect(_on_animation_finished)
+		for clip_name in [&"idle", &"walk", &"run", &"attack", &"death"]:
+			var clip := _animation_player.get_animation(clip_name)
+			if clip != null:
+				clip.loop_mode = Animation.LOOP_LINEAR if clip_name in [&"idle", &"walk", &"run"] else Animation.LOOP_NONE
+		_play_animation(&"walk")
+
+
+func _play_animation(clip_name: StringName, restart: bool = false) -> void:
+	if _animation_player == null or not _animation_player.has_animation(clip_name):
+		return
+	if not restart and _animation_player.current_animation == clip_name:
+		return
+	_animation_player.play(clip_name, 0.15)
+
+
+func _sync_state_animation() -> void:
+	match current_state:
+		State.PATROL:
+			_play_animation(&"walk")
+		State.TAKE_COVER, State.ENGAGE:
+			_play_animation(&"run")
+		_:
+			_play_animation(&"idle")
+
+
+func _on_animation_finished(clip_name: StringName) -> void:
+	if clip_name == &"death" and _dead:
+		queue_free()
+	elif clip_name == &"attack" and not _dead:
+		_sync_state_animation()
+
+
+func _die() -> void:
+	if _dead:
+		return
+	_dead = true
+	remove_from_group(&"enemy")
+	collision_layer = 0
+	collision_mask = 0
+	$HeadHitbox.collision_layer = 0
+	$HeadHitbox.collision_mask = 0
+	Events.enemy_died.emit(self)
+	_play_animation(&"death")
+	if _animation_player == null or _animation_player.current_animation != &"death":
+		queue_free()
 
 
 ## 状态名（headless 冒烟断言用）。
@@ -217,6 +267,7 @@ func _update_engage(player_pos: Vector3, dist: float, can_see: bool) -> void:
 func _attack(interval: float) -> void:
 	_attack_cooldown = interval
 	_shots_in_burst += 1
+	_play_animation(&"attack", true)
 	var muzzle_pos := _muzzle.global_position if _muzzle != null else global_position
 	Events.enemy_fired.emit(&"spore", muzzle_pos)
 	var dist := global_position.distance_to(_get_player_position())
@@ -231,6 +282,7 @@ func _attack(interval: float) -> void:
 ## 命中同样过 _fire_ray_clear() 实时射线复核，防隔薄墙抓伤。
 func _melee() -> void:
 	_attack_cooldown = GameConfig.INFANTRY_MELEE_INTERVAL
+	_play_animation(&"attack", true)
 	if _fire_ray_clear():
 		_damage_player(GameConfig.INFANTRY_MELEE_DAMAGE)
 
@@ -326,3 +378,4 @@ func _on_enemies_alerted(origin: Vector3, radius: float) -> void:
 func _set_state(new_state: int, timer: float = 0.0) -> void:
 	current_state = new_state
 	_state_timer = timer
+	_sync_state_animation()
