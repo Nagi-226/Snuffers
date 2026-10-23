@@ -910,7 +910,15 @@ func _build_props() -> void:
 			"trash_bin":
 				_prop_trash_bin(prop)
 			_:
-				push_warning("street_builder: unknown prop type %s" % p["type"])
+				# KayKit City Builder Bits 汽车系（CC0，ATTRIBUTION 五）：目标高 1.45m，
+				# 碰撞盒按轿车实尺 1.85×1.5×4.7（停放道具，不堵巡逻动线的落位纪律见 PROPS 表）
+				var t := String(p["type"])
+				if t.begins_with("car_"):
+					if not _prop_model(prop, "res://assets/models/prop_%s.glb" % t,
+							1.45, Vector3(1.85, 1.5, 4.7), Vector3(0, 0.75, 0)):
+						push_warning("street_builder: missing car model prop_%s.glb" % t)
+				else:
+					push_warning("street_builder: unknown prop type %s" % p["type"])
 
 
 ## 室内拾取物场景（Layout.PICKUPS 的实例模板；视觉件由 pickup.gd 按 kind 装载 pickup_<kind>.glb）

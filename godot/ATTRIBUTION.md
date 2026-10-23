@@ -91,6 +91,7 @@
 |------|------|-----|--------|------|
 | prop_basketball_hoop.glb（「Basket ball and hoop」，巷弄篮球场道具） | Armory_3D（Poly Pizza 分发） | https://poly.pizza/m/i3LLacyQP4 | CC0 | 2026-09-27 |
 | prop_bicycle.glb（「Bicycle」，巷弄靠墙自行车道具） | Poly by Google（Poly Pizza 分发） | https://poly.pizza/m/0Lk0xuhWE3b | CC-BY（**需游戏内署名**） | 2026-09-27 |
+| prop_car_sedan.glb / prop_car_hatchback.glb / prop_car_stationwagon.glb / prop_car_taxi.glb / prop_car_police.glb（街道停放汽车五款，源自 KayKit City Builder Bits 1.0 的 car_*.gltf，经 `desktop-port/godot-spike/modeling/car-candidates/convert_cars.py` 烘焙为 GLB 单文件） | Kay Lousberg（KayKit） | https://github.com/KayKit-Game-Assets/KayKit-City-Builder-Bits-1.0 | CC0（包内 LICENSE.txt 明示，无署名义务） | 2026-10-23 |
 
 ---
 
