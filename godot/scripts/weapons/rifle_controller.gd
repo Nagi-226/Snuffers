@@ -44,7 +44,7 @@ func _ready() -> void:
 	if not players.is_empty():
 		_arms_animation = players[0] as AnimationPlayer
 		_prepare_native_reload("Armature|Arms_FPS_Anim_Reload_Fast")
-		_prepare_native_idle("Armature|Arms_FPS_Anim_Idle")
+		_prepare_native_hold("Armature|Arms_FPS_Anim_Run")
 	var skeletons := $ViewModel/ArmsEM68A.find_children("*", "Skeleton3D", true, false)
 	if not skeletons.is_empty():
 		_arms_skeleton = skeletons[0] as Skeleton3D
@@ -73,14 +73,16 @@ func _prepare_native_reload(clip: StringName) -> void:
 	_arms_animation.stop()
 
 
-## 待机剪辑：骨架常态停在握持位。换弹剪辑 stop 后骨架回落绑定姿势，
-## 手臂整体跌出第一人称视野（2026-10-24 机主实机反馈常态隐形的根因）。
-func _prepare_native_idle(clip: StringName) -> void:
+## 常态保持姿势：Run 剪辑第 0 帧定格。作者的全部持枪族姿势（Idle/Shoot/Walk/
+## Draw 末帧/Reload 首帧）左手都架在机匣上方 +0.15m（风格化高位托枪），遮挡
+## EM-68A 瞄具视线（2026-10-24 机主实机反馈）；Run 第 0 帧是唯一左手低位
+## （y≈+0.04，护木下方）的姿势，定格作持枪位。
+func _prepare_native_hold(clip: StringName) -> void:
 	var animation := _arms_animation.get_animation(clip).duplicate() as Animation
-	animation.loop_mode = Animation.LOOP_LINEAR
-	_arms_animation.get_animation_library("").add_animation(&"idle", animation)
-	_arms_animation.play(&"idle")
-	_arms_animation.advance(0.0)
+	_arms_animation.get_animation_library("").add_animation(&"hold", animation)
+	_arms_animation.play(&"hold")
+	_arms_animation.seek(0.0, true)
+	_arms_animation.pause()
 
 
 func _align_native_arms() -> void:
@@ -96,7 +98,12 @@ func _align_native_arms() -> void:
 	var basis := _weapon_node.global_basis.orthonormalized() * Basis(Vector3(-1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, -1)) * weapon_bone_local.basis.orthonormalized().inverse()
 	var origin := _magazine.global_position - basis * mag_bone_local.origin
 	print("NATIVE_ALIGN2 rifle basis=", basis, " origin=", origin)
-	$ViewModel/ArmsEM68A.global_transform = Transform3D(basis, origin) * chain.affine_inverse()
+	# 握持微调（2026-10-24 机主手感迭代）：Run 持枪姿势左手横伸，前臂斜穿画面
+	# 中部（机主反馈「高、过于靠前」）——整套臂组装沿武器局部系下沉+后移收回右下角。
+	var placed: Transform3D = Transform3D(basis, origin) * chain.affine_inverse()
+	var weapon_basis := _weapon_node.global_basis
+	placed.origin += weapon_basis * Vector3(0, -0.045, 0.055)
+	$ViewModel/ArmsEM68A.global_transform = placed
 	# 手臂蒙皮网格按 mesh 资源名保留（两枪均为 arms_arms_0）；节点名不可靠——
 	# 步枪手臂网格是 Object_10、手枪是 Object_9，两次导出的 Object_N 编号漂移过。
 	# 隐藏对象是 Cransh 自带的枪械渲染件（枪身/消音/镜/弹匣），实机用 EM68A 真模。
@@ -287,7 +294,7 @@ func _play_reload_anim() -> void:
 	if _magazine != null:
 		_magazine.transform = _mag_home_transform
 	if _arms_animation != null and _arms_animation.has_animation(&"reload"):
-		_arms_animation.play(&"reload")
+		_arms_animation.play(&"reload", 0.15)
 		_arms_animation.advance(0.0)
 	if _arms_skeleton != null and _mag_bone >= 0:
 		_mag_motion_start = _magazine_motion()
@@ -308,9 +315,9 @@ func _reset_reload_visuals() -> void:
 	if _magazine != null:
 		_magazine.transform = _mag_home_transform
 		_magazine.visible = true
-	if _arms_animation != null and _arms_animation.has_animation(&"idle"):
-		_arms_animation.play(&"idle")
-		_arms_animation.advance(0.0)
+	if _arms_animation != null and _arms_animation.has_animation(&"hold"):
+		_arms_animation.play(&"hold", 0.15)
+		_arms_animation.pause()
 	if _arms_skeleton != null and _weapon_bone >= 0:
 		_weapon_motion_start = _weapon_motion()
 	if _magazine != null and _mag_bone >= 0:

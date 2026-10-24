@@ -60,7 +60,7 @@ func _prepare_native_reload(clip: StringName) -> void:
 				animation.track_get_key_time(track, key) * weapon_data.reload_time / source_length)
 	animation.length = weapon_data.reload_time
 	_arms_animation.get_animation_library("").add_animation(&"reload", animation)
-	_arms_animation.play(&"reload")
+	_arms_animation.play(&"reload", 0.15)
 	_arms_animation.advance(0.0)
 	_arms_animation.stop()
 
@@ -88,7 +88,11 @@ func _align_native_arms() -> void:
 	var basis := _weapon_node.global_basis.orthonormalized() * Basis(Vector3(-1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, -1)) * weapon_bone_local.basis.orthonormalized().inverse()
 	var origin := _magazine.global_position - basis * mag_bone_local.origin
 	print("NATIVE_ALIGN2 pistol basis=", basis, " origin=", origin)
-	$ViewModel/ArmsEM57P.global_transform = Transform3D(basis, origin) * chain.affine_inverse()
+	# 握持微调（2026-10-24 机主手感迭代「手部位置往下一点」）：臂组装沿武器局部系轻下沉。
+	var placed: Transform3D = Transform3D(basis, origin) * chain.affine_inverse()
+	var weapon_basis := _weapon_node.global_basis
+	placed.origin += weapon_basis * Vector3(0, -0.025, 0.02)
+	$ViewModel/ArmsEM57P.global_transform = placed
 	# 手臂蒙皮网格按 mesh 资源名保留（两枪均为 arms_arms_0）；节点名不可靠——
 	# 步枪手臂网格是 Object_10、手枪是 Object_9，两次导出的 Object_N 编号漂移过。
 	# 隐藏对象是 Cransh 自带的枪械渲染件（xd_frame 系），实机用 EM57P 真模。
@@ -234,7 +238,7 @@ func _play_reload_anim() -> void:
 	if _magazine != null:
 		_magazine.transform = _mag_home_transform
 	if _arms_animation != null and _arms_animation.has_animation(&"reload"):
-		_arms_animation.play(&"reload")
+		_arms_animation.play(&"reload", 0.15)
 		_arms_animation.advance(0.0)
 	if _arms_skeleton != null and _mag_bone >= 0:
 		_mag_motion_start = _magazine_motion()
@@ -256,7 +260,7 @@ func _reset_reload_visuals() -> void:
 		_magazine.transform = _mag_home_transform
 		_magazine.visible = true
 	if _arms_animation != null and _arms_animation.has_animation(&"idle"):
-		_arms_animation.play(&"idle")
+		_arms_animation.play(&"idle", 0.15)
 		_arms_animation.advance(0.0)
 	if _arms_skeleton != null and _weapon_bone >= 0:
 		_weapon_motion_start = _weapon_motion()
