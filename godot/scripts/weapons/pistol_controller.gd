@@ -78,12 +78,14 @@ func _prepare_native_idle(clip: StringName) -> void:
 func _align_native_arms() -> void:
 	# 位置无关解算：S_new × 弹匣骨局部位 = 弹匣世界位（旋转按武器骨、平移按弹匣骨），
 	# 骨位取骨架局部 get_bone_global_pose（与 Armature 摆在世界何处无关）。
-	# 旧实现把世界坐标骨位混入旋转乘法，仅在武器接近世界原点时碰巧正确——真机
+	# 装备组武器骨系与 EM 约定差 Y 轴 180°（枪尾/枪口与左右互反，2026-10-24 机主实机
+	# 目验「持枪手臂前后搞反」；24 候选旋转暴力验证唯一几何合理解），R 矩阵插在武器
+	# 旋转与骨位逆之间。旧实现把世界坐标骨位混入旋转乘法，仅在武器接近世界原点时碰巧正确——真机
 	# 出生点 z≈29.6，z 经置换基泄漏进 y，臂组装被摔进地下 14m（常态隐形根因）。
 	var chain: Transform3D = $ViewModel/ArmsEM57P.global_transform.affine_inverse() * _arms_skeleton.global_transform
 	var weapon_bone_local := _arms_skeleton.get_bone_global_pose(_weapon_bone)
 	var mag_bone_local := _arms_skeleton.get_bone_global_pose(_mag_bone)
-	var basis := _weapon_node.global_basis.orthonormalized() * weapon_bone_local.basis.orthonormalized().inverse()
+	var basis := _weapon_node.global_basis.orthonormalized() * Basis(Vector3(-1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, -1)) * weapon_bone_local.basis.orthonormalized().inverse()
 	var origin := _magazine.global_position - basis * mag_bone_local.origin
 	print("NATIVE_ALIGN2 pistol basis=", basis, " origin=", origin)
 	$ViewModel/ArmsEM57P.global_transform = Transform3D(basis, origin) * chain.affine_inverse()
