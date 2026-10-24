@@ -25,7 +25,13 @@ func _assert(condition: bool, label: String) -> void:
 func _run() -> void:
 	_recreate_autoloads()
 	paused = true
+	_verify_real_death()
 	var infantry := (load("res://scenes/enemies/infantry.tscn") as PackedScene).instantiate()
+	var source_players := infantry.get_node("BodyMesh").find_children("*", "AnimationPlayer", true, false)
+	_assert(source_players.size() == 1, "real GLB contains one animation player")
+	if source_players.size() == 1:
+		for clip_name in [&"idle", &"walk", &"run", &"attack", &"death"]:
+			_assert((source_players[0] as AnimationPlayer).has_animation(clip_name), "real GLB has " + clip_name)
 	for existing in infantry.get_node("BodyMesh").find_children("*", "AnimationPlayer", true, false):
 		existing.free()
 	var player := AnimationPlayer.new()
@@ -83,6 +89,29 @@ func _run() -> void:
 	_free_autoloads()
 	print("test_infantry_animation: " + str(_failures) + " assertion(s) failed")
 	quit(1 if _failures > 0 else 0)
+
+
+func _verify_real_death() -> void:
+	var instance := (load("res://scenes/enemies/infantry.tscn") as PackedScene).instantiate()
+	root.add_child(instance)
+	var players := instance.get_node("BodyMesh").find_children("*", "AnimationPlayer", true, false)
+	var skeletons := instance.get_node("BodyMesh").find_children("*", "Skeleton3D", true, false)
+	if players.is_empty() or skeletons.is_empty():
+		_assert(false, "real death requires animation player and skeleton")
+	else:
+		var player := players[0] as AnimationPlayer
+		var skeleton := skeletons[0] as Skeleton3D
+		var death := player.get_animation(&"death")
+		var hips := skeleton.find_bone("mixamorig_Hips")
+		_assert(death.get_track_count() > 0 and hips >= 0, "real death has bone tracks and hips")
+		player.play(&"death")
+		player.advance(0.0)
+		var start_y := skeleton.get_bone_global_pose(hips).origin.y
+		player.advance(death.length)
+		var end_y := skeleton.get_bone_global_pose(hips).origin.y
+		_assert(start_y - end_y > 0.25, "real death hips descend to the ground")
+	root.remove_child(instance)
+	instance.free()
 
 
 func _recreate_autoloads() -> void:

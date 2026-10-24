@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemies/infantry.gd" id="1_infantry"]
-[ext_resource type="PackedScene" path="res://assets/models/enemies/host_parasite.glb" id="2_host"]
+[ext_resource type="PackedScene" path="res://assets/models/enemies/host_parasite_animated.glb" id="2_host"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -18,23 +18,25 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
 shape = SubResource("CapsuleShape3D_body")
 
 ; 头部 hitbox（W2 约定：Area3D + 元数据 hit_part=&"head"，命中即爆头）
-; 2026-10-19 真模化：宿主弓背低头，头顶约 1.55m（灰盒期 1.8m）
+; 2026-10-24 绑骨动画版：抬头直立，Eye/HeadHitbox 对齐新模头颈高度 1.6m
 [node name="HeadHitbox" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 metadata/hit_part = &"head"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HeadHitbox"]
 shape = SubResource("SphereShape3D_head")
 
-; 寄生人类宿主真模（2026-10-19：model3d_generation v3.1 图生 3D，概念图
-; ae219-host-input-crop.png；灰盒三件套「圆柱身+球头+盒枪」退役）。
+; 寄生人类宿主绑骨动画版（2026-10-24：Blender 本地蒙皮 + Mixamo 僵尸动作，
+; 65 骨，idle/walk/run/attack/death 五剪辑，替换旧静态拼接模）。
 ; GLB 归一化 1m 高 → ×1.75 至真人量级，y 偏移落地（脚底=0）。
+; 源模前向 +X，旋转 +90°Y 对齐 Godot 角色前向 -Z。
 ; 节点名保留 BodyMesh：enemy_base 受击红闪挂点按名解析（容器模式自动下钻首个网格）。
 [node name="BodyMesh" parent="." instance=ExtResource("2_host")]
 transform = Transform3D(1.75, 0, 0, 0, 1.75, 0, 0, 0, 1.75, 0, 0.875, 0)
+rotation = Vector3(0, 1.5707963, 0)
 
 [node name="Eye" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 
 [node name="Muzzle" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 1.3, -0.7)

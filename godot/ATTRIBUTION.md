@@ -80,6 +80,7 @@
 | `assets/textures/skyline/facade_residential.png` | 住宅塔楼立面贴图（1024×1488） | 同上 | 项目自有（AI 生成） | 2026-09-27 |
 | `assets/textures/skyline/facade_neon.png` | 霓虹媒体立面塔楼贴图（1024×1488，无文字版） | 同上 | 项目自有（AI 生成） | 2026-09-27 |
 | `assets/models/enemies/host_parasite.glb`（含同名 .preview.png） | 寄生人类宿主敌人真模·全身版（2026-10-20 拼接：原半身模上半身 + 文生 3D 全身模下半身，手术脚本 `desktop-port/godot-spike/modeling/graft_host_body.py`；原半身模源自项目自有概念图 `concept-art/ae219-host-input-crop.png` 图生 3D） | Kimi model3d_generation 插件（v3.1，face-limit 30000） | 项目自有（AI 生成） | 2026-10-20 |
+| `assets/models/enemies/host_parasite_animated.glb`（含同名 .preview.png） | 寄生体 T-pose 绑骨与僵尸动画版；基于项目既有 `host_parasite_fullbody.glb`，Blender 本地焊接/蒙皮/矩阵重定向，含 65 骨与 idle/walk/run/attack/death；管线 `modeling/host-rig/rig_host_local.py`、`bake_host_animations.py` | 模型：Kimi model3d_generation（项目自有）；骨架/动作：Adobe Mixamo（https://www.mixamo.com/，仅烘焙 GLB 入库，原始 FBX 不入库） | 模型项目自有；Mixamo 按 Adobe 使用条款用于项目 | 2026-10-24 |
 | `assets/models/pickup_pistol_ammo.glb` | EM-57P 手枪弹匣组拾取道具（立式三联弹匣+琥珀电量窗） | 本项目程序化建模（Blender 脚本 `desktop-port/godot-spike/modeling/build_pistol_ammo.py` 烘焙） | 项目自有 | 2026-10-19 |
 | `assets/models/weapons/em40g_grenade.glb` | EM-40G「滚雷」EC-40P 破垒榴弹投射物模型（全长 0.20m，3000 三角面，弹头 -Z；概念图 `modeling/em-weapons/em40g_grenade_input.png` 图生 3D，task_id e8eeb882-85b2-41b9-90e8-1e530f665ef1；归一化/减面脚本 `modeling/scripts/normalize_em40g.py` + `decimate_em40g.py`） | Kimi model3d_generation 插件（v3.1 图生） | 项目自有（AI 生成） | 2026-10-22 |
 
