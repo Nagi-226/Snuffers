@@ -48,6 +48,10 @@ const HIP_POSE_YAW := 0.26
 const HIP_POSE_PITCH := 0.05
 var _pose_extra: Transform3D = Transform3D.IDENTITY
 var _arms_placed: Transform3D = Transform3D.IDENTITY
+# 基座旋转与左臂姿势推迟到首个 _process 帧施加：player_controller._ready 的
+# ADS 标定在子节点就绪后跑，必须量到未旋转（=开镜态）的瞄具位——否则按腰射
+# 旋转态标定，开镜旋转回正后枪身整体偏左（2026-10-24 机主实机指认）。
+var _pose_pending: bool = false
 # 左臂链实测骨长（就绪时 Run 姿势采样；两骨 IK 求解用）。
 var _arm_upper_len: float = 0.0
 var _arm_fore_len: float = 0.0
@@ -69,17 +73,16 @@ func _ready() -> void:
 		_mag_bone = _arms_skeleton.find_bone("Pmag_061")
 		_weapon_bone = _arms_skeleton.find_bone("ACRRifle_058")
 		_align_native_arms()
-		# 腰射基座姿态先就位（_aim_weight=0 → 全姿态），motion 起点在带姿态
-		# 状态下采样，与 _process 逐帧公式同基。
 		_arms_placed = _arms_node.transform
-		_apply_pose_rotation()
 		_measure_left_arm()
+		# 基座旋转/姿势不在 _ready 施加（见 _pose_pending 注释）；motion 起点
+		# 在未旋转状态采样，_process 公式的 E⁻¹ 修正保证同基一致。
+		_pose_pending = true
 		if _weapon_bone >= 0:
 			_weapon_motion_start = _weapon_motion()
 		if _magazine != null and _mag_bone >= 0:
 			_mag_motion_start = _magazine_motion()
-		_pose_left_arm_mainstream(_aim_weight)
-	Events.weapon_reload_started.connect(_on_reload_started)
+		Events.weapon_reload_started.connect(_on_reload_started)
 	Events.weapon_reloaded.connect(_on_weapon_reloaded)
 
 
@@ -141,9 +144,9 @@ func _pose_left_arm_mainstream(weight: float = 0.0) -> void:
 		push_warning("左臂链骨骼/臂长未就绪，主流姿势改写跳过")
 		return
 	var to_skel_from_weapon: Transform3D = _arms_skeleton.global_transform.affine_inverse() * _weapon_node.global_transform
-	# 腕目标（武器局部系；主流参考实测共识）：腰射——护木中段下方（参考图左手
-	# 44%W/86%H）；ADS（塔科夫参考 43%W/85%）——弹匣井前护木下居中。
-	var wrist_t := to_skel_from_weapon * Vector3(-0.12, -0.05, -0.30).lerp(Vector3(-0.05, -0.10, -0.16), weight)
+	# 腕目标（武器局部系）：腰射——护木后段/弹匣井前、枪身正下方（2026-10-24
+	# 机主实机：左手再往后，握持到步枪下方）；ADS——弹匣井前护木下居中。
+	var wrist_t := to_skel_from_weapon * Vector3(-0.11, -0.06, -0.16).lerp(Vector3(-0.05, -0.10, -0.16), weight)
 	# 肩锚与极向量（武器局部偏移转骨架系）：肩从腕沿正下偏后退臂展 94%；
 	# 极向量把肘压向腕下方偏后——上臂/袖管沉画面外，不穿枪身。
 	var shoulder_t := wrist_t + to_skel_from_weapon.basis * (Vector3(0.03, -0.36, 0.14).normalized() * (_arm_upper_len + _arm_fore_len) * 0.94)
@@ -239,6 +242,11 @@ func _process(delta: float) -> void:
 	# 常态与换弹均由武器骨驱动枪身（idle 微摆与换弹动效同一套相对运动公式）。
 	if _arms_skeleton == null:
 		return
+	# 首帧补施基座旋转与左臂姿势（_ready 里让位给 ADS 标定，见 _pose_pending）。
+	if _pose_pending:
+		_pose_pending = false
+		_apply_pose_rotation()
+		_pose_left_arm_mainstream(_aim_weight)
 	# 左臂姿势与基座姿态随 ADS 平滑收放（换弹期间臂归剪辑所有，不重摆）。
 	if not _is_reloading and _arms_animation != null and _arms_animation.has_animation(&"hold"):
 		var aim_target := 1.0 if GameState.is_aiming else 0.0

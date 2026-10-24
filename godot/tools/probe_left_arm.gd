@@ -66,7 +66,7 @@ func _run() -> void:
 		finger_dir_world = skel.global_transform.basis * (skel.get_bone_global_pose(c0).origin - skel.get_bone_global_pose(hand).origin).normalized()
 	var gun_g: Transform3D = weapon.global_transform
 	# 护木参考点（与控制器腰射腕目标同参）。
-	var wrist_target: Vector3 = gun_g * Vector3(-0.12, -0.05, -0.30)
+	var wrist_target: Vector3 = gun_g * Vector3(-0.11, -0.06, -0.16)
 	var muzzle_dir: Vector3 = -gun_g.basis.z
 	# 骨轴向约定：basis.y 是否沿骨（肩→肘 / 肘→腕）。
 	var uparm_y: Vector3 = skel.global_transform.basis * skel.get_bone_global_pose(uparm).basis.y
