@@ -65,8 +65,34 @@ func _run() -> void:
 		var c0: int = children[0]
 		finger_dir_world = skel.global_transform.basis * (skel.get_bone_global_pose(c0).origin - skel.get_bone_global_pose(hand).origin).normalized()
 	var gun_g: Transform3D = weapon.global_transform
+	# EM68A 枪身几何实测：各子网格 AABB 转武器局部系（目标点不能拍脑袋，
+	# 手必须落在真实下表面上）。
+	var to_weapon: Transform3D = gun_g.affine_inverse()
+	var combined_min: Vector3 = Vector3(INF, INF, INF)
+	var combined_max: Vector3 = Vector3(-INF, -INF, -INF)
+	for mesh_node in weapon.find_children("*", "MeshInstance3D", true, false):
+		var mi := mesh_node as MeshInstance3D
+		if mi.mesh == null:
+			continue
+		var aabb: AABB = mi.get_aabb()
+		var local_to_weapon: Transform3D = to_weapon * mi.global_transform
+		for corner in [
+			aabb.position,
+			aabb.position + Vector3(aabb.size.x, 0, 0),
+			aabb.position + Vector3(0, aabb.size.y, 0),
+			aabb.position + Vector3(0, 0, aabb.size.z),
+			aabb.position + Vector3(aabb.size.x, aabb.size.y, 0),
+			aabb.position + Vector3(aabb.size.x, 0, aabb.size.z),
+			aabb.position + Vector3(0, aabb.size.y, aabb.size.z),
+			aabb.position + aabb.size,
+		]:
+			var p: Vector3 = local_to_weapon * corner
+			combined_min = combined_min.min(p)
+			combined_max = combined_max.max(p)
+		print("PROBE gun_mesh=", mi.name, " aabb_weapon=", local_to_weapon * aabb.position, "..", local_to_weapon * (aabb.position + aabb.size))
+	print("PROBE gun_combined=", combined_min, "..", combined_max)
 	# 护木参考点（与控制器腰射腕目标同参）。
-	var wrist_target: Vector3 = gun_g * Vector3(-0.11, -0.06, -0.16)
+	var wrist_target: Vector3 = gun_g * Vector3(-0.05, -0.045, -0.26)
 	var muzzle_dir: Vector3 = -gun_g.basis.z
 	# 骨轴向约定：basis.y 是否沿骨（肩→肘 / 肘→腕）。
 	var uparm_y: Vector3 = skel.global_transform.basis * skel.get_bone_global_pose(uparm).basis.y
