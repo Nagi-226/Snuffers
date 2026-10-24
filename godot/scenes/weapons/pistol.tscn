@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/weapons/pistol_controller.gd" id="1_pistol"]
 [ext_resource type="Resource" path="res://scenes/weapons/pistol.tres" id="2_data"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/em57p_viewmodel.glb" id="3_em57p"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/arms_pistol.glb" id="4_arms"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/arms_pistol_native.glb" id="4_arms"]
 
 ; 挂载约定：实例化到 player.tscn 的 Camera3D/WeaponMount 下（W1 已预留）。
 [node name="Pistol" type="Node3D"]

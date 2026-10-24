@@ -22,40 +22,77 @@ extends WeaponController
 var _is_reloading: bool = false
 var _reload_generation: int = 0
 
-# Cransh 源动画重定向到 RafaP 手臂；magazine_motion 与左手共享同一右手参考系。
+# Cransh 原生手臂与动画；EM 枪身和弹匣共享原生武器骨，不再跨手臂重定向。
 @onready var _magazine: Node3D = get_node_or_null("ViewModel/EM68A/em68a_magazine")
-var _mag_home: Vector3 = Vector3.ZERO
-var _mag_home_basis: Basis = Basis.IDENTITY
+@onready var _weapon_node: Node3D = $ViewModel/EM68A
+var _mag_home_transform: Transform3D = Transform3D.IDENTITY
+var _weapon_home: Transform3D = Transform3D.IDENTITY
 var _arms_animation: AnimationPlayer = null
 var _arms_skeleton: Skeleton3D = null
 var _mag_bone: int = -1
+var _weapon_bone: int = -1
 var _mag_motion_start: Transform3D = Transform3D.IDENTITY
+var _weapon_motion_start: Transform3D = Transform3D.IDENTITY
 
 
 func _ready() -> void:
 	super()
 	if _magazine != null:
-		_mag_home = _magazine.position
-		_mag_home_basis = _magazine.basis
+		_mag_home_transform = _magazine.transform
+	_weapon_home = _weapon_node.transform
 	var players := $ViewModel/ArmsEM68A.find_children("*", "AnimationPlayer", true, false)
 	if not players.is_empty():
 		_arms_animation = players[0] as AnimationPlayer
+		_prepare_native_reload("Armature|Arms_FPS_Anim_Reload_Fast")
 	var skeletons := $ViewModel/ArmsEM68A.find_children("*", "Skeleton3D", true, false)
 	if not skeletons.is_empty():
 		_arms_skeleton = skeletons[0] as Skeleton3D
-		_mag_bone = _arms_skeleton.find_bone("magazine_motion")
+		_mag_bone = _arms_skeleton.find_bone("Pmag_061")
+		_weapon_bone = _arms_skeleton.find_bone("ACRRifle_058")
+		_align_native_arms()
 	Events.weapon_reload_started.connect(_on_reload_started)
 	Events.weapon_reloaded.connect(_on_weapon_reloaded)
+
+
+func _prepare_native_reload(clip: StringName) -> void:
+	var animation := _arms_animation.get_animation(clip).duplicate() as Animation
+	var source_length := animation.length
+	for track in animation.get_track_count():
+		for key in animation.track_get_key_count(track):
+			animation.track_set_key_time(track, key,
+				animation.track_get_key_time(track, key) * weapon_data.reload_time / source_length)
+	animation.length = weapon_data.reload_time
+	_arms_animation.get_animation_library("").add_animation(&"reload", animation)
+	_arms_animation.play(&"reload")
+	_arms_animation.advance(0.0)
+	_arms_animation.stop()
+
+
+func _align_native_arms() -> void:
+	var source_weapon := _arms_skeleton.global_transform * _arms_skeleton.get_bone_global_pose(_weapon_bone)
+	var source_magazine := _arms_skeleton.global_transform * _arms_skeleton.get_bone_global_pose(_mag_bone)
+	var basis := _weapon_node.global_basis.orthonormalized() * source_weapon.basis.orthonormalized().inverse()
+	var origin := _magazine.global_position - basis * source_magazine.origin
+	print("NATIVE_ALIGN rifle weapon=", source_weapon, " magazine=", source_magazine, " basis=", basis, " origin=", origin)
+	print("NATIVE_SCALE skeleton=", _arms_skeleton.global_transform, " weapon_scale=", source_weapon.basis.get_scale(), " mag_scale=", source_magazine.basis.get_scale(), " rest=", _arms_skeleton.get_bone_rest(_mag_bone))
+	$ViewModel/ArmsEM68A.global_transform = Transform3D(basis, origin)
+	for node in $ViewModel/ArmsEM68A.find_children("*", "MeshInstance3D", true, false):
+		if node.name != "Object_9":
+			(node as MeshInstance3D).visible = false
 
 
 func _process(delta: float) -> void:
 	super._process(delta)
 	if not _is_reloading or _arms_skeleton == null:
 		return
+	if _weapon_bone >= 0:
+		_weapon_node.transform = _weapon_home * _weapon_motion_start.affine_inverse() * _weapon_motion()
 	if _magazine != null and _mag_bone >= 0:
-		var motion := _magazine_motion()
-		_magazine.position = _mag_home + motion.origin - _mag_motion_start.origin
-		_magazine.basis = _mag_home_basis * (_mag_motion_start.basis.inverse() * motion.basis).orthonormalized()
+		_magazine.transform = _mag_home_transform * _mag_motion_start.affine_inverse() * _magazine_motion()
+
+
+func _weapon_motion() -> Transform3D:
+	return _view_model.global_transform.affine_inverse() * _arms_skeleton.global_transform * _arms_skeleton.get_bone_global_pose(_weapon_bone)
 
 
 func _magazine_motion() -> Transform3D:
@@ -222,13 +259,14 @@ func _on_reload_started(weapon_id: StringName) -> void:
 func _play_reload_anim() -> void:
 	_set_sleeve_extenders_visible(false)
 	if _magazine != null:
-		_magazine.position = _mag_home
-		_magazine.basis = _mag_home_basis
+		_magazine.transform = _mag_home_transform
 	if _arms_animation != null and _arms_animation.has_animation(&"reload"):
 		_arms_animation.play(&"reload")
 		_arms_animation.advance(0.0)
 	if _arms_skeleton != null and _mag_bone >= 0:
 		_mag_motion_start = _magazine_motion()
+	if _arms_skeleton != null and _weapon_bone >= 0:
+		_weapon_motion_start = _weapon_motion()
 
 
 func _on_weapon_switched(weapon_id: StringName) -> void:
@@ -240,9 +278,9 @@ func _on_weapon_switched(weapon_id: StringName) -> void:
 
 
 func _reset_reload_visuals() -> void:
+	_weapon_node.transform = _weapon_home
 	if _magazine != null:
-		_magazine.position = _mag_home
-		_magazine.basis = _mag_home_basis
+		_magazine.transform = _mag_home_transform
 		_magazine.visible = true
 	if _arms_animation != null and _arms_animation.has_animation(&"reload"):
 		_arms_animation.play(&"reload")
