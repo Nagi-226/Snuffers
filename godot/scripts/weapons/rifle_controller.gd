@@ -33,6 +33,9 @@ var _mag_bone: int = -1
 var _weapon_bone: int = -1
 var _mag_motion_start: Transform3D = Transform3D.IDENTITY
 var _weapon_motion_start: Transform3D = Transform3D.IDENTITY
+# 左臂主流姿势的腰射/ADS 目标插值权重（本地平滑，与 player_controller 的 ADS
+# 挂载插值同款节奏；is_aiming 布尔读契约，无新参数）。
+var _aim_weight: float = 0.0
 
 
 func _ready() -> void:
@@ -55,7 +58,7 @@ func _ready() -> void:
 			_weapon_motion_start = _weapon_motion()
 		if _magazine != null and _mag_bone >= 0:
 			_mag_motion_start = _magazine_motion()
-		_pose_left_arm_mainstream()
+		_pose_left_arm_mainstream(_aim_weight)
 	Events.weapon_reload_started.connect(_on_reload_started)
 	Events.weapon_reloaded.connect(_on_weapon_reloaded)
 
@@ -92,7 +95,9 @@ func _prepare_native_hold(clip: StringName) -> void:
 ## IK_Hand_Cntrl_L_015（独立子树），手与臂链可分别摆放——手整体平移到托握位
 ## （朝向/手指随动不变），臂链两骨转向对接腕部。play/seek 会重置骨骼，
 ## 故必须在每次 hold 应用后调用。
-func _pose_left_arm_mainstream() -> void:
+func _pose_left_arm_mainstream(weight: float = 0.0) -> void:
+	# 幂等重放：seek 回 hold 第 0 帧清掉上次改写，再按当前插值目标重写。
+	_arms_animation.seek(0.0, true)
 	var uparm := -1
 	var fore := -1
 	var twist := -1
@@ -114,18 +119,19 @@ func _pose_left_arm_mainstream() -> void:
 		push_warning("左臂链骨骼未找到，主流姿势改写跳过")
 		return
 	var to_skel_from_weapon: Transform3D = _arms_skeleton.global_transform.affine_inverse() * _weapon_node.global_transform
-	# 目标（武器局部系）：腕=护木中段下方偏左；肘=枪正下方近射手中线
-	var wrist_target: Vector3 = to_skel_from_weapon * Vector3(-0.10, -0.075, -0.10)
-	var elbow_target: Vector3 = to_skel_from_weapon * Vector3(0.05, -0.33, 0.18)
+	# 目标（武器局部系，机主参考图量化）：
+	# 腰射——腕=护木中段下方偏左，肘=腕正下方（肘偏右会让上臂袖管横穿画面中部）；
+	# ADS（CoD参考）——左手收弹匣井居中偏左下，肘贴身下压，画面基本只见手。
+	var wrist := to_skel_from_weapon * Vector3(-0.10, -0.075, -0.10).lerp(Vector3(-0.04, -0.11, 0.10), weight)
+	var elbow := to_skel_from_weapon * Vector3(-0.10, -0.35, 0.02).lerp(Vector3(-0.08, -0.38, 0.22), weight)
 	# 1) 手（含手指，挂 IK 控制骨下）整体平移到托握位，朝向保持 Run 姿势原状
 	var hand_g := _arms_skeleton.get_bone_global_pose(hand)
 	var ctrl_g := _arms_skeleton.get_bone_global_pose(ctrl)
-	var delta := wrist_target - hand_g.origin
+	var delta := wrist - hand_g.origin
 	_arms_skeleton.set_bone_global_pose(ctrl, Transform3D(ctrl_g.basis, ctrl_g.origin + delta))
 	# 2) 臂链转向：上臂指向肘目标，前臂指向新腕位（尖端取子骨原点=关节位）
-	_aim_bone_at(uparm, fore, elbow_target)
-	_aim_bone_at(fore, twist, wrist_target)
-	print("LEFT_ARM_POSE wrist=", _arms_skeleton.get_bone_global_pose(hand).origin, " elbow=", _arms_skeleton.get_bone_global_pose(fore).origin)
+	_aim_bone_at(uparm, fore, elbow)
+	_aim_bone_at(fore, twist, wrist)
 
 
 ## 把 bone 的头→尖端骨原点指向旋转到 target_pos（骨架系），最小弧、保扭转。
@@ -171,6 +177,12 @@ func _process(delta: float) -> void:
 	# 常态与换弹均由武器骨驱动枪身（idle 微摆与换弹动效同一套相对运动公式）。
 	if _arms_skeleton == null:
 		return
+	# 左臂姿势随 ADS 平滑收放（换弹期间臂归剪辑所有，不重摆）。
+	if not _is_reloading and _arms_animation != null and _arms_animation.has_animation(&"hold"):
+		var aim_target := 1.0 if GameState.is_aiming else 0.0
+		if not is_equal_approx(_aim_weight, aim_target):
+			_aim_weight = move_toward(_aim_weight, aim_target, delta * 4.0)
+			_pose_left_arm_mainstream(_aim_weight)
 	if _weapon_bone >= 0:
 		_weapon_node.transform = _weapon_home * _weapon_motion_start.affine_inverse() * _weapon_motion()
 	if _magazine != null and _mag_bone >= 0:
@@ -372,7 +384,7 @@ func _reset_reload_visuals() -> void:
 		_arms_animation.play(&"hold")
 		_arms_animation.seek(0.0, true)
 		_arms_animation.pause()
-		_pose_left_arm_mainstream()
+		_pose_left_arm_mainstream(_aim_weight)
 	if _arms_skeleton != null and _weapon_bone >= 0:
 		_weapon_motion_start = _weapon_motion()
 	if _magazine != null and _mag_bone >= 0:
