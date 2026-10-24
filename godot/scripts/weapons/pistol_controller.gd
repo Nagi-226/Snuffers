@@ -36,12 +36,17 @@ func _ready() -> void:
 	if not players.is_empty():
 		_arms_animation = players[0] as AnimationPlayer
 		_prepare_native_reload("Armature|FPS_Pistol_Reload_full")
+		_prepare_native_idle("Armature|FPS_Pistol_Idle")
 	var skeletons := $ViewModel/ArmsEM57P.find_children("*", "Skeleton3D", true, false)
 	if not skeletons.is_empty():
 		_arms_skeleton = skeletons[0] as Skeleton3D
 		_mag_bone = _arms_skeleton.find_bone("Pmag_061")
 		_weapon_bone = _arms_skeleton.find_bone("PBody_058")
 		_align_native_arms()
+		if _weapon_bone >= 0:
+			_weapon_motion_start = _weapon_motion()
+		if _magazine != null and _mag_bone >= 0:
+			_mag_motion_start = _magazine_motion()
 	Events.weapon_reload_started.connect(_on_reload_started)
 	Events.weapon_reloaded.connect(_on_weapon_reloaded)
 
@@ -60,13 +65,28 @@ func _prepare_native_reload(clip: StringName) -> void:
 	_arms_animation.stop()
 
 
+## 待机剪辑：骨架常态停在握持位。换弹剪辑 stop 后骨架回落绑定姿势，
+## 手臂整体跌出第一人称视野（2026-10-24 机主实机反馈常态隐形的根因）。
+func _prepare_native_idle(clip: StringName) -> void:
+	var animation := _arms_animation.get_animation(clip).duplicate() as Animation
+	animation.loop_mode = Animation.LOOP_LINEAR
+	_arms_animation.get_animation_library("").add_animation(&"idle", animation)
+	_arms_animation.play(&"idle")
+	_arms_animation.advance(0.0)
+
+
 func _align_native_arms() -> void:
-	var source_weapon := _arms_skeleton.global_transform * _arms_skeleton.get_bone_global_pose(_weapon_bone)
-	var source_magazine := _arms_skeleton.global_transform * _arms_skeleton.get_bone_global_pose(_mag_bone)
-	var basis := _weapon_node.global_basis.orthonormalized() * source_weapon.basis.orthonormalized().inverse()
-	var origin := _magazine.global_position - basis * source_magazine.origin
-	print("NATIVE_ALIGN pistol weapon=", source_weapon, " magazine=", source_magazine, " basis=", basis, " origin=", origin)
-	$ViewModel/ArmsEM57P.global_transform = Transform3D(basis, origin)
+	# 位置无关解算：S_new × 弹匣骨局部位 = 弹匣世界位（旋转按武器骨、平移按弹匣骨），
+	# 骨位取骨架局部 get_bone_global_pose（与 Armature 摆在世界何处无关）。
+	# 旧实现把世界坐标骨位混入旋转乘法，仅在武器接近世界原点时碰巧正确——真机
+	# 出生点 z≈29.6，z 经置换基泄漏进 y，臂组装被摔进地下 14m（常态隐形根因）。
+	var chain: Transform3D = $ViewModel/ArmsEM57P.global_transform.affine_inverse() * _arms_skeleton.global_transform
+	var weapon_bone_local := _arms_skeleton.get_bone_global_pose(_weapon_bone)
+	var mag_bone_local := _arms_skeleton.get_bone_global_pose(_mag_bone)
+	var basis := _weapon_node.global_basis.orthonormalized() * weapon_bone_local.basis.orthonormalized().inverse()
+	var origin := _magazine.global_position - basis * mag_bone_local.origin
+	print("NATIVE_ALIGN2 pistol basis=", basis, " origin=", origin)
+	$ViewModel/ArmsEM57P.global_transform = Transform3D(basis, origin) * chain.affine_inverse()
 	# 手臂蒙皮网格按 mesh 资源名保留（两枪均为 arms_arms_0）；节点名不可靠——
 	# 步枪手臂网格是 Object_10、手枪是 Object_9，两次导出的 Object_N 编号漂移过。
 	# 隐藏对象是 Cransh 自带的枪械渲染件（xd_frame 系），实机用 EM57P 真模。
@@ -78,7 +98,8 @@ func _align_native_arms() -> void:
 
 func _process(delta: float) -> void:
 	super._process(delta)
-	if not _is_reloading or _arms_skeleton == null:
+	# 常态与换弹均由武器骨驱动枪身（idle 微摆与换弹动效同一套相对运动公式）。
+	if _arms_skeleton == null:
 		return
 	if _weapon_bone >= 0:
 		_weapon_node.transform = _weapon_home * _weapon_motion_start.affine_inverse() * _weapon_motion()
@@ -232,10 +253,13 @@ func _reset_reload_visuals() -> void:
 	if _magazine != null:
 		_magazine.transform = _mag_home_transform
 		_magazine.visible = true
-	if _arms_animation != null and _arms_animation.has_animation(&"reload"):
-		_arms_animation.play(&"reload")
+	if _arms_animation != null and _arms_animation.has_animation(&"idle"):
+		_arms_animation.play(&"idle")
 		_arms_animation.advance(0.0)
-		_arms_animation.stop()
+	if _arms_skeleton != null and _weapon_bone >= 0:
+		_weapon_motion_start = _weapon_motion()
+	if _magazine != null and _mag_bone >= 0:
+		_mag_motion_start = _magazine_motion()
 	_set_sleeve_extenders_visible(true)
 
 

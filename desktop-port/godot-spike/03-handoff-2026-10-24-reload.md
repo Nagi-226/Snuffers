@@ -66,4 +66,14 @@ godot --path godot res://scenes/levels/street_playable.tscn -- \
 - **对齐数学无辜**：NATIVE_ALIGN 打印的 origin.y≈-12.6 是骨架内嵌偏移的补偿平移，验算磁匣骨世界位精确落回弹匣节点，非 bug。
 - **⚠ 遗留取证（先于本次存在）**：`tests/test_weapon_reload.gd` 与 86fed95 的旧 RafaP API 匹配（`weapon._mag_home`/`_mag_home_basis`、骨名 `hand.L_03`/`magazine_motion`、`sleeve_ext_*`），在原生骨架下 2-6 项 FAIL + 脚本报错 + 挂起；经 stash 基线 A/B 证实与本次修复无关。交接宣称的 61/61 应为当时未提交的测试版本。**测试翻新（对齐原生骨架 API）列为下一棒独立任务。**
 
+## 追记二（ZCode · 2026-10-24 深夜）：常态手臂隐形根因——对齐公式位置相关缺陷 + idle 剪辑缺失
+
+机主复验：换弹可见手臂后，**常态持枪仍无手臂**。两个叠加根因，均已修复：
+
+1. **对齐公式只在武器近世界原点时碰巧正确**：`_align_native_arms()` 把世界坐标骨位（`skeleton.global × bone_pose` 的 origin）直接混入旋转乘法解平移。隔离验证工具（武器挂根节点）恰好落在公式有效区，截图全绿掩盖了缺陷；真机出生点 z≈29.6，z 分量经置换基泄漏进 y → 臂组装被摔进地下 14m（NATIVE_ALIGN origin.y≈-12.6 即罪证）。武器/弹匣动效正常是因相对运动公式每帧取活骨架全局变换，与摆放位置无关。**修复**：改用骨架局部骨位（`get_bone_global_pose`）解算，位置无关；骨架到臂根节点的局部变换链（chain）显式参与逆推。
+2. **idle 待机剪辑未接入**：控制器只准备了 reload 剪辑，`stop()` 后骨架回落绑定姿势，手臂跌出视野。**修复**：新增 `_prepare_native_idle()`（步枪 `Arms_FPS_Anim_Idle` / 手枪 `FPS_Pistol_Idle`，循环播放），`_reset_reload_visuals` 回 idle 而非 stop；`_process` 常态也由武器骨驱动枪身（微摆与换弹同一套相对运动公式）。
+
+**验证**（控制器正常加载态，非脚本失效假象——中途曾因 `var chain :=` 类型推断失败导致控制器解析错误、18:54 两张"成功"截图实为无控制器全网格渲染，已作废重证）：街景 vm-shot 常态步枪（右手握把+左手护木，无重复枪模）+ 换弹 0.9s（左手抽弹匣中帧）+ L1 全链 PASS。教训入档：**vm-shot 取证必须 grep 日志确认无 SCRIPT ERROR 且 NATIVE_ALIGN 打印在案，无控制器挂载的截图无效。**
+
+
 
