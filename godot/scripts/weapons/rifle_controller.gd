@@ -25,6 +25,7 @@ var _reload_generation: int = 0
 # Cransh 原生手臂与动画；EM 枪身和弹匣共享原生武器骨，不再跨手臂重定向。
 @onready var _magazine: Node3D = get_node_or_null("ViewModel/EM68A/em68a_magazine")
 @onready var _weapon_node: Node3D = $ViewModel/EM68A
+@onready var _arms_node: Node3D = $ViewModel/ArmsEM68A
 var _mag_home_transform: Transform3D = Transform3D.IDENTITY
 var _weapon_home: Transform3D = Transform3D.IDENTITY
 var _arms_animation: AnimationPlayer = null
@@ -36,6 +37,17 @@ var _weapon_motion_start: Transform3D = Transform3D.IDENTITY
 # 左臂主流姿势的腰射/ADS 目标插值权重（本地平滑，与 player_controller 的 ADS
 # 挂载插值同款节奏；is_aiming 布尔读契约，无新参数）。
 var _aim_weight: float = 0.0
+# 主流FPS持枪基座姿态（2026-10-24 机主指令：大量参考截图反复修正）：
+# 参考共识（机主腰射参考图+塔科夫ADS实测）——枪口 54-68%W/57-58%H 指向画面
+# 中心、枪身横贯下缘而非陡立右侧、左手 35-47%W/75-80%H。现状实测枪尾→枪口
+# 连线约 72° 陡立、枪口 75%W/63%H 偏右。旋转施加在 ViewModel 两子节点上
+# （EM68A/ArmsEM68A 场景同位同原点，同旋转即枪臂联动；基类后坐独占 ViewModel
+# 旋转不能放父节点）。开镜时随 _aim_weight 回正归零——瞄具轴重新平行相机轴，
+# player_controller 的 ADS 平移归中逻辑零改动。
+const HIP_POSE_YAW := 0.26
+const HIP_POSE_PITCH := 0.05
+var _pose_extra: Transform3D = Transform3D.IDENTITY
+var _arms_placed: Transform3D = Transform3D.IDENTITY
 
 
 func _ready() -> void:
@@ -54,6 +66,10 @@ func _ready() -> void:
 		_mag_bone = _arms_skeleton.find_bone("Pmag_061")
 		_weapon_bone = _arms_skeleton.find_bone("ACRRifle_058")
 		_align_native_arms()
+		# 腰射基座姿态先就位（_aim_weight=0 → 全姿态），motion 起点在带姿态
+		# 状态下采样，与 _process 逐帧公式同基。
+		_arms_placed = _arms_node.transform
+		_apply_pose_rotation()
 		if _weapon_bone >= 0:
 			_weapon_motion_start = _weapon_motion()
 		if _magazine != null and _mag_bone >= 0:
@@ -89,6 +105,16 @@ func _prepare_native_hold(clip: StringName) -> void:
 	_arms_animation.pause()
 
 
+## 腰射基座旋转随 _aim_weight 收放：1=腰射全姿态，0=开镜回正（瞄具轴平行
+## 相机轴，挂载平移归中保持 player_controller 原逻辑）。两子节点同源点同旋转。
+func _apply_pose_rotation() -> void:
+	var w := 1.0 - _aim_weight
+	var q := Quaternion(Vector3.UP, HIP_POSE_YAW * w) * Quaternion(Vector3.RIGHT, HIP_POSE_PITCH * w)
+	_pose_extra = Transform3D(Basis(q), Vector3.ZERO)
+	_arms_node.transform = _pose_extra * _arms_placed
+	_weapon_node.transform = _pose_extra * _weapon_home
+
+
 ## 主流FPS左臂改写（机主参考图 2026-10-24：左手托护木中段下方、前臂从画面
 ## 正下方近垂直伸入、肘部出画）。姿势包无此姿势（Run 左手横伸 -0.24m 前臂
 ## 45° 斜穿、Idle 族左手高位）。骨架结构实测：Hand_L_016 挂在根下
@@ -119,11 +145,12 @@ func _pose_left_arm_mainstream(weight: float = 0.0) -> void:
 		push_warning("左臂链骨骼未找到，主流姿势改写跳过")
 		return
 	var to_skel_from_weapon: Transform3D = _arms_skeleton.global_transform.affine_inverse() * _weapon_node.global_transform
-	# 目标（武器局部系，机主参考图量化）：
-	# 腰射——腕=护木中段下方偏左，肘=腕正下方（肘偏右会让上臂袖管横穿画面中部）；
-	# ADS（CoD参考）——左手收弹匣井居中偏左下，肘贴身下压，画面基本只见手。
-	var wrist := to_skel_from_weapon * Vector3(-0.10, -0.075, -0.10).lerp(Vector3(-0.04, -0.11, 0.10), weight)
-	var elbow := to_skel_from_weapon * Vector3(-0.10, -0.35, 0.02).lerp(Vector3(-0.08, -0.38, 0.22), weight)
+	# 目标（武器局部系；主流参考实测共识 2026-10-24）：
+	# 腰射——参考图左手 35%W/80%H：腕移向护木前段（-Z 朝枪口），肘在腕正下方；
+	# ADS（塔科夫参考 47%W/80%H）——腕收弹匣井前护木下居中，肘几乎在腕正下方
+	# （近垂直短前臂；旧目标肘偏后 +0.22 造成前臂 30° 近水平横铺左下角）。
+	var wrist := to_skel_from_weapon * Vector3(-0.12, -0.05, -0.30).lerp(Vector3(-0.05, -0.10, -0.16), weight)
+	var elbow := to_skel_from_weapon * Vector3(-0.12, -0.33, -0.20).lerp(Vector3(-0.04, -0.42, -0.04), weight)
 	# 1) 手（含手指，挂 IK 控制骨下）整体平移到托握位，朝向保持 Run 姿势原状
 	var hand_g := _arms_skeleton.get_bone_global_pose(hand)
 	var ctrl_g := _arms_skeleton.get_bone_global_pose(ctrl)
@@ -177,24 +204,29 @@ func _process(delta: float) -> void:
 	# 常态与换弹均由武器骨驱动枪身（idle 微摆与换弹动效同一套相对运动公式）。
 	if _arms_skeleton == null:
 		return
-	# 左臂姿势随 ADS 平滑收放（换弹期间臂归剪辑所有，不重摆）。
+	# 左臂姿势与基座姿态随 ADS 平滑收放（换弹期间臂归剪辑所有，不重摆）。
 	if not _is_reloading and _arms_animation != null and _arms_animation.has_animation(&"hold"):
 		var aim_target := 1.0 if GameState.is_aiming else 0.0
 		if not is_equal_approx(_aim_weight, aim_target):
 			_aim_weight = move_toward(_aim_weight, aim_target, delta * 4.0)
+			_apply_pose_rotation()
 			_pose_left_arm_mainstream(_aim_weight)
 	if _weapon_bone >= 0:
-		_weapon_node.transform = _weapon_home * _weapon_motion_start.affine_inverse() * _weapon_motion()
+		_weapon_node.transform = _pose_extra * _weapon_home * _weapon_motion_start.affine_inverse() * _weapon_motion()
 	if _magazine != null and _mag_bone >= 0:
 		_magazine.transform = _mag_home_transform * _mag_motion_start.affine_inverse() * _magazine_motion()
 
 
 func _weapon_motion() -> Transform3D:
-	return _view_model.global_transform.affine_inverse() * _arms_skeleton.global_transform * _arms_skeleton.get_bone_global_pose(_weapon_bone)
+	# 基座姿态旋转因子从骨架全局位中剥除（E 在两子节点上，motion 保持
+	# 「未旋转装配空间」，与就绪时采样的 start 同基；否则旋转被算两次）。
+	var raw: Transform3D = _view_model.global_transform.affine_inverse() * _arms_skeleton.global_transform * _arms_skeleton.get_bone_global_pose(_weapon_bone)
+	return _pose_extra.affine_inverse() * raw
 
 
 func _magazine_motion() -> Transform3D:
-	return _magazine.get_parent().global_transform.affine_inverse() * _arms_skeleton.global_transform * _arms_skeleton.get_bone_global_pose(_mag_bone)
+	var raw: Transform3D = _magazine.get_parent().global_transform.affine_inverse() * _arms_skeleton.global_transform * _arms_skeleton.get_bone_global_pose(_mag_bone)
+	return _pose_extra.affine_inverse() * raw
 
 
 func _exit_tree() -> void:
@@ -376,7 +408,7 @@ func _on_weapon_switched(weapon_id: StringName) -> void:
 
 
 func _reset_reload_visuals() -> void:
-	_weapon_node.transform = _weapon_home
+	_weapon_node.transform = _pose_extra * _weapon_home
 	if _magazine != null:
 		_magazine.transform = _mag_home_transform
 		_magazine.visible = true
