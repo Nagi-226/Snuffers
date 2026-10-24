@@ -102,7 +102,7 @@ func _align_native_arms() -> void:
 	# 中部（机主反馈「高、过于靠前」）——整套臂组装沿武器局部系下沉+后移收回右下角。
 	var placed: Transform3D = Transform3D(basis, origin) * chain.affine_inverse()
 	var weapon_basis := _weapon_node.global_basis
-	placed.origin += weapon_basis * Vector3(0, -0.045, 0.055)
+	placed.origin += weapon_basis * Vector3(0, -0.02, 0.07)
 	$ViewModel/ArmsEM68A.global_transform = placed
 	# 手臂蒙皮网格按 mesh 资源名保留（两枪均为 arms_arms_0）；节点名不可靠——
 	# 步枪手臂网格是 Object_10、手枪是 Object_9，两次导出的 Object_N 编号漂移过。

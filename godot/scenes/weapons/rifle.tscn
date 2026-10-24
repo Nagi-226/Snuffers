@@ -18,10 +18,10 @@ weapon_data = ExtResource("2_data")
 
 ; 摆位：z 后移 0.12 让枪身重心贴射手、枪托入肩位；y 微抬贴眼下视线
 [node name="EM68A" parent="ViewModel" instance=ExtResource("3_em68a")]
-position = Vector3(0, 0.02, 0.12)
+position = Vector3(0.02, -0.035, 0.12)
 
 ; 第一人称手臂（2026-10-20 方案A重制：Sketchfab Rigged FPS Arms by RafaP/DJMaesen，
 ; CC-BY 4.0，见 assets/models/weapons/ATTRIBUTION.md）：导出空间即武器局部空间，
 ; 必须复用 EM68A 实例的同款变换（position 0,0.02,0.12），否则手臂错位。
 [node name="ArmsEM68A" parent="ViewModel" instance=ExtResource("4_arms")]
-position = Vector3(0, 0.02, 0.12)
+position = Vector3(0.02, -0.035, 0.12)
