@@ -48,6 +48,9 @@ const HIP_POSE_YAW := 0.26
 const HIP_POSE_PITCH := 0.05
 var _pose_extra: Transform3D = Transform3D.IDENTITY
 var _arms_placed: Transform3D = Transform3D.IDENTITY
+# 左臂链实测骨长（就绪时 Run 姿势采样；两骨 IK 求解用）。
+var _arm_upper_len: float = 0.0
+var _arm_fore_len: float = 0.0
 
 
 func _ready() -> void:
@@ -70,6 +73,7 @@ func _ready() -> void:
 		# 状态下采样，与 _process 逐帧公式同基。
 		_arms_placed = _arms_node.transform
 		_apply_pose_rotation()
+		_measure_left_arm()
 		if _weapon_bone >= 0:
 			_weapon_motion_start = _weapon_motion()
 		if _magazine != null and _mag_bone >= 0:
@@ -115,59 +119,90 @@ func _apply_pose_rotation() -> void:
 	_weapon_node.transform = _pose_extra * _weapon_home
 
 
-## 主流FPS左臂改写（机主参考图 2026-10-24：左手托护木中段下方、前臂从画面
-## 正下方近垂直伸入、肘部出画）。姿势包无此姿势（Run 左手横伸 -0.24m 前臂
-## 45° 斜穿、Idle 族左手高位）。骨架结构实测：Hand_L_016 挂在根下
-## IK_Hand_Cntrl_L_015（独立子树），手与臂链可分别摆放——手整体平移到托握位
-## （朝向/手指随动不变），臂链两骨转向对接腕部。play/seek 会重置骨骼，
-## 故必须在每次 hold 应用后调用。
+## 主流FPS左臂姿势（机主参考图 2026-10-24：左手托护木、前臂近垂直伸入、肘出画）。
+## v1 版（e979f81/6f4540e）三处结构性缺陷（骨架探针实测，2026-10-24 找茬复核）：
+## ① 前臂唯一子骨 BoneTwist_03.L 与前臂原点共位（零向量尖端）→ 前臂旋转失效；
+## ② 肩钉死 Run 原位（肩→腕目标 635mm > 臂展 ~420mm）→ 链够不着；
+## ③ 手（IK 独立子树）被平移到不可达目标 → 距前臂尖端 462mm 悬浮断腕；
+## 另手保持 Run 朝向致指尖指枪尾（与枪口差 85°）。
+## v2 版：肩锚从腕目标沿「正下偏后」退 0.94×臂展（肘弯自然、肩在画面外下方），
+## 余弦定理两骨 IK（肘距肩=上臂长、腕距肘=前臂长恒成立）+ 骨轴约定实测
+## （本骨架骨轴=basis.y，肩→肘夹角 0.00001°）→ 链端与腕目标数学重合，
+## 手定位链端闭合腕缝，掌向旋至指尖朝枪口。play/seek 重置骨骼，须在每次
+## hold 应用后调用。
 func _pose_left_arm_mainstream(weight: float = 0.0) -> void:
 	# 幂等重放：seek 回 hold 第 0 帧清掉上次改写，再按当前插值目标重写。
 	_arms_animation.seek(0.0, true)
-	var uparm := -1
-	var fore := -1
-	var twist := -1
-	var ctrl := -1
-	var hand := -1
-	for b in _arms_skeleton.get_bone_count():
-		var n := _arms_skeleton.get_bone_name(b)
-		if n.begins_with("UpArm_L"):
-			uparm = b
-		elif n.begins_with("Forearm_L"):
-			fore = b
-		elif n.begins_with("BoneTwist_03.L"):
-			twist = b
-		elif n.begins_with("IK_Hand_Cntrl_L"):
-			ctrl = b
-		elif n.begins_with("Hand_L"):
-			hand = b
-	if uparm < 0 or fore < 0 or twist < 0 or ctrl < 0 or hand < 0:
-		push_warning("左臂链骨骼未找到，主流姿势改写跳过")
+	var uparm := _find_bone_by_prefix("UpArm_L")
+	var fore := _find_bone_by_prefix("Forearm_L")
+	var ctrl := _find_bone_by_prefix("IK_Hand_Cntrl_L")
+	var hand := _find_bone_by_prefix("Hand_L")
+	if uparm < 0 or fore < 0 or ctrl < 0 or hand < 0 or _arm_upper_len <= 0.0 or _arm_fore_len <= 0.0:
+		push_warning("左臂链骨骼/臂长未就绪，主流姿势改写跳过")
 		return
 	var to_skel_from_weapon: Transform3D = _arms_skeleton.global_transform.affine_inverse() * _weapon_node.global_transform
-	# 目标（武器局部系；主流参考实测共识 2026-10-24）：
-	# 腰射——参考图左手 35%W/80%H：腕移向护木前段（-Z 朝枪口），肘在腕正下方；
-	# ADS（塔科夫参考 47%W/80%H）——腕收弹匣井前护木下居中，肘几乎在腕正下方
-	# （近垂直短前臂；旧目标肘偏后 +0.22 造成前臂 30° 近水平横铺左下角）。
-	var wrist := to_skel_from_weapon * Vector3(-0.12, -0.05, -0.30).lerp(Vector3(-0.05, -0.10, -0.16), weight)
-	var elbow := to_skel_from_weapon * Vector3(-0.12, -0.33, -0.20).lerp(Vector3(-0.04, -0.42, -0.04), weight)
-	# 1) 手（含手指，挂 IK 控制骨下）整体平移到托握位，朝向保持 Run 姿势原状
-	var hand_g := _arms_skeleton.get_bone_global_pose(hand)
+	# 腕目标（武器局部系；主流参考实测共识）：腰射——护木中段下方（参考图左手
+	# 44%W/86%H）；ADS（塔科夫参考 43%W/85%）——弹匣井前护木下居中。
+	var wrist_t := to_skel_from_weapon * Vector3(-0.12, -0.05, -0.30).lerp(Vector3(-0.05, -0.10, -0.16), weight)
+	# 肩锚与极向量（武器局部偏移转骨架系）：肩从腕沿正下偏后退臂展 94%；
+	# 极向量把肘压向腕下方偏后——上臂/袖管沉画面外，不穿枪身。
+	var shoulder_t := wrist_t + to_skel_from_weapon.basis * (Vector3(0.03, -0.36, 0.14).normalized() * (_arm_upper_len + _arm_fore_len) * 0.94)
+	var pole_t := wrist_t + to_skel_from_weapon.basis * Vector3(0.08, -0.35, 0.22)
+	# 两骨 IK（余弦定理）。
+	var d := wrist_t - shoulder_t
+	var dist := clampf(d.length(), absf(_arm_upper_len - _arm_fore_len) + 0.001, _arm_upper_len + _arm_fore_len - 0.001)
+	d = d.normalized()
+	var a := (_arm_upper_len * _arm_upper_len - _arm_fore_len * _arm_fore_len + dist * dist) / (2.0 * dist)
+	var h := sqrt(maxf(0.0, _arm_upper_len * _arm_upper_len - a * a))
+	var pole_off := pole_t - shoulder_t
+	pole_off -= d * pole_off.dot(d)
+	pole_off = pole_off / maxf(pole_off.length(), 0.0001)
+	var elbow_t := shoulder_t + d * a + pole_off * h
+	# FK 施加：上臂先平移到肩锚（子骨随动），再转 Y 轴指肘；前臂 Y 转指腕。
+	var up_g := _arms_skeleton.get_bone_global_pose(uparm)
+	_arms_skeleton.set_bone_global_pose(uparm, Transform3D(up_g.basis, shoulder_t))
+	_aim_bone_y_at(uparm, elbow_t)
+	_aim_bone_y_at(fore, wrist_t)
+	# 手（IK 独立子树）：定位到链端闭合腕关节（数学上=腕目标）。
+	var fore_g := _arms_skeleton.get_bone_global_pose(fore)
+	var wrist_end := fore_g.origin + fore_g.basis.y * _arm_fore_len
 	var ctrl_g := _arms_skeleton.get_bone_global_pose(ctrl)
-	var delta := wrist - hand_g.origin
-	_arms_skeleton.set_bone_global_pose(ctrl, Transform3D(ctrl_g.basis, ctrl_g.origin + delta))
-	# 2) 臂链转向：上臂指向肘目标，前臂指向新腕位（尖端取子骨原点=关节位）
-	_aim_bone_at(uparm, fore, elbow)
-	_aim_bone_at(fore, twist, wrist)
+	_arms_skeleton.set_bone_global_pose(ctrl, Transform3D(ctrl_g.basis, wrist_end))
+	# 掌向：Run 朝向指尖指枪尾，旋至沿枪口方向（主流托握指尖朝枪口）。
+	var hand_g := _arms_skeleton.get_bone_global_pose(hand)
+	var muzzle_dir := to_skel_from_weapon.basis * Vector3(0.0, 0.0, -1.0)
+	var palm_rot := Quaternion(hand_g.basis.y, muzzle_dir)
+	_arms_skeleton.set_bone_global_pose(hand, Transform3D(Basis(palm_rot) * hand_g.basis, hand_g.origin))
 
 
-## 把 bone 的头→尖端骨原点指向旋转到 target_pos（骨架系），最小弧、保扭转。
-func _aim_bone_at(bone: int, tip_bone: int, target_pos: Vector3) -> void:
+## 骨架里按名字前缀找骨（导出后缀漂移：BoneTwist_03.L_05 等），找不到返回 -1。
+func _find_bone_by_prefix(prefix: String) -> int:
+	for b in _arms_skeleton.get_bone_count():
+		if _arms_skeleton.get_bone_name(b).begins_with(prefix):
+			return b
+	return -1
+
+
+## 就绪时从 Run 姿势实测左臂两段骨长（腕在作者姿势下与前臂末端对齐）。
+func _measure_left_arm() -> void:
+	var uparm := _find_bone_by_prefix("UpArm_L")
+	var fore := _find_bone_by_prefix("Forearm_L")
+	var hand := _find_bone_by_prefix("Hand_L")
+	if uparm < 0 or fore < 0 or hand < 0:
+		return
+	var g_u := _arms_skeleton.get_bone_global_pose(uparm).origin
+	var g_f := _arms_skeleton.get_bone_global_pose(fore).origin
+	var g_h := _arms_skeleton.get_bone_global_pose(hand).origin
+	_arm_upper_len = g_u.distance_to(g_f)
+	_arm_fore_len = g_f.distance_to(g_h)
+	print("LEFT_ARM_LEN upper=", _arm_upper_len, " fore=", _arm_fore_len)
+
+
+## 把 bone 的骨轴（basis.y，本骨架实测骨轴约定）旋到指向 target_pos（骨架系），
+## 最小弧、保扭转。
+func _aim_bone_y_at(bone: int, target_pos: Vector3) -> void:
 	var g := _arms_skeleton.get_bone_global_pose(bone)
-	var tip := _arms_skeleton.get_bone_global_pose(tip_bone).origin
-	var cur_dir := (tip - g.origin).normalized()
-	var new_dir := (target_pos - g.origin).normalized()
-	var rot := Quaternion(cur_dir, new_dir)
+	var rot := Quaternion(g.basis.y, (target_pos - g.origin).normalized())
 	_arms_skeleton.set_bone_global_pose(bone, Transform3D(Basis(rot) * g.basis, g.origin))
 
 
