@@ -67,8 +67,12 @@ func _align_native_arms() -> void:
 	var origin := _magazine.global_position - basis * source_magazine.origin
 	print("NATIVE_ALIGN pistol weapon=", source_weapon, " magazine=", source_magazine, " basis=", basis, " origin=", origin)
 	$ViewModel/ArmsEM57P.global_transform = Transform3D(basis, origin)
+	# 手臂蒙皮网格按 mesh 资源名保留（两枪均为 arms_arms_0）；节点名不可靠——
+	# 步枪手臂网格是 Object_10、手枪是 Object_9，两次导出的 Object_N 编号漂移过。
+	# 隐藏对象是 Cransh 自带的枪械渲染件（xd_frame 系），实机用 EM57P 真模。
 	for node in $ViewModel/ArmsEM57P.find_children("*", "MeshInstance3D", true, false):
-		if node.name != "Object_9":
+		var mesh := (node as MeshInstance3D).mesh
+		if mesh == null or not mesh.resource_name.contains("arms"):
 			(node as MeshInstance3D).visible = false
 
 

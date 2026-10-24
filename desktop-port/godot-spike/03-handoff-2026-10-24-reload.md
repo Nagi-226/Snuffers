@@ -55,3 +55,15 @@ godot --path godot res://scenes/levels/street_playable.tscn -- \
 - 不再使用旧自研 reload 关键帧，不恢复整枪 `weapon_motion` 实验。
 - 修改源动画时只替换本地忽略目录 `godot/raw_assets/fps_reload/` 的 Cransh GLB，重跑导出和全部验收。
 - Windows 偶发占用正式 GLB；先保留旧文件到候选目录再替换，不删除未知进程数据。
+
+## 追记（ZCode 接棒 · 2026-10-24 晚）：原生换装入库收口 + 换弹手臂隐形修复
+
+机主实机反馈：两武器换弹动效正常但手臂隐形。排查发现 Kimi 的 Cransh 原生手臂换装（控制器原生骨架化 + 场景 native GLB 引用切换 + 两套 native 资产）**停留在工作树未提交**——86fed95 实际提交的是旧 RafaP 重定向方案。分两刀收口：
+
+- **d6d6933**：Kimi 未竟工作树内容原样代入库（2 控制器 + 2 场景 + native GLB/贴图 47 件）。
+- **本刀（隐形修复）**：`_align_native_arms()` 网格过滤 `node.name != "Object_9"` 在步枪侧误杀全部网格——步枪手臂蒙皮网格实为 **Object_10**（Object_9 是 Node3D 空节点），手枪恰好是 Object_9，两枪导出的 Object_N 编号漂移所致。修复为按 **mesh 资源名含 `arms`** 保留（两枪手臂网格均为 `arms_arms_0`），对编号漂移免疫。
+- **验证**：`verify_reload_arms.gd` 双枪手臂截图（tmp_shots/arms_fix/，AI 视觉核验双手在位、换弹抓握姿势）+ 街景 `--vm-shot reload` 实机核验（步枪+双手、无悬浮弹匣/重复枪模）+ L1 全链 PASS。
+- **对齐数学无辜**：NATIVE_ALIGN 打印的 origin.y≈-12.6 是骨架内嵌偏移的补偿平移，验算磁匣骨世界位精确落回弹匣节点，非 bug。
+- **⚠ 遗留取证（先于本次存在）**：`tests/test_weapon_reload.gd` 与 86fed95 的旧 RafaP API 匹配（`weapon._mag_home`/`_mag_home_basis`、骨名 `hand.L_03`/`magazine_motion`、`sleeve_ext_*`），在原生骨架下 2-6 项 FAIL + 脚本报错 + 挂起；经 stash 基线 A/B 证实与本次修复无关。交接宣称的 61/61 应为当时未提交的测试版本。**测试翻新（对齐原生骨架 API）列为下一棒独立任务。**
+
+

@@ -76,8 +76,12 @@ func _align_native_arms() -> void:
 	print("NATIVE_ALIGN rifle weapon=", source_weapon, " magazine=", source_magazine, " basis=", basis, " origin=", origin)
 	print("NATIVE_SCALE skeleton=", _arms_skeleton.global_transform, " weapon_scale=", source_weapon.basis.get_scale(), " mag_scale=", source_magazine.basis.get_scale(), " rest=", _arms_skeleton.get_bone_rest(_mag_bone))
 	$ViewModel/ArmsEM68A.global_transform = Transform3D(basis, origin)
+	# 手臂蒙皮网格按 mesh 资源名保留（两枪均为 arms_arms_0）；节点名不可靠——
+	# 步枪手臂网格是 Object_10、手枪是 Object_9，两次导出的 Object_N 编号漂移过。
+	# 隐藏对象是 Cransh 自带的枪械渲染件（枪身/消音/镜/弹匣），实机用 EM68A 真模。
 	for node in $ViewModel/ArmsEM68A.find_children("*", "MeshInstance3D", true, false):
-		if node.name != "Object_9":
+		var mesh := (node as MeshInstance3D).mesh
+		if mesh == null or not mesh.resource_name.contains("arms"):
 			(node as MeshInstance3D).visible = false
 
 
