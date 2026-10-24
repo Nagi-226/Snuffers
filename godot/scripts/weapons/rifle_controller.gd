@@ -145,11 +145,11 @@ func _pose_left_arm_mainstream(weight: float = 0.0) -> void:
 		return
 	var to_skel_from_weapon: Transform3D = _arms_skeleton.global_transform.affine_inverse() * _weapon_node.global_transform
 	# 腕目标（武器局部系，坐标来自 EM68A 网格实测 AABB）：护木下表面=下挂榴弹
-	# 模块 gl_module（x±0.046，底面 y=-0.044，z -0.43~-0.11）。腰射——掌心贴
-	# 榴弹筒左下缘、四指朝枪口包握（拳体自腕原点前伸约 6cm，z 取 -0.26 让拳面
-	# 落筒身中段；2026-10-24 机主实机两轮指正：左手必须碰到步枪下方）；ADS——
-	# 保持机主已验收位（弹匣井前下）。
-	var wrist_t := to_skel_from_weapon * Vector3(-0.05, -0.045, -0.26).lerp(Vector3(-0.05, -0.10, -0.16), weight)
+	# 模块 gl_module（x±0.046，底面 y=-0.044，z -0.43[筒口]~-0.11[尾]）。腰射——
+	# 掌心贴榴弹筒左下缘、四指朝枪口包握；z 取 -0.17（筒身后段：2026-10-24 机主
+	# 两轮指正——手须碰到枪身，且 v17 前段位 z-0.26 挡筒口，后撤）；ADS——保持
+	# 机主已验收位（弹匣井前下）。
+	var wrist_t := to_skel_from_weapon * Vector3(-0.05, -0.045, -0.17).lerp(Vector3(-0.05, -0.10, -0.16), weight)
 	# 肩锚与极向量（武器局部偏移转骨架系）：肩从腕沿正下偏后退臂展 94%；
 	# 极向量把肘压向腕下方偏后——上臂/袖管沉画面外，不穿枪身。
 	var shoulder_t := wrist_t + to_skel_from_weapon.basis * (Vector3(0.03, -0.36, 0.14).normalized() * (_arm_upper_len + _arm_fore_len) * 0.94)

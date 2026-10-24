@@ -92,7 +92,7 @@ func _run() -> void:
 		print("PROBE gun_mesh=", mi.name, " aabb_weapon=", local_to_weapon * aabb.position, "..", local_to_weapon * (aabb.position + aabb.size))
 	print("PROBE gun_combined=", combined_min, "..", combined_max)
 	# 护木参考点（与控制器腰射腕目标同参）。
-	var wrist_target: Vector3 = gun_g * Vector3(-0.05, -0.045, -0.26)
+	var wrist_target: Vector3 = gun_g * Vector3(-0.05, -0.045, -0.17)
 	var muzzle_dir: Vector3 = -gun_g.basis.z
 	# 骨轴向约定：basis.y 是否沿骨（肩→肘 / 肘→腕）。
 	var uparm_y: Vector3 = skel.global_transform.basis * skel.get_bone_global_pose(uparm).basis.y
