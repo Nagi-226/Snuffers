@@ -8,8 +8,20 @@
 - **许可证**: CC-BY 4.0（可商用，须署名）——游戏内署名清单需列入 "Rigged FPS Arms by DJMaesen / RafaP (CC-BY 4.0)"
 - **下载日期**: 2026-10-20
 - **本地化改动**（管线 `desktop-port/godot-spike/modeling/arm-candidates/export_arms.py`）:
-  - 骨骼摆姿（数值 CCD IK）握持 EM-68A / EM-57P 后烘焙为静态网格
-  - 底图处理：手腕肤色带涂深、整体压暗偏青蓝（雷暴部队黑色战术风格）
-  - 材质加微弱自发光（夜景可读性）
+  - 保留原网格与骨架，数值摆姿后重定向真实换弹动画；首帧保持原握姿
+  - 底图处理：手腕肤色带涂深、整体压暗偏青蓝；手臂/手掌分面提高夜景可读性
   - 右臂外侧贴 EDAA 徽记布章（徽记源文件 E:\EDAA\EDAA徽记.png，项目自有设定资产）
 - **原始文件**: `desktop-port/godot-spike/modeling/arm-candidates/rigged_fps_arms.glb`（按资产卫生规则不入库）
+
+## Cransh 换弹动画（2026-10-24 重定向入库）
+
+- **步枪**: Animated FPS Hands Rifle Animation Pack，作者 Cransh，使用 FP Arms / bumstrum
+  - https://sketchfab.com/3d-models/animated-fps-hands-rifle-animation-pack-5f2d0ed780a94724b36ab505f7564057
+  - 剪辑 `Armature|Arms_FPS_Anim_Reload_Fast`，重定时为 2.0 秒
+- **手枪**: FPS Pistol Animations，作者 Cransh
+  - https://sketchfab.com/3d-models/fps-pistol-animations-0d7a343dcb6f401197a73c91aee93f6d
+  - 剪辑 `Armature|FPS_Pistol_Reload_full`，重定时为 1.6 秒
+- **许可证**: CC-BY（Sketchfab 资产页标注）——游戏内署名需包含 "Cransh" 及上述两个动画包名称
+- **下载日期**: 2026-10-24
+- **本地化改动**: 60fps 重定向至 RafaP 手臂，36 根手臂/手指骨；源武器坐标对齐、臂长与第一人称取景适配；同源弹匣辅助骨；不使用 Cransh 低模网格
+- **原始文件**: `godot/raw_assets/fps_reload/rifle_crank.glb` / `pistol_crank.glb`（按资产卫生规则不入库）

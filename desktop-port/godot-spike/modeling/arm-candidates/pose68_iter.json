@@ -237,5 +237,15 @@
   0.3,
   -0.05
  ],
- "fp_fov": 75
+ "fp_fov": 75,
+ "emission_strength": 0.8,
+ "albedo_gain": 2.0,
+ "reload": {
+  "source": "godot/raw_assets/fps_reload/rifle_crank.glb",
+  "clip": "Armature|Arms_FPS_Anim_Reload_Fast",
+  "duration": 2.0,
+  "translation_scale": 0.35,
+  "reload_lift": 0.08,
+  "reload_center": 0.12
+ }
 }

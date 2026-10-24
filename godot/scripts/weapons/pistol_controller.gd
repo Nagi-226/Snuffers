@@ -12,20 +12,46 @@ extends WeaponController
 ## 射击模式机制已上收基类（2026-10-19：半自动/三发点射/全自动三档，X 键切换）；
 ## 本子类只保留弹药结算、散布射线与换弹三件套。
 var _is_reloading: bool = false
+var _reload_generation: int = 0
 
-# 程序化换弹动画（同 EM-68A 方案）：弹匣节点带枢轴原点（匣顶面心，DSH 派单 15/17），
-# 绕原点旋转/平移即自然脱匣-插匣。无弹匣节点时静默跳过（灰盒/测试场景兼容）。
+# Cransh 源动画重定向到 RafaP 手臂；magazine_motion 与左手共享同一右手参考系。
 @onready var _magazine: Node3D = get_node_or_null("ViewModel/EM57P/em57p_magazine")
 var _mag_home: Vector3 = Vector3.ZERO
-var _mag_tween: Tween = null
+var _mag_home_basis: Basis = Basis.IDENTITY
+var _arms_animation: AnimationPlayer = null
+var _arms_skeleton: Skeleton3D = null
+var _mag_bone: int = -1
+var _mag_motion_start: Transform3D = Transform3D.IDENTITY
 
 
 func _ready() -> void:
 	super()
 	if _magazine != null:
 		_mag_home = _magazine.position
+		_mag_home_basis = _magazine.basis
+	var players := $ViewModel/ArmsEM57P.find_children("*", "AnimationPlayer", true, false)
+	if not players.is_empty():
+		_arms_animation = players[0] as AnimationPlayer
+	var skeletons := $ViewModel/ArmsEM57P.find_children("*", "Skeleton3D", true, false)
+	if not skeletons.is_empty():
+		_arms_skeleton = skeletons[0] as Skeleton3D
+		_mag_bone = _arms_skeleton.find_bone("magazine_motion")
 	Events.weapon_reload_started.connect(_on_reload_started)
 	Events.weapon_reloaded.connect(_on_weapon_reloaded)
+
+
+func _process(delta: float) -> void:
+	super._process(delta)
+	if not _is_reloading or _arms_skeleton == null:
+		return
+	if _magazine != null and _mag_bone >= 0:
+		var motion := _magazine_motion()
+		_magazine.position = _mag_home + motion.origin - _mag_motion_start.origin
+		_magazine.basis = _mag_home_basis * (_mag_motion_start.basis.inverse() * motion.basis).orthonormalized()
+
+
+func _magazine_motion() -> Transform3D:
+	return _magazine.get_parent().global_transform.affine_inverse() * _arms_skeleton.global_transform * _arms_skeleton.get_bone_global_pose(_mag_bone)
 
 
 func _exit_tree() -> void:
@@ -125,9 +151,11 @@ func _start_reload() -> void:
 		return
 	if GameState.pistol_mag >= weapon_data.mag_size:
 		return
+	_reload_generation += 1
+	var generation := _reload_generation
 	Events.weapon_reload_started.emit(&"pistol")
 	await get_tree().create_timer(weapon_data.reload_time).timeout
-	if not is_instance_valid(self):
+	if not is_instance_valid(self) or generation != _reload_generation:
 		return
 	Events.weapon_reloaded.emit(&"pistol")
 
@@ -138,32 +166,48 @@ func _on_reload_started(weapon_id: StringName) -> void:
 		_play_reload_anim()
 
 
-## 程序化换弹动画：与 EM-68A 同款三段——卸匣（下坠+绕枢轴前倒）→ 空窗滞留 → 插回复位。
 func _play_reload_anim() -> void:
-	if _magazine == null:
-		return
-	if _mag_tween != null and _mag_tween.is_valid():
-		_mag_tween.kill()
-	var t: float = weapon_data.reload_time
-	_magazine.position = _mag_home
-	_magazine.rotation_degrees = Vector3.ZERO
-	_mag_tween = create_tween()
-	_mag_tween.tween_property(_magazine, "position",
-		_mag_home + Vector3(0.0, -0.14, 0.02), t * 0.28) \
-		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	_mag_tween.parallel().tween_property(_magazine, "rotation_degrees:x",
-		28.0, t * 0.28).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	_mag_tween.tween_interval(t * 0.34)
-	_mag_tween.tween_property(_magazine, "position", _mag_home, t * 0.30) \
-		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_mag_tween.parallel().tween_property(_magazine, "rotation_degrees:x",
-		0.0, t * 0.30).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_set_sleeve_extenders_visible(false)
+	if _magazine != null:
+		_magazine.position = _mag_home
+		_magazine.basis = _mag_home_basis
+	if _arms_animation != null and _arms_animation.has_animation(&"reload"):
+		_arms_animation.play(&"reload")
+		_arms_animation.advance(0.0)
+	if _arms_skeleton != null and _mag_bone >= 0:
+		_mag_motion_start = _magazine_motion()
+
+
+func _on_weapon_switched(weapon_id: StringName) -> void:
+	super._on_weapon_switched(weapon_id)
+	if weapon_id != weapon_data.weapon_id:
+		_is_reloading = false
+		_reload_generation += 1
+	_reset_reload_visuals()
+
+
+func _reset_reload_visuals() -> void:
+	if _magazine != null:
+		_magazine.position = _mag_home
+		_magazine.basis = _mag_home_basis
+		_magazine.visible = true
+	if _arms_animation != null and _arms_animation.has_animation(&"reload"):
+		_arms_animation.play(&"reload")
+		_arms_animation.advance(0.0)
+		_arms_animation.stop()
+	_set_sleeve_extenders_visible(true)
+
+
+func _set_sleeve_extenders_visible(value: bool) -> void:
+	for sleeve in $ViewModel/ArmsEM57P.find_children("sleeve_ext_*", "Node3D", true, false):
+		(sleeve as Node3D).visible = value
 
 
 ## 换弹完成：标准弹药迁移（弹匣缺口 ← 备弹），广播 ammo_changed。
 func _on_weapon_reloaded(weapon_id: StringName) -> void:
 	if weapon_id != &"pistol":
 		return
+	_reset_reload_visuals()
 	_is_reloading = false
 	var need: int = weapon_data.mag_size - GameState.pistol_mag
 	var take: int = mini(need, GameState.pistol_reserve)

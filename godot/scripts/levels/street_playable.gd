@@ -8,9 +8,8 @@ func _ready() -> void:
 	var cam := get_node_or_null("StreetTest/OverviewCamera")
 	if cam:
 		cam.queue_free()
-	# 取证钩子：--vm-shot <输出路径> [reload] —— 窗口模式跑真实场景（autoload/脚本
-	# 全量生效，比自定义 SceneTree 探针保真），20 帧稳定后截图退出；带 reload 时
-	# 先触发步枪换弹再在动画中段（约 0.7s）抓拍弹匣脱落姿态。正常游玩路径零变化。
+	# 取证钩子：--vm-shot <输出路径> [pistol] [ads] [fill] [reload] [reload_seconds 秒]
+	# 窗口模式跑真实场景；reload 走实际换弹信号，fill 仅提高取证环境光。正常游玩路径零变化。
 	var args := OS.get_cmdline_user_args()
 	if args.has("--vm-shot"):
 		_vm_shot(args)
@@ -23,6 +22,12 @@ func _vm_shot(args: PackedStringArray) -> void:
 		out_path = args[idx + 1]
 	for i in 20:
 		await get_tree().process_frame
+	if args.has("fill"):
+		for node in find_children("*", "WorldEnvironment", true, false):
+			var env := (node as WorldEnvironment).environment
+			env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+			env.ambient_light_color = Color(0.8, 0.85, 1.0)
+			env.ambient_light_energy = 1.5
 	if args.has("pistol"):
 		# 切到手枪（2 号键位等效；直写状态+广播，与 player_controller._switch_weapon 同序列）
 		GameState.current_weapon = &"pistol"
@@ -36,12 +41,25 @@ func _vm_shot(args: PackedStringArray) -> void:
 		for i in 20:
 			await get_tree().process_frame
 	if args.has("reload"):
-		var rifle := get_node_or_null("Player/Camera3D/WeaponMount/Rifle")
-		if rifle != null and rifle.has_method("_play_reload_anim"):
-			rifle.call("_play_reload_anim")  # 直触动画面数，绕过满弹匣的 _start_reload 守卫
-		for i in 42:
-			await get_tree().process_frame
-		var mag: Node3D = rifle.get_node_or_null("ViewModel/EM68A/em68a_magazine")
+		var weapon := get_node_or_null("Player/Camera3D/WeaponMount/Pistol" if args.has("pistol") else "Player/Camera3D/WeaponMount/Rifle")
+		if weapon == null:
+			push_error("vm-shot: requested weapon is missing")
+			get_tree().quit(1)
+			return
+		var weapon_id := "pistol" if args.has("pistol") else "rifle"
+		GameState.set(weapon_id + "_mag", 0)
+		weapon.call("_start_reload")
+		var reload_frames := 42
+		var reload_idx := args.find("reload_frames")
+		if reload_idx >= 0 and reload_idx + 1 < args.size() and args[reload_idx + 1].is_valid_int():
+			reload_frames = int(args[reload_idx + 1])
+		var seconds_idx := args.find("reload_seconds")
+		if seconds_idx >= 0 and seconds_idx + 1 < args.size() and args[seconds_idx + 1].is_valid_float():
+			await get_tree().create_timer(float(args[seconds_idx + 1])).timeout
+		else:
+			for i in reload_frames:
+				await get_tree().process_frame
+		var mag: Node3D = weapon.get_node_or_null("ViewModel/EM57P/em57p_magazine" if args.has("pistol") else "ViewModel/EM68A/em68a_magazine")
 		if mag != null:
 			print("VM_SHOT mag pos=", mag.position, " rot=", mag.rotation_degrees)
 	if args.has("fire"):
@@ -105,4 +123,8 @@ func _vm_shot(args: PackedStringArray) -> void:
 	var img := get_viewport().get_texture().get_image()
 	img.save_png(out_path)
 	print("VM_SHOT saved=", out_path)
+	if args.has("reload"):
+		var weapon := get_node_or_null("Player/Camera3D/WeaponMount/Pistol" if args.has("pistol") else "Player/Camera3D/WeaponMount/Rifle")
+		if weapon != null and weapon.get("_is_reloading"):
+			await get_tree().create_timer(weapon.weapon_data.reload_time).timeout
 	get_tree().quit()
