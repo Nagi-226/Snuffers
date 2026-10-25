@@ -1121,6 +1121,11 @@ func _dress_facade(parent: Node3D, b: Dictionary, floor_h: float, rng: RandomNum
 			if alley_mode:
 				# 巷弄立面：一层中间开间开后门，其余窗户；无商铺/阳台（背街生活面）
 				if f == 0 and i == n / 2:
+					# rear_yard 车库背面正中=真背门洞（壳体开洞+E键门扇）——套件假门是
+					# 无碰撞纯视觉件，恰好糊住洞口挡视线（2026-10-25 机主报修，
+					# probe_rear_occluder 实证 kit_door 无碰撞祖先悬在洞口）→ 该开间让位
+					if b.get("rear_yard", false) and outward.x > 0.0:
+						continue
 					kind = "door"
 			elif f == 0:
 				# 一层底商：中间开间恒商铺，其余按概率
