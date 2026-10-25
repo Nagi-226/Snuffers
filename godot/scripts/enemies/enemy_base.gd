@@ -108,6 +108,13 @@ func _on_damaged(_amount: float, _attacker_pos: Vector3) -> void:
 	alerted = true
 
 
+## 场景恢复钩子（SceneLink 穿门返回按快照归位后调用，2026-10-25 机主指令
+## 「走前剩谁回来还是谁」）：默认无操作；有巡逻锚点的兵种重写以归位点重锚，
+## 避免敌人跨越半图走回出生点巡逻圈。
+func on_scene_restored() -> void:
+	pass
+
+
 ## 子类钩子：同伴警戒广播反应（默认仅置 alerted；步兵重写做状态跳转）。
 func _on_enemies_alerted(origin: Vector3, radius: float) -> void:
 	if _dead:

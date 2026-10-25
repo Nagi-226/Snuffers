@@ -59,6 +59,13 @@ func _play_animation(clip_name: StringName, restart: bool = false) -> void:
 	_animation_player.play(clip_name, 0.15)
 
 
+## 场景恢复钩子（SceneLink 快照归位后调用）：以归位点为巡逻锚点重新锁定，
+## 敌人从原地继续圆周巡逻，不跨越半图走回出生点。
+func on_scene_restored() -> void:
+	_patrol_center = global_position
+	_patrol_time = randf() * 100.0
+
+
 func _sync_state_animation() -> void:
 	match current_state:
 		State.PATROL:

@@ -6,6 +6,9 @@
 ## GameState/Events/GameConfig 本就是 autoload，弹药/血量等跨场景自动延续）。
 ## 到达端：目标场景里 anchor_id 匹配的 SceneLink 在 _ready 把玩家挪到自身位置
 ## （延迟一帧等玩家就绪），并给 1.2s 触发免疫防止落地即回传。
+## 敌人持久化（2026-10-25 机主指令）：穿门离场前把当前场景存活敌人（死亡者已
+## queue_free 天然不在组内）的名单/位置/血量存进静态快照；返回到达时按快照恢复
+## ——存活者归位回血、不在名单的（离场后阵亡的）移除，不再全量刷新。
 class_name SceneLink
 extends Node3D
 
@@ -13,6 +16,9 @@ extends Node3D
 static var arrive_anchor: String = ""
 ## 到达免疫截止时刻（msec，防到达即再触发回传）。
 static var _immune_until: int = 0
+## 跨场景敌人快照：scene_path → Array[Dictionary]（name/pos/health）。
+## 静态字典随进程存活；每次离场覆盖写同键，初进游戏为空=全量刷新（首次行为不变）。
+static var enemy_snapshots: Dictionary = {}
 
 @export var target_scene: String = ""
 ## 穿门后到达【目标场景】里的哪个锚点（目标场景中 anchor_id 与此相同的
@@ -35,6 +41,7 @@ func _on_body_entered(body: Node3D) -> void:
 	if not ResourceLoader.exists(target_scene):
 		push_warning("SceneLink: 目标场景不存在 %s" % target_scene)
 		return
+	_capture_enemies()
 	SceneLink.arrive_anchor = target_anchor
 	get_tree().change_scene_to_file(target_scene)
 ## 到达时玩家相对本节点的落位偏移（本节点面向由场景摆放决定）。
@@ -50,6 +57,58 @@ func _ready() -> void:
 		SceneLink.arrive_anchor = ""
 		SceneLink._immune_until = Time.get_ticks_msec() + 1200
 		_teleport_player.call_deferred()
+		_restore_enemies.call_deferred()
+
+
+## 离场快照：当前场景存活敌人（group "enemy"；死亡者 _die 已 queue_free，
+## 天然不在组内=快照只含活口）记录节点名/位置/血量，按场景文件路径存静态字典。
+## 节点名=场景文件驻军实例名（Host_F1 等，场景内唯一）。返回快照数组（探针用）。
+func _capture_enemies() -> Array:
+	var snap: Array = []
+	for e in get_tree().get_nodes_in_group(&"enemy"):
+		var eb := e as Node3D
+		if eb == null:
+			continue
+		var hp: float = 1.0
+		var hp_v: Variant = eb.get("health")
+		if hp_v != null:
+			hp = hp_v
+		snap.append({"name": String(eb.name), "pos": eb.global_position, "health": hp})
+	SceneLink.enemy_snapshots[_scene_path()] = snap
+	return snap
+
+
+## 返回恢复（延迟一帧等场景全员入树+入组）：按快照把存活者归位/回血；
+## 不在快照名单里的（离场后才阵亡的）移除——「走前剩谁回来还是谁」。
+## 归位后调 on_scene_restored() 钩子（步兵以此重锚巡逻圈）。
+func _restore_enemies() -> void:
+	if not SceneLink.enemy_snapshots.has(_scene_path()):
+		return
+	var by_name := {}
+	for rec in SceneLink.enemy_snapshots[_scene_path()]:
+		by_name[rec["name"]] = rec
+	for e in get_tree().get_nodes_in_group(&"enemy"):
+		var eb := e as Node3D
+		if eb == null:
+			continue
+		if by_name.has(String(eb.name)):
+			var rec: Dictionary = by_name[String(eb.name)]
+			eb.global_position = rec["pos"]
+			eb.set("health", rec["health"])
+			if eb.has_method(&"on_scene_restored"):
+				eb.call(&"on_scene_restored")
+		else:
+			eb.queue_free()
+
+
+## 本 link 所属场景根的 scene_file_path：从自身向上走到工程根（root）的直接
+## 子节点。不用 get_tree().current_scene——到达端 _ready 时 engine 尚未指派
+## current_scene，自链上行在离场/到达两端都稳定成立。
+func _scene_path() -> String:
+	var n: Node = self
+	while n.get_parent() != null and n.get_parent() != get_tree().root:
+		n = n.get_parent()
+	return n.scene_file_path
 
 
 func _teleport_player() -> void:
