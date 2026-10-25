@@ -46,8 +46,12 @@ func _process(delta: float) -> void:
 
 
 func _on_enemy_fired(kind: StringName, muzzle_position: Vector3) -> void:
+	# 孢子（2026-10-25 机主指令）：真实飞行投射物上线，直线曳光与枪口闪光
+	# 退役——球体自发光+OmniLight 即出手反馈，再画曳光会提前剧透弹道。
+	if kind == &"spore":
+		return
 	_spawn_muzzle_flash(muzzle_position)
-	_spawn_tracer(muzzle_position, kind == &"spore")
+	_spawn_tracer(muzzle_position, false)
 
 
 ## 枪口火光：OmniLight3D 短促点亮（夜战敌位暴露的关键反馈）。

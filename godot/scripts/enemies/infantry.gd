@@ -260,10 +260,12 @@ func _update_engage(player_pos: Vector3, dist: float, can_see: bool) -> void:
 
 
 ## 孢子投掷（寄生体远程手段，非枪械）：
-## 广播 Events.enemy_fired(&"spore", 出手位置)（黏性孢子音效/特效锚点）；
-## 命中结算双门控——①开火瞬间真实视线复核（Eye→玩家胸口，0.1m 严容差堵薄墙穿透）；
-## ②距离 ≤ INFANTRY_SPORE_RANGE（15m，2026-10-22 机主裁决 10→15；超出则孢子够不到，只出手不结算——
-##   调用方已按 10–15m 带门控，本检查为兜底）。
+## 广播 Events.enemy_fired(&"spore", 出手位置)（音效锚点）；距离 ≤ INFANTRY_SPORE_RANGE
+## （15m，2026-10-22 机主裁决 10→15；超出只出手不投球——调用方已按 10–15m 带门控）。
+## 2026-10-25 机主指令：真实飞行孢子团（弧线、可闪避、直击结算，墙体由投射物
+## 扫掠射线自然阻挡）——直线曳光与开火瞬时的即时伤害结算退役。
+const SPORE_PROJECTILE := preload("res://scenes/enemies/spore_projectile.tscn")
+
 func _attack(interval: float) -> void:
 	_attack_cooldown = interval
 	_shots_in_burst += 1
@@ -273,8 +275,13 @@ func _attack(interval: float) -> void:
 	var dist := global_position.distance_to(_get_player_position())
 	if dist > GameConfig.INFANTRY_SPORE_RANGE:
 		return
-	if _fire_ray_clear():
-		_damage_player(GameConfig.INFANTRY_DAMAGE)
+	var spore := SPORE_PROJECTILE.instantiate()
+	var chest := _get_player_position() + Vector3(0.0, 1.2, 0.0)
+	var scene_root: Node = get_tree().current_scene
+	if scene_root == null:
+		scene_root = get_tree().root
+	scene_root.add_child(spore)
+	spore.setup(muzzle_pos, chest, self)
 
 
 ## 近身重击（2026-10-22 机主裁决：寄生体主战手段，≤ MELEE_RANGE 出手）。
