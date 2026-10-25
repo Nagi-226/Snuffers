@@ -129,6 +129,9 @@ func _build_sturdy_gate(row: Node3D) -> void:
 	_add_prop_collider(row, Vector3(0.2, 2.5, open_w - 0.2), Vector3(bx, 1.25, bz))
 	# 锁死的 SceneLink（requires_key；钥匙=E5 车库后院拾取【2026-10-25 三轮裁决，
 	# 原 alley_next 钥匙院入口已拆】；触发区在巷道一侧）
+	# ⚠️ 全部属性必须先 set、最后 add_child 入树——_ready 在入树瞬间执行，彼时
+	# anchor_id 还是空串会让到达分支（传送+敌人恢复）永远不触发（2026-10-25 机主
+	# 实机报修：返回后敌人全量刷新=根因；此前默认出生点恰好可用而长期未暴露）。
 	var link := Node3D.new()
 	link.name = "Link_BGate_E"
 	link.set_script(SCENE_GATE)
@@ -142,12 +145,12 @@ func _build_sturdy_gate(row: Node3D) -> void:
 	shape.shape = box
 	area.add_child(shape)
 	link.add_child(area)   # 触发区先挂子节点，再入树（@onready 时序）
-	row.add_child(link)
 	link.set("target_scene", "res://scenes/levels/district_b.tscn")
 	link.set("target_anchor", "district_b_return")
 	link.set("anchor_id", "street_bgate")
 	link.set("requires_key", true)
 	link.set("spawn_offset", Vector3(0, 0.2, -2.6))
+	row.add_child(link)
 	# 走线发光条（夜里门的可读性，EDAA 蓝色系；长度收进门柱内侧不悬挑）
 	_add_box(row, "BGateGlow", Vector3(bx, 2.66, bz), Vector3(0.05, 0.05, open_w - 0.1), "edaa_blue_glow")
 

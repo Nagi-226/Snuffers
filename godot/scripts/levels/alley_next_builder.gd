@@ -74,11 +74,13 @@ func _ready() -> void:
 	shape.shape = box
 	area.add_child(shape)
 	link.add_child(area)   # 触发区先挂子节点，再入树（@onready 时序）
-	add_child(link)
+	# ⚠️ 属性先 set、最后 add_child 入树——_ready 入树瞬间执行，彼时 anchor_id
+	# 为空会让到达分支（传送+敌人恢复）永远不触发（2026-10-25 机主实机报修根因）。
 	link.set("target_scene", return_scene)
 	link.set("target_anchor", return_target_anchor)
 	link.set("anchor_id", self_anchor)
 	link.set("spawn_offset", Vector3(0, 0.2, -1.5))
+	add_child(link)
 	# —— 补给（电池组=箱堆顶 / 医疗注射=晾衣角箱上）——
 	if ResourceLoader.exists(PICKUP_SCENE_PATH):
 		var pk_scene: PackedScene = load(PICKUP_SCENE_PATH)
