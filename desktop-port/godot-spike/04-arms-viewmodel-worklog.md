@@ -144,3 +144,7 @@ _process 每帧:
 - 复验：侧倾 80°→~30° 贴主流带；0.3s/0.9s 弹匣在手、粘合、无穿模；hold 探针无回归；L1 绿。
 - **素材调研**（B 路线情报，机主要求全面检索）：Sketchfab 含手臂+步 Rifle 换弹的 CC 包最完整者即现用 Cransh（同 URL）；bukkbeek 源已下架（本地仅剩 Kimi 评估渲染件，风格确认主流直立式——若作者重新上架值得首选）；[AKM FPS Animation](https://sketchfab.com/3d-models/akm-fps-animation-a0e1e52051294bebb8a716df9e69434d)（CC-BY，RELOAD/RELOAD2）未确认含手臂；[Miles0707 FPS Arm Rig](https://sketchfab.com/3d-models/fps-arm-rig-18ce86b6b26e4ae1b02d2d695b669b62) 有绑骨无换弹。GitHub Ayush-Mohanty/FPS-Arms-3D（MIT，含 idle/shoot/reload，Godot 就绪）已列入候选清单未评估。
 - 状态：侧倾阻尼**待机主实机验收**；push 因网络中断待补（本地 e817727 已提交）。
+
+**10-25 晚 · 连续动作验收收口（c016e9a）+ EM 电池换电式换弹远期立项**
+- 机主方法论指正：「验收换弹动作而非截图」→ 新工具 `probe_reload_motion.gd`（真实 _start_reload 全管线逐 0.05s 采样）+ 21 帧接触表连续审查。暴露并修复：剪辑 authored 弹匣骨 1.1-1.3s 瞬移交换（547mm/帧）、1.4-2.0s 离井漂浮 0.8m、_magazine_motion 多余 E⁻¹ 共轭甩匣。修复=弹匣路径治理器（合法段跟随/交换瞬间隐藏/回井锁定常显）+counter 10/s 低通。复验 9/10。
+- **远期规划（机主 2026-10-25 指令，待立项）——EM 电池换电式换弹**：EM-68A 为电磁步枪，弹匣即电池，无传统上膛动作，换弹应为「拔匣→插匣」直给式。实现草图：①`_prepare_native_reload` 对复制动画做尾段裁剪（drop 掉 >1.45s 的 keys，即 1.4-2.0 的上膛/收尾动作段），保留抽匣→携行→插匣（0-1.35s，治理器兼容不改）；②换弹时长决策：截后源长 ~1.45s，要么 rifle.tres reload_time 2.0→1.5s（手感平衡变更，须机主拍板+§7 对照表同步），要么按 1.38× 拉伸保 2.0s（动作会显慢）；③裁剪后重跑 probe_reload_motion + 21 帧接触表全量复验。预估半天。当前 Cransh 动作（含上膛收尾）经机主许可先合入 master 过渡使用。
