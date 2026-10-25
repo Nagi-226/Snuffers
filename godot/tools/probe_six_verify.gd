@@ -2,6 +2,8 @@
 ## V1 门A/门B 新位与链路  V2 被替换尽头栏移除+门垛在位  V3 三处窄槽补栏
 ## V4 E5 车库+后门+后院+驻军  V5 车缝（车宽矫正+自行车纵停）通过性
 ## V6 钥匙院扩充（钥匙/补给/返回锚点）  V7 EB 巷新东端栏  V8 验收截图
+## ⚠️ 2026-10-25 三轮整改后本探针过时（V1/V2/V5/V6 断言已反转：门A已拆、
+## 球场西端栏复位、车模不压扁改移位、钥匙移入 E5 后院）——续用 probe_round3.gd
 extends SceneTree
 
 const OUT := "C:/Users/FJL03/AppData/Local/Temp/snuff_shots/"

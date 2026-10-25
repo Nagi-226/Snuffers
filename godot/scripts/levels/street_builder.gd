@@ -52,72 +52,18 @@ const PBR_MAP := {
 }
 
 
-## 篮球场院落西端场景衔接门 A（HL 式穿门加载下一张地图）。
-## 2026-10-25 机主二轮指正：v1 装在东排 E2 西墙外 (6.2,-7.8) ——把西侧栏名
-## Fence_-65_-77 误读成了东座标，实为贴墙错位门（机主图 6）。裁决：钥匙院入口
-## 落在篮球场巷子尽头的既有围挡本体（Fence_-270_-590，x=-27/z=-59）——
-## 砖砌门垛封两端 + 中间 3.4m 双叶栅门（微敞 18°）+ 门洞内 SceneLink 触发区；
-## 玩家穿门 → alley_next 钥匙院，回来落在院内侧锚点。
+## 场景衔接门（HL 式穿门加载下一张地图）。
+## v2（2026-10-25 机主三轮裁决）：篮球场西端的门 A 整体拆除——钥匙改放 E5 车库
+## 后院（本图内可达），球场西端围挡 Fence_-270_-590 由自动密封复位；alley_next
+## 钥匙院场景保留作技术储备（HL 式场景加载已验证可行），机主后续考虑挂在铁栅栏
+## 门 B 后作下一场景过渡。现存门体=flank 巷尽头的坚固铁栅栏门 B（requires_key
+## → district_b，钥匙在 E5 后院拾取）。
 const SCENE_GATE := preload("res://scripts/levels/scene_link.gd")
 
 func _build_scene_gate() -> void:
 	var row := Node3D.new()
 	row.name = "SceneGate"
 	add_child(row)
-	var gx := -27.0        # 球场院落西端围挡线（替换自动密封的尽头铁栏）
-	var gz := -59.0
-	var open_w := 3.4      # 门洞净宽
-	var oz0: float = gz - open_w * 0.5
-	var oz1: float = gz + open_w * 0.5
-	# 被替换的尽头铁栏移除（门体接管其封闭职责）
-	_remove_seal_fence(gx, gz)
-	# 砖砌门垛：封两端至球场院落南北围挡（z -66.4..oz0 / oz1..-51.6，2.4m 高）
-	_add_box(row, "AGatePier_N", Vector3(gx, 1.2, (-66.4 + oz0) * 0.5),
-		Vector3(0.35, 2.4, oz0 - (-66.4)), "brick")
-	_add_box(row, "AGatePier_S", Vector3(gx, 1.2, (oz1 + (-51.6)) * 0.5),
-		Vector3(0.35, 2.4, -51.6 - oz1), "brick")
-	_add_box(row, "AGatePost_N", Vector3(gx, 1.15, oz0 - 0.11), Vector3(0.18, 2.3, 0.18), "metal_dark")
-	_add_box(row, "AGatePost_S", Vector3(gx, 1.15, oz1 + 0.11), Vector3(0.18, 2.3, 0.18), "metal_dark")
-	_add_box(row, "AGateBeam", Vector3(gx, 2.28, gz), Vector3(0.16, 0.12, open_w + 0.4), "metal_dark")
-	# 双门板：竖条镂空板（mat_fence_bars 同款真透视），微敞 18°示意可通过
-	for sz in [-1.0, 1.0]:
-		var panel := Node3D.new()
-		panel.name = "GateDoor_%d" % int(sz)
-		panel.position = Vector3(gx, 0.0, gz + sz * open_w * 0.25)
-		panel.rotation_degrees.y = sz * 18.0
-		row.add_child(panel)
-		var bars := ShaderMaterial.new()
-		bars.shader = load("res://assets/shaders/mat_fence_bars.gdshader")
-		bars.set_shader_parameter("fence_length", open_w * 0.5 - 0.03)
-		var leaf := BoxMesh.new()
-		leaf.size = Vector3(0.03, 1.9, open_w * 0.5 - 0.06)
-		leaf.material = bars
-		var mi := MeshInstance3D.new()
-		mi.name = "Leaf"
-		mi.mesh = leaf
-		mi.position = Vector3(0, 1.05, 0)
-		panel.add_child(mi)
-	# SceneLink：穿门（+X 球场侧触发区）→ alley_next 钥匙院
-	var link := Node3D.new()
-	link.name = "Link_CourtGate"
-	link.set_script(SCENE_GATE)
-	link.position = Vector3(gx + 0.8, 0.0, gz)
-	link.rotation_degrees.y = -90.0   # 局部 -Z 指向 +X：玩家穿门朝西、回程朝东落院内
-	var area := Area3D.new()
-	area.name = "TriggerArea"
-	var shape := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	box.size = Vector3(1.4, 2.6, open_w + 0.2)
-	shape.shape = box
-	area.add_child(shape)
-	link.add_child(area)   # 触发区先挂子节点，再入树（@onready 时序）
-	row.add_child(link)
-	link.set("target_scene", "res://scenes/levels/alley_next.tscn")
-	link.set("target_anchor", "alley_return")
-	link.set("anchor_id", "street_court_gate")
-	link.set("spawn_offset", Vector3(0, 0.2, -2.6))
-	# 走线发光条（夜里门的可读性，EDAA 蓝色系）
-	_add_box(row, "GateGlow", Vector3(gx, 2.4, gz), Vector3(0.05, 0.05, open_w + 0.3), "edaa_blue_glow")
 	_build_sturdy_gate(row)
 
 
@@ -181,7 +127,8 @@ func _build_sturdy_gate(row: Node3D) -> void:
 	_add_box(row, "BGateLock", Vector3(bx - 0.16, 1.15, bz), Vector3(0.14, 0.3, 0.2), "hazard_red")
 	# 门板实体碰撞（锁死门=实体墙；无钥匙撞门、有钥匙进门洞前已被触发区传送）
 	_add_prop_collider(row, Vector3(0.2, 2.5, open_w - 0.2), Vector3(bx, 1.25, bz))
-	# 锁死的 SceneLink（requires_key；钥匙=alley_next 钥匙院拾取；触发区在巷道一侧）
+	# 锁死的 SceneLink（requires_key；钥匙=E5 车库后院拾取【2026-10-25 三轮裁决，
+	# 原 alley_next 钥匙院入口已拆】；触发区在巷道一侧）
 	var link := Node3D.new()
 	link.name = "Link_BGate_E"
 	link.set_script(SCENE_GATE)
@@ -521,6 +468,10 @@ func _build_garage_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Color
 	# 三面墙：东(背) / 南 / 北；西面 = 门楣段 + 两侧垛
 	# rear_yard（2026-10-25 机主图4/图5 裁决：E5 第二车库背门连通楼后后院）：
 	# 背墙让出 1.8m 宽后门洞（z=b.z±0.9，2.3m 净高 + 门楣），玩家穿库进后院。
+	# 三轮裁决补 E 键门扇（door.gd 同款交互）：机主图2 指认「通往车库的那道
+	# 单门」——像可进入建筑门那样 E 键开/关。门垛门楣深灰金属 + 常闭木色门扇，
+	# 铰链在洞北缘；向院内开 +105°（库内车位轿车 NE 角伸进内开扫掠区，
+	# 内开必穿模——背门朝后院外开也是棚屋/车库常见做法）。
 	if b.get("rear_yard", false):
 		var rd0: float = b["z"] - 0.9
 		var rd1: float = b["z"] + 0.9
@@ -530,6 +481,16 @@ func _build_garage_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Color
 			Vector3(0.3, gh, z1 - rd1), pal, tint)
 		_add_box(row, "Gar_%s_RearLintel" % b["id"], Vector3(x1 - 0.15, gh - 0.35, b["z"]),
 			Vector3(0.3, 0.7, 1.8), pal, tint)
+		_add_box(row, "Gar_%s_RearJamb_N" % b["id"], Vector3(x1 - 0.15, 1.15, rd0 - 0.06),
+			Vector3(0.36, 2.3, 0.12), "metal_dark")
+		_add_box(row, "Gar_%s_RearJamb_S" % b["id"], Vector3(x1 - 0.15, 1.15, rd1 + 0.06),
+			Vector3(0.36, 2.3, 0.12), "metal_dark")
+		var rdoor := Node3D.new()
+		rdoor.name = "Gar_%s_RearDoor" % b["id"]
+		rdoor.set_script(load("res://scripts/levels/door.gd"))
+		row.add_child(rdoor)
+		rdoor.setup(Vector3(x1 - 0.15, 0.0, rd0 + 0.09), 1.62, 2.24,
+			105.0, Color(0.30, 0.24, 0.18))
 	else:
 		_add_box(row, "Gar_%s_WallE" % b["id"], Vector3(x1 - 0.15, gh * 0.5, b["z"]),
 			Vector3(0.3, gh, b["d"]), pal, tint)
@@ -565,14 +526,15 @@ func _build_garage_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Color
 		var upper_h: float = b["floors"] * floor_h - gh
 		_add_box(row, "Gar_%s_Upper" % b["id"], Vector3(b["x"], gh + 0.24 + upper_h * 0.5, b["z"]),
 			Vector3(b["w"] - 0.3, upper_h, b["d"] - 0.3), pal, tint)
-	# 车位轿车（复用 Comrade1280 写实车模管线，AABB 碰撞；宽长比矫正同街头车）
+	# 车位轿车（复用 Comrade1280 写实车模管线，AABB 碰撞；模型不矫正——机主
+	# 2026-10-25 三轮裁决车的模型不能变动）
 	var car := Node3D.new()
 	car.name = "Gar_%s_Car" % b["id"]
 	car.position = Vector3(b["x"] + 1.5, 0.14, b["z"] + 1.2)
 	car.rotation_degrees.y = 78.0
 	row.add_child(car)
 	_prop_model(car, "res://assets/models/prop_car_compact.glb", 1.45,
-		Vector3.ONE, Vector3.ZERO, true)
+		Vector3.ONE, Vector3.ZERO)
 	# 车库顶灯（夜里院内可读 + 车库内敌位可见性）
 	var lamp := OmniLight3D.new()
 	lamp.name = "Gar_%s_Lamp" % b["id"]
@@ -583,28 +545,35 @@ func _build_garage_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Color
 	row.add_child(lamp)
 
 
-## 车库后院（2026-10-25 机主图4/图5 裁决）：楼背后一块可探索小院——地面/密封
-## 围栏由 ALLEYS 覆盖带 + 洪水填充自动处理（楼块自动避让），此处只做生活化陈设：
-## 板条箱堆 + 废料箱 + 卧地管道 + 双灯。玩家从车库背门进入，院内有驻军可战。
+## 车库后院（2026-10-25 机主图4/图5 裁决；三轮扩容 x→31 + 钥匙移入）：
+## 楼背后一块可探索院——地面/密封围栏由 ALLEYS 覆盖带 + 洪水填充自动处理
+## （楼块自动避让），此处只做生活化陈设：工作台（三轮裁决：铁栅栏门钥匙放
+## 本院台面上，玩家穿车库抵达背门 E 键开门进院拾取）+ 板条箱堆 + 废料箱
+## + 卧地管道 + 三灯；开源杂物（油桶/胎堆/托盘/交通锥/洗衣机）走 PROPS 表
+## junk_* 条目（x 16.5..31 全院分布）。院内有驻军可战。
 func _build_rear_yard(row: Node3D, b: Dictionary) -> void:
 	var y0: float = b["z"] - b["d"] * 0.5   # 院北缘（同楼北墙线）
 	var y1: float = b["z"] + b["d"] * 0.5   # 院南缘
 	var x0: float = b["x"] + b["w"] * 0.5   # 院西缘（楼背墙面）
-	var cx: float = (x0 + 25.0) * 0.5       # 院东西中线（ALLEYS rect 与布局表对齐）
+	var xe: float = 31.0                    # 院东缘（ALLEYS rect 与布局表对齐）
 	var prefix: String = "Yard_%s_" % b["id"]
-	# 板条箱堆（西北角，贴楼背墙）
-	_add_box(row, prefix + "Crate_A", Vector3(x0 + 1.5, 0.57, y0 + 2.0),
+	# 工作台（背门北侧贴楼背墙；台面钥匙=铁栅栏门 B 的钥匙，三轮裁决）
+	_add_box(row, prefix + "Bench", Vector3(x0 + 0.85, 0.545, y0 + 2.2),
+		Vector3(0.85, 0.95, 2.2), "kerb", Color(0.3, 0.24, 0.16))
+	_spawn_gate_key(row, Vector3(x0 + 0.85, 1.35, y0 + 2.2))
+	# 板条箱堆（西北角，工作台东侧贴北栏）
+	_add_box(row, prefix + "Crate_A", Vector3(x0 + 2.1, 0.57, y0 + 1.4),
 		Vector3(1.2, 1.0, 1.2), "kerb", Color(0.62, 0.5, 0.34))
-	_add_box(row, prefix + "Crate_B", Vector3(x0 + 1.5, 1.42, y0 + 2.0),
+	_add_box(row, prefix + "Crate_B", Vector3(x0 + 2.1, 1.42, y0 + 1.4),
 		Vector3(0.9, 0.7, 0.9), "kerb", Color(0.55, 0.44, 0.3))
-	_add_box(row, prefix + "Crate_C", Vector3(x0 + 2.9, 0.57, y0 + 1.0),
+	_add_box(row, prefix + "Crate_C", Vector3(x0 + 3.5, 0.57, y0 + 0.7),
 		Vector3(1.1, 1.0, 1.1), "kerb", Color(0.58, 0.47, 0.32))
-	# 废料箱（东南角）
+	# 废料箱（南缘偏西）
 	_add_box(row, prefix + "Dumpster", Vector3(23.0, 0.65, y1 - 1.5),
 		Vector3(2.2, 1.3, 1.2), "rust_metal")
 	_add_box(row, prefix + "DumpsterLid", Vector3(23.0, 1.36, y1 - 1.5),
 		Vector3(2.3, 0.1, 1.3), "metal_dark")
-	# 卧地管道（院子中带，纯视觉不挡路）
+	# 卧地管道（院中南带，纯视觉不挡路；避南栏油桶簇）
 	var yard := Node3D.new()
 	yard.name = prefix + "Props"
 	row.add_child(yard)
@@ -617,17 +586,69 @@ func _build_rear_yard(row: Node3D, b: Dictionary) -> void:
 		pipe.material = pipe_mat
 		var mi := MeshInstance3D.new()
 		mi.mesh = pipe
-		mi.position = Vector3(cx, 0.15, b["z"] + 2.6 + 0.45 * float(i))
+		mi.position = Vector3(24.5, 0.15, b["z"] + 1.4 - 0.45 * float(i))
 		mi.rotation_degrees.z = 90.0
 		yard.add_child(mi)
-	# 双灯（北端 + 南端，夜里全院可读）
-	for l in [[x0 + 1.5, 2.6, y0 + 1.2], [23.0, 2.6, y1 - 1.2]]:
+	# 三灯（西北工作台角 / 院心 / 东南角，夜里全院可读）
+	for l in [[x0 + 1.5, 2.6, y0 + 1.2], [(x0 + xe) * 0.5, 2.6, b["z"]], [xe - 1.5, 2.6, y1 - 1.2]]:
 		var lamp := OmniLight3D.new()
 		lamp.position = Vector3(l[0], l[1], l[2])
 		lamp.light_color = Color(0.75, 0.82, 1.0)
 		lamp.light_energy = 1.2
 		lamp.omni_range = 9.0
 		yard.add_child(lamp)
+
+
+## 坚固门钥匙（2026-10-25 三轮裁决：从 alley_next 钥匙院移入本院工作台）：
+## 发光小钥匙浮于台面，触碰拾取。结构与 alley_next_builder._spawn_gate_key 同源
+## （GameState.gate_key_have / Events.message_posted 均为 autoload，零新契约）。
+func _spawn_gate_key(row: Node3D, pos: Vector3) -> void:
+	var pickup := Area3D.new()
+	pickup.name = "GateKeyPickup"
+	pickup.position = pos
+	row.add_child(pickup)
+	var shape := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = 0.55
+	shape.shape = sphere
+	pickup.add_child(shape)
+	var key := Node3D.new()
+	key.name = "Key"
+	pickup.add_child(key)
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.05
+	torus.outer_radius = 0.1
+	ring.mesh = torus
+	ring.position = Vector3(0, 0.1, 0)
+	ring.rotation_degrees.x = 90.0
+	key.add_child(ring)
+	var shaft := MeshInstance3D.new()
+	var teeth := BoxMesh.new()
+	teeth.size = Vector3(0.04, 0.22, 0.04)
+	shaft.mesh = teeth
+	key.add_child(shaft)
+	var mat := StandardMaterial3D.new()
+	mat.emission_enabled = true
+	mat.emission = Color(1.0, 0.8, 0.3)
+	mat.emission_energy_multiplier = 2.0
+	mat.albedo_color = Color(0.9, 0.75, 0.3)
+	ring.material_override = mat
+	shaft.material_override = mat
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(1.0, 0.8, 0.3)
+	glow.light_energy = 1.4
+	glow.omni_range = 3.0
+	pickup.add_child(glow)
+	if GameState.gate_key_have:
+		pickup.queue_free()
+		return
+	pickup.body_entered.connect(func(body: Node3D) -> void:
+		if not body.is_in_group(&"player") or GameState.gate_key_have:
+			return
+		GameState.gate_key_have = true
+		Events.message_posted.emit("取得坚固铁栅栏门的钥匙——回主街，E1/E2 楼间巷子走到尽头开门")
+		pickup.queue_free())
 
 
 ## 可进入楼壳体：外墙（临街面留真门洞）+ 室内地坪 + 中层楼板（楼梯开口）+ 坡道楼梯
@@ -1228,13 +1249,25 @@ func _build_props() -> void:
 				_prop_bistro_set(prop)
 			"trash_bin":
 				_prop_trash_bin(prop)
+			# 后院开源杂物（2026-10-25 三轮批，Poly Pizza CC0，ATTRIBUTION 五-8）：
+			# _prop_model 运行态归一（等比缩放到目标高 + AABB 碰撞 ×0.88）
+			"junk_barrel":
+				_prop_model(prop, "res://assets/models/prop_barrel.glb", 1.1, Vector3.ONE, Vector3.ZERO)
+			"junk_tires":
+				_prop_model(prop, "res://assets/models/prop_tires.glb", 0.65, Vector3.ONE, Vector3.ZERO)
+			"junk_pallet":
+				_prop_model(prop, "res://assets/models/prop_pallet.glb", 0.16, Vector3.ONE, Vector3.ZERO)
+			"junk_cone":
+				_prop_model(prop, "res://assets/models/prop_cone.glb", 0.55, Vector3.ONE, Vector3.ZERO)
+			"junk_washer":
+				_prop_model(prop, "res://assets/models/prop_washer.glb", 0.9, Vector3.ONE, Vector3.ZERO)
 			_:
 				# KayKit City Builder Bits 汽车系（CC0，ATTRIBUTION 五）：目标高 1.45m，
-				# 宽长比矫正见 _prop_model car_aspect（2026-10-25 图3 二轮报修）
+				# 模型不许动（2026-10-25 机主三轮裁决），宽车体空气墙靠 PROPS 挪位解决
 				var t := String(p["type"])
 				if t.begins_with("car_"):
 					if not _prop_model(prop, "res://assets/models/prop_%s.glb" % t,
-							1.45, Vector3.ONE, Vector3.ZERO, true):
+							1.45, Vector3.ONE, Vector3.ZERO):
 						push_warning("street_builder: missing car model prop_%s.glb" % t)
 				else:
 					push_warning("street_builder: unknown prop type %s" % p["type"])
@@ -1313,12 +1346,11 @@ func _make_torus(r_ring: float, r_tube: float) -> TorusMesh:
 
 ## 开源模型道具归一化：量全局包围盒 → 等比缩放到目标高度 → 落地居中 → 附碰撞盒
 ## 模型源任意尺度/原点（poly.pizza GLB 常见厘米级与偏移原点），全部在运行态归一
-## car_aspect（2026-10-25 机主图3 二轮报修根因修复）：KayKit 部分 car 模（wagon/
-## compact/hatchback）建模期水平短轴拉伸失真，宽/长≈0.8~0.9（真车≈0.45，sedan
-## 0.445 天然合规）——「视觉即碰撞」原则下碰撞盒忠实跟随 3.8m 宽=巷口空气墙。
-## 加载期把水平短轴压回 ≤0.55 宽长比（碰撞盒逐轴同步），视觉变正常轿车比例。
+## 车模宽长比（2026-10-25 机主三轮裁决）：曾试过加载期把水平短轴压回 ≤0.55 宽长比
+## 修巷口空气墙，机主否决——「车的模型不能变动」（压扁形变不可接受）。空气墙改为
+## 移车位解决（street_layout_test.gd PROPS 挪位），本函数只做等比归一。
 func _prop_model(prop: Node3D, path: String, target_h: float,
-		collider_size: Vector3, collider_center: Vector3, car_aspect := false) -> bool:
+		collider_size: Vector3, collider_center: Vector3) -> bool:
 	if not ResourceLoader.exists(path):
 		return false
 	var inst: Node3D = (load(path) as PackedScene).instantiate()
@@ -1338,15 +1370,6 @@ func _prop_model(prop: Node3D, path: String, target_h: float,
 		return false
 	var s: float = target_h / aabb.size.y
 	var sc := Vector3.ONE * s
-	if car_aspect:
-		if aabb.size.x >= aabb.size.z:
-			var wr: float = aabb.size.z / aabb.size.x
-			if wr > 0.55:
-				sc.z = s * 0.55 / wr
-		else:
-			var wr2: float = aabb.size.x / aabb.size.z
-			if wr2 > 0.55:
-				sc.x = s * 0.55 / wr2
 	inst.scale = sc
 	inst.position = Vector3(-aabb.get_center().x * sc.x, -aabb.position.y * sc.y, -aabb.get_center().z * sc.z)
 	# 碰撞盒按归一化后的实测视觉包围盒生成（2026-10-25 机主指正：旧写死实车

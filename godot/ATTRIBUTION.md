@@ -113,3 +113,16 @@
 - 入库形态：目录式 .gltf+.bin+textures/（1k diff/nor/arm 三贴图，单套约 2MB）；下载脚本 `raw_assets/fetch_polyhaven_furniture.ps1`。
 - 旧 fur_*.glb（床等 7 件基础件）保留为兜底——fur_bed 无 Poly Haven 对应件继续用旧模；builder 目录式 gltf 优先、单文件 glb 兜底（street_builder._furnish_enterable）。
 - ⚠️ 教训入档：ambientCG/Poly Haven 解包的 .blend/.usdc/.zip 留在 res:// 内会触发无 Blender 的导入器报错并**静默中断全部新文件导入队列**（headless --import 只扫描不导入），原始包一律清理后再导入。
+
+### 五-8 · 后院开源杂物件（2026-10-25 三轮批，Poly Pizza）
+
+| 资产（入库路径 assets/models/） | 模型名 | 作者 | 来源 | 许可证 | 日期 |
+|---|---|---|---|---|---|
+| prop_barrel.glb | Barrel | Kenney | https://poly.pizza/m/orjMeJQfFD | CC0（Public Domain，无署名义务） | 2026-10-25 |
+| prop_tires.glb | Tires | Quaternius | https://poly.pizza/m/mmq7GmG1AK | CC0（Public Domain，无署名义务） | 2026-10-25 |
+| prop_pallet.glb | Pallet | Quaternius | https://poly.pizza/m/cUAsYHDqfD | CC0（Public Domain，无署名义务） | 2026-10-25 |
+| prop_cone.glb | Traffic Cone | Quaternius | https://poly.pizza/m/lAx8JytxGD | CC0（Public Domain，无署名义务） | 2026-10-25 |
+| prop_washer.glb | Washing Machine | Quaternius | https://poly.pizza/m/UFxsKNSl8W | CC0（Public Domain，无署名义务） | 2026-10-25 |
+
+- 用途：E5 车库后院扩容后的生活杂物（2026-10-25 机主三轮指令「增加更多杂物（从开源社区找一下对应素材）」）；`_prop_model` 运行态归一管线，PROPS 表 `junk_*` 类型驱动。
+- 下载方式：模型页内嵌 modelviewer 的 static.poly.pizza UUID 直链（页面不暴露下载 URL，需从页面 HTML 提取）。
