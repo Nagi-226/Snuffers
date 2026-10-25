@@ -272,7 +272,7 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.88, 0.86, 0.8, 0.95)
 theme_override_font_sizes/font_size = 13
-text = "◇ 取证终端 0/2（全图 3 处：E1 二层·E2 三层·E3 车库）"
+text = "◇ 取证终端 0/3（E1 二层·E2 三层·E3 车库）"
 
 ; 顶部滚动罗盘（2026-10-25 机主立项）：N/E/S/W+度数刻度随视角滚动+任务关键点方位标记
 [node name="CompassBar" type="Control" parent="."]

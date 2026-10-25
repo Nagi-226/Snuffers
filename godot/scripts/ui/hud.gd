@@ -101,11 +101,10 @@ func _refresh_mission(force: bool) -> void:
 		else "◇ 铁栅栏门钥匙 0/1（E5 车库后院）")
 	_mission_key.add_theme_color_override("font_color",
 		MISSION_DONE_COLOR if key_done else MISSION_TODO_COLOR)
-	# 终端行：需求 2 台（契约），全图 3 处冗余（E1 二层 / E2 三层 / E3 车库）
-	var loc_hint := "（全图 %d 处：E1 二层·E2 三层·E3 车库）" % intel_total \
-		if intel_total > intel_need else "（E1/E2 楼内）"
+	# 终端行：需求=全图总数（机主四轮裁决 3 台全收），三处位置入文案
 	_mission_intel.text = ("✔ 取证终端 已集齐 %d/%d" % [GameState.intel, intel_total]
-		if intel_done else "◇ 取证终端 %d/%d%s" % [GameState.intel, intel_need, loc_hint])
+		if intel_done else "◇ 取证终端 %d/%d（E1 二层·E2 三层·E3 车库）"
+		% [GameState.intel, intel_need])
 	_mission_intel.add_theme_color_override("font_color",
 		MISSION_DONE_COLOR if intel_done else MISSION_TODO_COLOR)
 	_mission_title.text = ("任务：穿过 E1/E2 巷尽头的铁栅栏门" if key_done and intel_done

@@ -74,7 +74,7 @@ func _run() -> void:
 		" lbl=", intel_lbl.text)
 	player.global_position = Vector3(0, 1.0, -20.0)
 	await _shot(cam, Vector3(0, 1.7, -19.2), Vector3(0, 1.6, -30.0), "m_hud_1of2")
-	# —— M4 门禁拦截：有钥匙、终端 1/2 → 触发区不穿门 ——
+	# —— M4 门禁拦截：有钥匙、终端 1/3 → 触发区不穿门 ——
 	_gs().set("gate_key_have", true)
 	player.global_position = Vector3(21.2, 1.0, 5.0)
 	var blocked: bool = true
@@ -89,8 +89,22 @@ func _run() -> void:
 		print("MISSION_FAIL gate_leak")
 		quit()
 		return
-	# —— M5 补齐终端 → 出区重进触发 → 真实放行 ——
+	# —— M4b 2/3 仍拦（机主四轮报修场景：集齐 3 台才放行）——
 	_gs().set("intel", 2)
+	player.global_position = Vector3(17.0, 1.0, 5.0)
+	for i in 5:
+		await process_frame
+	player.global_position = Vector3(21.2, 1.0, 5.0)
+	var blocked2: bool = true
+	for i in 90:
+		await process_frame
+		var cs: Node = current_scene
+		if cs != null and String(cs.scene_file_path).ends_with("district_b.tscn"):
+			blocked2 = false
+			break
+	print("M4B_TWO_STILL_BLOCKED blocked=", blocked2, "(期望true=2/3不放行)")
+	# —— M5 补齐 3 台 → 出区重进触发 → 真实放行 ——
+	_gs().set("intel", 3)
 	player.global_position = Vector3(17.0, 1.0, 5.0)
 	for i in 5:
 		await process_frame

@@ -38,12 +38,13 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	if Time.get_ticks_msec() < SceneLink._immune_until:
 		return
-	# 门禁两连（2026-10-25 机主指令：钥匙之外还需 2 个取证终端，缺啥报啥）
+	# 门禁两连（2026-10-25 机主指令：钥匙之外还需取证终端，缺啥报啥；
+	# 需求 3 台=机主四轮裁决「拿到3个才完成」）
 	if requires_key and not GameState.gate_key_have:
 		Events.message_posted.emit("铁栅栏门被重型锁扣死——需要找到钥匙（E5 车库后院）")
 		return
 	if requires_key and GameState.intel < GameConfig.GATE_INTEL_REQUIRED:
-		Events.message_posted.emit("门禁校验未通过——取证终端 %d/%d（E1/E2 楼内）"
+		Events.message_posted.emit("门禁校验未通过——取证终端 %d/%d（E1 二层·E2 三层·E3 车库）"
 			% [GameState.intel, GameConfig.GATE_INTEL_REQUIRED])
 		return
 	if not ResourceLoader.exists(target_scene):
