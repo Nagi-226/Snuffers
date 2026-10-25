@@ -461,8 +461,8 @@ func _build_garage_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Color
 	# 朝向：东西排临街面=西面(x0)；门楼/横街排沿原 face 规则——本项目车库仅
 	# 东西排使用（E3），按 x0 开门。
 	var door_w := 4.0
-	var dx0: float = b["x"] - door_w * 0.5
-	var dx1: float = b["x"] + door_w * 0.5
+	var dz0: float = b["z"] - door_w * 0.5   # 门洞沿 Z 展开（临街面为 X=x0 平面）
+	var dz1: float = b["z"] + door_w * 0.5
 	# 地坪 + 天花板（与二层楼板一体）
 	_add_box(row, "Gar_%s_Floor" % b["id"], Vector3(b["x"], 0.07, b["z"]),
 		Vector3(b["w"], 0.14, b["d"]), "kerb", Color(0.55, 0.55, 0.55))
@@ -477,10 +477,10 @@ func _build_garage_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Color
 		Vector3(b["w"], gh, 0.3), pal, tint)
 	_add_box(row, "Gar_%s_Lintel" % b["id"], Vector3(x0 + 0.15, gh - 0.35, b["z"]),
 		Vector3(0.3, 0.7, door_w), pal, tint)
-	_add_box(row, "Gar_%s_JambS" % b["id"], Vector3(x0 + 0.15, gh * 0.5, (dx1 + z1) * 0.5),
-		Vector3(0.3, gh, z1 - dx1), pal, tint)
-	_add_box(row, "Gar_%s_JambN" % b["id"], Vector3(x0 + 0.15, gh * 0.5, (z0 + dx0) * 0.5),
-		Vector3(0.3, gh, dx0 - z0), pal, tint)
+	_add_box(row, "Gar_%s_JambS" % b["id"], Vector3(x0 + 0.15, gh * 0.5, (dz1 + z1) * 0.5),
+		Vector3(0.3, gh, z1 - dz1), pal, tint)
+	_add_box(row, "Gar_%s_JambN" % b["id"], Vector3(x0 + 0.15, gh * 0.5, (z0 + dz0) * 0.5),
+		Vector3(0.3, gh, dz0 - z0), pal, tint)
 	# 半开卷帘门帘（挂门楣下沿，横纹金属板，可穿过下方 2.3m 净空）
 	var shutter := Node3D.new()
 	shutter.name = "Gar_%s_Shutter" % b["id"]

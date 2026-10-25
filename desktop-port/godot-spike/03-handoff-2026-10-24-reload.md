@@ -107,3 +107,23 @@ godot --path godot res://scenes/levels/street_playable.tscn -- \
 **给下一棒的关键坐标**（武器局部系，EM68A AABB 实测）：枪身半宽 ±0.049；榴弹筒 x±0.046/y底-0.044/z-0.43(口)~-0.11(尾)；弹匣井 z-0.11~0.04；瞄具窗心见 GameConfig.ADS_RIFLE_OPTIC_BORE_LOCAL。手腕目标最终值：腰射 (-0.05,-0.045,-0.17) / ADS (-0.05,-0.10,-0.16)。
 
 **合入**：机主 2026-10-24 明确授权 dev1 → master 快进合入（15 提交，零分叉）。
+
+## 追记五（ZCode，2026-10-25 全天）：世界观实装六连——孢子/榴弹/夜视/敌人动效/材质/家具/关卡衔接
+
+**机主验收节奏**：每项实机验收通过后立合入 master（当日 master 已三次快进至 d97631d，dev1 继续 d68f488）。
+
+**交付清单**（含提交哈希）：
+- 孢子音画（700df8b/3c2e6cd）：投掷节奏对齐 2.63s 攻击剪辑；音效降调增重 -20LUFS；真实飞行孢子团（弧线 14m/s 荃光球+溅落+直击随机部位）替代直线曳光/即时伤害。
+- 榴弹三段杀伤（128bfdf/50e6dfc）：10m 内 750 / 10-15m 半伤 375 / >15m 无伤 / 无视墙体；根因一：旧 9999 即杀参数；根因二：intersect_shape 32 上限被静态墙占满（探针透视实锤）→ 改 enemy/bunker 组遍历测距。
+- 夜视仪（128bfdf）：vm-shot fill 式环境光抬升融入（NIGHT_VISION_AMBIENT 契约常量）+ 磷光膜保留。
+- 敌人移动抽动（3baf644）：60Hz 物理帧 × 高刷渲染 × 无 3D 插值 → 开启 physics/common/physics_interpolation 主开关。
+- 建筑 PBR 材质（0bdd535）：ambientCG CC0 六组 18 图三平面世界空间；教训：**raw_assets 解包 .blend 会静默中断 Godot 全部新文件导入队列**。
+- 家具/咖啡馆写实化（668c7af/d97631d）：Poly Haven painted_wooden 六件；咖啡馆同套桌椅。
+- 载具碰撞（668c7af/d68f488）：写死实车尺寸→实测视觉 AABB×0.88 收缩（细骨架件 AABB 虚胖，车缝空气墙根治）。
+- 楼梯穿模护栏+空气墙（d97631d）：非顶段 C 排护栏被上段踏步穿过（同源 bug 一修两愈）。
+- 车库 E3（d68f488+本提交）：layout garage 标志 + _build_garage_shell（三面墙+4m 卷帘门洞+半开门帘+库内轿车+驻军 Host_G1）；本提交修正门洞轴向 bug（负尺寸巨垛）。
+- HL 式场景衔接 + 钥匙链（d97631d/d68f488+本提交）：门A（巷口，自由穿）→ alley_next 钥匙院（发光钥匙拾取，GameState.gate_key_have）→ 回主街开坚固门B（E1/E2 巷道尽头 14.1/8.0，requires_key 门禁）→ district_b 下一街区 stub；SceneLink 静态锚点零契约变更；**时序红线：TriggerArea 必须先挂子再入树**（@onready null 坑，三处全修）。
+
+**验证工具沉淀**：tools/probe_attack_clip / probe_reload_motion / probe_grenade_fire / probe_stairwell / probe_four_features（全部 headless 数值取证）。
+
+**方法论教训**：①视觉分析器指标式提问虚报达标，动态效果必须连续动作取证；②vm-shot 证据须 grep 日志；③Godot 运行时建节点的 find_children 须 owned=false。

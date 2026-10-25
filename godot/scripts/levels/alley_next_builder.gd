@@ -38,11 +38,6 @@ func _ready() -> void:
 	link.set_script(SCENE_GATE)
 	link.position = Vector3(0, 0, 8.0)
 	link.rotation_degrees.y = 180.0
-	add_child(link)
-	link.set("target_scene", return_scene)
-	link.set("target_anchor", return_target_anchor)
-	link.set("anchor_id", self_anchor)
-	link.set("spawn_offset", Vector3(0, 0.2, -1.5))
 	var area := Area3D.new()
 	area.name = "TriggerArea"
 	var shape := CollisionShape3D.new()
@@ -50,7 +45,12 @@ func _ready() -> void:
 	box.size = Vector3(2.0, 2.4, 1.2)
 	shape.shape = box
 	area.add_child(shape)
-	link.add_child(area)
+	link.add_child(area)   # 触发区先挂子节点，再入树（@onready 时序）
+	add_child(link)
+	link.set("target_scene", return_scene)
+	link.set("target_anchor", return_target_anchor)
+	link.set("anchor_id", self_anchor)
+	link.set("spawn_offset", Vector3(0, 0.2, -1.5))
 	# 院内照明（夜战可读性）
 	var lamp := OmniLight3D.new()
 	lamp.position = Vector3(0, 3.4, 0)
