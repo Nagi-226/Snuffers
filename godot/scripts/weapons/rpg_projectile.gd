@@ -17,8 +17,6 @@
 ## - 玩家零自伤（GameConfig.GRENADE_SELF_DAMAGE=false，经发射方 RID 排除实现）。
 extends Node3D
 
-const HitSolver = preload("res://scripts/weapons/hit_solver.gd")
-
 var _velocity: Vector3 = Vector3.ZERO
 var _excludes: Array[RID] = []
 var _data: WeaponData
@@ -77,39 +75,31 @@ func _explode(at: Vector3) -> void:
 
 
 func _apply_area_damage(at: Vector3) -> void:
-	var space := get_world_3d().direct_space_state
-	var shape := SphereShape3D.new()
-	shape.radius = _data.explode_radius
-	var params := PhysicsShapeQueryParameters3D.new()
-	params.shape = shape
-	params.transform = Transform3D(Basis.IDENTITY, at)
-	params.collide_with_areas = true
-	params.exclude = _excludes
-
-	var damaged: Array[Node] = []
-	for result in space.intersect_shape(params, 32):
-		var collider: Object = result.collider
-
-		# 碉堡特杀：判定半径 = 爆径 + 加成（index.html L1593-1610）。
-		var bunker := HitSolver.find_group_ancestor(collider, &"bunker")
-		if bunker != null:
-			if bunker.global_position.distance_to(at) <= _data.explode_radius + _data.bunker_radius_bonus:
-				if bunker.has_method(&"destroy"):
-					bunker.destroy()
-					# G2 冻结契约：碉堡全图唯一，信号无参数；destroy() 鸭子调用保留为投递机制。
-					Events.bunker_destroyed.emit()
+	# 目标枚举：group 遍历（enemy/bunker），非物理球形查询（2026-10-25 修复：
+	# 半径扩到 15m 后 intersect_shape 的 32 结果上限被密集街区静态墙体占满，
+	# 敌人挤不进枚举=榴弹零杀伤回归，机主实机「杀伤效果没了」指认+探针透视
+	# shape_results=32 全为 StaticBody 实锤）。group 遍历无上限、天然无视墙体
+	# 遮挡（机主 2026-10-25 口径：杀伤圈内无视建筑障碍），静态物不参与结算。
+	# 玩家不参与（GRENADE_SELF_DAMAGE=false 沿用排除口径）。
+	for target in get_tree().get_nodes_in_group(&"enemy"):
+		if not is_instance_valid(target) or not target.has_method(&"take_damage"):
 			continue
-
-		var target := HitSolver.find_damageable(collider)
-		if target == null or damaged.has(target):
-			continue
-		damaged.append(target)
-		# 两段伤害圈（2026-10-22 机主裁决）：爆心 KILL_RADIUS(5m) 内必杀；
-		# 必杀圈–EXPLODE_RADIUS(10m) 过渡带半伤（450×0.5=225）；10m 外球形查询本身不覆盖。
-		# 不分部位；玩家由发射方 RID 排除（SELF_DAMAGE=false 口径）。
 		var blast_dist: float = (target as Node3D).global_position.distance_to(at)
+		if blast_dist > _data.explode_radius:
+			continue
+		# 两段伤害圈（2026-10-25 机主裁决）：10m 必杀圈内定值 750；10–15m 过渡带
+		# 半伤 375；15m 外不结算。
 		var dmg: float = _data.explode_kill_damage if blast_dist <= _data.explode_kill_radius \
 			else _data.explode_damage * _data.explode_falloff_factor
-		target.take_damage(dmg, false)
+		(target as Node).take_damage(dmg, false)
 		# G2 冻结契约：HUD 伤害飘字；take_damage 鸭子调用保留为投递机制。
 		Events.damage_dealt.emit(dmg, false)
+	# 碉堡特杀：判定半径 = 爆径 + 加成（index.html L1593-1610）。
+	for bunker in get_tree().get_nodes_in_group(&"bunker"):
+		if not is_instance_valid(bunker):
+			continue
+		if (bunker as Node3D).global_position.distance_to(at) <= _data.explode_radius + _data.bunker_radius_bonus:
+			if bunker.has_method(&"destroy"):
+				bunker.destroy()
+				# G2 冻结契约：碉堡全图唯一，信号无参数；destroy() 鸭子调用保留为投递机制。
+				Events.bunker_destroyed.emit()
