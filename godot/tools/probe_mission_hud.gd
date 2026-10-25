@@ -45,9 +45,11 @@ func _run() -> void:
 	var i1: Node3D = lv.find_child("Pickup_intel_1", true, false)
 	var i4: Node3D = lv.find_child("Pickup_intel_4", true, false)
 	var i8: Node3D = lv.find_child("Pickup_intel_8", true, false)
-	print("M1B_SPOTS E1_2F_y=", snappedf(i1.position.y, 0.01), "(期望3.86)",
-		" E2_3F_y=", snappedf(i4.position.y, 0.01), "(期望6.86)",
-		" E3_garage=", i8 != null, " pos=", i8.position.round() if i8 else "-")
+	var g9: Node3D = lv.find_child("Pickup_grenade_9", true, false)
+	print("M1B_SPOTS E1_2F_y=", snappedf(i1.position.y, 0.01), "(期望≈3.86)",
+		" E2_3F_y=", snappedf(i4.position.y, 0.01), "(期望≈6.86)",
+		" E3_garage=", i8 != null, " pos=", i8.position.round() if i8 else "-",
+		" grenade=", g9 != null)
 	# —— M2 HUD 节点 + 初始文案（按名直找，避开多 CanvasLayer 歧义）——
 	var panel: Control = lv.find_child("MissionPanel", true, false)
 	var compass: Control = lv.find_child("CompassBar", true, false)
@@ -72,6 +74,13 @@ func _run() -> void:
 	print("M3_PICKUP intel=", _gs().get("intel"), "(期望1)",
 		" points=", _gs().get("mission_points").size(), "(期望3)",
 		" lbl=", intel_lbl.text)
+	# —— M3b 榴弹补给（E3 车库车位旁；雷池 30+6=36）——
+	var nades0: int = _gs().get("rifle_grenades")
+	player.global_position = Vector3(10.8, 1.0, -15.6)
+	for i in 30:
+		await process_frame
+	print("M3B_GRENADE before=", nades0, " after=", _gs().get("rifle_grenades"),
+		"(期望+6) node_gone=", lv.find_child("Pickup_grenade_9", true, false) == null)
 	player.global_position = Vector3(0, 1.0, -20.0)
 	await _shot(cam, Vector3(0, 1.7, -19.2), Vector3(0, 1.6, -30.0), "m_hud_1of2")
 	# —— M4 门禁拦截：有钥匙、终端 1/3 → 触发区不穿门 ——
@@ -151,13 +160,19 @@ func _run() -> void:
 	var back_lv: Node = current_scene
 	var pickups_alive: int = back_lv.get_tree().get_nodes_in_group(&"pickup").size()
 	var gone: bool = back_lv.find_child("Pickup_intel_1", true, false) == null
+	var nade_gone: bool = back_lv.find_child("Pickup_grenade_9", true, false) == null
+	var key_gone: bool = back_lv.find_child("GateKeyPickup", true, false) == null
 	var kept4: bool = back_lv.find_child("Pickup_intel_4", true, false) != null
 	var kept8: bool = back_lv.find_child("Pickup_intel_8", true, false) != null
 	var mp2: Dictionary = _gs().get("mission_points")
-	print("M6_PERSIST back=", back, " pickups_alive=", pickups_alive, "(期望8=9-已拾1)",
-		" intel1_gone=", gone, "(期望true) intel4_kept=", kept4, " intel8_kept=", kept8,
+	print("M6_PERSIST back=", back, " pickups_alive=", pickups_alive,
+		"(期望8=10拾取件-已拾2·钥匙已得跳生)",
+		" intel1_gone=", gone, "(期望true) grenade_gone=", nade_gone, "(期望true)",
+		" key_gone=", key_gone, "(期望true=已得不再生成)",
+		" intel4_kept=", kept4, " intel8_kept=", kept8,
 		" points=", mp2.size(), "(期望3)",
 		" lbl=", intel_lbl.text if is_instance_valid(intel_lbl) else "-")
-	var ok: bool = back and pickups_alive == 8 and gone and kept4 and kept8 and mp2.size() == 3
+	var ok: bool = back and pickups_alive == 8 and gone and nade_gone and key_gone \
+		and kept4 and kept8 and mp2.size() == 3
 	print("MISSION_", "PASS" if ok else "FAIL")
 	quit()

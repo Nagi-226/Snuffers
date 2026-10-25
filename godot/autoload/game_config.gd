@@ -70,6 +70,7 @@ const PICKUP_TRIGGER_RADIUS: float = 0.7 ## 拾取触发半径（贴近即拾，
 const PICKUP_BOB_AMP: float = 0.05 ## 浮动振幅 m
 const PICKUP_BOB_HZ: float = 1.2 ## 浮动频率 Hz
 const PICKUP_SPIN_DEG: float = 45.0 ## 自转角速度 度/s
+const GRENADE_PICKUP_ROUNDS: int = 6 ## 榴弹补给件补充数（2026-10-25 机主立项；雷池总数制无上限）
 
 # ===== 铁栅栏门门禁（2026-10-25 机主指令：门 B 通行前置=钥匙 + 取证终端；
 #       需求量 3 台=机主四轮裁决「拿到3个才完成」，全图恰 3 处须全部收集）=====

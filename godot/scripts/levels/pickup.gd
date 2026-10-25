@@ -19,6 +19,8 @@ const MODELS := {
 	&"pistol_ammo": "res://assets/models/pickup_pistol_ammo.glb",
 	&"medkit": "res://assets/models/pickup_medkit.glb",
 	&"intel": "res://assets/models/pickup_intel.glb",
+	# 榴弹补给（2026-10-25 机主立项）：复用项目自有 EM-40G 弹体模型，放大 2.5 倍做悬浮件
+	&"grenade": "res://assets/models/weapons/em40g_grenade.glb",
 }
 
 
@@ -36,6 +38,8 @@ func _ready() -> void:
 	if path != "" and ResourceLoader.exists(path):
 		var inst: Node3D = (load(path) as PackedScene).instantiate()
 		inst.name = "Visual"
+		if kind == &"grenade":
+			inst.scale = Vector3.ONE * 2.5  # 弹体原生 0.2m，放大到拾取物可读尺寸
 		add_child(inst)
 	_base_y = position.y
 	_phase = randf() * TAU  # 逐件相位错开，去同步感
@@ -80,6 +84,12 @@ func _on_body_entered(body: Node3D) -> void:
 			GameState.mission_points.erase(String(name))  # 任务标记收尾（小地图/罗盘）
 			Events.intel_picked.emit(GameState.intel, intel_total)
 			Events.message_posted.emit("取证终端已回收  %d / %d" % [GameState.intel, intel_total])
+		&"grenade":
+			# 榴弹补给（雷池总数制无上限；ammo_changed 联动榴档弹药显示）
+			GameState.rifle_grenades += GameConfig.GRENADE_PICKUP_ROUNDS
+			Events.ammo_changed.emit(&"rifle", GameState.rifle_mag, GameState.rifle_reserve)
+			Events.message_posted.emit("EM-40G 滚雷榴弹 +%d（雷池 %d）"
+				% [GameConfig.GRENADE_PICKUP_ROUNDS, GameState.rifle_grenades])
 		_:
 			push_warning("pickup: unknown kind %s" % kind)
 			return
