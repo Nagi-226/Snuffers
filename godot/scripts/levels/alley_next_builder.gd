@@ -6,6 +6,12 @@ extends Node3D
 
 const SCENE_GATE := preload("res://scripts/levels/scene_link.gd")
 
+## 场景参数（同脚本双用：alley_next=钥匙院 / district_b=下一街区 stub）。
+@export var key_spawn := true                       ## 钥匙院摆钥匙拾取
+@export var return_scene := "res://scenes/levels/street_playable.tscn"
+@export var return_target_anchor := "street_alley_gate"
+@export var self_anchor := "alley_return"
+
 
 func _ready() -> void:
 	_world_env()
@@ -33,9 +39,9 @@ func _ready() -> void:
 	link.position = Vector3(0, 0, 8.0)
 	link.rotation_degrees.y = 180.0
 	add_child(link)
-	link.set("target_scene", "res://scenes/levels/street_playable.tscn")
-	link.set("target_anchor", "street_alley_gate")
-	link.set("anchor_id", "alley_return")
+	link.set("target_scene", return_scene)
+	link.set("target_anchor", return_target_anchor)
+	link.set("anchor_id", self_anchor)
 	link.set("spawn_offset", Vector3(0, 0.2, -1.5))
 	var area := Area3D.new()
 	area.name = "TriggerArea"
@@ -52,6 +58,60 @@ func _ready() -> void:
 	lamp.light_energy = 1.2
 	lamp.omni_range = 12.0
 	add_child(lamp)
+	if key_spawn:
+		_spawn_gate_key()
+
+
+## 坚固门钥匙（2026-10-25 机主任务链：本院找到钥匙 → 回主街开 E1/E2 巷子
+## 尽头的重型铁门进下一街区）。发光小钥匙浮于木箱上，触碰拾取。
+func _spawn_gate_key() -> void:
+	var crate := _box("KeyCrate", Vector3(-5.5, 0.5, 5.0), Vector3(1.0, 1.0, 1.0), Color(0.3, 0.24, 0.16))
+	var pickup := Area3D.new()
+	pickup.name = "GateKeyPickup"
+	pickup.position = Vector3(-5.5, 1.35, 5.0)
+	add_child(pickup)
+	var shape := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = 0.55
+	shape.shape = sphere
+	pickup.add_child(shape)
+	var key := Node3D.new()
+	key.name = "Key"
+	pickup.add_child(key)
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.05
+	torus.outer_radius = 0.1
+	ring.mesh = torus
+	ring.position = Vector3(0, 0.1, 0)
+	ring.rotation_degrees.x = 90.0
+	key.add_child(ring)
+	var shaft := MeshInstance3D.new()
+	var teeth := BoxMesh.new()
+	teeth.size = Vector3(0.04, 0.22, 0.04)
+	shaft.mesh = teeth
+	key.add_child(shaft)
+	var mat := StandardMaterial3D.new()
+	mat.emission_enabled = true
+	mat.emission = Color(1.0, 0.8, 0.3)
+	mat.emission_energy_multiplier = 2.0
+	mat.albedo_color = Color(0.9, 0.75, 0.3)
+	ring.material_override = mat
+	shaft.material_override = mat
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(1.0, 0.8, 0.3)
+	glow.light_energy = 1.4
+	glow.omni_range = 3.0
+	pickup.add_child(glow)
+	if GameState.gate_key_have:
+		pickup.queue_free()
+		return
+	pickup.body_entered.connect(func(body: Node3D) -> void:
+		if not body.is_in_group(&"player") or GameState.gate_key_have:
+			return
+		GameState.gate_key_have = true
+		Events.message_posted.emit("取得坚固铁栅栏门的钥匙——回主街 E1/E2 巷子尽头开门")
+		pickup.queue_free())
 
 
 func _world_env() -> void:

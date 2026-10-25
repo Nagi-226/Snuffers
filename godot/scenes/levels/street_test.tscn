@@ -45,8 +45,12 @@ script = ExtResource("Script_skyline")
 ; 可进入建筑驻军（甲方案：复用步兵状态机，无玩家时原地巡逻）
 ; E1：Host_F1 一楼东房（搜索房），Host_F2 二楼南房
 ; E2（3 层，2026-10-07）：Host_E2_F1 一楼东房，Host_E2_F3 三楼南房（二楼留巡逻动线）
+; E3 车库（2026-10-25 机主指令：卷帘门楼改可进入车库）：Host_G1 库内西北角驻守
 [node name="Host_F1" parent="." instance=ExtResource("Scene_infantry")]
 position = Vector3(13.5, 0.15, 18.0)
+
+[node name="Host_G1" parent="." instance=ExtResource("Scene_infantry")]
+position = Vector3(8.5, 0.22, -20.0)
 
 [node name="Host_F2" parent="." instance=ExtResource("Scene_infantry")]
 position = Vector3(12.5, 3.05, 20.5)

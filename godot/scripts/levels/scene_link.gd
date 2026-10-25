@@ -19,6 +19,24 @@ static var _immune_until: int = 0
 ## SceneLink 负责接人；空=用目标场景默认出生点）。
 @export var target_anchor: String = ""
 @export var anchor_id: String = ""
+## 锁门（2026-10-25 机主裁决：E1/E2 巷子尽头=坚固铁栅栏门，单人几乎破不开，
+## 需在钥匙场景取得钥匙）：true 时无钥匙只提示不穿门。
+@export var requires_key := false
+
+
+func _on_body_entered(body: Node3D) -> void:
+	if target_scene == "" or not body.is_in_group(&"player"):
+		return
+	if Time.get_ticks_msec() < SceneLink._immune_until:
+		return
+	if requires_key and not GameState.gate_key_have:
+		Events.message_posted.emit("铁栅栏门被重型锁扣死——需要找到钥匙")
+		return
+	if not ResourceLoader.exists(target_scene):
+		push_warning("SceneLink: 目标场景不存在 %s" % target_scene)
+		return
+	SceneLink.arrive_anchor = target_anchor
+	get_tree().change_scene_to_file(target_scene)
 ## 到达时玩家相对本节点的落位偏移（本节点面向由场景摆放决定）。
 @export var spawn_offset: Vector3 = Vector3(0, 0.2, -1.5)
 
@@ -45,15 +63,3 @@ func _teleport_player() -> void:
 	# 顶层 Node（玩家 yaw 载体）朝向门内方向。
 	if player.has_method(&"_face_position"):
 		player.call("_face_position", global_position + basis * Vector3(0, 0, -10))
-
-
-func _on_body_entered(body: Node3D) -> void:
-	if target_scene == "" or not body.is_in_group(&"player"):
-		return
-	if Time.get_ticks_msec() < SceneLink._immune_until:
-		return
-	if not ResourceLoader.exists(target_scene):
-		push_warning("SceneLink: 目标场景不存在 %s" % target_scene)
-		return
-	SceneLink.arrive_anchor = target_anchor
-	get_tree().change_scene_to_file(target_scene)

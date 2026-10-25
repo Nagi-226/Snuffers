@@ -43,6 +43,9 @@ var mission_phase: MissionPhase = MissionPhase.INFILTRATE
 var night_vision: bool = false
 ## 昼夜模式运行时状态（DayNightController 维护；true=黑夜。夜视仪白天禁开——§11.2；蜂后集成 2026-07-30）
 var is_night: bool = true
+## E1/E2 巷子尽头坚固铁栅栏门的钥匙（2026-10-25 机主裁决的任务链：门A场景=找钥匙，
+## 持钥匙开坚固门B进入下一街区；SceneLink.requires_key 消费。reset() 不清——跨场景任务态）
+var gate_key_have: bool = false
 
 
 func _ready() -> void:

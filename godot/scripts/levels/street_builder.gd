@@ -90,10 +90,6 @@ func _build_scene_gate() -> void:
 	link.name = "Link_AlleyGate_E"
 	link.set_script(SCENE_GATE)
 	link.position = Vector3(gx - 0.4, 0.0, gz)
-	row.add_child(link)
-	link.set("target_scene", "res://scenes/levels/alley_next.tscn")
-	link.set("target_anchor", "alley_return")
-	link.set("anchor_id", "street_alley_gate")
 	var area := Area3D.new()
 	area.name = "TriggerArea"
 	var shape := CollisionShape3D.new()
@@ -101,9 +97,64 @@ func _build_scene_gate() -> void:
 	box.size = Vector3(1.2, 2.4, 2.0)
 	shape.shape = box
 	area.add_child(shape)
-	link.add_child(area)
+	link.add_child(area)   # 触发区先挂子节点，再入树（@onready 时序）
+	row.add_child(link)
+	link.set("target_scene", "res://scenes/levels/alley_next.tscn")
+	link.set("target_anchor", "alley_return")
+	link.set("anchor_id", "street_alley_gate")
 	# 走线发光条（夜里门的可读性，EDAA 蓝色系）
 	_add_box(row, "GateGlow", Vector3(gx, 2.16, gz), Vector3(0.05, 0.05, 2.3), "edaa_blue_glow")
+	_build_sturdy_gate(row)
+
+
+## 坚固铁栅栏门 B（2026-10-25 机主裁决：E1/E2 巷子尽头=通往下一场景，重型双叶
+## 锁死门，单人几乎破不开；钥匙在门 A 场景（alley_next 钥匙院）寻得后由
+## SceneLink.requires_key 放行 → district_b 下一街区 stub）。
+func _build_sturdy_gate(row: Node3D) -> void:
+	var bx := 14.1   # 巷道尽头围挡(14.3,8.0)前
+	var bz := 8.0
+	# 重型门框（方柱 0.22 + 双横梁）
+	_add_box(row, "BGatePost_N", Vector3(bx, 1.2, bz - 1.25), Vector3(0.22, 2.4, 0.22), "metal_dark")
+	_add_box(row, "BGatePost_S", Vector3(bx, 1.2, bz + 1.25), Vector3(0.22, 2.4, 0.22), "metal_dark")
+	_add_box(row, "BGateBeam_T", Vector3(bx, 2.35, bz), Vector3(0.24, 0.16, 2.7), "metal_dark")
+	_add_box(row, "BGateBeam_B", Vector3(bx, 0.25, bz), Vector3(0.24, 0.14, 2.7), "metal_dark")
+	# 双叶实心栅门（整板+交叉加强筋+锁扣板，示「破不开」的厚重）
+	for sz in [-1.0, 1.0]:
+		var leaf := Node3D.new()
+		leaf.name = "BGateLeaf_%d" % int(sz)
+		leaf.position = Vector3(bx, 0.0, bz + sz * 0.62)
+		row.add_child(leaf)
+		var bars := ShaderMaterial.new()
+		bars.shader = load("res://assets/shaders/mat_fence_bars.gdshader")
+		bars.set_shader_parameter("fence_length", 1.2)
+		var plate := BoxMesh.new()
+		plate.size = Vector3(0.06, 2.2, 1.2)
+		plate.material = bars
+		var mi := MeshInstance3D.new()
+		mi.mesh = plate
+		mi.position = Vector3(0, 1.2, 0)
+		leaf.add_child(mi)
+	_add_box(row, "BGateBrace_1", Vector3(bx, 1.2, bz), Vector3(0.1, 0.16, 2.5), "rust_metal", Color(1, 1, 1), 40.0)
+	_add_box(row, "BGateBrace_2", Vector3(bx, 1.2, bz), Vector3(0.1, 0.16, 2.5), "rust_metal", Color(1, 1, 1), -40.0)
+	_add_box(row, "BGateLock", Vector3(bx - 0.12, 1.15, bz), Vector3(0.14, 0.3, 0.2), "hazard_red")
+	# 锁死的 SceneLink（requires_key；钥匙=alley_next 钥匙院拾取）
+	var link := Node3D.new()
+	link.name = "Link_BGate_E"
+	link.set_script(SCENE_GATE)
+	link.position = Vector3(bx - 0.5, 0.0, bz)
+	var area := Area3D.new()
+	area.name = "TriggerArea"
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(1.2, 2.6, 2.4)
+	shape.shape = box
+	area.add_child(shape)
+	link.add_child(area)   # 触发区先挂子节点，再入树（@onready 时序）
+	row.add_child(link)
+	link.set("target_scene", "res://scenes/levels/district_b.tscn")
+	link.set("target_anchor", "district_b_return")
+	link.set("anchor_id", "street_bgate")
+	link.set("requires_key", true)
 
 
 func _ready() -> void:
@@ -325,6 +376,11 @@ func _build_buildings() -> void:
 			# 可进入建筑试点：实心盒改为壳体（外墙+楼板+楼梯+隔断），内部可探索
 			_build_enterable_shell(row, b, s["floor_h"], tint)
 			_dress_facade(row, b, s["floor_h"], rng, false, Vector3.ZERO, true)
+		elif b.get("garage", false):
+			# 车库楼（2026-10-25 机主指令：卷帘门实心楼改可进入车库，内摆轿车+敌可活动）：
+			# 底层=三面墙+宽卷帘门洞（4m 净宽，门帘半开挂顶）+ 地坪 + 车位；上层照旧实心体量。
+			_build_garage_shell(row, b, s["floor_h"], tint)
+			_dress_facade(row, b, s["floor_h"], rng, false, Vector3.ZERO, true)
 		else:
 			# 结构盒沿临街轴内缩 0.3m，给立面套件的门窗内退件让位（否则玻璃/门板被埋）
 			# 立面法线沿 Z 的（门楼/横街南排）缩 Z，沿 X 的（东西排）缩 X
@@ -390,6 +446,79 @@ func _enterable_obstacles(b: Dictionary) -> Array:
 		[px - SHELL_PART_T * 0.5, b["z"] + 2.2, px + SHELL_PART_T * 0.5, z1 - SHELL_WALL_T],
 		l1r, l2r,
 	]
+
+
+## 车库楼壳体（2026-10-25 机主指令）：底层开放车库——临街面 4m 宽卷帘门洞
+## （门帘半开挂于门楣，真可穿过），其余三面墙 + 混凝土地坪 + 天花板（上层
+## 楼板）；上层（floors≥2）为实心体量照旧。内置一辆轿车与顶灯。
+func _build_garage_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Color) -> void:
+	var gh := 3.0                       # 车库净高
+	var pal: String = b["palette"]
+	var x0: float = b["x"] - b["w"] * 0.5
+	var x1: float = b["x"] + b["w"] * 0.5
+	var z0: float = b["z"] - b["d"] * 0.5
+	var z1: float = b["z"] + b["d"] * 0.5
+	# 朝向：东西排临街面=西面(x0)；门楼/横街排沿原 face 规则——本项目车库仅
+	# 东西排使用（E3），按 x0 开门。
+	var door_w := 4.0
+	var dx0: float = b["x"] - door_w * 0.5
+	var dx1: float = b["x"] + door_w * 0.5
+	# 地坪 + 天花板（与二层楼板一体）
+	_add_box(row, "Gar_%s_Floor" % b["id"], Vector3(b["x"], 0.07, b["z"]),
+		Vector3(b["w"], 0.14, b["d"]), "kerb", Color(0.55, 0.55, 0.55))
+	_add_box(row, "Gar_%s_Ceil" % b["id"], Vector3(b["x"], gh + 0.12, b["z"]),
+		Vector3(b["w"], 0.24, b["d"]), pal, tint)
+	# 三面墙：东(背) / 南 / 北；西面 = 门楣段 + 两侧垛
+	_add_box(row, "Gar_%s_WallE" % b["id"], Vector3(x1 - 0.15, gh * 0.5, b["z"]),
+		Vector3(0.3, gh, b["d"]), pal, tint)
+	_add_box(row, "Gar_%s_WallS" % b["id"], Vector3(b["x"], gh * 0.5, z1 - 0.15),
+		Vector3(b["w"], gh, 0.3), pal, tint)
+	_add_box(row, "Gar_%s_WallN" % b["id"], Vector3(b["x"], gh * 0.5, z0 + 0.15),
+		Vector3(b["w"], gh, 0.3), pal, tint)
+	_add_box(row, "Gar_%s_Lintel" % b["id"], Vector3(x0 + 0.15, gh - 0.35, b["z"]),
+		Vector3(0.3, 0.7, door_w), pal, tint)
+	_add_box(row, "Gar_%s_JambS" % b["id"], Vector3(x0 + 0.15, gh * 0.5, (dx1 + z1) * 0.5),
+		Vector3(0.3, gh, z1 - dx1), pal, tint)
+	_add_box(row, "Gar_%s_JambN" % b["id"], Vector3(x0 + 0.15, gh * 0.5, (z0 + dx0) * 0.5),
+		Vector3(0.3, gh, dx0 - z0), pal, tint)
+	# 半开卷帘门帘（挂门楣下沿，横纹金属板，可穿过下方 2.3m 净空）
+	var shutter := Node3D.new()
+	shutter.name = "Gar_%s_Shutter" % b["id"]
+	shutter.position = Vector3(x0 + 0.18, 0.0, b["z"])
+	row.add_child(shutter)
+	var s_mat := StandardMaterial3D.new()
+	s_mat.albedo_color = Color(0.35, 0.37, 0.4)
+	s_mat.metallic = 0.6
+	s_mat.roughness = 0.5
+	for i in 3:
+		var slat := MeshInstance3D.new()
+		var slat_mesh := BoxMesh.new()
+		slat_mesh.size = Vector3(0.05, 0.18, door_w - 0.1)
+		slat_mesh.material = s_mat
+		slat.mesh = slat_mesh
+		slat.position = Vector3(0, 2.55 - 0.2 * float(i), 0)
+		shutter.add_child(slat)
+	# 上层体量（floors≥2）：3m 以上照旧实心
+	if b["floors"] > 1:
+		var upper_h: float = b["floors"] * floor_h - gh
+		_add_box(row, "Gar_%s_Upper" % b["id"], Vector3(b["x"], gh + 0.24 + upper_h * 0.5, b["z"]),
+			Vector3(b["w"] - 0.3, upper_h, b["d"] - 0.3), pal, tint)
+	# 车位轿车（复用 Comrade1280 写实车模管线，AABB 碰撞）
+	var car := Node3D.new()
+	car.name = "Gar_%s_Car" % b["id"]
+	car.position = Vector3(b["x"] + 1.5, 0.14, b["z"] + 1.2)
+	car.rotation_degrees.y = 78.0
+	row.add_child(car)
+	_prop_model(car, "res://assets/models/prop_car_compact.glb", 1.45,
+		Vector3.ONE, Vector3.ZERO)
+	# 车库顶灯（夜里院内可读 + 车库内敌位可见性）
+	var lamp := OmniLight3D.new()
+	lamp.name = "Gar_%s_Lamp" % b["id"]
+	lamp.position = Vector3(b["x"] + 1.0, gh - 0.4, b["z"])
+	lamp.light_color = Color(0.8, 0.85, 1.0)
+	lamp.light_energy = 1.5
+	lamp.omni_range = 8.0
+	row.add_child(lamp)
 
 
 ## 可进入楼壳体：外墙（临街面留真门洞）+ 室内地坪 + 中层楼板（楼梯开口）+ 坡道楼梯
@@ -1098,10 +1227,14 @@ func _prop_model(prop: Node3D, path: String, target_h: float,
 	inst.scale = Vector3.ONE * s
 	inst.position = Vector3(-aabb.get_center().x * s, -aabb.position.y * s, -aabb.get_center().z * s)
 	# 碰撞盒按归一化后的实测视觉包围盒生成（2026-10-25 机主指正：旧写死实车
-	# 尺寸 1.85×1.5×4.7 比缩放后的 KayKit 车体大一圈=隐形墙——敌人隔车可见
+	# 尺寸 1.85×1.5×4.7 比缩放后的车体大一圈=隐形墙——敌人隔车可见
 	# 却打不到，子弹被空气挡住；自行车同理）。视觉即碰撞；调用方传入的
 	# collider_size/collider_center 退役，仅保留签名兼容（家具路径同步受益）。
-	_add_prop_collider(prop, aabb.size * s, Vector3(0.0, aabb.size.y * s * 0.5, 0.0))
+	# 收缩 12%（2026-10-25 机主二轮指正：细骨架件（自行车把手/踏面跨度）的
+	# AABB 远胖于可见实体，车与自行车间隙被 AABB 填满=空气墙；收缩后缝隙可过，
+	# 角部少量穿模属业界代理碰撞常态）。
+	var c_size: Vector3 = aabb.size * s * 0.88
+	_add_prop_collider(prop, c_size, Vector3(0.0, c_size.y * 0.5, 0.0))
 	return true
 
 
@@ -1200,7 +1333,7 @@ func _prop_bistro_set(prop: Node3D) -> void:
 		var chair := Node3D.new()
 		chair.name = "BistroChair_%d" % int(signf(sx))
 		chair.position = Vector3(sx, 0.0, 0.0)
-		chair.rotation_degrees.y = -90.0 if sx < 0.0 else 90.0
+		chair.rotation_degrees.y = 90.0 if sx < 0.0 else -90.0
 		prop.add_child(chair)
 		_prop_model(chair, "res://assets/models/fur_chair/fur_chair.gltf", 0.9,
 			Vector3.ONE, Vector3.ZERO)
