@@ -39,6 +39,19 @@ const SHADER_MAP := {
 }
 
 
+## P2 真实 PBR 材质映射（2026-10-25 机主指令：建筑/室内偏卡通，引入真实风格
+## 材质；ambientCG CC0 三平面世界空间 .tres，管线 tools/gen_pbr_materials.gd）：
+## 立面与内饰从纯色平涂升级为照片级抹灰/漆面/砖。汽车/自行车/篮球场为独立
+## 模型资产，不在本表（机主已认可）。色调多样性仍走既有 tint 乘色机制。
+const PBR_MAP := {
+	"plaster_cream": "res://assets/textures/pbr/plaster004/plaster004.tres",
+	"plaster_sand": "res://assets/textures/pbr/plaster006/plaster006.tres",
+	"plaster_pink": "res://assets/textures/pbr/plaster006/plaster006.tres",
+	"plaster_white": "res://assets/textures/pbr/paintedplaster002/paintedplaster002.tres",
+	"brick": "res://assets/textures/pbr/bricks003/bricks003.tres",
+}
+
+
 func _ready() -> void:
 	_apply_fog()
 	_compute_barriers()  # 围挡需在 backdrop 前算好（墙体要进楼块排除区）
@@ -82,6 +95,9 @@ func _get_material(key: String) -> Material:
 			shader_mat.set_shader_parameter("world_scale", entry[1])
 			shader_mat.set_shader_parameter("seed", entry[2])
 			_materials[key] = shader_mat
+		elif PBR_MAP.has(key):
+			# P2 真实材质：直接加载共享 .tres（多建筑复用同一实例，tint 走复制件）。
+			_materials[key] = load(PBR_MAP[key])
 		elif key == "edaa_field":
 			# EDAA 能量屏蔽力场（程序化 shader，纵向扫描带+两端增亮+微闪烁）
 			var field_mat := ShaderMaterial.new()
