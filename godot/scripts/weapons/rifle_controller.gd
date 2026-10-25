@@ -50,6 +50,15 @@ const HIP_POSE_PITCH := 0.05
 # 空间 44-51°），主流有托步枪换弹只倾 15-30°（CoD/BF 参考）。超出部分整套
 # 枪+臂组件反向滚转抵消（走 _pose_extra 通道，motion 公式自动剥离，粘合不破）。
 const RELOAD_MAX_CANT := deg_to_rad(22.0)
+# 弹匣路径治理（2026-10-25 连续动作验收，机主指令「验收动作而非截图」）：
+# 剪辑 authored 弹匣骨在 1.1-1.3s 瞬移交换新旧匣（骨单帧跳 547mm）、1.4-2.0s
+# 收尾阶段离井漂浮（0.8m）——原生流程靠多弹匣显隐遮罩，我们单匣常显就裸奔。
+# 治理：骨路径合法段照常跟随；帧跳变超限=交换瞬间→隐藏（手画外取新匣）；
+# 骨回井 35mm 内→锁定入井常显至换弹结束。合法峰值实测 61mm/帧。
+const MAG_FRAME_JUMP_MAX := 0.09
+const MAG_SEAT_RADIUS := 0.035
+var _mag_lock: bool = false
+var _mag_hidden: bool = false
 var _pose_extra: Transform3D = Transform3D.IDENTITY
 var _arms_placed: Transform3D = Transform3D.IDENTITY
 var _reload_counter: float = 0.0
@@ -280,15 +289,34 @@ func _process(delta: float) -> void:
 			_apply_pose_rotation()
 			_pose_left_arm_mainstream(_aim_weight)
 	elif _is_reloading:
-		# 换弹反向滚转逐帧跟踪剪辑滚转（净侧倾截到主流上限）。
-		var counter := _reload_cant_counter()
-		if not is_equal_approx(counter, _reload_counter):
-			_reload_counter = counter
-			_apply_pose_rotation()
+		# 换弹反向滚转逐帧跟踪剪辑滚转（净侧倾截到主流上限，10/s 低通消抖）。
+		_reload_counter = lerpf(_reload_counter, _reload_cant_counter(), minf(delta * 10.0, 1.0))
+		_apply_pose_rotation()
 	if _weapon_bone >= 0:
 		_weapon_node.transform = _pose_extra * _weapon_home * _weapon_motion_start.affine_inverse() * _weapon_motion()
 	if _magazine != null and _mag_bone >= 0:
-		_magazine.transform = _mag_home_transform * _mag_motion_start.affine_inverse() * _magazine_motion()
+		if _is_reloading and not _mag_lock:
+			_govern_magazine_motion()
+		elif not _is_reloading:
+			_magazine.transform = _mag_home_transform * _mag_motion_start.affine_inverse() * _magazine_motion()
+
+
+## 换弹弹匣路径治理：跟随合法骨路径；交换瞬移（帧跳>90mm）隐藏；
+## 骨归井（局部距家≤35mm）锁定常显至换弹结束（reset 清锁）。
+func _govern_magazine_motion() -> void:
+	var candidate: Transform3D = _mag_home_transform * _mag_motion_start.affine_inverse() * _magazine_motion()
+	if _mag_hidden:
+		if candidate.origin.distance_to(_mag_home_transform.origin) <= MAG_SEAT_RADIUS:
+			_mag_lock = true
+			_mag_hidden = false
+			_magazine.transform = _mag_home_transform
+			_magazine.visible = true
+		return
+	if candidate.origin.distance_to(_magazine.transform.origin) > MAG_FRAME_JUMP_MAX:
+		_mag_hidden = true
+		_magazine.visible = false
+		return
+	_magazine.transform = candidate
 
 
 func _weapon_motion() -> Transform3D:
@@ -299,8 +327,13 @@ func _weapon_motion() -> Transform3D:
 
 
 func _magazine_motion() -> Transform3D:
+	# ⚠️ 不做 _pose_extra 剥离：弹匣的 raw = 枪节点全局⁻¹ × 骨架全局 × 骨位，
+	# 父（枪）与骨架两侧同携 E，构造上已精确相消。旧版多余再乘 E⁻¹，在 E 恒定
+	# 时起始/当前两因子互消侥幸无害；侧倾阻尼后 counter 逐帧变化，残余共轭旋转
+	# 直接把携行中的弹匣甩飞（实测帧间瞬移 479mm/孤悬井外 767mm，2026-10-25
+	# 连续动作验收暴露，机主指令「验收换弹动作而非截图」）。
 	var raw: Transform3D = _magazine.get_parent().global_transform.affine_inverse() * _arms_skeleton.global_transform * _arms_skeleton.get_bone_global_pose(_mag_bone)
-	return _pose_extra.affine_inverse() * raw
+	return raw
 
 
 func _exit_tree() -> void:
@@ -462,8 +495,11 @@ func _on_reload_started(weapon_id: StringName) -> void:
 
 func _play_reload_anim() -> void:
 	_set_sleeve_extenders_visible(false)
+	_mag_lock = false
+	_mag_hidden = false
 	if _magazine != null:
 		_magazine.transform = _mag_home_transform
+		_magazine.visible = true
 	# 运动基准必须在 play 之前的 hold 态采样：换弹期间枪身/弹匣跟随剪辑
 	# 【全量】运动（含 ~44° 战术侧倾——作者为原生枪 author 的换弹姿态，主流
 	# 有托步枪换弹同款：侧倾露弹匣井→抽匣→取新匣→插回），双手-枪-弹匣保持
@@ -490,6 +526,8 @@ func _on_weapon_switched(weapon_id: StringName) -> void:
 
 func _reset_reload_visuals() -> void:
 	_reload_counter = 0.0
+	_mag_lock = false
+	_mag_hidden = false
 	if _magazine != null:
 		_magazine.transform = _mag_home_transform
 		_magazine.visible = true
