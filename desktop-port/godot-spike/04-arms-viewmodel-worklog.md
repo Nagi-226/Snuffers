@@ -136,3 +136,11 @@ _process 每帧:
 - **修复**：`_play_reload_anim` 基准采样移到 `play()` 之前的 hold 态——枪身/弹匣跟随剪辑**全量**运动，三者粘合。一行位移+注释，零姿势参数改动。
 - 复验：三相位全粘合（0.3s 侧倾40°左手握匣抽出 / 0.9s 握新匣带回 / 1.5s 枪回正弹匣插回贴合左手回握榴弹筒）；换弹叙事=抽匣→侧倾→取新匣→插回→回正，与主流有托步枪分镜一致；hold 探针腕缝 0.00008mm 无回归；L1 全绿。
 - **待机主实机验收**。
+
+**10-25 下午 · 风格修正：侧倾阻尼（e817727）+ 素材调研结论**
+- 机主第二轮指正：粘合已好但「翻枪而非倾枪」——分析器实测剪辑把枪滚到近 80°，主流 15-30°（CoD/BF 视频资料佐证）。
+- **路线裁决**（AskUserQuestion）：A 反向旋转阻尼 ✅（机主选）｜B 新素材重定向（备选立项）。
+- A 实现：`RELOAD_MAX_CANT=22°`，逐帧量 motion 管线 `hold⁻¹×clip` 增量绕视线轴带符号滚转（E 已剥离），超出部分经 `_pose_extra` 通道整套枪+臂反向抵消——粘合由构造保证，剪辑缓入缓出保留。`_reset_reload_visuals` 归零 counter。
+- 复验：侧倾 80°→~30° 贴主流带；0.3s/0.9s 弹匣在手、粘合、无穿模；hold 探针无回归；L1 绿。
+- **素材调研**（B 路线情报，机主要求全面检索）：Sketchfab 含手臂+步 Rifle 换弹的 CC 包最完整者即现用 Cransh（同 URL）；bukkbeek 源已下架（本地仅剩 Kimi 评估渲染件，风格确认主流直立式——若作者重新上架值得首选）；[AKM FPS Animation](https://sketchfab.com/3d-models/akm-fps-animation-a0e1e52051294bebb8a716df9e69434d)（CC-BY，RELOAD/RELOAD2）未确认含手臂；[Miles0707 FPS Arm Rig](https://sketchfab.com/3d-models/fps-arm-rig-18ce86b6b26e4ae1b02d2d695b669b62) 有绑骨无换弹。GitHub Ayush-Mohanty/FPS-Arms-3D（MIT，含 idle/shoot/reload，Godot 就绪）已列入候选清单未评估。
+- 状态：侧倾阻尼**待机主实机验收**；push 因网络中断待补（本地 e817727 已提交）。
