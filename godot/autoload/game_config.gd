@@ -150,8 +150,8 @@ const INFANTRY_SPEED: float = 3.5 ## 步兵移动速度 u/s（L1140）
 const INFANTRY_COVER_SPEED_FACTOR: float = 1.2 ## 找掩体加速（L1140）
 const INFANTRY_PATROL_SPEED: float = 2.0 ## 巡逻速度 u/s（L1210）
 const INFANTRY_DETECT_RADIUS: float = 25.0 ## 索敌半径（2026-10-20 机主裁决：80→25——主街直线视廊下 80m 等于半图索敌，夜战被锁定却看不见敌人；25m 契合寄生体近战定位）
-const INFANTRY_ENGAGE_INTERVAL: float = 0.25 ## 交战射击间隔 s（L1294）
-const INFANTRY_PEEK_INTERVAL: float = 0.2 ## 探头射击间隔 s（L1258）
+const INFANTRY_ENGAGE_INTERVAL: float = 2.6 ## 交战孢子投掷间隔 s——对齐 attack 剪辑 2.63s（2026-10-25 机主指令：音效又快又响且与动作不搭，根因=0.25s 间隔下 2.63s 动画/1.48s 音效反复重启叠播；对齐后单发慎重投掷，参考《针锋相对》戈诺姆远程孢子）
+const INFANTRY_PEEK_INTERVAL: float = 2.6 ## 探头孢子投掷间隔 s（同上对齐剪辑；探头窗口 0.5-1.0s 内至多一发）
 const INFANTRY_DAMAGE: float = 5.0 ## 单发伤害（L1424）
 const INFANTRY_BURST_MIN: int = 3 ## 点射下限（L1157）
 const INFANTRY_BURST_MAX: int = 5 ## 点射上限（L1157）
