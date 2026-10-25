@@ -29,6 +29,15 @@ window/size/viewport_height=1080
 
 pointing/emulate_touch_from_mouse=false
 
+[physics]
+
+; 3D 物理插值（2026-10-25 机主指正「敌人移动位置抽动不连贯」根因修复）：
+; 敌人为 CharacterBody3D 在 60Hz 物理帧位移，视角随渲染帧走（高刷屏 120/144Hz），
+; 引擎默认不插值 → 敌人位置按 60Hz 阶梯更新，高刷视角下可见抽动。
+; 开启后所有物理驱动节点（敌人/玩家本体/投射物）逐渲染帧插值，逐节点可用
+; Node3D.physics_interpolation_mode 单独豁免。
+common/physics_interpolation=true
+
 [rendering]
 
 ; 夜战场景由 W4 在关卡内配置光照；此处保持引擎默认（Forward+）
