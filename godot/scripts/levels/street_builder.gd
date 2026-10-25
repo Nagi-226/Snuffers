@@ -52,6 +52,60 @@ const PBR_MAP := {
 }
 
 
+## 巷口场景衔接门（2026-10-25 机主立项，HL 式穿门加载下一张地图）：
+## 东排可进入楼旁巷口（Fence_65_-77 一线，x=6.5/z=-7.8）的既有围挡前置铁栅栏门
+## ——门柱+顶梁+双门板（竖条栅栏材质，微敞 18°示意可通过），门洞内 SceneLink
+## 触发区；玩家穿门 → alley_next 场景，回来落在门内侧锚点。
+const SCENE_GATE := preload("res://scripts/levels/scene_link.gd")
+
+func _build_scene_gate() -> void:
+	var row := Node3D.new()
+	row.name = "SceneGate"
+	add_child(row)
+	var gx := 6.2          # 门前移到围挡(6.5)外侧
+	var gz := -7.8
+	_add_box(row, "GatePost_N", Vector3(gx, 1.05, gz - 1.1), Vector3(0.14, 2.1, 0.14), "metal_dark")
+	_add_box(row, "GatePost_S", Vector3(gx, 1.05, gz + 1.1), Vector3(0.14, 2.1, 0.14), "metal_dark")
+	_add_box(row, "GateBeam", Vector3(gx, 2.05, gz), Vector3(0.16, 0.12, 2.34), "metal_dark")
+	# 双门板：竖条镂空板（mat_fence_bars 同款真透视），微敞 18°示意可通过
+	for sz in [-1.0, 1.0]:
+		var panel := Node3D.new()
+		panel.name = "GateDoor_%d" % int(sz)
+		panel.position = Vector3(gx, 0.0, gz + sz * 0.52)
+		panel.rotation_degrees.y = sz * 18.0
+		row.add_child(panel)
+		var bars := ShaderMaterial.new()
+		bars.shader = load("res://assets/shaders/mat_fence_bars.gdshader")
+		bars.set_shader_parameter("fence_length", 0.98)
+		var leaf := BoxMesh.new()
+		leaf.size = Vector3(0.03, 1.78, 0.98)
+		leaf.material = bars
+		var mi := MeshInstance3D.new()
+		mi.name = "Leaf"
+		mi.mesh = leaf
+		mi.position = Vector3(0, 1.0, 0)
+		panel.add_child(mi)
+	# SceneLink：穿门（-X 街侧触发区进门洞）→ alley_next
+	var link := Node3D.new()
+	link.name = "Link_AlleyGate_E"
+	link.set_script(SCENE_GATE)
+	link.position = Vector3(gx - 0.4, 0.0, gz)
+	row.add_child(link)
+	link.set("target_scene", "res://scenes/levels/alley_next.tscn")
+	link.set("target_anchor", "alley_return")
+	link.set("anchor_id", "street_alley_gate")
+	var area := Area3D.new()
+	area.name = "TriggerArea"
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(1.2, 2.4, 2.0)
+	shape.shape = box
+	area.add_child(shape)
+	link.add_child(area)
+	# 走线发光条（夜里门的可读性，EDAA 蓝色系）
+	_add_box(row, "GateGlow", Vector3(gx, 2.16, gz), Vector3(0.05, 0.05, 2.3), "edaa_blue_glow")
+
+
 func _ready() -> void:
 	_apply_fog()
 	_compute_barriers()  # 围挡需在 backdrop 前算好（墙体要进楼块排除区）
@@ -61,6 +115,7 @@ func _ready() -> void:
 	_build_barriers()
 	_build_props()
 	_build_pickups()
+	_build_scene_gate()
 	# 开发者截图: godot --path . res://scenes/levels/street_test.tscn -- --shot <输出路径>
 	var args := OS.get_cmdline_user_args()
 	if args.has("--shot"):
@@ -477,10 +532,15 @@ func _build_enterable_shell(row: Node3D, b: Dictionary, floor_h: float, tint: Co
 			rail.call(oax1, y1, obz1 + 0.25 + float(i) * 0.45, "%s_B%d" % [L, i])
 		_add_box(row, "Bldg_%s_HR2%s" % [b["id"], L], Vector3(mx.call(oax1), y1 + 0.95, (obz1 + oaz1) * 0.5),
 			Vector3(0.05, 0.05, oaz1 - obz1), "metal_dark")
-		for i in 3:
-			rail.call(in_x0 + 0.25 + float(i) * 0.4, y1, oaz1 + 0.02, "%s_C%d" % [L, i])
-		_add_box(row, "Bldg_%s_HR3%s" % [b["id"], L], Vector3(mx.call((in_x0 + oax1) * 0.5), y1 + 0.95, oaz1 + 0.02),
-			Vector3(oax1 - in_x0, 0.05, 0.05), "metal_dark")
+		# 板 A 北缘护栏（C 排+HR3）只保留最顶段（2026-10-25 机主实机指正修复：
+		# 楼梯井垂直对齐时，上一段的梯段一恰从本段 y1 楼板开口北缘爬过——非顶段的
+		# C 立柱/HR3 扶手杆会穿进上段踏步（E2 实测：L0 C 柱 x7.05-7.85/z-6.08/y3.0-3.9
+		# 与 L1 第 2-5 级踏步盒相交），穿模护栏同时是楼梯上的空气墙卡人根因）。
+		if lvl == b["floors"] - 2:
+			for i in 3:
+				rail.call(in_x0 + 0.25 + float(i) * 0.4, y1, oaz1 + 0.02, "%s_C%d" % [L, i])
+			_add_box(row, "Bldg_%s_HR3%s" % [b["id"], L], Vector3(mx.call((in_x0 + oax1) * 0.5), y1 + 0.95, oaz1 + 0.02),
+				Vector3(oax1 - in_x0, 0.05, 0.05), "metal_dark")
 		# 上层隔断（z=b.z+0.5，门洞 x 居中 1.2m）：楼梯间 | 南房（逐层一段）
 		var pz: float = b["z"] + 0.5
 		var g0: float = b["x"] - 0.6
@@ -1127,23 +1187,26 @@ func _prop_bike(prop: Node3D) -> void:
 	_add_prop_collider(prop, Vector3(1.25, 1.0, 0.3), Vector3(0, 0.5, 0))
 
 
-## 露天小酒馆单元：圆桌 + 伞 + 对椅（局部 ±X 两侧落座）
+## 露天小酒馆单元：Poly Haven 写实桌椅（与室内同套 painted_wooden，2026-10-25
+## 机主指令 P2 写实化）+ 原语遮阳伞保留（开源库无对应件）；碰撞走 _prop_model
+## 的 AABB 实测管线（视觉即碰撞）。
 func _prop_bistro_set(prop: Node3D) -> void:
-	_add_part(prop, _make_cyl(0.42, 0.42, 0.05, 14), Vector3(0, 0.72, 0), "plastic_white")
-	_add_part(prop, _make_cyl(0.04, 0.04, 0.72), Vector3(0, 0.36, 0), "metal_dark")
+	var table := Node3D.new()
+	table.name = "BistroTable"
+	prop.add_child(table)
+	_prop_model(table, "res://assets/models/fur_table/fur_table.gltf", 0.74,
+		Vector3.ONE, Vector3.ZERO)
+	for sx in [-0.95, 0.95]:
+		var chair := Node3D.new()
+		chair.name = "BistroChair_%d" % int(signf(sx))
+		chair.position = Vector3(sx, 0.0, 0.0)
+		chair.rotation_degrees.y = -90.0 if sx < 0.0 else 90.0
+		prop.add_child(chair)
+		_prop_model(chair, "res://assets/models/fur_chair/fur_chair.gltf", 0.9,
+			Vector3.ONE, Vector3.ZERO)
+	# 遮阳伞（原语）：立杆穿桌心，红色伞面远距可读性保留
 	_add_part(prop, _make_cyl(0.025, 0.025, 2.3), Vector3(0, 1.15, 0), "metal_dark")
 	_add_part(prop, _make_cyl(0.05, 0.95, 0.35, 12), Vector3(0, 2.2, 0), "canvas_red")
-	for sx in [-0.85, 0.85]:
-		var seat := BoxMesh.new()
-		seat.size = Vector3(0.42, 0.05, 0.42)
-		_add_part(prop, seat, Vector3(sx, 0.45, 0), "plastic_white")
-		var leg := BoxMesh.new()
-		leg.size = Vector3(0.06, 0.45, 0.06)
-		_add_part(prop, leg, Vector3(sx, 0.225, 0), "metal_dark")
-		var back := BoxMesh.new()
-		back.size = Vector3(0.42, 0.5, 0.05)
-		_add_part(prop, back, Vector3(sx + signf(sx) * 0.19, 0.72, 0), "plastic_white")
-	_add_prop_collider(prop, Vector3(2.2, 1.0, 0.9), Vector3(0, 0.5, 0))
 
 
 ## 垃圾桶：桶身 + 盖
