@@ -103,3 +103,13 @@
 2. **CC-BY 署名义务**：Ammo Canister（Stephen Yoshimura, CC-BY）与 Bicycle（Poly by Google, CC-BY）若最终进入包体，须在游戏内（结算/关于界面）署名。
 3. **原始文件入库红线**：jeh3no 插件内自带 `Weapons.fbx`、`low_poly_rpg-7/scene.gltf` 等原始模型文件，与约束 #7「Sketchfab 等原始文件禁止提交进 git 仓库」存在潜在冲突；当前 spike 阶段业务场景不引用这些资源，是否剔除或 .gitignore 排除由蜂后裁决。
 4. **占位资产替换**：`ambient.wav` 为程序合成占位，夜视/昼夜相关音效与视觉素材按 W7 交接备忘录于 G4 后由 W5 替换正式资产，替换时同步更新本台账。
+
+### 五-7 · 室内家具写实件（2026-10-25 P2 批，Poly Haven）
+
+| 资产（入库路径 assets/models/） | 作者 | 来源 | 许可证 | 日期 |
+|---|---|---|---|---|
+| fur_sofa/（painted_wooden_sofa）、fur_table/（painted_wooden_table）、fur_chair/（painted_wooden_chair_02）、fur_nightstand/（painted_wooden_nightstand）、fur_shelf/（painted_wooden_shelves）、fur_tv_stand/（painted_wooden_cabinet） | Kirill Sannikov | https://polyhaven.com/a/painted_wooden_sofa 等（painted_wooden 系列，API api.polyhaven.com 批取 1k gltf 套件） | CC0（无署名义务） | 2026-10-25 |
+
+- 入库形态：目录式 .gltf+.bin+textures/（1k diff/nor/arm 三贴图，单套约 2MB）；下载脚本 `raw_assets/fetch_polyhaven_furniture.ps1`。
+- 旧 fur_*.glb（床等 7 件基础件）保留为兜底——fur_bed 无 Poly Haven 对应件继续用旧模；builder 目录式 gltf 优先、单文件 glb 兜底（street_builder._furnish_enterable）。
+- ⚠️ 教训入档：ambientCG/Poly Haven 解包的 .blend/.usdc/.zip 留在 res:// 内会触发无 Blender 的导入器报错并**静默中断全部新文件导入队列**（headless --import 只扫描不导入），原始包一律清理后再导入。

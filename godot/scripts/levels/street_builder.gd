@@ -647,9 +647,14 @@ func _furnish_enterable(row: Node3D, b: Dictionary) -> void:
 		prop.position = Vector3(f["x"], f["y"], f["z"])
 		prop.rotation_degrees.y = f.get("rot_y", 0.0)
 		row.add_child(prop)
-		if not _prop_model(prop, "res://assets/models/fur_%s.glb" % f["type"],
-				spec[0], spec[1], spec[2]):
-			push_warning("street_builder: missing furniture model fur_%s.glb" % f["type"])
+		# 家具模型：P2 批升级为 Poly Haven CC0 写实件（2026-10-25 机主指令），
+		# 目录式 .gltf 套件优先（.gltf+.bin+textures/ 同目录引用），旧单文件
+		# .glb 兜底（fur_bed 暂无 Poly Haven 对应件继续用旧模）。
+		var fur_path := "res://assets/models/fur_%s/fur_%s.gltf" % [f["type"], f["type"]]
+		if not ResourceLoader.exists(fur_path):
+			fur_path = "res://assets/models/fur_%s.glb" % f["type"]
+		if not _prop_model(prop, fur_path, spec[0], spec[1], spec[2]):
+			push_warning("street_builder: missing furniture model fur_%s" % f["type"])
 		idx += 1
 
 
@@ -1032,7 +1037,11 @@ func _prop_model(prop: Node3D, path: String, target_h: float,
 	var s: float = target_h / aabb.size.y
 	inst.scale = Vector3.ONE * s
 	inst.position = Vector3(-aabb.get_center().x * s, -aabb.position.y * s, -aabb.get_center().z * s)
-	_add_prop_collider(prop, collider_size, collider_center)
+	# 碰撞盒按归一化后的实测视觉包围盒生成（2026-10-25 机主指正：旧写死实车
+	# 尺寸 1.85×1.5×4.7 比缩放后的 KayKit 车体大一圈=隐形墙——敌人隔车可见
+	# 却打不到，子弹被空气挡住；自行车同理）。视觉即碰撞；调用方传入的
+	# collider_size/collider_center 退役，仅保留签名兼容（家具路径同步受益）。
+	_add_prop_collider(prop, aabb.size * s, Vector3(0.0, aabb.size.y * s * 0.5, 0.0))
 	return true
 
 
