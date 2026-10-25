@@ -436,13 +436,20 @@ func _play_reload_anim() -> void:
 	_set_sleeve_extenders_visible(false)
 	if _magazine != null:
 		_magazine.transform = _mag_home_transform
-	if _arms_animation != null and _arms_animation.has_animation(&"reload"):
-		_arms_animation.play(&"reload", 0.15)
-		_arms_animation.advance(0.0)
+	# 运动基准必须在 play 之前的 hold 态采样：换弹期间枪身/弹匣跟随剪辑
+	# 【全量】运动（含 ~44° 战术侧倾——作者为原生枪 author 的换弹姿态，主流
+	# 有托步枪换弹同款：侧倾露弹匣井→抽匣→取新匣→插回），双手-枪-弹匣保持
+	# 粘合。旧版在 play+advance(0) 后按剪辑第 0 帧重采样——枪身被钉回原地只
+	# 残留 ±7° 抖动，双手却按剪辑去操作那把「侧倾 44° 的枪」→ 弹匣悬空漂浮、
+	# 左手抓空气（2026-10-25 机主定性「混乱脱节」，probe_reload_anim 实证：
+	# 枪骨相对 hold 恒偏 44-51°/110mm，0.9s 相位弹匣孤悬枪右下、手指张开无握持）。
 	if _arms_skeleton != null and _mag_bone >= 0:
 		_mag_motion_start = _magazine_motion()
 	if _arms_skeleton != null and _weapon_bone >= 0:
 		_weapon_motion_start = _weapon_motion()
+	if _arms_animation != null and _arms_animation.has_animation(&"reload"):
+		_arms_animation.play(&"reload", 0.15)
+		_arms_animation.advance(0.0)
 
 
 func _on_weapon_switched(weapon_id: StringName) -> void:
