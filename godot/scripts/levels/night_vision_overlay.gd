@@ -6,7 +6,9 @@
 ## - 键位 N（§11.2 机主裁决，player_controller.gd 已翻正）；有玩家在场时本脚本让位，
 ##   由 player_controller 统一发信号；白天禁开门控读 GameState.is_night。
 ##
-## 效果：屏幕采样亮度增益（派单 16 选项 2）——`hint_screen_texture` 取全屏 back-buffer
+## 效果：①场景环境光抬升（2026-10-25 机主指令：vm-shot 取证全图提亮融入——
+## 黑夜中大面积纯黑抬不出几何细节，先真实照亮全场景）+ ②屏幕采样亮度增益
+## （派单 16 选项 2）——`hint_screen_texture` 取全屏 back-buffer
 ## → 暗部 lift → 去饱和 → 绿磷光色调 → 过曝区趋白 → 扫描线 + 暗角。
 ## 自发光体（应急灯/力场蓝光/天际线亮窗）在增益下自然过曝发白，是真实夜视仪
 ## 光晕行为，属特性而非缺陷（05 文档 §4.2 选项 2）。
@@ -125,6 +127,43 @@ func _set_active(active: bool) -> void:
 	_is_active = active
 	if _overlay != null:
 		_overlay.visible = active
+	_set_scene_ambient(active)
+
+
+## 场景环境光抬升（2026-10-25 机主指令：vm-shot 取证用的全图提亮融入夜视仪）：
+## 屏幕增益只放大已有像素，夜里大面积纯黑抬不出几何细节；叠加真实环境光后
+## 全场景被"照亮"再过磷光膜，才符合真实夜视仪在黑夜看清周围环境的作用。
+## 原值存取按同一 Environment 实例守卫（换场景后不误回写）；street_playable
+## vm-shot fill 同款就地改写先例。
+var _saved_env: Environment = null
+var _saved_source: int = 0
+var _saved_color: Color = Color.WHITE
+var _saved_energy: float = 1.0
+
+
+func _set_scene_ambient(active: bool) -> void:
+	var holder := get_tree().current_scene
+	if holder == null:
+		return
+	var found: Array = holder.find_children("*", "WorldEnvironment", true, false)
+	if found.is_empty():
+		return
+	var env: Environment = (found[0] as WorldEnvironment).environment
+	if env == null:
+		return
+	if active:
+		if _saved_env != env:
+			_saved_env = env
+			_saved_source = env.ambient_light_source
+			_saved_color = env.ambient_light_color
+			_saved_energy = env.ambient_light_energy
+		env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+		env.ambient_light_color = GameConfig.NIGHT_VISION_AMBIENT_COLOR
+		env.ambient_light_energy = GameConfig.NIGHT_VISION_AMBIENT_ENERGY
+	elif _saved_env == env:
+		env.ambient_light_source = _saved_source as Environment.AmbientSource
+		env.ambient_light_color = _saved_color
+		env.ambient_light_energy = _saved_energy
 
 
 func _build_overlay() -> void:

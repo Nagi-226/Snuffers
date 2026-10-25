@@ -131,14 +131,15 @@ const GRENADE_FIRE_INTERVAL: float = 0.8 ## 榴弹击发间隔 s（合闸-复位
 const GRENADE_PROJECTILE_SPEED: float = 90.0 ## 直射档初速 u/s（全功率平直弹道）
 const GRENADE_GRAVITY: float = 2.0 ## 直射档微下坠（远小于旧火箭 9.8，弹道平直）
 const GRENADE_MAX_RANGE: float = 200.0 ## 最大射程 u
-const GRENADE_EXPLODE_RADIUS: float = 10.0 ## 伤害半径上限 m（2026-10-22 机主裁决：超出炸不到）
-const GRENADE_EXPLODE_KILL_RADIUS: float = 5.0 ## 必杀半径 m（爆心 5m 内即杀）
-const GRENADE_EXPLODE_KILL_DAMAGE: float = 9999.0 ## 必杀圈伤害（即杀口径，不经 HP 量级）
-const GRENADE_EXPLODE_FALLOFF_FACTOR: float = 0.5 ## 5–10m 过渡带伤害系数（450×0.5=225）
+const GRENADE_EXPLODE_RADIUS: float = 15.0 ## 伤害半径上限 m（2026-10-25 机主裁决：10→15；超 15m 无伤，球形查询天然截断）
+const GRENADE_EXPLODE_KILL_RADIUS: float = 10.0 ## 必杀半径 m（2026-10-25 机主裁决：5→10，圈内定值直伤）
+const GRENADE_EXPLODE_KILL_DAMAGE: float = 750.0 ## 必杀圈伤害（2026-10-25 机主裁决：9999→750 定值；杀伤圈内无视建筑墙体——球形查询本无遮挡，属既定口径非缺陷）
+const GRENADE_EXPLODE_FALLOFF_FACTOR: float = 0.5 ## 10–15m 过渡带伤害系数（750×0.5=375 半伤，2026-10-25 机主裁决新口径）
+const GRENADE_EXPLODE_DAMAGE: float = 750.0 ## 爆炸基准伤害（2026-10-25 机主裁决：450→750，与必杀圈同基，带内吃 falloff 半伤；附带碉堡特杀半径随上限扩至 15+bonus）
+const NIGHT_VISION_AMBIENT_COLOR: Color = Color(0.72, 0.9, 0.78) ## 夜视仪环境光抬升色（2026-10-25 机主指令：vm-shot 取证全图提亮融入夜视仪——真实夜视仪=把黑夜放大到看清环境，屏幕增益之上叠加真实环境光；青绿偏白与磷光色调同系）
+const NIGHT_VISION_AMBIENT_ENERGY: float = 1.6 ## 夜视仪环境光抬升强度（对齐 vm-shot fill 取证量级 1.5，略增）
 const GRENADE_BUNKER_RADIUS_BONUS: float = 5.0 ## 对碉堡判定半径加成（破垒本职，沿用 L1593）
 const GRENADE_SELF_DAMAGE: bool = false ## 爆炸对玩家零伤害（沿用网页版口径 L1645-1657）
-const GRENADE_EXPLODE_DAMAGE: float = 450.0 ## 爆炸基准伤害（2026-10-22 机主裁决 9999→450：
-## 5m 内用 KILL_DAMAGE 必杀，5–10m 半伤 225，10m 外无伤）
 const GRENADE_EXPLODE_BELOW_Y: float = -10.0 ## 坠地自爆高度（L3172）
 const GRENADE_LAUNCH_FORWARD: float = 0.7 ## 出膛点沿枪管前移量 m（下挂发射器位于护木前下方，
 ## 从武器原点直接出膛会显得"从手臂处发射"）
