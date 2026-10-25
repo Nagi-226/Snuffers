@@ -610,6 +610,8 @@ func _spawn_gate_key(row: Node3D, pos: Vector3) -> void:
 	pickup.name = "GateKeyPickup"
 	pickup.position = pos
 	row.add_child(pickup)
+	# 任务关键点登记（小地图/罗盘标记；拾取回调用删除收尾）
+	GameState.mission_points["GateKeyPickup"] = {"pos": pos, "kind": &"gate_key"}
 	var shape := CollisionShape3D.new()
 	var sphere := SphereShape3D.new()
 	sphere.radius = 0.55
@@ -650,6 +652,7 @@ func _spawn_gate_key(row: Node3D, pos: Vector3) -> void:
 		if not body.is_in_group(&"player") or GameState.gate_key_have:
 			return
 		GameState.gate_key_have = true
+		GameState.mission_points.erase("GateKeyPickup")
 		Events.message_posted.emit("取得坚固铁栅栏门的钥匙——回主街，E1/E2 楼间巷子走到尽头开门")
 		pickup.queue_free())
 
@@ -1300,6 +1303,7 @@ func _build_pickups() -> void:
 	for p in Layout.PICKUPS:
 		if p["kind"] == "intel":
 			intel_total += 1
+	GameState.intel_total = intel_total  # HUD 任务栏开局 0/N 显示（2026-10-25）
 	for i in Layout.PICKUPS.size():
 		var p: Dictionary = Layout.PICKUPS[i]
 		var pk: Node3D = scene.instantiate()
@@ -1308,6 +1312,9 @@ func _build_pickups() -> void:
 		pk.set(&"kind", StringName(p["kind"]))
 		if p["kind"] == "intel":
 			pk.set(&"intel_total", intel_total)
+			# 任务关键点登记（小地图/罗盘标记，pickup.gd 拾取时删除）
+			GameState.mission_points[String(pk.name)] = {
+				"pos": pk.position, "kind": &"intel"}
 		row.add_child(pk)
 
 

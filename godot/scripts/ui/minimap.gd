@@ -64,7 +64,9 @@ func _process(_delta: float) -> void:
 	queue_redraw()
 
 
-## 敌人红点 + 玩家箭头（SubViewport 内，随容器圆形遮罩裁剪）
+## 敌人红点 + 任务关键点标记 + 玩家箭头（SubViewport 内，随容器圆形遮罩裁剪）
+## 任务关键点（2026-10-25 机主立项）：铁栅栏门钥匙=金菱形 / 取证终端=青菱形；
+## 超出显示半径钳到圈缘（目标导航口径：始终可见）。
 func _dots_draw() -> void:
 	var center := _dots.size * 0.5
 	var m2px := (_dots.size.x * 0.5) / GameConfig.MINIMAP_RANGE_M
@@ -77,6 +79,17 @@ func _dots_draw() -> void:
 		if off.length() > _dots.size.x * 0.5 - GameConfig.MINIMAP_ENEMY_DOT_R:
 			continue
 		_dots.draw_circle(center + off, GameConfig.MINIMAP_ENEMY_DOT_R, GameConfig.MINIMAP_ENEMY_COLOR)
+	# —— 任务关键点 ——
+	for key in GameState.mission_points:
+		var rec: Dictionary = GameState.mission_points[key]
+		var txz: Vector2 = Vector2((rec["pos"] as Vector3).x, (rec["pos"] as Vector3).z)
+		var moff := (txz - player_xz) * m2px
+		var maxr := _dots.size.x * 0.5 - 8.0
+		if moff.length() > maxr:
+			moff = moff.normalized() * maxr
+		var mcol := Color(1.0, 0.8, 0.3, 1.0) if rec["kind"] == &"gate_key" \
+			else Color(0.45, 0.95, 1.0, 0.95)
+		_dots_draw_diamond(center + moff, 5.0, mcol)
 	## 玩家箭头：北向固定图，箭头随偏航旋转（Godot 前向 -Z，屏幕上=-Z）
 	_dots.draw_set_transform(center, -GameState.player_yaw, Vector2.ONE)
 	var r := 5.0
@@ -84,6 +97,15 @@ func _dots_draw() -> void:
 		Vector2(0, -r * 1.4), Vector2(r, r), Vector2(0, r * 0.45), Vector2(-r, r)]),
 		GameConfig.MINIMAP_PLAYER_COLOR)
 	_dots.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+func _dots_draw_diamond(c: Vector2, rad: float, col: Color) -> void:
+	_dots.draw_colored_polygon(PackedVector2Array([
+		Vector2(c.x, c.y - rad), Vector2(c.x + rad, c.y),
+		Vector2(c.x, c.y + rad), Vector2(c.x - rad, c.y)]), col)
+	_dots.draw_polyline(PackedVector2Array([
+		Vector2(c.x, c.y - rad), Vector2(c.x + rad, c.y), Vector2(c.x, c.y + rad),
+		Vector2(c.x - rad, c.y), Vector2(c.x, c.y - rad)]), Color(0, 0, 0, 0.6), 1.0)
 
 
 ## 圆环边框 + 北向刻线（遮罩外，画在容器边框上）

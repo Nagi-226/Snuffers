@@ -24,6 +24,12 @@ var medkits: int = 0
 var kills: int = 0
 ## 取证终端已收集数（叙事收集品，2026-10-07 冻结新增）
 var intel: int = 0
+## 本图取证终端总数（street_builder 注入；HUD 任务栏开局 0/N 显示用，2026-10-25）
+var intel_total: int = 0
+## 任务关键点登记表（2026-10-25 机主立项：小地图/罗盘任务标记的数据源）：
+## name → {"pos": Vector3, "kind": StringName}（kind=&"gate_key" 钥匙 / &"intel" 取证终端）；
+## builder 生成时登记、拾取时由 pickup.gd/钥匙链路删除——HUD 每帧重绘，无需广播。
+var mission_points: Dictionary = {}
 
 var current_weapon: StringName = &"rifle"
 ## 射击模式（2026-10-19 机主立项：X 键循环）：weapon_id → &"semi" / &"burst" / &"auto"
@@ -71,6 +77,8 @@ func reset() -> void:
 	medkits = 0
 	kills = 0
 	intel = 0
+	intel_total = 0
+	mission_points = {}
 	current_weapon = &"rifle"
 	fire_modes = {&"rifle": &"auto", &"pistol": &"semi"}  # 出厂档：步枪全自动 / 手枪半自动
 	is_prone = false

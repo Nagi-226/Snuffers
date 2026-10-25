@@ -76,6 +76,7 @@ func _on_body_entered(body: Node3D) -> void:
 			Events.message_posted.emit("医疗注射  +1（F 使用）")
 		&"intel":
 			GameState.intel += 1
+			GameState.mission_points.erase(String(name))  # 任务标记收尾（小地图/罗盘）
 			Events.intel_picked.emit(GameState.intel, intel_total)
 			Events.message_posted.emit("取证终端已回收  %d / %d" % [GameState.intel, intel_total])
 		_:

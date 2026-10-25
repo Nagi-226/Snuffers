@@ -49,6 +49,16 @@ const DAMAGE_TEXT_COLOR_HEADSHOT: Color = Color(0.9, 0.55, 0.25)
 @onready var _damage_flash: ColorRect = %DamageFlash
 @onready var _kill_label: Label = %KillLabel
 @onready var _damage_label: Label = %DamageLabel
+@onready var _mission_title: Label = %MissionTitle
+@onready var _mission_key: Label = %MissionKey
+@onready var _mission_intel: Label = %MissionIntel
+
+## 任务栏文案色（视觉样式常量）：完成=绿 / 未完成=米白。
+const MISSION_DONE_COLOR := Color(0.55, 0.95, 0.55, 1.0)
+const MISSION_TODO_COLOR := Color(0.88, 0.86, 0.8, 0.95)
+
+## 任务栏缓存态（_process 轮询去抖：值没变不重写文本）。
+var _mission_sig := ""
 
 var _message_tween: Tween
 var _crosshair_tween: Tween
@@ -66,7 +76,37 @@ func _ready() -> void:
 	_damage_label_base_y = _damage_label.position.y
 	_damage_flash.color.a = 0.0
 	_refresh_all_from_state()
+	_refresh_mission(true)
 	_connect_events()
+
+
+func _process(_delta: float) -> void:
+	# 任务栏轮询（钥匙/终端计数均为标量，逐帧比对签名，变了才重写文本）
+	_refresh_mission(false)
+
+
+## 任务栏（2026-10-25 机主立项）：生命值/护甲框【下方框外】常驻显示当前任务与
+## 目标进度——门 B 通行前置 = 铁栅栏门钥匙（E5 车库后院）+ 取证终端（E1/E2 楼内）。
+## 数据源 GameState（gate_key_have / intel / intel_total）+ GameConfig（GATE_INTEL_REQUIRED）。
+func _refresh_mission(force: bool) -> void:
+	var key_done: bool = GameState.gate_key_have
+	var intel_need: int = GameConfig.GATE_INTEL_REQUIRED
+	var intel_total: int = maxi(GameState.intel_total, intel_need)
+	var intel_done: bool = GameState.intel >= intel_need
+	var sig := "%s|%d" % [key_done, GameState.intel]
+	if not force and sig == _mission_sig:
+		return
+	_mission_sig = sig
+	_mission_key.text = ("✔ 铁栅栏门钥匙  已取得" if key_done
+		else "◇ 铁栅栏门钥匙 0/1（E5 车库后院）")
+	_mission_key.add_theme_color_override("font_color",
+		MISSION_DONE_COLOR if key_done else MISSION_TODO_COLOR)
+	_mission_intel.text = ("✔ 取证终端 %d/%d  已集齐" % [GameState.intel, intel_total]
+		if intel_done else "◇ 取证终端 %d/%d（E1/E2 楼内）" % [GameState.intel, intel_total])
+	_mission_intel.add_theme_color_override("font_color",
+		MISSION_DONE_COLOR if intel_done else MISSION_TODO_COLOR)
+	_mission_title.text = ("任务：穿过 E1/E2 巷尽头的铁栅栏门" if key_done and intel_done
+		else "任务：收集铁栅栏门通行凭证")
 
 
 func _exit_tree() -> void:
