@@ -46,8 +46,13 @@ var _aim_weight: float = 0.0
 # player_controller 的 ADS 平移归中逻辑零改动。
 const HIP_POSE_YAW := 0.26
 const HIP_POSE_PITCH := 0.05
+# 换弹净侧倾上限（2026-10-25 机主路线A裁决）：Cransh 剪辑把枪滚到近 80°（骨
+# 空间 44-51°），主流有托步枪换弹只倾 15-30°（CoD/BF 参考）。超出部分整套
+# 枪+臂组件反向滚转抵消（走 _pose_extra 通道，motion 公式自动剥离，粘合不破）。
+const RELOAD_MAX_CANT := deg_to_rad(22.0)
 var _pose_extra: Transform3D = Transform3D.IDENTITY
 var _arms_placed: Transform3D = Transform3D.IDENTITY
+var _reload_counter: float = 0.0
 # 基座旋转与左臂姿势推迟到首个 _process 帧施加：player_controller._ready 的
 # ADS 标定在子节点就绪后跑，必须量到未旋转（=开镜态）的瞄具位——否则按腰射
 # 旋转态标定，开镜旋转回正后枪身整体偏左（2026-10-24 机主实机指认）。
@@ -114,12 +119,29 @@ func _prepare_native_hold(clip: StringName) -> void:
 
 ## 腰射基座旋转随 _aim_weight 收放：1=腰射全姿态，0=开镜回正（瞄具轴平行
 ## 相机轴，挂载平移归中保持 player_controller 原逻辑）。两子节点同源点同旋转。
+## 换弹期间叠加 _reload_counter 反向滚转（绕视线轴，见 RELOAD_MAX_CANT）。
 func _apply_pose_rotation() -> void:
 	var w := 1.0 - _aim_weight
-	var q := Quaternion(Vector3.UP, HIP_POSE_YAW * w) * Quaternion(Vector3.RIGHT, HIP_POSE_PITCH * w)
+	var q := Quaternion(Vector3.UP, HIP_POSE_YAW * w) \
+		* Quaternion(Vector3.RIGHT, HIP_POSE_PITCH * w) \
+		* Quaternion(Vector3.BACK, _reload_counter)
 	_pose_extra = Transform3D(Basis(q), Vector3.ZERO)
 	_arms_node.transform = _pose_extra * _arms_placed
 	_weapon_node.transform = _pose_extra * _weapon_home
+
+
+## 换弹剪辑当前枪身绕视线轴的带符号滚转（E 已剥离的 motion 增量空间，
+## hold 基线为 0）。超出主流上限的角度即反向滚转量：净侧倾=剪辑滚转被
+## 截到 ±RELOAD_MAX_CANT，剪辑自身的缓入缓出形状保留。
+func _reload_cant_counter() -> float:
+	if _weapon_bone < 0:
+		return 0.0
+	var delta: Transform3D = _weapon_motion_start.affine_inverse() * _weapon_motion()
+	var q := delta.basis.get_rotation_quaternion()
+	if q.get_angle() < 0.01:
+		return 0.0
+	var roll := q.get_angle() * signf(q.get_axis().z)
+	return roll - clampf(roll, -RELOAD_MAX_CANT, RELOAD_MAX_CANT)
 
 
 ## 主流FPS左臂姿势（机主参考图 2026-10-24：左手托护木、前臂近垂直伸入、肘出画）。
@@ -257,6 +279,12 @@ func _process(delta: float) -> void:
 			_aim_weight = move_toward(_aim_weight, aim_target, delta * 4.0)
 			_apply_pose_rotation()
 			_pose_left_arm_mainstream(_aim_weight)
+	elif _is_reloading:
+		# 换弹反向滚转逐帧跟踪剪辑滚转（净侧倾截到主流上限）。
+		var counter := _reload_cant_counter()
+		if not is_equal_approx(counter, _reload_counter):
+			_reload_counter = counter
+			_apply_pose_rotation()
 	if _weapon_bone >= 0:
 		_weapon_node.transform = _pose_extra * _weapon_home * _weapon_motion_start.affine_inverse() * _weapon_motion()
 	if _magazine != null and _mag_bone >= 0:
@@ -461,7 +489,7 @@ func _on_weapon_switched(weapon_id: StringName) -> void:
 
 
 func _reset_reload_visuals() -> void:
-	_weapon_node.transform = _pose_extra * _weapon_home
+	_reload_counter = 0.0
 	if _magazine != null:
 		_magazine.transform = _mag_home_transform
 		_magazine.visible = true
@@ -469,6 +497,8 @@ func _reset_reload_visuals() -> void:
 		_arms_animation.play(&"hold")
 		_arms_animation.seek(0.0, true)
 		_arms_animation.pause()
+	_apply_pose_rotation()
+	if _arms_animation != null and _arms_animation.has_animation(&"hold"):
 		_pose_left_arm_mainstream(_aim_weight)
 	if _arms_skeleton != null and _weapon_bone >= 0:
 		_weapon_motion_start = _weapon_motion()
