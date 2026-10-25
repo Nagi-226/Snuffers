@@ -19,6 +19,9 @@ static var _immune_until: int = 0
 ## 跨场景敌人快照：scene_path → Array[Dictionary]（name/pos/health）。
 ## 静态字典随进程存活；每次离场覆盖写同键，初进游戏为空=全量刷新（首次行为不变）。
 static var enemy_snapshots: Dictionary = {}
+## 跨场景拾取物快照：scene_path → Array[String]（离场时仍存活的拾取节点名）。
+## 返回时不在名单的=离场前已拾取 → 恢复期删除（关键道具不再刷新，2026-10-25 机主报修）。
+static var pickup_snapshots: Dictionary = {}
 
 @export var target_scene: String = ""
 ## 穿门后到达【目标场景】里的哪个锚点（目标场景中 anchor_id 与此相同的
@@ -47,6 +50,7 @@ func _on_body_entered(body: Node3D) -> void:
 		push_warning("SceneLink: 目标场景不存在 %s" % target_scene)
 		return
 	_capture_enemies()
+	_capture_pickups()
 	SceneLink.arrive_anchor = target_anchor
 	get_tree().change_scene_to_file(target_scene)
 ## 到达时玩家相对本节点的落位偏移（本节点面向由场景摆放决定）。
@@ -63,6 +67,7 @@ func _ready() -> void:
 		SceneLink._immune_until = Time.get_ticks_msec() + 1200
 		_teleport_player.call_deferred()
 		_restore_enemies.call_deferred()
+		_restore_pickups.call_deferred()
 
 
 ## 离场快照：当前场景存活敌人（group "enemy"；死亡者 _die 已 queue_free，
@@ -114,6 +119,29 @@ func _scene_path() -> String:
 	while n.get_parent() != null and n.get_parent() != get_tree().root:
 		n = n.get_parent()
 	return n.scene_file_path
+
+
+## 离场拾取物快照：记录 group "pickup" 里仍存活的节点名（死亡=已拾取的
+## queue_free 后不在组内）。返回恢复时不在名单的删除（含其任务标记）——
+## 取证终端/钥匙等关键道具不再随场景重载刷新（2026-10-25 机主报修）。
+func _capture_pickups() -> void:
+	var names: Array = []
+	for p in get_tree().get_nodes_in_group(&"pickup"):
+		names.append(String((p as Node).name))
+	SceneLink.pickup_snapshots[_scene_path()] = names
+
+
+## 返回恢复（延迟一帧）：不在离场快照名单里的拾取节点=已拾取 → 删除并同步
+## 擦除其任务标记（builder 重建时会重新登记全部标记，此处收尾对齐）。
+func _restore_pickups() -> void:
+	if not SceneLink.pickup_snapshots.has(_scene_path()):
+		return
+	var alive: Array = SceneLink.pickup_snapshots[_scene_path()]
+	for p in get_tree().get_nodes_in_group(&"pickup"):
+		var pn := p as Node
+		if not alive.has(String(pn.name)):
+			GameState.mission_points.erase(String(pn.name))
+			pn.queue_free()
 
 
 func _teleport_player() -> void:

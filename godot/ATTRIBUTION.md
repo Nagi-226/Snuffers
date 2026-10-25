@@ -123,6 +123,8 @@
 | prop_pallet.glb | Pallet | Quaternius | https://poly.pizza/m/cUAsYHDqfD | CC0（Public Domain，无署名义务） | 2026-10-25 |
 | prop_cone.glb | Traffic Cone | Quaternius | https://poly.pizza/m/lAx8JytxGD | CC0（Public Domain，无署名义务） | 2026-10-25 |
 | prop_washer.glb | Washing Machine | Quaternius | https://poly.pizza/m/UFxsKNSl8W | CC0（Public Domain，无署名义务） | 2026-10-25 |
+| prop_toolbox.glb | Toolbox | CreativeTrio | https://poly.pizza/m/3ImQcIK0Gp | CC0（Public Domain，无署名义务） | 2026-10-25 |
+| prop_crate_small.glb | Pickup Crate | Quaternius | https://poly.pizza/m/1dh0EFL5gl | CC0（Public Domain，无署名义务） | 2026-10-25 |
 
 - 用途：E5 车库后院扩容后的生活杂物（2026-10-25 机主三轮指令「增加更多杂物（从开源社区找一下对应素材）」）；`_prop_model` 运行态归一管线，PROPS 表 `junk_*` 类型驱动。
 - 下载方式：模型页内嵌 modelviewer 的 static.poly.pizza UUID 直链（页面不暴露下载 URL，需从页面 HTML 提取）。

@@ -606,9 +606,13 @@ func _build_rear_yard(row: Node3D, b: Dictionary) -> void:
 ## 发光小钥匙浮于台面，触碰拾取。结构与 alley_next_builder._spawn_gate_key 同源
 ## （GameState.gate_key_have / Events.message_posted 均为 autoload，零新契约）。
 func _spawn_gate_key(row: Node3D, pos: Vector3) -> void:
+	# 钥匙已取得（跨场景返回/重来）：不生成节点也不登记标记——拾取态持久
+	if GameState.gate_key_have:
+		return
 	var pickup := Area3D.new()
 	pickup.name = "GateKeyPickup"
 	pickup.position = pos
+	pickup.add_to_group(&"pickup")  # 跨场景持久化枚举用
 	row.add_child(pickup)
 	# 任务关键点登记（小地图/罗盘标记；拾取回调用删除收尾）
 	GameState.mission_points["GateKeyPickup"] = {"pos": pos, "kind": &"gate_key"}
@@ -1272,6 +1276,10 @@ func _build_props() -> void:
 				_prop_model(prop, "res://assets/models/prop_cone.glb", 0.55, Vector3.ONE, Vector3.ZERO)
 			"junk_washer":
 				_prop_model(prop, "res://assets/models/prop_washer.glb", 0.9, Vector3.ONE, Vector3.ZERO)
+			"junk_toolbox":
+				_prop_model(prop, "res://assets/models/prop_toolbox.glb", 0.35, Vector3.ONE, Vector3.ZERO)
+			"junk_crate":
+				_prop_model(prop, "res://assets/models/prop_crate_small.glb", 0.55, Vector3.ONE, Vector3.ZERO)
 			_:
 				# KayKit City Builder Bits 汽车系（CC0，ATTRIBUTION 五）：目标高 1.45m，
 				# 模型不许动（2026-10-25 机主三轮裁决），宽车体空气墙靠 PROPS 挪位解决

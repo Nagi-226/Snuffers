@@ -35,13 +35,19 @@ func _run() -> void:
 	current_scene = lv
 	for i in 30:
 		await process_frame
-	# —— M1 场景登记 ——
+	# —— M1 场景登记（4 项：钥匙+3 终端；intel_total=3）——
 	var mp: Dictionary = _gs().get("mission_points")
 	var kinds := {}
 	for k in mp:
 		kinds[mp[k]["kind"]] = kinds.get(mp[k]["kind"], 0) + 1
-	print("M1_POINTS total=", mp.size(), "(期望3) kinds=", kinds,
-		" intel_total=", _gs().get("intel_total"), "(期望2)")
+	print("M1_POINTS total=", mp.size(), "(期望4) kinds=", kinds,
+		" intel_total=", _gs().get("intel_total"), "(期望3)")
+	var i1: Node3D = lv.find_child("Pickup_intel_1", true, false)
+	var i4: Node3D = lv.find_child("Pickup_intel_4", true, false)
+	var i8: Node3D = lv.find_child("Pickup_intel_8", true, false)
+	print("M1B_SPOTS E1_2F_y=", snappedf(i1.position.y, 0.01), "(期望3.86)",
+		" E2_3F_y=", snappedf(i4.position.y, 0.01), "(期望6.86)",
+		" E3_garage=", i8 != null, " pos=", i8.position.round() if i8 else "-")
 	# —— M2 HUD 节点 + 初始文案（按名直找，避开多 CanvasLayer 歧义）——
 	var panel: Control = lv.find_child("MissionPanel", true, false)
 	var compass: Control = lv.find_child("CompassBar", true, false)
@@ -59,12 +65,12 @@ func _run() -> void:
 	var player: Node3D = root.get_tree().get_first_node_in_group(&"player")
 	player.global_position = Vector3(0, 1.0, -20.0)
 	await _shot(cam, Vector3(0, 1.7, -19.2), Vector3(0, 1.6, -30.0), "m_hud_start")
-	# —— M3 真实拾取 E1 取证终端（贴身触发 pickup.gd）——
-	player.global_position = Vector3(13.0, 1.0, 21.7)
+	# —— M3 真实拾取 E1 二楼取证终端（贴身触发 pickup.gd；楼层地面 y=3.0）——
+	player.global_position = Vector3(13.5, 3.2, 21.2)
 	for i in 30:
 		await process_frame
 	print("M3_PICKUP intel=", _gs().get("intel"), "(期望1)",
-		" points=", _gs().get("mission_points").size(), "(期望2)",
+		" points=", _gs().get("mission_points").size(), "(期望3)",
 		" lbl=", intel_lbl.text)
 	player.global_position = Vector3(0, 1.0, -20.0)
 	await _shot(cam, Vector3(0, 1.7, -19.2), Vector3(0, 1.6, -30.0), "m_hud_1of2")
@@ -99,5 +105,45 @@ func _run() -> void:
 	print("M5_GATE_PASS passed=", passed,
 		" player_at_arrival=", (root.get_tree().get_first_node_in_group(&"player") as Node3D).global_position.round()
 			if passed and root.get_tree().get_first_node_in_group(&"player") != null else "-")
-	print("MISSION_", "PASS" if passed else "FAIL")
+	if not passed:
+		print("MISSION_FAIL")
+		quit()
+		return
+	# —— M6 往返持久化：从 district_b 返回主街，已拾取的终端不得刷新 ——
+	var t_arr: int = Time.get_ticks_msec()
+	while Time.get_ticks_msec() - t_arr < 1500:
+		await process_frame
+	var body := CharacterBody3D.new()
+	var cs2 := CollisionShape3D.new()
+	var sph2 := SphereShape3D.new()
+	sph2.radius = 0.3
+	cs2.shape = sph2
+	cs2.position = Vector3(0, 0.3, 0)
+	body.add_child(cs2)
+	(current_scene as Node).add_child(body)
+	body.add_to_group(&"player")
+	body.global_position = Vector3(0, 0.6, 9.0)
+	var back: bool = false
+	for i in 600:
+		await process_frame
+		if i % 20 == 0:
+			body.global_position = Vector3(0, 0.6, 9.0)
+		var scn: Node = current_scene
+		if scn != null and String(scn.scene_file_path).ends_with("street_playable.tscn"):
+			back = true
+			break
+	for i in 15:
+		await process_frame
+	var back_lv: Node = current_scene
+	var pickups_alive: int = back_lv.get_tree().get_nodes_in_group(&"pickup").size()
+	var gone: bool = back_lv.find_child("Pickup_intel_1", true, false) == null
+	var kept4: bool = back_lv.find_child("Pickup_intel_4", true, false) != null
+	var kept8: bool = back_lv.find_child("Pickup_intel_8", true, false) != null
+	var mp2: Dictionary = _gs().get("mission_points")
+	print("M6_PERSIST back=", back, " pickups_alive=", pickups_alive, "(期望8=9-已拾1)",
+		" intel1_gone=", gone, "(期望true) intel4_kept=", kept4, " intel8_kept=", kept8,
+		" points=", mp2.size(), "(期望3)",
+		" lbl=", intel_lbl.text if is_instance_valid(intel_lbl) else "-")
+	var ok: bool = back and pickups_alive == 8 and gone and kept4 and kept8 and mp2.size() == 3
+	print("MISSION_", "PASS" if ok else "FAIL")
 	quit()

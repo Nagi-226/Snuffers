@@ -23,6 +23,7 @@ const MODELS := {
 
 
 func _ready() -> void:
+	add_to_group(&"pickup")  # 跨场景持久化枚举用（SceneLink 离场快照/返回恢复）
 	# 触发区（贴近即拾；半径走契约，禁止硬编码）
 	var shape := CollisionShape3D.new()
 	var sphere := SphereShape3D.new()
