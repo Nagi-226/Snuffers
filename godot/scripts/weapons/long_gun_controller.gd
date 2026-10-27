@@ -16,6 +16,8 @@ var _weapon_node: Node3D
 var _magazine: Node3D
 var _arms_node: Node3D
 var _muzzle_node: Node3D
+var _optic_node: MeshInstance3D
+var _optic_glass_node: MeshInstance3D
 var _arms_animation: AnimationPlayer
 var _arms_skeleton: Skeleton3D
 var _mag_bone: int = -1
@@ -45,6 +47,11 @@ func _ready() -> void:
 	_muzzle_node = get_node_or_null(muzzle_node_path) as Node3D
 	if _weapon_node != null:
 		_weapon_home = _weapon_node.transform
+		for node in _weapon_node.find_children("*", "MeshInstance3D", true, false):
+			if String(node.name).to_lower().contains("optic"):
+				_optic_node = node as MeshInstance3D
+				break
+		_optic_glass_node = _weapon_node.get_node_or_null("world/em12g1_optic_glass") as MeshInstance3D
 	if _magazine != null:
 		_mag_home_transform = _magazine.transform
 	_setup_arms()
@@ -113,6 +120,10 @@ func _align_native_arms() -> void:
 
 func _process(delta: float) -> void:
 	super._process(delta)
+	if _optic_node != null:
+		_optic_node.visible = not GameState.is_aiming
+	if _optic_glass_node != null:
+		_optic_glass_node.visible = not GameState.is_aiming
 	if _arms_skeleton == null or _weapon_bone < 0:
 		return
 	if _pose_pending:

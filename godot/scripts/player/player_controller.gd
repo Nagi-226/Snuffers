@@ -51,6 +51,8 @@ var _mount_hip_pos: Vector3 = Vector3.ZERO ## 腰射挂载位（_ready 从 playe
 var _ads_mount_targets: Dictionary = {} ## weapon_id → 开镜挂载位（optic 中心对中）
 var _ads_fov_targets: Dictionary = {} ## weapon_id → 开镜 FOV
 var _ads_reticle: AdsReticle = null
+var _dmr_scope: ColorRect = null
+var _dmr_scope_material: ShaderMaterial = null
 ## 瞄具双网格切换（2026-10-20 机主立项）：常规视角用完整瞄具（外观完好），
 ## 开镜过半把 optic 网格换成独立开孔版（透视镜筒），收镜过半换回。
 ## 开孔版由 extract_optic_bored.py 从完整 GLB 提取，几何同源、坐标系一致，直接换 mesh 即可。
@@ -105,6 +107,14 @@ func _ready() -> void:
 	_ads_reticle.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	reticle_layer.add_child(_ads_reticle)
 	add_child(reticle_layer)
+	_dmr_scope = ColorRect.new()
+	_dmr_scope.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_dmr_scope.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dmr_scope_material = ShaderMaterial.new()
+	_dmr_scope_material.shader = load("res://scripts/player/dmr_scope.gdshader") as Shader
+	_dmr_scope.material = _dmr_scope_material
+	_dmr_scope.visible = false
+	reticle_layer.add_child(_dmr_scope)
 	_calibrate_ads()
 	_load_optic_meshes()
 	# 承伤管线挂接（发射侧在 enemy_base._damage_player；结算收口在本类 _apply_damage）。
@@ -152,8 +162,9 @@ func _calibrate_ads() -> void:
 			_ads_mount_targets[pair[0]] = fallback
 		else:
 			var c: Vector3 = center
-			# optic 相机空间坐标 = 挂载位 + c；令其 x/y 归零 → 挂载位取 -c（z 保持腰射纵距）
-			_ads_mount_targets[pair[0]] = Vector3(-c.x, -c.y, _mount_hip_pos.z)
+			# optic 相机空间坐标 = 挂载位 + c；令其 x/y 归零 → 挂载位取 -c。
+			var forward: float = GameConfig.SHOTGUN_ADS_FORWARD if pair[0] == &"shotgun" else 0.0
+			_ads_mount_targets[pair[0]] = Vector3(-c.x, -c.y, _mount_hip_pos.z - forward)
 
 
 ## 在武器子树中找名字含 optic 的网格实例（无则返回 null）。
@@ -411,6 +422,13 @@ func _process(delta: float) -> void:
 			_ads_reticle.mode = mode
 			_ads_reticle.weight = _ads_weight
 			_ads_reticle.queue_redraw()
+	var full_scope := GameState.current_weapon == &"dmr" and _ads_weight > 0.6
+	if _dmr_scope != null:
+		_dmr_scope.visible = full_scope
+		var viewport_size := get_viewport().get_visible_rect().size
+		_dmr_scope_material.set_shader_parameter("aspect", viewport_size.x / viewport_size.y)
+		_dmr_scope_material.set_shader_parameter("weight", clampf((_ads_weight - 0.6) / 0.4, 0.0, 1.0))
+		_ads_reticle.visible = not full_scope
 	# 瞄具双网格切换：仅步枪且开镜过半用开孔版，其余情况回完整版。
 	# 切换点取过渡中点（0.5），此时镜筒正在归中途中，换网格肉眼不可察。
 	if _rifle_optic_mesh != null and _optic_mesh_bored != null:

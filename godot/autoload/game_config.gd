@@ -151,8 +151,8 @@ const DMR_SOUND_PITCH: float = 0.85 ## 复用步枪音源，较低音高区分�
 const DMR_HIP_POSE_YAW: float = 0.26
 const DMR_HIP_POSE_PITCH: float = 0.05
 const DMR_ARMS_OFFSET := Vector3(0, -0.02, 0.07)
-const DMR_SUPPORT_WRIST_HIP := Vector3(-0.05, -0.045, -0.17)
-const DMR_SUPPORT_WRIST_ADS := Vector3(-0.05, -0.10, -0.16)
+const DMR_SUPPORT_WRIST_HIP := Vector3(-0.05, -0.045, -0.14)
+const DMR_SUPPORT_WRIST_ADS := Vector3(-0.05, -0.10, -0.13)
 
 # ===== EM-12G-1「霰·Ⅰ」无托电磁霰弹枪（2026-10-26 机主数值裁决）=====
 const AMMO_DMG_EC12_PELLET: float = 30.0 ## EC-12「砂」单丸身体伤害；一次击发 12 丸
@@ -182,8 +182,9 @@ const SHOTGUN_SOUND_PITCH: float = 0.65 ## 复用步枪音源，低音高突出�
 const SHOTGUN_HIP_POSE_YAW: float = 0.26
 const SHOTGUN_HIP_POSE_PITCH: float = 0.05
 const SHOTGUN_ARMS_OFFSET := Vector3(0, -0.02, 0.07)
-const SHOTGUN_SUPPORT_WRIST_HIP := Vector3(-0.04, -0.05, -0.20)
-const SHOTGUN_SUPPORT_WRIST_ADS := Vector3(-0.04, -0.08, -0.18)
+const SHOTGUN_SUPPORT_WRIST_HIP := Vector3(-0.04, -0.05, -0.16)
+const SHOTGUN_SUPPORT_WRIST_ADS := Vector3(-0.04, -0.08, -0.14)
+const SHOTGUN_ADS_FORWARD: float = 0.06 ## 开镜挂载前移，避免无托枪托抵脸的观感
 
 # ===== EM-40G「滚雷」下挂榴弹模块（2026-10-22 机主裁决：并入 EM-68A 第四射击档，
 #       X 键闭环 全自动→半自动→三发点射→榴→全自动；旧 3 号位 RPG 火箭筒整体退役）=====

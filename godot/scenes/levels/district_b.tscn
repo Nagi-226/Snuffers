@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/levels/district_b_builder.gd" id="2_builder"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/audio_manager.tscn" id="4_audio"]
+[ext_resource type="Script" path="res://scripts/levels/night_vision_overlay.gd" id="5_nightvision"]
 
 [node name="DistrictB" type="Node3D"]
 script = ExtResource("2_builder")
@@ -15,3 +16,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 17)
 district_mode = true
 
 [node name="AudioManager" parent="." instance=ExtResource("4_audio")]
+
+[node name="NightVisionOverlay" type="CanvasLayer" parent="."]
+script = ExtResource("5_nightvision")

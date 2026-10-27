@@ -20,6 +20,8 @@ func _run() -> void:
 	for i in 30:
 		await process_frame
 	_camera = _scene.get_node("Player/Camera3D") as Camera3D
+	var nv := _scene.get_node("NightVisionOverlay")
+	print("NV_STATE enabled=", root.get_node("GameState").night_vision, " overlay=", nv._overlay.visible, " args=", args)
 	await _shot(out_dir + "/spawn.png")
 	_camera.global_position = Vector3(22, 12, 22)
 	_camera.look_at(Vector3(0, 2.5, -8))
