@@ -1,0 +1,25 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/long_gun_controller.gd" id="1_controller"]
+[ext_resource type="Resource" path="res://scenes/weapons/shotgun.tres" id="2_data"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/em12g1_viewmodel.glb" id="3_model"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/arms_rifle_native.glb" id="4_arms"]
+
+[node name="Shotgun" type="Node3D"]
+script = ExtResource("1_controller")
+weapon_data = ExtResource("2_data")
+magazine_node_path = NodePath("ViewModel/Weapon/world/em12g1_magazine")
+
+[node name="ViewModel" type="Node3D" parent="."]
+
+[node name="Weapon" parent="ViewModel" instance=ExtResource("3_model")]
+position = Vector3(-0.04, -0.035, 0.12)
+
+[node name="Muzzle" type="Marker3D" parent="ViewModel/Weapon"]
+position = Vector3(0, 0.02, -0.37)
+
+[node name="OpticAim" type="Marker3D" parent="ViewModel/Weapon"]
+position = Vector3(0.00697, 0.10657, 0.10706)
+
+[node name="Arms" parent="ViewModel" instance=ExtResource("4_arms")]
+position = Vector3(-0.04, -0.035, 0.12)

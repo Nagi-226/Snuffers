@@ -79,6 +79,14 @@ func _run() -> void:
 	# 弹药口径伤害组（2026-10-22 机主裁决：伤害绑弹药不绑枪；EC-68=75 / EC-57=45）
 	_assert(config.AMMO_DMG_EC68 == 75.0, "game_config.gd AMMO_DMG_EC68 == 75.0")
 	_assert(config.AMMO_DMG_EC57 == 45.0, "game_config.gd AMMO_DMG_EC57 == 45.0")
+	_assert(config.AMMO_DMG_EC12_PELLET == 30.0, "game_config.gd AMMO_DMG_EC12_PELLET == 30.0")
+	_assert(config.DMR_DAMAGE_BODY == 90.0, "EM-68D owner-specified 90 damage; EC-68 rifle remains 75")
+	_assert(config.DMR_MAG == 60 and config.DMR_SEMI_FIRE_INTERVAL == 0.22, "EM-68D 60-round semi configuration")
+	_assert(config.DMR_ADS_FOV == 35.0 and config.DMR_RANGE == 180.0, "EM-68D ADS and range")
+	_assert(config.SHOTGUN_MAG == 32 and config.SHOTGUN_PELLET_COUNT == 12, "EM-12G-1 32 rounds and twelve pellets")
+	_assert(config.SHOTGUN_FIRE_INTERVAL == 0.12 and config.SHOTGUN_RANGE == 50.0, "EM-12G-1 500 RPM and 50m")
+	_assert(config.SHOTGUN_SPREAD_START == 15.0, "EM-12G-1 spread starts beyond 15m")
+	_assert(config.SHOTGUN_RESERVE == 160 and config.SHOTGUN_AMMO_PICKUP_ROUNDS == 32, "EM-12G-1 reserve and pickup")
 	# 榴弹爆炸特效组（2026-10-22 机主立项：程序化多层组合替换灰盒占位橙球）
 	_assert(config.EXPLOSION_FX_POOL == 3, "game_config.gd EXPLOSION_FX_POOL == 3")
 	_assert(config.EXPLOSION_FX_FLASH_ENERGY == 120.0, "game_config.gd EXPLOSION_FX_FLASH_ENERGY == 120.0")
@@ -157,6 +165,7 @@ func _run() -> void:
 	_assert(events.has_signal(&"player_hit_direction"), "events.gd has signal player_hit_direction")
 	# 拾取契约新增信号（2026-10-07 冻结）。
 	_assert(events.has_signal(&"battery_picked"), "events.gd has signal battery_picked")
+	_assert(events.has_signal(&"shotgun_ammo_picked"), "events.gd has signal shotgun_ammo_picked")
 	_assert(events.has_signal(&"intel_picked"), "events.gd has signal intel_picked")
 
 	# -- 表现层三件套参数（2026-08-19 冻结新增）--

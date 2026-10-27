@@ -1,16 +1,17 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
-[ext_resource type="Script" path="res://scripts/levels/alley_next_builder.gd" id="2_builder"]
+[ext_resource type="Script" path="res://scripts/levels/district_b_builder.gd" id="2_builder"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/audio_manager.tscn" id="4_audio"]
 
-; 下一街区 stub（2026-10-25 机主任务链：E1/E2 巷子尽头坚固铁门持钥匙进入；
-; 正式版由 W4 换真实街区图）。复用钥匙院脚本参数化实例：无钥匙、返回锚点=坚固门。
 [node name="DistrictB" type="Node3D"]
 script = ExtResource("2_builder")
-key_spawn = false
-return_scene = "res://scenes/levels/street_playable.tscn"
-return_target_anchor = "street_bgate"
-self_anchor = "district_b_return"
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 17)
+
+[node name="HUD" parent="." instance=ExtResource("3_hud")]
+district_mode = true
+
+[node name="AudioManager" parent="." instance=ExtResource("4_audio")]

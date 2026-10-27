@@ -12,6 +12,8 @@
 ## （颜色/字号/过渡时长/上飘像素）契约未含，集中在本文件头部。
 extends CanvasLayer
 
+@export var district_mode: bool = false
+
 ## 准星恢复过渡时长 s（视觉表现常量）。
 const CROSSHAIR_RECOVER_TIME: float = 0.1
 ## 飘字淡出时长 s（视觉表现常量）。
@@ -75,6 +77,10 @@ func _ready() -> void:
 	_kill_label_base_y = _kill_label.position.y
 	_damage_label_base_y = _damage_label.position.y
 	_damage_flash.color.a = 0.0
+	if district_mode:
+		get_node("Minimap").visible = false
+		get_node("CompassBar").show_mission_markers = false
+		_intel_label.visible = false
 	_refresh_all_from_state()
 	_refresh_mission(true)
 	_connect_events()
@@ -89,6 +95,19 @@ func _process(_delta: float) -> void:
 ## 目标进度——门 B 通行前置 = 铁栅栏门钥匙（E5 车库后院）+ 取证终端（E1/E2 楼内）。
 ## 数据源 GameState（gate_key_have / intel / intel_total）+ GameConfig（GATE_INTEL_REQUIRED）。
 func _refresh_mission(force: bool) -> void:
+	if district_mode:
+		var dmr_done: bool = GameState.weapon_unlocked.get(&"dmr", false)
+		var shotgun_done: bool = GameState.weapon_unlocked.get(&"shotgun", false)
+		var district_sig := "%s|%s" % [dmr_done, shotgun_done]
+		if not force and district_sig == _mission_sig:
+			return
+		_mission_sig = district_sig
+		_mission_title.text = "任务：前往 JB-02 后舱领取雷暴装备"
+		_mission_key.text = ("✔ EM-68D 穿杨 已领取" if dmr_done else "◇ EM-68D 穿杨 待领取")
+		_mission_key.add_theme_color_override("font_color", MISSION_DONE_COLOR if dmr_done else MISSION_TODO_COLOR)
+		_mission_intel.text = ("✔ EM-12G-1 霰·Ⅰ 已领取" if shotgun_done else "◇ EM-12G-1 霰·Ⅰ 待领取")
+		_mission_intel.add_theme_color_override("font_color", MISSION_DONE_COLOR if shotgun_done else MISSION_TODO_COLOR)
+		return
 	var key_done: bool = GameState.gate_key_have
 	var intel_need: int = GameConfig.GATE_INTEL_REQUIRED
 	var intel_total: int = maxi(GameState.intel_total, intel_need)
@@ -226,6 +245,10 @@ func _refresh_ammo() -> void:
 	match GameState.current_weapon:
 		&"pistol":
 			_set_ammo_text(&"pistol", GameState.pistol_mag, GameState.pistol_reserve)
+		&"dmr":
+			_set_ammo_text(&"dmr", GameState.dmr_mag, GameState.rifle_reserve)
+		&"shotgun":
+			_set_ammo_text(&"shotgun", GameState.shotgun_mag, GameState.shotgun_reserve)
 		_:
 			_set_ammo_text(&"rifle", GameState.rifle_mag, GameState.rifle_reserve)
 
@@ -252,10 +275,15 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 			mode_tag = "[三点射]"
 		&"semi":
 			mode_tag = "[半自动]"
-	if weapon_id == &"pistol":
-		_ammo_label.text = "EM-57P %s EC-57 无壳手枪弹：%d / %d" % [mode_tag, mag, reserve]
-	else:
-		_ammo_label.text = "EM-68A %s EC-68 无壳步枪弹：%d / %d" % [mode_tag, mag, reserve]
+	match weapon_id:
+		&"pistol":
+			_ammo_label.text = "EM-57P %s EC-57 无壳手枪弹：%d / %d" % [mode_tag, mag, reserve]
+		&"dmr":
+			_ammo_label.text = "EM-68D 穿杨 %s EC-68 无壳步枪弹：%d / %d" % [mode_tag, mag, reserve]
+		&"shotgun":
+			_ammo_label.text = "EM-12G-1 霰·Ⅰ %s EC-12 砂：%d / %d" % [mode_tag, mag, reserve]
+		_:
+			_ammo_label.text = "EM-68A %s EC-68 无壳步枪弹：%d / %d" % [mode_tag, mag, reserve]
 
 
 ## 腿部警告分级（2026-10-21 随三部位耐久制退役，函数移除）。

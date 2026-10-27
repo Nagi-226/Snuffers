@@ -28,6 +28,8 @@ const COLOR_KEY := Color(1.0, 0.8, 0.3, 1.0)
 const COLOR_INTEL := Color(0.45, 0.95, 1.0, 0.95)
 const COLOR_MARKER_DIM := 0.45 ## 边缘钳制态标记透明度（目标在条带外）
 
+@export var show_mission_markers: bool = true
+
 @onready var _font: Font = get_theme_default_font()
 
 
@@ -75,7 +77,7 @@ func _draw() -> void:
 					Color(COLOR_TEXT, 0.7))
 		deg += TICK_DEG
 	# —— 任务关键点菱形（出带钳到边缘）——
-	for key in GameState.mission_points:
+	for key in GameState.mission_points if show_mission_markers else []:
 		var rec: Dictionary = GameState.mission_points[key]
 		var rel2 := wrapf(_bearing_deg(rec["pos"]) - heading, -180.0, 180.0)
 		var clamped := absf(rel2) > half

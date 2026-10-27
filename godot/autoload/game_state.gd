@@ -14,9 +14,12 @@ var hp: float = 0.0
 var armor: float = 0.0
 
 var rifle_mag: int = 0
-var rifle_reserve: int = 0
+var rifle_reserve: int = 0 ## EM-68A / EM-68D 共用 EC-68 备弹池（2026-10-26 机主裁决）
 var pistol_mag: int = 0 ## EM-57P 弹匣（2026-10-19 冻结新增）
 var pistol_reserve: int = 0 ## EM-57P 备弹（2026-10-19 冻结新增）
+var dmr_mag: int = 0 ## EM-68D 弹匣（2026-10-26）
+var shotgun_mag: int = 0 ## EM-12G-1 弹匣（2026-10-26）
+var shotgun_reserve: int = 0 ## EM-12G-1 备弹（EC-12）
 ## EM-40G「滚雷」榴弹余量（2026-10-22 冻结新增：并入步枪第四射击档，模块 6 发弹匣
 ## =雷池，总数制无换弹；旧 rpg_ammo 随 RPG 武器退役移除）
 var rifle_grenades: int = 0
@@ -32,6 +35,7 @@ var intel_total: int = 0
 var mission_points: Dictionary = {}
 
 var current_weapon: StringName = &"rifle"
+var weapon_unlocked: Dictionary = {} ## 雷暴领装状态；初始仅 EM-68A / EM-57P
 ## 射击模式（2026-10-19 机主立项：X 键循环）：weapon_id → &"semi" / &"burst" / &"auto"
 var fire_modes: Dictionary = {}
 var is_prone: bool = false
@@ -73,6 +77,9 @@ func reset() -> void:
 	rifle_reserve = GameConfig.RIFLE_RESERVE
 	pistol_mag = GameConfig.PISTOL_MAG
 	pistol_reserve = GameConfig.PISTOL_RESERVE
+	dmr_mag = GameConfig.DMR_MAG
+	shotgun_mag = GameConfig.SHOTGUN_MAG
+	shotgun_reserve = GameConfig.SHOTGUN_RESERVE
 	rifle_grenades = GameConfig.GRENADE_AMMO
 	medkits = 0
 	kills = 0
@@ -80,7 +87,8 @@ func reset() -> void:
 	intel_total = 0
 	mission_points = {}
 	current_weapon = &"rifle"
-	fire_modes = {&"rifle": &"auto", &"pistol": &"semi"}  # 出厂档：步枪全自动 / 手枪半自动
+	weapon_unlocked = {&"rifle": true, &"pistol": true, &"dmr": false, &"shotgun": false}
+	fire_modes = {&"rifle": &"auto", &"pistol": &"semi", &"dmr": &"semi", &"shotgun": &"semi"}
 	is_prone = false
 	is_aiming = false
 	still_time = 0.0

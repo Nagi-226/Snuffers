@@ -32,6 +32,8 @@ const FOV_BASE: float = 75.0 ## 主相机 FOV（L465）
 # —— 按住开镜（ADS，2026-10-19 机主立项：右键由「切换潜行观感」改为按住开镜）——
 const RIFLE_ADS_FOV: float = 60.0 ## EM-68A 全息瞄具开镜 FOV（全息=低倍率，微收窄）
 const PISTOL_ADS_FOV: float = 65.0 ## EM-57P 点状瞄具开镜 FOV
+const DMR_ADS_FOV: float = 35.0 ## EM-68D 精确射手瞄具开镜 FOV
+const SHOTGUN_ADS_FOV: float = 60.0 ## EM-12G-1 低倍率瞄具开镜 FOV
 const ADS_LERP_TIME: float = 0.12 ## 开镜/关镜过渡时长 s（挂载位移与 FOV 同步插值）
 const ADS_RIFLE_OPTIC_BORE_LOCAL := Vector3(0.00092, 0.18047, -0.0204) ## EM-68A 镜孔轴心（网格局部空间，Blender 实测，轴系已换算 glTF；2026-10-19 开窗手术配套）
 const ADS_PISTOL_OPTIC_WINDOW_LIFT: float = 0.15 ## 手枪瞄窗自 AABB 中心上移比例（EM-57P 维持原标定）
@@ -125,6 +127,63 @@ const PISTOL_RECOIL_RECOVER_RATE: float = 8.0 ## 相机后坐恢复速率 /s（�
 const PISTOL_RECOIL_VIEW_ROT: float = 2.0 ## 视图模型后坐旋转系数
 const PISTOL_RECOIL_VIEW_Y_FACTOR: float = 0.02 ## 视图模型后坐位移系数 Y
 const PISTOL_RECOIL_VIEW_Z_FACTOR: float = 0.04 ## 视图模型后坐位移系数 Z
+
+# ===== EM-68D「穿杨」精确射手步枪（2026-10-26 机主裁决：弹匣与备弹池均和 EM-68A 通用）=====
+const DMR_DAMAGE_BODY: float = 90.0 ## 机主指定单发伤害；DMR 精准平台专项值，不改 EC-68 通用 75
+const DMR_DMG_HEAD_FACTOR: float = 2.0
+const DMR_DMG_VS_SNIPER: float = 999.0
+const DMR_FIRE_INTERVAL: float = 0.22 ## 仅半自动；与半自动间隔一致，便于数据资源统一
+const DMR_SEMI_FIRE_INTERVAL: float = 0.22 ## 约 272 RPM，突出有节奏单发
+const DMR_MAG: int = 60
+const DMR_RELOAD_TIME: float = 2.2
+const DMR_RANGE: float = 180.0
+const DMR_SPREAD_HIP: float = 0.0025
+const DMR_SPREAD_PRONE: float = 0.001
+const DMR_SPREAD_AIM: float = 0.00012
+const DMR_RECOIL_PITCH: float = 0.006
+const DMR_RECOIL_VIEW_OFFSET: float = 0.11
+const DMR_RECOIL_DECAY: float = 0.82
+const DMR_RECOIL_RECOVER_RATE: float = 6.0
+const DMR_RECOIL_VIEW_ROT: float = 2.25
+const DMR_RECOIL_VIEW_Y_FACTOR: float = 0.025
+const DMR_RECOIL_VIEW_Z_FACTOR: float = 0.05
+const DMR_SOUND_PITCH: float = 0.85 ## 复用步枪音源，较低音高区分重型枪管
+const DMR_HIP_POSE_YAW: float = 0.26
+const DMR_HIP_POSE_PITCH: float = 0.05
+const DMR_ARMS_OFFSET := Vector3(0, -0.02, 0.07)
+const DMR_SUPPORT_WRIST_HIP := Vector3(-0.05, -0.045, -0.17)
+const DMR_SUPPORT_WRIST_ADS := Vector3(-0.05, -0.10, -0.16)
+
+# ===== EM-12G-1「霰·Ⅰ」无托电磁霰弹枪（2026-10-26 机主数值裁决）=====
+const AMMO_DMG_EC12_PELLET: float = 30.0 ## EC-12「砂」单丸身体伤害；一次击发 12 丸
+const SHOTGUN_DMG_HEAD_FACTOR: float = 1.5
+const SHOTGUN_DMG_VS_SNIPER: float = 999.0
+const SHOTGUN_PELLET_COUNT: int = 12
+const SHOTGUN_FIRE_INTERVAL: float = 0.12 ## 全自动 500 RPM
+const SHOTGUN_SEMI_FIRE_INTERVAL: float = 0.25
+const SHOTGUN_MAG: int = 32
+const SHOTGUN_RESERVE: int = 160
+const SHOTGUN_RESERVE_MAX: int = 160
+const SHOTGUN_AMMO_PICKUP_ROUNDS: int = 32
+const SHOTGUN_RELOAD_TIME: float = 2.4
+const SHOTGUN_RANGE: float = 50.0
+const SHOTGUN_SPREAD_START: float = 15.0 ## 准星首中距离超过 15m 才开始弹丸扩散
+const SHOTGUN_SPREAD_HIP: float = 0.055
+const SHOTGUN_SPREAD_PRONE: float = 0.04
+const SHOTGUN_SPREAD_AIM: float = 0.035
+const SHOTGUN_RECOIL_PITCH: float = 0.012
+const SHOTGUN_RECOIL_VIEW_OFFSET: float = 0.16
+const SHOTGUN_RECOIL_DECAY: float = 0.8
+const SHOTGUN_RECOIL_RECOVER_RATE: float = 7.0
+const SHOTGUN_RECOIL_VIEW_ROT: float = 2.5
+const SHOTGUN_RECOIL_VIEW_Y_FACTOR: float = 0.03
+const SHOTGUN_RECOIL_VIEW_Z_FACTOR: float = 0.06
+const SHOTGUN_SOUND_PITCH: float = 0.65 ## 复用步枪音源，低音高突出单次面打击
+const SHOTGUN_HIP_POSE_YAW: float = 0.26
+const SHOTGUN_HIP_POSE_PITCH: float = 0.05
+const SHOTGUN_ARMS_OFFSET := Vector3(0, -0.02, 0.07)
+const SHOTGUN_SUPPORT_WRIST_HIP := Vector3(-0.04, -0.05, -0.20)
+const SHOTGUN_SUPPORT_WRIST_ADS := Vector3(-0.04, -0.08, -0.18)
 
 # ===== EM-40G「滚雷」下挂榴弹模块（2026-10-22 机主裁决：并入 EM-68A 第四射击档，
 #       X 键闭环 全自动→半自动→三发点射→榴→全自动；旧 3 号位 RPG 火箭筒整体退役）=====

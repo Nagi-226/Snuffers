@@ -14,6 +14,8 @@ const KEY_STRAFE_RIGHT: Key = KEY_D ## 网页版 D：右移
 const KEY_PRONE: Key = KEY_C ## 网页版 C：趴下切换
 const KEY_WEAPON_RIFLE: Key = KEY_1 ## 网页版 1：切步枪
 const KEY_WEAPON_PISTOL: Key = KEY_2 ## 2：切手枪 EM-57P（2026-10-19 机主立项）
+const KEY_WEAPON_DMR: Key = KEY_3 ## 3：切 EM-68D 精确射手步枪（2026-10-26）
+const KEY_WEAPON_SHOTGUN: Key = KEY_4 ## 4：切 EM-12G-1 霰弹枪（2026-10-26）
 ## （旧 3 号位 RPG 火箭筒已于 2026-10-22 退役：榴弹并入步枪第四射击档，X 键循环）
 const KEY_NIGHT_VISION: Key = KEY_N ## N：夜视仪切换（§11.2 机主裁决：V→N，与昼夜演示场景键位一致）
 const KEY_MEDKIT: Key = KEY_F ## 网页版 F：使用药包
@@ -44,6 +46,7 @@ var _prompt_label: Label = null
 # —— 按住开镜（ADS，2026-10-19 机主立项）——
 # 开镜权重 0..1 插值驱动：WeaponMount 位移（optic 归中相机轴）+ FOV 收窄 + 准星覆盖层。
 var _ads_weight: float = 0.0
+var _last_ads_weapon: StringName = &""
 var _mount_hip_pos: Vector3 = Vector3.ZERO ## 腰射挂载位（_ready 从 player.tscn 实测读取）
 var _ads_mount_targets: Dictionary = {} ## weapon_id → 开镜挂载位（optic 中心对中）
 var _ads_fov_targets: Dictionary = {} ## weapon_id → 开镜 FOV
@@ -135,8 +138,10 @@ func _calibrate_ads() -> void:
 	_ads_fov_targets = {
 		&"rifle": GameConfig.RIFLE_ADS_FOV,
 		&"pistol": GameConfig.PISTOL_ADS_FOV,
+		&"dmr": GameConfig.DMR_ADS_FOV,
+		&"shotgun": GameConfig.SHOTGUN_ADS_FOV,
 	}
-	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"]]:
+	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"]]:
 		var weapon_root := _weapon_mount.get_node_or_null(pair[1]) as Node3D
 		var fallback := Vector3(0.0, _mount_hip_pos.y, _mount_hip_pos.z)
 		if weapon_root == null:
@@ -162,10 +167,11 @@ func _find_optic_mesh(weapon_root: Node) -> MeshInstance3D:
 	return null
 
 
-## 在武器子树中找名字含 optic 的网格，返回其瞄窗中心在 WeaponMount 局部空间的坐标。
-## 步枪：用开窗手术实测的镜孔轴心（GameConfig.ADS_RIFLE_OPTIC_BORE_LOCAL），准星正对筒心；
-## 手枪：AABB 中心 + ADS_PISTOL_OPTIC_WINDOW_LIFT 上移（外壳下沿拉低 AABB 中心，视窗偏上半部）。
+## 新武器优先读取实测标定的 OpticAim 标记；旧步枪/手枪保留原有几何标定路径。
 func _find_optic_center_in_mount(weapon_root: Node, weapon_id: StringName) -> Variant:
+	var marker := weapon_root.get_node_or_null("ViewModel/Weapon/OpticAim") as Marker3D
+	if marker != null:
+		return _weapon_mount.global_transform.affine_inverse() * marker.global_position
 	var mi := _find_optic_mesh(weapon_root)
 	if mi == null:
 		return null
@@ -214,6 +220,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				_switch_weapon(&"rifle")
 			KEY_WEAPON_PISTOL:
 				_switch_weapon(&"pistol")
+			KEY_WEAPON_DMR:
+				_switch_weapon(&"dmr")
+			KEY_WEAPON_SHOTGUN:
+				_switch_weapon(&"shotgun")
 			KEY_NIGHT_VISION:
 				_toggle_night_vision()
 			KEY_MEDKIT:
@@ -385,7 +395,9 @@ func _process(delta: float) -> void:
 
 	# 开镜插值（ADS_LERP_TIME）：挂载位移 + FOV + 准星覆盖层同步驱动。
 	var ads_target := 1.0 if GameState.is_aiming else 0.0
-	if not is_equal_approx(_ads_weight, ads_target):
+	var weapon_changed := _last_ads_weapon != GameState.current_weapon
+	if not is_equal_approx(_ads_weight, ads_target) or weapon_changed:
+		_last_ads_weapon = GameState.current_weapon
 		_ads_weight = move_toward(_ads_weight, ads_target, delta / GameConfig.ADS_LERP_TIME)
 		_weapon_mount.position = _mount_hip_pos.lerp(
 			_ads_mount_targets.get(GameState.current_weapon, _mount_hip_pos), _ads_weight)
@@ -489,22 +501,30 @@ func _on_weapon_recoil_kick(pitch_delta: float) -> void:
 	_camera.rotation.x = _pitch
 
 
-## 1/2：切枪占位——改写 GameState.current_weapon + 发信号。
+## 1/2/3/4：切枪——改写 GameState.current_weapon + 发信号。
 func _switch_weapon(weapon_id: StringName) -> void:
 	if GameState.current_weapon == weapon_id:
+		return
+	if not GameState.weapon_unlocked.get(weapon_id, false):
+		Events.message_posted.emit("尚未领取该武器——前往 JB-02 后舱雷暴装备位")
 		return
 	GameState.current_weapon = weapon_id
 	Events.weapon_switched.emit(weapon_id)
 
 
-## X：射击模式循环。步枪四态闭环（2026-10-22 机主裁决：EM-40G 滚雷榴档并入）：
-## 全自动 → 半自动 → 三发点射 → 榴 → 回全自动；手枪维持三档。
-## 状态入 GameState.fire_modes 契约字段 + 发信号。
+## X：步枪四态、手枪三态、DMR 固定半自动、霰弹枪半自动/全自动。
 func _cycle_fire_mode() -> void:
 	var w := GameState.current_weapon
+	if w == &"dmr":
+		return
 	const ORDER_RIFLE: Array[StringName] = [&"auto", &"semi", &"burst", &"grenade"]
 	const ORDER_PISTOL: Array[StringName] = [&"auto", &"burst", &"semi"]
-	var order: Array[StringName] = ORDER_RIFLE if w == &"rifle" else ORDER_PISTOL
+	const ORDER_SHOTGUN: Array[StringName] = [&"semi", &"auto"]
+	var order: Array[StringName] = ORDER_PISTOL
+	if w == &"rifle":
+		order = ORDER_RIFLE
+	elif w == &"shotgun":
+		order = ORDER_SHOTGUN
 	var cur: StringName = GameState.fire_modes.get(w, &"auto")
 	GameState.fire_modes[w] = order[(order.find(cur) + 1) % order.size()]
 	Events.fire_mode_changed.emit(w, GameState.fire_modes[w])
@@ -558,7 +578,7 @@ func _call_heli() -> void:
 
 
 ## 开镜准星覆盖层（2026-10-19 机主立项）：青蓝 (0.4,0.95,1.0) 全息风。
-## rifle = 全息圆环 + 心点 + 四向刻度（榴档共用）；pistol = 点状准星；none = 不画。
+## 长枪 = 全息圆环 + 心点 + 四向刻度（榴档共用）；pistol = 点状准星；none = 不画。
 ## 权重 <0.6 不显形（开镜过渡中段由 HUD 准星交接，避免双准星）。
 class AdsReticle extends Control:
 	var mode: StringName = &"none"
@@ -571,7 +591,13 @@ class AdsReticle extends Control:
 		var color := Color(0.4, 0.95, 1.0, alpha)
 		var center := size * 0.5
 		match mode:
-			&"rifle":
+			&"dmr":
+				# 高倍全息镜：青蓝十字边线 + 中央圆圈与瞄点。
+				for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
+					draw_line(center + dir * 28.0, center + dir * maxf(size.x, size.y), color, 1.2, true)
+				draw_arc(center, 18.0, 0.0, TAU, 64, color, 1.6, true)
+				draw_circle(center, 2.2, color)
+			&"rifle", &"shotgun":
 				# 全息环：外环 + 心点 + 四向短刻度
 				draw_arc(center, 22.0, 0.0, TAU, 64, color, 1.6, true)
 				draw_circle(center, 2.2, color)

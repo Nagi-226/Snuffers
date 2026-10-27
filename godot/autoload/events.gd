@@ -85,12 +85,14 @@ signal game_over(reason: StringName)
 signal medkit_picked(total: int)
 ## 使用药包。
 signal medkit_used(remaining: int)
-## 拾取电池组（E 系列电磁武器备弹补充；reserve 为补充后的步枪备弹总数）。
+## 拾取电池组（EC-68 武器备弹补充；reserve 为补充后的步枪备弹总数）。
 ## 2026-10-07 机主裁决冻结新增：居民区室内补给只出电池组/医疗注射，不出 RPG 战斗部。
 signal battery_picked(reserve: int)
 ## 拾取手枪弹匣组（EM-57P 备弹补充；reserve 为补充后的手枪备弹总数）。
 ## 2026-10-19 机主立项：两种弹药拾取道具视觉/效果区分。
 signal pistol_ammo_picked(reserve: int)
+## 拾取 EC-12 弹匣组（EM-12G-1 备弹补充）。
+signal shotgun_ammo_picked(reserve: int)
 ## 拾取取证终端（叙事收集品，提灯人前置情报遗留）。collected 已收集数，total 本图总数。
 signal intel_picked(collected: int, total: int)
 ## 触发地雷（Day 0 裁决：HP 清零即触发 game_over，修复网页版缺陷）。

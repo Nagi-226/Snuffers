@@ -17,6 +17,9 @@ var _collected: bool = false
 const MODELS := {
 	&"battery": "res://assets/models/pickup_battery.glb",
 	&"pistol_ammo": "res://assets/models/pickup_pistol_ammo.glb",
+	&"shotgun_ammo": "res://assets/models/weapons/em12g1_magazine.glb",
+	&"dmr": "res://assets/models/weapons/em68d_viewmodel.glb",
+	&"shotgun": "res://assets/models/weapons/em12g1_viewmodel.glb",
 	&"medkit": "res://assets/models/pickup_medkit.glb",
 	&"intel": "res://assets/models/pickup_intel.glb",
 	# 榴弹补给（2026-10-25 机主立项）：复用项目自有 EM-40G 弹体模型，放大 2.5 倍做悬浮件
@@ -59,12 +62,13 @@ func _on_body_entered(body: Node3D) -> void:
 	match kind:
 		&"battery":
 			if GameState.rifle_reserve >= GameConfig.RIFLE_RESERVE_MAX:
-				return  # 备弹达携带上限：留在原地不吞件（2026-10-19 机主口径）
+				return  # EC-68 共享备弹池已满：留在原地不吞件
 			GameState.rifle_reserve = mini(GameState.rifle_reserve + GameConfig.BATTERY_PICKUP_ROUNDS,
 				GameConfig.RIFLE_RESERVE_MAX)
 			Events.ammo_changed.emit(&"rifle", GameState.rifle_mag, GameState.rifle_reserve)
+			Events.ammo_changed.emit(&"dmr", GameState.dmr_mag, GameState.rifle_reserve)
 			Events.battery_picked.emit(GameState.rifle_reserve)
-			Events.message_posted.emit("E 系列电池组  备弹 +%d" % GameConfig.BATTERY_PICKUP_ROUNDS)
+			Events.message_posted.emit("EC-68 电池组  步枪/DMR 共享备弹 +%d" % GameConfig.BATTERY_PICKUP_ROUNDS)
 		&"pistol_ammo":
 			if GameState.pistol_reserve >= GameConfig.PISTOL_RESERVE_MAX:
 				return  # 同上：达上限不吞件
@@ -73,6 +77,21 @@ func _on_body_entered(body: Node3D) -> void:
 			Events.ammo_changed.emit(&"pistol", GameState.pistol_mag, GameState.pistol_reserve)
 			Events.pistol_ammo_picked.emit(GameState.pistol_reserve)
 			Events.message_posted.emit("EM-57P 弹匣组  手枪备弹 +%d" % GameConfig.PISTOL_AMMO_PICKUP_ROUNDS)
+		&"shotgun_ammo":
+			if GameState.shotgun_reserve >= GameConfig.SHOTGUN_RESERVE_MAX:
+				return
+			GameState.shotgun_reserve = mini(GameState.shotgun_reserve + GameConfig.SHOTGUN_AMMO_PICKUP_ROUNDS,
+				GameConfig.SHOTGUN_RESERVE_MAX)
+			Events.ammo_changed.emit(&"shotgun", GameState.shotgun_mag, GameState.shotgun_reserve)
+			Events.shotgun_ammo_picked.emit(GameState.shotgun_reserve)
+			Events.message_posted.emit("EC-12 弹匣组  霰弹备弹 +%d" % GameConfig.SHOTGUN_AMMO_PICKUP_ROUNDS)
+		&"dmr", &"shotgun":
+			GameState.weapon_unlocked[kind] = true
+			GameState.current_weapon = kind
+			var reserve: int = GameState.rifle_reserve if kind == &"dmr" else GameState.shotgun_reserve
+			Events.ammo_changed.emit(kind, GameState.get(kind + "_mag"), reserve)
+			Events.weapon_switched.emit(kind)
+			Events.message_posted.emit("雷暴装备已领取：%s" % ("EM-68D 穿杨" if kind == &"dmr" else "EM-12G-1 霰·Ⅰ"))
 		&"medkit":
 			if GameState.medkits >= GameConfig.MEDKIT_MAX_CARRY:
 				return  # 携带上限：留在原地不吞件

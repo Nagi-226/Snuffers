@@ -104,7 +104,8 @@ func _on_trigger_pressed() -> void:
 		return
 	match _current_fire_mode():
 		&"semi", &"grenade":
-			_try_fire()
+			if _fire_cooldown <= 0.0:
+				_try_fire()
 		&"burst":
 			_burst_left = 3
 

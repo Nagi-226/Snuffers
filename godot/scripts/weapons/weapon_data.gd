@@ -29,6 +29,7 @@ enum Kind { HITSCAN, PROJECTILE } ## 0=即时命中（步枪），1=投射物（
 @export var reserve_size: int = 150 ## 备弹（GameConfig.RIFLE_RESERVE）
 @export var reload_time: float = 2.0 ## 换弹 s（GameConfig.RIFLE_RELOAD_TIME）
 @export var hitscan_range: float = 100.0 ## 射程上限 u（GameConfig.RIFLE_RANGE）
+@export var pellet_count: int = 1 ## 单次击发射线数（EM-12G-1=12，其余为 1）
 
 # ===== 散布（hitscan；网页版为 NDC 偏移，Godot 版作局部空间角偏移近似，数值沿用）=====
 @export var spread_hip: float = 0.004 ## 腰射（GameConfig.RIFLE_SPREAD_HIP）
@@ -124,4 +125,45 @@ func sync_from_config() -> void:
 			view_recoil_rot_factor = GameConfig.PISTOL_RECOIL_VIEW_ROT
 			view_recoil_y_factor = GameConfig.PISTOL_RECOIL_VIEW_Y_FACTOR
 			view_recoil_z_factor = GameConfig.PISTOL_RECOIL_VIEW_Z_FACTOR
+		&"dmr":
+			damage_body = GameConfig.DMR_DAMAGE_BODY
+			headshot_factor = GameConfig.DMR_DMG_HEAD_FACTOR
+			dmg_vs_sniper = GameConfig.DMR_DMG_VS_SNIPER
+			fire_interval = GameConfig.DMR_FIRE_INTERVAL
+			semi_fire_interval = GameConfig.DMR_SEMI_FIRE_INTERVAL
+			mag_size = GameConfig.DMR_MAG
+			reserve_size = GameConfig.RIFLE_RESERVE
+			reload_time = GameConfig.DMR_RELOAD_TIME
+			hitscan_range = GameConfig.DMR_RANGE
+			spread_hip = GameConfig.DMR_SPREAD_HIP
+			spread_prone = GameConfig.DMR_SPREAD_PRONE
+			spread_aim = GameConfig.DMR_SPREAD_AIM
+			recoil_pitch = GameConfig.DMR_RECOIL_PITCH
+			recoil_view_offset = GameConfig.DMR_RECOIL_VIEW_OFFSET
+			recoil_decay = GameConfig.DMR_RECOIL_DECAY
+			recoil_recover_rate = GameConfig.DMR_RECOIL_RECOVER_RATE
+			view_recoil_rot_factor = GameConfig.DMR_RECOIL_VIEW_ROT
+			view_recoil_y_factor = GameConfig.DMR_RECOIL_VIEW_Y_FACTOR
+			view_recoil_z_factor = GameConfig.DMR_RECOIL_VIEW_Z_FACTOR
+		&"shotgun":
+			damage_body = GameConfig.AMMO_DMG_EC12_PELLET
+			headshot_factor = GameConfig.SHOTGUN_DMG_HEAD_FACTOR
+			dmg_vs_sniper = GameConfig.SHOTGUN_DMG_VS_SNIPER
+			pellet_count = GameConfig.SHOTGUN_PELLET_COUNT
+			fire_interval = GameConfig.SHOTGUN_FIRE_INTERVAL
+			semi_fire_interval = GameConfig.SHOTGUN_SEMI_FIRE_INTERVAL
+			mag_size = GameConfig.SHOTGUN_MAG
+			reserve_size = GameConfig.SHOTGUN_RESERVE
+			reload_time = GameConfig.SHOTGUN_RELOAD_TIME
+			hitscan_range = GameConfig.SHOTGUN_RANGE
+			spread_hip = GameConfig.SHOTGUN_SPREAD_HIP
+			spread_prone = GameConfig.SHOTGUN_SPREAD_PRONE
+			spread_aim = GameConfig.SHOTGUN_SPREAD_AIM
+			recoil_pitch = GameConfig.SHOTGUN_RECOIL_PITCH
+			recoil_view_offset = GameConfig.SHOTGUN_RECOIL_VIEW_OFFSET
+			recoil_decay = GameConfig.SHOTGUN_RECOIL_DECAY
+			recoil_recover_rate = GameConfig.SHOTGUN_RECOIL_RECOVER_RATE
+			view_recoil_rot_factor = GameConfig.SHOTGUN_RECOIL_VIEW_ROT
+			view_recoil_y_factor = GameConfig.SHOTGUN_RECOIL_VIEW_Y_FACTOR
+			view_recoil_z_factor = GameConfig.SHOTGUN_RECOIL_VIEW_Z_FACTOR
 ## （旧 &"rpg" 分支已于 2026-10-22 随 RPG 退役删除；榴弹参数并入 &"rifle" 分支）

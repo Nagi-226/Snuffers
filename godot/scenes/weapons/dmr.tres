@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+
+[resource]
+script = ExtResource("1_data")
+weapon_id = &"dmr"
+kind = 0
+damage_body = 90.0
+headshot_factor = 2.0
+dmg_vs_sniper = 999.0
+fire_interval = 0.22
+semi_fire_interval = 0.22
+mag_size = 60
+reserve_size = 600
+reload_time = 2.2
+hitscan_range = 180.0
+pellet_count = 1
+spread_hip = 0.0025
+spread_prone = 0.001
+spread_aim = 0.00012
+recoil_pitch = 0.006
+recoil_view_offset = 0.11
+recoil_decay = 0.82
+recoil_recover_rate = 6.0
+view_recoil_rot_factor = 2.25
+view_recoil_y_factor = 0.025
+view_recoil_z_factor = 0.05

@@ -25,3 +25,12 @@
 - **下载日期**: 2026-10-24
 - **本地化改动**: 60fps 重定向至 RafaP 手臂，36 根手臂/手指骨；源武器坐标对齐、臂长与第一人称取景适配；同源弹匣辅助骨；不使用 Cransh 低模网格
 - **原始文件**: `godot/raw_assets/fps_reload/rifle_crank.glb` / `pistol_crank.glb`（按资产卫生规则不入库）
+
+## EM-68D「穿杨」与 EM-12G-1「霰·Ⅰ」（2026-10-27 入库）
+
+- **资产**: `em68d_viewmodel.glb`、`em12g1_viewmodel.glb`、`em12g1_magazine.glb`
+- **来源**: 项目自有 EDAA 概念图，Kimi Work 免费图生 3D；输入为 `em68d_dmr_input.png`、`em12g1_shotgun_input.png`
+- **许可/权属**: 项目自有设定与生成资产；非第三方素材，无额外署名要求
+- **原始模型**: `desktop-port/godot-spike/modeling/em-weapons/em68d_raw.glb`、`em12g1_raw.glb`
+- **本地处理**: 米制/朝向归一、游戏面数处理；Kimi Code 使用 `split_generated_weapon.py` 按实测连通分量拆出 body/magazine/optic、弹匣顶部枢轴、`add_glb_tangents.py` 补标准切线；未改变主体外形、UV 或材质
+- **生成源备份**: `em68d_whole.glb`、`em12g1_whole.glb`（ modeling 工作区，非游戏引用）

@@ -211,6 +211,7 @@ func _connect_events() -> void:
 	#   medkit_picked → medkit ｜ intel_picked → ui_click（终端回收感）
 	Events.battery_picked.connect(_on_battery_picked)
 	Events.pistol_ammo_picked.connect(_on_pistol_ammo_picked)
+	Events.shotgun_ammo_picked.connect(_on_shotgun_ammo_picked)
 	Events.medkit_picked.connect(_on_medkit_picked)
 	Events.intel_picked.connect(_on_intel_picked)
 
@@ -229,6 +230,7 @@ func _disconnect_events() -> void:
 	Events.enemy_fired.disconnect(_on_enemy_fired)
 	Events.battery_picked.disconnect(_on_battery_picked)
 	Events.pistol_ammo_picked.disconnect(_on_pistol_ammo_picked)
+	Events.shotgun_ammo_picked.disconnect(_on_shotgun_ammo_picked)
 	Events.medkit_picked.disconnect(_on_medkit_picked)
 	Events.intel_picked.disconnect(_on_intel_picked)
 
@@ -241,6 +243,10 @@ func _on_weapon_fired(weapon_id: StringName) -> void:
 			play_sfx(&"rifle")
 		&"pistol":
 			play_sfx(&"pistol") ## EM-57P 独立枪声素材（2026-10-19 机主立项：两枪不共用音源）
+		&"dmr":
+			play_sfx_pitched(&"rifle", GameConfig.DMR_SOUND_PITCH)
+		&"shotgun":
+			play_sfx_pitched(&"rifle", GameConfig.SHOTGUN_SOUND_PITCH)
 		&"grenade":
 			play_sfx(&"rocket") ## EM-40G 榴弹出膛复用 rocket 音源；爆炸音走 rpg_exploded→explosion
 
@@ -262,6 +268,10 @@ func _on_battery_picked(_reserve: int) -> void:
 
 
 func _on_pistol_ammo_picked(_reserve: int) -> void:
+	play_sfx(&"reload")
+
+
+func _on_shotgun_ammo_picked(_reserve: int) -> void:
 	play_sfx(&"reload")
 
 

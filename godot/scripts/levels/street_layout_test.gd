@@ -361,4 +361,5 @@ const PICKUPS := [
 	#    榴弹补给件在车位旁）——
 	{"bldg": "E3", "kind": "intel", "x": 14.8, "y": 1.0, "z": -22.6},
 	{"bldg": "E3", "kind": "grenade", "x": 10.8, "y": 1.0, "z": -15.6},
+	{"bldg": "E3", "kind": "shotgun_ammo", "x": 12.0, "y": 1.0, "z": -15.6},
 ]
