@@ -70,16 +70,69 @@ func _build_apc_bay() -> void:
 	var dark := _plain(Color(0.035, 0.045, 0.055), 0.78)
 	var frame := _plain(Color(0.12, 0.16, 0.19), 0.6)
 	_box("CargoFloor", Vector3(0, 0.58, 11.25), Vector3(3.1, 0.14, 2.4), dark)
-	_box("CargoBack", Vector3(0, 1.35, 10.1), Vector3(3.1, 1.7, 0.12), dark, false)
-	_box("CargoWest", Vector3(-1.55, 1.35, 11.25), Vector3(0.14, 1.7, 2.4), frame)
-	_box("CargoEast", Vector3(1.55, 1.35, 11.25), Vector3(0.14, 1.7, 2.4), frame)
-	_box("CargoRoof", Vector3(0, 2.2, 11.25), Vector3(3.2, 0.14, 2.4), frame)
-	var ramp := _box("CargoRamp", Vector3(0, 0.3, 13.35), Vector3(3.1, 0.12, 2.65), frame)
+	_box("CargoBack", Vector3(0, 1.55, 10.1), Vector3(3.1, 2.1, 0.12), dark, false)
+	_box("CargoWest", Vector3(-1.55, 1.55, 11.25), Vector3(0.14, 2.1, 2.4), frame)
+	_box("CargoEast", Vector3(1.55, 1.55, 11.25), Vector3(0.14, 2.1, 2.4), frame)
+	_box("CargoRoof", Vector3(0, 2.55, 11.25), Vector3(3.2, 0.14, 2.4), frame)
+	var ramp := _box("CargoRamp", Vector3(0, 0.292, 13.5), Vector3(3.1, 0.12, 2.1), frame)
 	(ramp.get_parent() as Node3D).rotation_degrees.x = 16.0
 	_label("EquipmentSign", "雷暴装备领取", Vector3(0, 2.48, 12.52), 40)
 	_lamp(Vector3(0, 2.0, 11.7), 4.5, 1.3, Color(0.3, 0.85, 1.0))
+	_build_apc_interior(dark, frame)
 	_spawn_equipment(&"dmr", Vector3(-0.65, 1.1, 11.65))
 	_spawn_equipment(&"shotgun", Vector3(0.65, 1.1, 11.65))
+
+
+func _build_apc_interior(dark: StandardMaterial3D, frame: StandardMaterial3D) -> void:
+	dark.metallic = 0.45
+	frame.metallic = 0.6
+	frame.roughness = 0.42
+	var cushion := _plain(Color(0.075, 0.115, 0.12), 0.88)
+	var belt := _plain(Color(0.28, 0.31, 0.29), 0.82)
+	var screen := _emissive(Color(0.025, 0.32, 0.42), 0.85)
+	var light_strip := _emissive(Color(0.32, 0.78, 0.92), 1.4)
+	var warning := _emissive(Color(0.95, 0.52, 0.12), 0.7)
+	for side: float in [-1.0, 1.0]:
+		var side_name := "L" if side < 0.0 else "R"
+		for row in 3:
+			var z := 10.65 + row * 0.7
+			var nm := "APCSeat_%s%d" % [side_name, row]
+			_box(nm, Vector3(side * 1.18, 0.85, z), Vector3(0.5, 0.16, 0.62), frame)
+			_detail_box(nm + "Pedestal", Vector3(side * 1.23, 0.71, z), Vector3(0.3, 0.16, 0.42), dark)
+			_detail_box(nm + "Cushion", Vector3(side * 1.16, 0.96, z), Vector3(0.5, 0.12, 0.6), cushion)
+			_detail_box(nm + "Back", Vector3(side * 1.43, 1.31, z), Vector3(0.14, 0.66, 0.6), cushion)
+			_detail_box(nm + "Headrest", Vector3(side * 1.4, 1.7, z), Vector3(0.18, 0.18, 0.46), cushion)
+			_detail_box(nm + "Belt", Vector3(side * 1.35, 1.31, z), Vector3(0.025, 0.55, 0.055), belt)
+			_detail_box(nm + "Buckle", Vector3(side * 1.13, 1.03, z), Vector3(0.12, 0.025, 0.09), frame)
+		for z in [10.75, 11.55]:
+			_detail_box("APCEquipmentPanel", Vector3(side * 1.46, 1.93, z), Vector3(0.08, 0.22, 0.54), dark)
+			_detail_box("APCPanelStatus", Vector3(side * 1.41, 1.95, z - 0.15), Vector3(0.02, 0.045, 0.12), warning)
+			_detail_box("APCPanelVent", Vector3(side * 1.41, 1.91, z + 0.1), Vector3(0.02, 0.08, 0.2), frame)
+		_detail_box("APCUpperConduit", Vector3(side * 1.4, 2.03, 11.25), Vector3(0.08, 0.08, 2.15), dark)
+	for row in 3:
+		var z := 10.65 + row * 0.7
+		_detail_box("APCFloorPlate", Vector3(0, 0.665, z), Vector3(1.7, 0.025, 0.6), frame)
+		for stripe in 5:
+			_detail_box("APCFloorGrip", Vector3(-0.6 + stripe * 0.3, 0.682, z), Vector3(0.035, 0.012, 0.48), dark)
+	for z in [10.4, 11.25, 12.1]:
+		_detail_box("APCRoofRib", Vector3(0, 2.09, z), Vector3(3.0, 0.08, 0.09), dark)
+		_detail_box("APCRoofLight", Vector3(0, 2.035, z), Vector3(1.15, 0.025, 0.075), light_strip)
+	_detail_box("APCC4I", Vector3(0, 1.46, 10.2), Vector3(1.38, 0.68, 0.14), frame)
+	for side: float in [-1.0, 1.0]:
+		_detail_box("APCC4IScreen", Vector3(side * 0.34, 1.5, 10.285), Vector3(0.56, 0.36, 0.025), screen)
+		_detail_box("APCC4IKeys", Vector3(side * 0.34, 1.23, 10.285), Vector3(0.48, 0.055, 0.025), dark)
+	_label("APCC4ILeftText", "C4I\nONLINE", Vector3(-0.34, 1.51, 10.305), 18)
+	_label("APCC4IRightText", "TROOP\n06", Vector3(0.34, 1.51, 10.305), 18)
+	_label("APCC4IHeader", "JB-02  //  EDAA", Vector3(0, 1.77, 10.29), 16)
+	for side: float in [-1.0, 1.0]:
+		var x := side * 0.66
+		_detail_box("APCWeaponRack", Vector3(x, 1.35, 12.17), Vector3(0.78, 1.0, 0.07), dark)
+		for y in [0.95, 1.65]:
+			_detail_box("APCWeaponRail", Vector3(x, y, 12.22), Vector3(0.74, 0.055, 0.055), frame)
+		for clamp_x in [-0.25, 0.25]:
+			_detail_box("APCWeaponClamp", Vector3(x + clamp_x, 1.3, 12.25), Vector3(0.06, 0.5, 0.06), frame)
+	_lamp(Vector3(0, 1.94, 10.65), 2.2, 0.45, Color(0.36, 0.72, 0.9))
+	_lamp(Vector3(0, 1.94, 11.95), 2.2, 0.45, Color(0.36, 0.72, 0.9))
 
 
 func _spawn_equipment(kind: StringName, pos: Vector3) -> void:
@@ -147,6 +200,14 @@ func _plain(color: Color, roughness: float = 0.9) -> StandardMaterial3D:
 	return mat
 
 
+func _emissive(color: Color, energy: float) -> StandardMaterial3D:
+	var mat := _plain(color * 0.18, 0.5)
+	mat.emission_enabled = true
+	mat.emission = color
+	mat.emission_energy_multiplier = energy
+	return mat
+
+
 func _box(nm: String, center: Vector3, size: Vector3, mat: Material, visual: bool = true) -> MeshInstance3D:
 	var body := StaticBody3D.new()
 	body.name = nm
@@ -165,6 +226,18 @@ func _box(nm: String, center: Vector3, size: Vector3, mat: Material, visual: boo
 	mi.mesh = mesh
 	mi.visible = visual
 	body.add_child(mi)
+	return mi
+
+
+func _detail_box(nm: String, center: Vector3, size: Vector3, mat: Material) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.name = nm
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	mesh.material = mat
+	mi.mesh = mesh
+	mi.position = center
+	add_child(mi)
 	return mi
 
 

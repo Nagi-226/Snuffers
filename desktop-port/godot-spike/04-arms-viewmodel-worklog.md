@@ -184,3 +184,8 @@ _process 每帧:
 - 左支撑腕前移4cm，左肘向外下收；实测右下大臂来自右侧握枪链，新增右臂 ADS IK，保持右手原握点，右肘极向量前移至 `(0.12,-0.25,-0.45)`，后缩大臂退出画面。整枪 ADS 前移8cm。
 - DMR 全屏时隐藏整个 ViewModel，避免枪身与悬空手臂进入圆镜；独立审查发现关镜过渡提前显露后，改为与圆镜共用 `_ads_weight > 0.6`，同帧交接并加中间帧断言。
 - 最终截图见 `tmp_shots/shotgun_ads_final.png`、`shotgun_hip_final.png`、`dmr_scope_no_viewmodel.png`；38+84+19项测试与 L1 91脚本/28场景全绿。旧两枪未改，未合 master。
+
+**同日机主补充口径：相机前移而非枪前移**
+- 撤销霰弹 ADS 挂载前移8cm，改为相机向瞄具前移4cm；挂载 z 保持腰射值，关镜/切枪恢复，其他武器无相机位移。
+- `OpticAim` y 从0.10657改为真实开孔中心0.1045355，x精化为0.0069725，准星与镜孔同心。
+- 新截图 `tmp_shots/shotgun_ads_camera_forward.png`；ADS/场景回归23项通过。

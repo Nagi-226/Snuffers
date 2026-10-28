@@ -69,6 +69,7 @@ var _armor_regen_wait: float = 0.0
 
 @onready var _collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var _camera: Camera3D = $Camera3D
+@onready var _camera_hip_z: float = _camera.position.z
 
 
 func _ready() -> void:
@@ -169,8 +170,7 @@ func _calibrate_ads() -> void:
 		else:
 			var c: Vector3 = center
 			# optic 相机空间坐标 = 挂载位 + c；令其 x/y 归零 → 挂载位取 -c。
-			var forward: float = GameConfig.SHOTGUN_ADS_FORWARD if pair[0] == &"shotgun" else 0.0
-			_ads_mount_targets[pair[0]] = Vector3(-c.x, -c.y, _mount_hip_pos.z - forward)
+			_ads_mount_targets[pair[0]] = Vector3(-c.x, -c.y, _mount_hip_pos.z)
 
 
 ## 在武器子树中找名字含 optic 的网格实例（无则返回 null）。
@@ -420,6 +420,8 @@ func _process(delta: float) -> void:
 			_ads_mount_targets.get(GameState.current_weapon, _mount_hip_pos), _ads_weight)
 		_camera.fov = lerpf(GameConfig.FOV_BASE,
 			_ads_fov_targets.get(GameState.current_weapon, GameConfig.FOV_BASE), _ads_weight)
+		var camera_forward: float = GameConfig.SHOTGUN_ADS_CAMERA_FORWARD if GameState.current_weapon == &"shotgun" else 0.0
+		_camera.position.z = _camera_hip_z - camera_forward * _ads_weight
 	# 准星覆盖层：权重过 60% 才显形（过渡中段不闪半吊子准星）；榴档沿用步枪全息准星
 	# （直射档平直弹道，全息环直瞄即可）。
 	if _ads_reticle != null:

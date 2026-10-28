@@ -31,6 +31,7 @@ func _run() -> void:
 	player._switch_weapon(&"dmr")
 	await create_timer(0.25).timeout
 	_assert(is_equal_approx(player._camera.fov, 35.0), "switching to DMR while aiming applies FOV 35")
+	_assert(is_equal_approx(player._camera.position.z, player._camera_hip_z), "DMR aiming does not inherit shotgun camera travel")
 	_assert(player._weapon_mount.position.is_equal_approx(player._ads_mount_targets[&"dmr"]), "switching to DMR while aiming applies its mount")
 	_assert(player._dmr_scope.visible, "DMR full-screen scope is visible while aiming")
 	var dmr := player.get_node("Camera3D/WeaponMount/DMR")
@@ -41,7 +42,8 @@ func _run() -> void:
 	var shotgun := player.get_node("Camera3D/WeaponMount/Shotgun")
 	_assert(shotgun._optic_node.visible, "shotgun optic frame stays visible while aiming")
 	_assert(shotgun._optic_node.mesh == player._optic_meshes[&"shotgun"].bored, "shotgun ADS uses the physically bored optic mesh")
-	_assert(absf(player._ads_mount_targets[&"shotgun"].z - (player._mount_hip_pos.z - GameConfig.SHOTGUN_ADS_FORWARD)) < 0.001, "shotgun ADS mount applies its calibrated forward offset")
+	_assert(is_equal_approx(player._ads_mount_targets[&"shotgun"].z, player._mount_hip_pos.z), "shotgun ADS does not push the weapon farther away")
+	_assert(absf(player._camera.position.z - (player._camera_hip_z - GameConfig.SHOTGUN_ADS_CAMERA_FORWARD)) < 0.001, "shotgun ADS moves the player camera toward the optic")
 	_assert(shotgun._aim_weight > 0.99, "shotgun support-arm IK reaches its ADS pose")
 	player._switch_weapon(&"dmr")
 	player._set_aiming(false)
@@ -62,6 +64,13 @@ func _run() -> void:
 	await process_frame
 	_assert(not district.get_node("HUD/CompassBar").show_mission_markers, "district compass hides street mission markers")
 	_assert(not district.get_node("HUD/Minimap").visible, "district hides street minimap")
+	var seats_present := true
+	for side in ["L", "R"]:
+		for row in 3:
+			seats_present = seats_present and district.has_node("APCSeat_%s%d" % [side, row])
+	_assert(seats_present, "JB-02 cabin contains six troop seats")
+	_assert(district.has_node("APCC4I"), "JB-02 cabin contains the C4I dashboard")
+	_assert(district.has_node("Equipment_dmr") and district.has_node("Equipment_shotgun"), "JB-02 interior preserves both equipment pickups")
 	var district_player := district.get_node("Player")
 	state.is_night = true
 	state.night_vision = false

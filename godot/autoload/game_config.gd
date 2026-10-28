@@ -188,7 +188,7 @@ const SHOTGUN_SUPPORT_WRIST_HIP := Vector3(-0.04, -0.05, -0.16)
 const SHOTGUN_SUPPORT_WRIST_ADS := Vector3(-0.04, -0.08, -0.10)
 const SHOTGUN_ELBOW_POLE := Vector3(-0.18, -0.45, 0.12) ## 开镜支撑肘向左下收拢，避免前臂横挡镜头
 const SHOTGUN_RIGHT_ELBOW_POLE := Vector3(0.12, -0.25, -0.45) ## 右握枪肘向前下方收拢，保留原生右手握点
-const SHOTGUN_ADS_FORWARD: float = 0.08 ## 开镜挂载前移，避免无托枪托抵脸的观感
+const SHOTGUN_ADS_CAMERA_FORWARD: float = 0.04 ## 玩家视角向瞄具前移4cm；枪挂载不再向远处推，视觉上枪相应后收
 
 # ===== EM-40G「滚雷」下挂榴弹模块（2026-10-22 机主裁决：并入 EM-68A 第四射击档，
 #       X 键闭环 全自动→半自动→三发点射→榴→全自动；旧 3 号位 RPG 火箭筒整体退役）=====
