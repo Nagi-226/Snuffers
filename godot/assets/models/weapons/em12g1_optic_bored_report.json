@@ -1,0 +1,12 @@
+{
+  "source": "E:\\Github Project\\Nagi_Games\\Snuffers\\desktop-port\\godot-spike\\modeling\\em-weapons\\em12g1_split.glb",
+  "output": "E:\\Github Project\\Nagi_Games\\Snuffers\\godot\\assets\\models\\weapons\\em12g1_optic_bored.glb",
+  "bore_center_xy": [
+    0.006972476840019226,
+    0.10453550844460494
+  ],
+  "bore_radius": 0.017400523107498886,
+  "faces_before": 3390,
+  "faces_after": 3139,
+  "deleted": 251
+}

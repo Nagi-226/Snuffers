@@ -53,13 +53,15 @@ var _ads_fov_targets: Dictionary = {} ## weapon_id → 开镜 FOV
 var _ads_reticle: AdsReticle = null
 var _dmr_scope: ColorRect = null
 var _dmr_scope_material: ShaderMaterial = null
+@onready var _dmr_view_model: Node3D = $Camera3D/WeaponMount/DMR/ViewModel
 ## 瞄具双网格切换（2026-10-20 机主立项）：常规视角用完整瞄具（外观完好），
 ## 开镜过半把 optic 网格换成独立开孔版（透视镜筒），收镜过半换回。
-## 开孔版由 extract_optic_bored.py 从完整 GLB 提取，几何同源、坐标系一致，直接换 mesh 即可。
-const OPTIC_BORED_GLB := "res://assets/models/weapons/em68a_optic_bored.glb"
-var _rifle_optic_mesh: MeshInstance3D = null
-var _optic_mesh_intact: Mesh = null
-var _optic_mesh_bored: Mesh = null
+## 开孔版由 extract_optic_bored.py / open_generated_optic.py 从完整 GLB 提取，几何同源、坐标系一致，直接换 mesh 即可。
+const OPTIC_BORED_GLB := {
+	&"rifle": "res://assets/models/weapons/em68a_optic_bored.glb",
+	&"shotgun": "res://assets/models/weapons/em12g1_optic_bored.glb",
+}
+var _optic_meshes: Dictionary = {}
 ## 护甲回充脱战计时（受击清零，≥ARMOR_REGEN_DELAY 后按 ARMOR_REGEN_RATE 回充）
 var _armor_regen_wait: float = 0.0
 
@@ -121,24 +123,28 @@ func _ready() -> void:
 	Events.player_damaged.connect(_apply_damage)
 
 
-## 瞄具双网格加载：完整网格从场景内步枪子树实测持有，开孔网格从独立 GLB 提取。
+## 瞄具双网格加载：完整网格从场景内武器子树实测持有，开孔网格从独立 GLB 提取。
 ## 加载失败保持 null，切换逻辑自动跳过（常规视角外观不受影响）。
 func _load_optic_meshes() -> void:
-	var rifle_root := _weapon_mount.get_node_or_null("Rifle") as Node3D
-	if rifle_root == null:
-		return
-	_rifle_optic_mesh = _find_optic_mesh(rifle_root)
-	if _rifle_optic_mesh == null:
-		return
-	_optic_mesh_intact = _rifle_optic_mesh.mesh
-	var bored_scene: PackedScene = load(OPTIC_BORED_GLB)
-	if bored_scene == null:
-		return
-	var bored_root := bored_scene.instantiate()
-	var bored_mi := _find_optic_mesh(bored_root)
-	if bored_mi != null:
-		_optic_mesh_bored = bored_mi.mesh
-	bored_root.free()
+	for pair: Array in [[&"rifle", "Rifle"], [&"shotgun", "Shotgun"]]:
+		var weapon_root := _weapon_mount.get_node_or_null(pair[1]) as Node3D
+		if weapon_root == null:
+			continue
+		var optic_mesh := _find_optic_mesh(weapon_root)
+		if optic_mesh == null:
+			continue
+		var bored_scene: PackedScene = load(OPTIC_BORED_GLB[pair[0]])
+		if bored_scene == null:
+			continue
+		var bored_root := bored_scene.instantiate()
+		var bored_mi := _find_optic_mesh(bored_root)
+		if bored_mi != null:
+			_optic_meshes[pair[0]] = {
+				"node": optic_mesh,
+				"intact": optic_mesh.mesh,
+				"bored": bored_mi.mesh,
+			}
+		bored_root.free()
 
 
 ## 开镜标定：从 player.tscn 实测腰射挂载位；步枪/手枪按 optic 网格 AABB 中心反推
@@ -425,17 +431,19 @@ func _process(delta: float) -> void:
 	var full_scope := GameState.current_weapon == &"dmr" and _ads_weight > 0.6
 	if _dmr_scope != null:
 		_dmr_scope.visible = full_scope
+		_dmr_view_model.visible = not full_scope
 		var viewport_size := get_viewport().get_visible_rect().size
 		_dmr_scope_material.set_shader_parameter("aspect", viewport_size.x / viewport_size.y)
 		_dmr_scope_material.set_shader_parameter("weight", clampf((_ads_weight - 0.6) / 0.4, 0.0, 1.0))
 		_ads_reticle.visible = not full_scope
-	# 瞄具双网格切换：仅步枪且开镜过半用开孔版，其余情况回完整版。
+	# 瞄具双网格切换：当前武器且开镜过半用开孔版，其余情况回完整版。
 	# 切换点取过渡中点（0.5），此时镜筒正在归中途中，换网格肉眼不可察。
-	if _rifle_optic_mesh != null and _optic_mesh_bored != null:
-		var want_bored := GameState.current_weapon == &"rifle" and _ads_weight > 0.5
-		var target_mesh: Mesh = _optic_mesh_bored if want_bored else _optic_mesh_intact
-		if _rifle_optic_mesh.mesh != target_mesh:
-			_rifle_optic_mesh.mesh = target_mesh
+	for weapon_id: StringName in _optic_meshes:
+		var pair: Dictionary = _optic_meshes[weapon_id]
+		var want_bored := GameState.current_weapon == weapon_id and _ads_weight > 0.5
+		var target_mesh: Mesh = pair.bored if want_bored else pair.intact
+		if pair.node.mesh != target_mesh:
+			pair.node.mesh = target_mesh
 
 
 ## 当前移速：趴下 > 瞄准 > 疾跑（Shift+W 前进中）> 站立取基速。

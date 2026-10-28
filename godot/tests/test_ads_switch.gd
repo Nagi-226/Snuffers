@@ -33,12 +33,25 @@ func _run() -> void:
 	_assert(is_equal_approx(player._camera.fov, 35.0), "switching to DMR while aiming applies FOV 35")
 	_assert(player._weapon_mount.position.is_equal_approx(player._ads_mount_targets[&"dmr"]), "switching to DMR while aiming applies its mount")
 	_assert(player._dmr_scope.visible, "DMR full-screen scope is visible while aiming")
+	var dmr := player.get_node("Camera3D/WeaponMount/DMR")
+	_assert(not dmr._view_model.visible, "DMR full-screen scope hides the complete weapon and floating arms")
 	player._switch_weapon(&"shotgun")
 	await create_timer(0.25).timeout
 	_assert(is_equal_approx(player._camera.fov, 60.0), "switching to shotgun while aiming applies FOV 60")
 	var shotgun := player.get_node("Camera3D/WeaponMount/Shotgun")
-	_assert(not shotgun._optic_node.visible, "shotgun opaque optic is hidden while aiming")
-	_assert(absf(player._ads_mount_targets[&"shotgun"].z - (player._mount_hip_pos.z - 0.06)) < 0.001, "shotgun ADS mount moves forward 6cm")
+	_assert(shotgun._optic_node.visible, "shotgun optic frame stays visible while aiming")
+	_assert(shotgun._optic_node.mesh == player._optic_meshes[&"shotgun"].bored, "shotgun ADS uses the physically bored optic mesh")
+	_assert(absf(player._ads_mount_targets[&"shotgun"].z - (player._mount_hip_pos.z - GameConfig.SHOTGUN_ADS_FORWARD)) < 0.001, "shotgun ADS mount applies its calibrated forward offset")
+	_assert(shotgun._aim_weight > 0.99, "shotgun support-arm IK reaches its ADS pose")
+	player._switch_weapon(&"dmr")
+	player._set_aiming(false)
+	await process_frame
+	await process_frame
+	_assert(player._dmr_scope.visible and not dmr._view_model.visible, "DMR viewmodel stays hidden until the scope transition finishes")
+	await create_timer(0.25).timeout
+	_assert(dmr._view_model.visible, "DMR viewmodel and arms restore after leaving ADS")
+	_assert(dmr._weapon_node.visible, "DMR weapon mesh restores after leaving ADS")
+	player._set_aiming(true)
 	player._switch_weapon(&"rifle")
 	await create_timer(0.25).timeout
 	_assert(is_equal_approx(player._camera.fov, 60.0), "switching back to rifle restores ADS settings")

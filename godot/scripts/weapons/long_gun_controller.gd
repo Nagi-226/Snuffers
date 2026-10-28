@@ -17,7 +17,6 @@ var _magazine: Node3D
 var _arms_node: Node3D
 var _muzzle_node: Node3D
 var _optic_node: MeshInstance3D
-var _optic_glass_node: MeshInstance3D
 var _arms_animation: AnimationPlayer
 var _arms_skeleton: Skeleton3D
 var _mag_bone: int = -1
@@ -51,7 +50,6 @@ func _ready() -> void:
 			if String(node.name).to_lower().contains("optic"):
 				_optic_node = node as MeshInstance3D
 				break
-		_optic_glass_node = _weapon_node.get_node_or_null("world/em12g1_optic_glass") as MeshInstance3D
 	if _magazine != null:
 		_mag_home_transform = _magazine.transform
 	_setup_arms()
@@ -120,10 +118,6 @@ func _align_native_arms() -> void:
 
 func _process(delta: float) -> void:
 	super._process(delta)
-	if _optic_node != null:
-		_optic_node.visible = not GameState.is_aiming
-	if _optic_glass_node != null:
-		_optic_glass_node.visible = not GameState.is_aiming
 	if _arms_skeleton == null or _weapon_bone < 0:
 		return
 	if _pose_pending:
@@ -171,8 +165,9 @@ func _pose_left_arm_mainstream(weight: float = 0.0) -> void:
 	var hip: Vector3 = GameConfig.DMR_SUPPORT_WRIST_HIP if weapon_data.weapon_id == &"dmr" else GameConfig.SHOTGUN_SUPPORT_WRIST_HIP
 	var ads: Vector3 = GameConfig.DMR_SUPPORT_WRIST_ADS if weapon_data.weapon_id == &"dmr" else GameConfig.SHOTGUN_SUPPORT_WRIST_ADS
 	var wrist_t := to_skel_from_weapon * hip.lerp(ads, weight)
-	var shoulder_t := wrist_t + to_skel_from_weapon.basis * (Vector3(0.03, -0.36, 0.14).normalized() * (_arm_upper_len + _arm_fore_len) * 0.94)
-	var pole_t := wrist_t + to_skel_from_weapon.basis * Vector3(0.08, -0.35, 0.22)
+	var shoulder_t := wrist_t + to_skel_from_weapon.basis * (GameConfig.LONG_GUN_SHOULDER_DIRECTION.normalized() * (_arm_upper_len + _arm_fore_len) * 0.94)
+	var pole_offset: Vector3 = Vector3(0.08, -0.35, 0.22) if weapon_data.weapon_id == &"dmr" else GameConfig.SHOTGUN_ELBOW_POLE
+	var pole_t := wrist_t + to_skel_from_weapon.basis * pole_offset
 	var d := wrist_t - shoulder_t
 	var dist := clampf(d.length(), absf(_arm_upper_len - _arm_fore_len) + 0.001, _arm_upper_len + _arm_fore_len - 0.001)
 	d = d.normalized()
@@ -194,6 +189,40 @@ func _pose_left_arm_mainstream(weight: float = 0.0) -> void:
 	var muzzle_dir := to_skel_from_weapon.basis * Vector3(0.0, 0.0, -1.0)
 	var palm_rot := Quaternion(hand_g.basis.y, muzzle_dir)
 	_arms_skeleton.set_bone_global_pose(hand, Transform3D(Basis(palm_rot) * hand_g.basis, hand_g.origin))
+	if weapon_data.weapon_id == &"shotgun" and weight > 0.0:
+		_pose_right_arm_shotgun(weight)
+
+
+func _pose_right_arm_shotgun(weight: float) -> void:
+	var uparm := _find_bone_by_prefix("UpArm_R")
+	var fore := _find_bone_by_prefix("Forearm_R")
+	var ctrl := _find_bone_by_prefix("IK_Hand_Cntrl_R")
+	var hand := _find_bone_by_prefix("Hand_R")
+	if uparm < 0 or fore < 0 or ctrl < 0 or hand < 0:
+		return
+	var wrist_t := _arms_skeleton.get_bone_global_pose(hand).origin
+	var upper_len := _arms_skeleton.get_bone_global_pose(uparm).origin.distance_to(_arms_skeleton.get_bone_global_pose(fore).origin)
+	var fore_len := _arms_skeleton.get_bone_global_pose(fore).origin.distance_to(wrist_t)
+	var to_skel_from_weapon: Transform3D = _arms_skeleton.global_transform.affine_inverse() * _weapon_node.global_transform
+	var shoulder_t := wrist_t + to_skel_from_weapon.basis * (GameConfig.LONG_GUN_SHOULDER_DIRECTION.normalized() * (upper_len + fore_len) * 0.94)
+	var pole_t := wrist_t + to_skel_from_weapon.basis * (GameConfig.SHOTGUN_RIGHT_ELBOW_POLE * weight)
+	var d := wrist_t - shoulder_t
+	var dist := clampf(d.length(), absf(upper_len - fore_len) + 0.001, upper_len + fore_len - 0.001)
+	d = d.normalized()
+	var a := (upper_len * upper_len - fore_len * fore_len + dist * dist) / (2.0 * dist)
+	var h := sqrt(maxf(0.0, upper_len * upper_len - a * a))
+	var pole_off := pole_t - shoulder_t
+	pole_off -= d * pole_off.dot(d)
+	pole_off /= maxf(pole_off.length(), 0.0001)
+	var elbow_t := shoulder_t + d * a + pole_off * h
+	var up_g := _arms_skeleton.get_bone_global_pose(uparm)
+	_arms_skeleton.set_bone_global_pose(uparm, Transform3D(up_g.basis, shoulder_t))
+	_aim_bone_y_at(uparm, elbow_t)
+	_aim_bone_y_at(fore, wrist_t)
+	var fore_g := _arms_skeleton.get_bone_global_pose(fore)
+	var wrist_end := fore_g.origin + fore_g.basis.y * fore_len
+	var ctrl_g := _arms_skeleton.get_bone_global_pose(ctrl)
+	_arms_skeleton.set_bone_global_pose(ctrl, Transform3D(ctrl_g.basis, wrist_end))
 
 
 func _find_bone_by_prefix(prefix: String) -> int:
