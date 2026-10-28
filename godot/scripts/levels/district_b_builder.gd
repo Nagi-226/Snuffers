@@ -70,7 +70,7 @@ func _build_apc_bay() -> void:
 	var dark := _plain(Color(0.035, 0.045, 0.055), 0.78)
 	var frame := _plain(Color(0.12, 0.16, 0.19), 0.6)
 	_box("CargoFloor", Vector3(0, 0.58, 11.25), Vector3(3.1, 0.14, 2.4), dark)
-	_box("CargoBack", Vector3(0, 1.55, 10.1), Vector3(3.1, 2.1, 0.12), dark, false)
+	_box("CargoBack", Vector3(0, 1.55, 10.1), Vector3(3.1, 2.1, 0.12), dark)
 	_box("CargoWest", Vector3(-1.55, 1.55, 11.25), Vector3(0.14, 2.1, 2.4), frame)
 	_box("CargoEast", Vector3(1.55, 1.55, 11.25), Vector3(0.14, 2.1, 2.4), frame)
 	_box("CargoRoof", Vector3(0, 2.55, 11.25), Vector3(3.2, 0.14, 2.4), frame)
@@ -126,7 +126,6 @@ func _build_apc_interior(dark: StandardMaterial3D, frame: StandardMaterial3D) ->
 	_label("APCC4IHeader", "JB-02  //  EDAA", Vector3(0, 1.77, 10.29), 16)
 	for side: float in [-1.0, 1.0]:
 		var x := side * 0.66
-		_detail_box("APCWeaponRack", Vector3(x, 1.35, 12.17), Vector3(0.78, 1.0, 0.07), dark)
 		for y in [0.95, 1.65]:
 			_detail_box("APCWeaponRail", Vector3(x, y, 12.22), Vector3(0.74, 0.055, 0.055), frame)
 		for clamp_x in [-0.25, 0.25]:

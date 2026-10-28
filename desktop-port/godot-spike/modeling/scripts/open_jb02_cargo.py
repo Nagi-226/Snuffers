@@ -8,7 +8,7 @@ scene = trimesh.load(source, force="scene")
 mesh = scene.to_mesh()
 centers = mesh.triangles_center
 opening = (
-    (centers[:, 2] > 2.0)
+    (centers[:, 2] > 1.5)
     & (abs(centers[:, 0]) < 1.55)
     & (centers[:, 1] > 0.5)
     & (centers[:, 1] < 2.2)
