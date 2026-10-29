@@ -5,8 +5,15 @@
     0.00663074,
     0.10259105
   ],
-  "bore_radius": 0.0165,
-  "sleeve_outer_radius": 0.0205,
+  "bore_shape": "rounded_rect",
+  "bore_inner_size_xy": [
+    0.033,
+    0.025
+  ],
+  "sleeve_outer_size_xy": [
+    0.048,
+    0.038
+  ],
   "clear_radius": 0.0215,
   "sleeve_segments": 64,
   "faces_before": 3390,

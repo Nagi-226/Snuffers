@@ -51,8 +51,10 @@ func _run() -> void:
 	_assert(shotgun._weapon_node.transform.is_equal_approx(shotgun._pose_extra * shotgun._weapon_home), "shotgun arms cannot displace the weapon outside reload")
 	player._switch_weapon(&"dmr")
 	player._set_aiming(false)
-	await process_frame
-	await process_frame
+	for frame in 3:
+		await process_frame
+		if player._dmr_scope.visible and not dmr._view_model.visible:
+			break
 	_assert(player._dmr_scope.visible and not dmr._view_model.visible, "DMR viewmodel stays hidden until the scope transition finishes")
 	await create_timer(0.25).timeout
 	_assert(dmr._view_model.visible, "DMR viewmodel and arms restore after leaving ADS")

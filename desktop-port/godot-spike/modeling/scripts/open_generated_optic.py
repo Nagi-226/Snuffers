@@ -7,24 +7,37 @@ import trimesh
 from trimesh.visual import TextureVisuals
 
 
+def rounded_loop(half_x, half_y, corner, center_xy):
+    points = []
+    corners = [
+        (half_x - corner, half_y - corner, 0.0),
+        (-half_x + corner, half_y - corner, 90.0),
+        (-half_x + corner, -half_y + corner, 180.0),
+        (half_x - corner, -half_y + corner, 270.0),
+    ]
+    for cx, cy, start in corners:
+        for step in range(16):
+            angle = np.deg2rad(start + step * 90.0 / 16.0)
+            points.append([center_xy[0] + cx + corner * np.cos(angle),
+                           center_xy[1] + cy + corner * np.sin(angle)])
+    return points
+
+
 def make_bore_sleeve(optic, center_xy):
     segments = 64
-    inner_radius = 0.0165
-    outer_radius = 0.0205
     front_z = 0.1211
     back_z = 0.1291
+    outer = rounded_loop(0.024, 0.019, 0.005, center_xy)
+    inner = rounded_loop(0.0165, 0.0125, 0.004, center_xy)
     vertices = []
     uv = []
     for index in range(segments):
-        angle = index * 2.0 * np.pi / segments
-        ca, sa = np.cos(angle), np.sin(angle)
-        for radius, z in [(outer_radius, front_z), (outer_radius, back_z),
-                          (inner_radius, front_z), (inner_radius, back_z)]:
-            x = center_xy[0] + radius * ca
-            y = center_xy[1] + radius * sa
+        for point, z in [(outer[index], front_z), (outer[index], back_z),
+                         (inner[index], front_z), (inner[index], back_z)]:
+            x, y = point
             vertices.append([x, y, z])
-            uv.append([index / segments,
-                       radius / outer_radius + (z - front_z) / (back_z - front_z)])
+            radial = np.linalg.norm([x - center_xy[0], y - center_xy[1]]) / 0.024
+            uv.append([index / segments, radial + (z - front_z) / (back_z - front_z)])
     faces = []
     for index in range(segments):
         nxt = (index + 1) % segments
@@ -73,8 +86,9 @@ def main():
         "source": source,
         "output": output,
         "bore_center_xy": list(center_xy),
-        "bore_radius": 0.0165,
-        "sleeve_outer_radius": 0.0205,
+        "bore_shape": "rounded_rect",
+        "bore_inner_size_xy": [0.033, 0.025],
+        "sleeve_outer_size_xy": [0.048, 0.038],
         "clear_radius": clear_radius,
         "sleeve_segments": 64,
         "faces_before": len(centers),
