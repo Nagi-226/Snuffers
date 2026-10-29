@@ -1,9 +1,44 @@
-"""Open the generated EM-12G-1 optic bore without moving the frame or its materials."""
+"""Open the EM-12G-1 optic and rebuild a smooth, unbroken bore sleeve."""
 import json
 import os
 import sys
 import numpy as np
 import trimesh
+from trimesh.visual import TextureVisuals
+
+
+def make_bore_sleeve(optic, center_xy):
+    segments = 64
+    inner_radius = 0.0165
+    outer_radius = 0.0205
+    front_z = 0.1211
+    back_z = 0.1291
+    vertices = []
+    uv = []
+    for index in range(segments):
+        angle = index * 2.0 * np.pi / segments
+        ca, sa = np.cos(angle), np.sin(angle)
+        for radius, z in [(outer_radius, front_z), (outer_radius, back_z),
+                          (inner_radius, front_z), (inner_radius, back_z)]:
+            x = center_xy[0] + radius * ca
+            y = center_xy[1] + radius * sa
+            vertices.append([x, y, z])
+            uv.append([index / segments,
+                       radius / outer_radius + (z - front_z) / (back_z - front_z)])
+    faces = []
+    for index in range(segments):
+        nxt = (index + 1) % segments
+        of_i, ob_i, inf_i, inb_i = [index * 4 + offset for offset in range(4)]
+        of_j, ob_j, inf_j, inb_j = [nxt * 4 + offset for offset in range(4)]
+        faces.extend([
+            [ob_i, ob_j, inb_j], [ob_i, inb_j, inb_i],
+            [of_i, inf_j, of_j], [of_i, inf_i, inf_j],
+            [inf_i, inb_j, inf_j], [inf_i, inb_i, inb_j],
+            [of_i, of_j, ob_j], [of_i, ob_j, ob_i],
+        ])
+    sleeve = trimesh.Trimesh(vertices=np.array(vertices), faces=np.array(faces), process=False)
+    sleeve.visual = TextureVisuals(uv=np.array(uv), material=optic.visual.material)
+    return sleeve
 
 
 def main():
@@ -20,14 +55,16 @@ def main():
     estimates = centers[axial]
     if len(estimates) <= 50:
         raise RuntimeError("too few axial faces to estimate bore: %d" % len(estimates))
-    cy = float(estimates[:, 1].mean())
+    center_xy = (0.00663074, 0.10259105)
     radius = float(np.max(np.abs(estimates[:, 0] - cx)) * 0.78)
-    radial = (centers[:, 0] - cx) ** 2 + (centers[:, 1] - cy) ** 2
-    remove = radial < radius ** 2
+    clear_radius = max(radius, 0.0215)
+    radial = (centers[:, 0] - center_xy[0]) ** 2 + (centers[:, 1] - center_xy[1]) ** 2
+    remove = radial < clear_radius ** 2
     if not 0 < int(remove.sum()) < len(optic.faces) * 0.45:
         raise RuntimeError("unsafe bore face count: %d / %d" % (remove.sum(), len(optic.faces)))
     optic.update_faces(~remove)
     optic.remove_unreferenced_vertices()
+    optic = trimesh.util.concatenate([optic, make_bore_sleeve(optic, center_xy)])
     out_scene = trimesh.Scene()
     out_scene.add_geometry(optic, node_name="em12g1_optic", geom_name="em12g1_optic")
     os.makedirs(os.path.dirname(output), exist_ok=True)
@@ -35,8 +72,11 @@ def main():
     report = {
         "source": source,
         "output": output,
-        "bore_center_xy": [cx, cy],
-        "bore_radius": radius,
+        "bore_center_xy": list(center_xy),
+        "bore_radius": 0.0165,
+        "sleeve_outer_radius": 0.0205,
+        "clear_radius": clear_radius,
+        "sleeve_segments": 64,
         "faces_before": len(centers),
         "faces_after": len(optic.faces),
         "deleted": int(remove.sum()),
