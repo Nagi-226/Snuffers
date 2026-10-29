@@ -207,3 +207,4 @@ _process 每帧:
 **同日最终水平微调**
 - 机主确认开镜瞬间偏移修复后，仅将 `OpticAim.x` 从0.0063调至0.0060向右微调；Y/Z与姿态补偿保持。
 - 截图 `tmp_shots/shotgun_ads_right_final.png`；全量回归复验通过。
+- 后续右移试值0.004过冲，最终取0.0055；证据 `tmp_shots/shotgun_ads_right_refined.png`，ADS31项及L1复验通过。
