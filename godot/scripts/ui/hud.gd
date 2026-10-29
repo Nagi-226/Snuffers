@@ -61,6 +61,12 @@ const MISSION_TODO_COLOR := Color(0.88, 0.86, 0.8, 0.95)
 
 ## 任务栏缓存态（_process 轮询去抖：值没变不重写文本）。
 var _mission_sig := ""
+var _weapon_selector: PanelContainer
+var _selector_slots: Dictionary = {}
+var _selector_name: Label
+var _selector_time_left: float = 0.0
+var _selector_style_normal: StyleBoxFlat
+var _selector_style_active: StyleBoxFlat
 
 var _message_tween: Tween
 var _crosshair_tween: Tween
@@ -81,14 +87,128 @@ func _ready() -> void:
 		get_node("Minimap").visible = false
 		get_node("CompassBar").show_mission_markers = false
 		_intel_label.visible = false
+	_build_weapon_selector()
 	_refresh_all_from_state()
 	_refresh_mission(true)
 	_connect_events()
 
 
-func _process(_delta: float) -> void:
-	# 任务栏轮询（钥匙/终端计数均为标量，逐帧比对签名，变了才重写文本）
+func _process(delta: float) -> void:
 	_refresh_mission(false)
+	if _selector_time_left > 0.0:
+		_selector_time_left -= delta
+		if _selector_time_left <= 0.0:
+			_weapon_selector.visible = false
+			_heli_timer_label.offset_top = 48.0
+			_heli_timer_label.offset_bottom = 80.0
+
+
+func _build_weapon_selector() -> void:
+	_weapon_selector = PanelContainer.new()
+	_weapon_selector.name = "WeaponSelector"
+	_weapon_selector.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_weapon_selector.offset_left = -400.0
+	_weapon_selector.offset_right = 400.0
+	_weapon_selector.offset_top = 54.0
+	_weapon_selector.offset_bottom = 132.0
+	_weapon_selector.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_weapon_selector.visible = false
+	_weapon_selector.set_meta("category", 0)
+	_weapon_selector.add_theme_stylebox_override("panel", _selector_style(
+		Color(0.015, 0.025, 0.03, 0.88), Color(0.95, 0.72, 0.22, 0.5)))
+	add_child(_weapon_selector)
+	var margin := MarginContainer.new()
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for side in ["left", "top", "right", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 7)
+	_weapon_selector.add_child(margin)
+	var rows := VBoxContainer.new()
+	rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rows.add_theme_constant_override("separation", 4)
+	margin.add_child(rows)
+	var slots := HBoxContainer.new()
+	slots.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slots.add_theme_constant_override("separation", 4)
+	rows.add_child(slots)
+	_selector_style_normal = _selector_style(Color(0.035, 0.065, 0.08, 0.78), Color(0.4, 0.75, 0.85, 0.25))
+	_selector_style_active = _selector_style(Color(0.24, 0.18, 0.045, 0.94), Color(1.0, 0.8, 0.22, 0.95))
+	for category: Dictionary in GameConfig.WEAPON_CATEGORIES:
+		var slot := PanelContainer.new()
+		slot.custom_minimum_size.x = 122.0
+		slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		slot.add_theme_stylebox_override("panel", _selector_style_normal)
+		slots.add_child(slot)
+		var column := VBoxContainer.new()
+		column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		column.add_theme_constant_override("separation", 0)
+		slot.add_child(column)
+		column.add_child(_selector_label(str(category.number), 16, Color(0.65, 0.9, 1.0)))
+		column.add_child(_selector_label(category.name, 12, Color(0.65, 0.8, 0.85)))
+		_selector_slots[category.number] = slot
+	_selector_name = _selector_label("", 14, Color(1.0, 0.84, 0.35))
+	rows.add_child(_selector_name)
+
+
+func _selector_style(background: Color, border: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = background
+	style.border_color = border
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(2)
+	return style
+
+
+func _selector_label(text: String, font_size: int, color: Color) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", color)
+	return label
+
+
+func _show_weapon_selector(category_number: int) -> void:
+	_weapon_selector.set_meta("category", category_number)
+	_weapon_selector.visible = true
+	_heli_timer_label.offset_top = 142.0
+	_heli_timer_label.offset_bottom = 174.0
+	_selector_time_left = GameConfig.WEAPON_SELECTOR_HOLD_TIME
+	for category: Dictionary in GameConfig.WEAPON_CATEGORIES:
+		var number: int = category.number
+		var slot := _selector_slots[number] as PanelContainer
+		var unlocked := false
+		for weapon_id: StringName in category.weapons:
+			unlocked = unlocked or GameState.weapon_unlocked.get(weapon_id, false)
+		slot.modulate = Color.WHITE if unlocked else Color(1.0, 1.0, 1.0, 0.32)
+		slot.add_theme_stylebox_override("panel",
+			_selector_style_active if number == category_number else _selector_style_normal)
+		if number == category_number:
+			if GameState.current_weapon in category.weapons:
+				_selector_name.text = _weapon_display_name(GameState.current_weapon)
+			else:
+				_selector_name.text = category.name + (" · 预留" if category.weapons.is_empty() else " · 未领取")
+
+
+func _category_for_weapon(weapon_id: StringName) -> int:
+	for category: Dictionary in GameConfig.WEAPON_CATEGORIES:
+		if weapon_id in category.weapons:
+			return category.number
+	return 1
+
+
+func _weapon_display_name(weapon_id: StringName) -> String:
+	match weapon_id:
+		&"pistol":
+			return "EM-57P 手枪"
+		&"rifle":
+			return "EM-68A 突击步枪"
+		&"dmr":
+			return "EM-68D 穿杨 · DMR"
+		&"shotgun":
+			return "EM-12G-1 霰·Ⅰ"
+	return "未获取"
 
 
 ## 任务栏（2026-10-25 机主立项）：生命值/护甲框【下方框外】常驻显示当前任务与
@@ -160,6 +280,7 @@ func _connect_events() -> void:
 	Events.player_aim_changed.connect(_on_player_aim_changed)
 	Events.ammo_changed.connect(_on_ammo_changed)
 	Events.weapon_switched.connect(_on_weapon_switched)
+	Events.weapon_category_selected.connect(_show_weapon_selector)
 	Events.fire_mode_changed.connect(_on_fire_mode_changed)
 	Events.message_posted.connect(_on_message_posted)
 	Events.kills_changed.connect(_refresh_kills)
@@ -182,6 +303,7 @@ func _disconnect_events() -> void:
 	Events.player_aim_changed.disconnect(_on_player_aim_changed)
 	Events.ammo_changed.disconnect(_on_ammo_changed)
 	Events.weapon_switched.disconnect(_on_weapon_switched)
+	Events.weapon_category_selected.disconnect(_show_weapon_selector)
 	Events.fire_mode_changed.disconnect(_on_fire_mode_changed)
 	Events.message_posted.disconnect(_on_message_posted)
 	Events.kills_changed.disconnect(_refresh_kills)
@@ -234,6 +356,7 @@ func _on_ammo_changed(weapon_id: StringName, mag: int, reserve: int) -> void:
 func _on_weapon_switched(_weapon_id: StringName) -> void:
 	_refresh_ammo()
 	_on_player_aim_changed(GameState.is_aiming)
+	_show_weapon_selector(_category_for_weapon(_weapon_id))
 
 
 ## 开镜时隐藏 HUD 腰射准星（ADS 覆盖层接管；榴档开镜同样接管）。

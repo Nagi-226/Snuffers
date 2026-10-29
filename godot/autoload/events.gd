@@ -37,6 +37,8 @@ signal weapon_fired(weapon_id: StringName)
 signal fire_mode_changed(weapon_id: StringName, mode: StringName)
 ## 切枪完成。
 signal weapon_switched(weapon_id: StringName)
+## 数字类别或滚轮请求显示武器选择栏。category 为主键盘 1..6。
+signal weapon_category_selected(category: int)
 ## 换弹开始（榴弹档无此事件，雷池由模块自持）。
 signal weapon_reload_started(weapon_id: StringName)
 ## 换弹完成。

@@ -39,7 +39,7 @@ const CASES: Array = [
 	{
 		"scene": "res://scenes/ui/hud.tscn",
 		"optional": false,
-		"expect": ["StatusPanel", "KillsLabel", "HeliTimerLabel", "LegWarningLabel", "MessageLabel", "AmmoLabel", "Crosshair"],
+		"expect": ["StatusPanel", "KillsLabel", "HeliTimerLabel", "LegWarningLabel", "MessageLabel", "AmmoLabel", "Crosshair", "WeaponSelector"],
 	},
 	# ===== 开头画面（07 §3.1 机主指令，2026-08-19 交付；徽记图样基准 edaa_emblem.png）=====
 	{

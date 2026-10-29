@@ -307,6 +307,18 @@ const VOL_LOOP: float = 0.4 ## 循环组（脚步/直升机）
 const VOL_AMBIENT: float = 0.25 ## 环境组
 const SFX_PITCH_JITTER: float = 0.1 ## 枪声音高抖动 ±10%（L392）
 
+# ===== 武器选择分类（2026-10-29 机主裁决：Half-Life 数字类别 + 同键循环 + 滚轮）=====
+const WEAPON_CATEGORIES: Array = [
+	{"number": 1, "name": "手枪", "weapons": [&"pistol"]},
+	{"number": 2, "name": "冲锋枪", "weapons": []},
+	{"number": 3, "name": "突击 / DMR", "weapons": [&"rifle", &"dmr"]},
+	{"number": 4, "name": "霰弹 / 狙击", "weapons": [&"shotgun"]},
+	{"number": 5, "name": "机枪", "weapons": []},
+	{"number": 6, "name": "爆破重火力", "weapons": []},
+]
+const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"rifle", &"dmr", &"shotgun"]
+const WEAPON_SELECTOR_HOLD_TIME: float = 1.6
+
 # ===== UI 反馈动效（G2 冻结自 W5 脚本常量迁入）=====
 const CROSSHAIR_HIT_SCALE: float = 1.3 ## 命中准星放大倍率
 const CROSSHAIR_HEADSHOT_SCALE: float = 1.8 ## 爆头准星放大倍率

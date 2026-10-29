@@ -12,11 +12,12 @@ const KEY_BACK: Key = KEY_S ## 网页版 S：后退
 const KEY_STRAFE_LEFT: Key = KEY_A ## 网页版 A：左移
 const KEY_STRAFE_RIGHT: Key = KEY_D ## 网页版 D：右移
 const KEY_PRONE: Key = KEY_C ## 网页版 C：趴下切换
-const KEY_WEAPON_RIFLE: Key = KEY_1 ## 网页版 1：切步枪
-const KEY_WEAPON_PISTOL: Key = KEY_2 ## 2：切手枪 EM-57P（2026-10-19 机主立项）
-const KEY_WEAPON_DMR: Key = KEY_3 ## 3：切 EM-68D 精确射手步枪（2026-10-26）
-const KEY_WEAPON_SHOTGUN: Key = KEY_4 ## 4：切 EM-12G-1 霰弹枪（2026-10-26）
-## （旧 3 号位 RPG 火箭筒已于 2026-10-22 退役：榴弹并入步枪第四射击档，X 键循环）
+const KEY_CATEGORY_PISTOL: Key = KEY_1
+const KEY_CATEGORY_SMG: Key = KEY_2
+const KEY_CATEGORY_RIFLE: Key = KEY_3
+const KEY_CATEGORY_SHOTGUN: Key = KEY_4
+const KEY_CATEGORY_MACHINE_GUN: Key = KEY_5
+const KEY_CATEGORY_HEAVY: Key = KEY_6
 const KEY_NIGHT_VISION: Key = KEY_N ## N：夜视仪切换（§11.2 机主裁决：V→N，与昼夜演示场景键位一致）
 const KEY_MEDKIT: Key = KEY_F ## 网页版 F：使用药包
 const KEY_HELI: Key = KEY_H ## 网页版 H：呼叫直升机
@@ -222,6 +223,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif button.button_index == MOUSE_BUTTON_RIGHT and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 			# 按住开镜（2026-10-19 机主立项：原切换式改为按住式，松开即关镜）
 			_set_aiming(button.pressed)
+		elif button.pressed and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED \
+				and button.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+			_cycle_unlocked_weapon(-1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else 1)
 		return
 
 	if event is InputEventKey:
@@ -233,14 +237,18 @@ func _unhandled_input(event: InputEvent) -> void:
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			KEY_PRONE:
 				_toggle_prone()
-			KEY_WEAPON_RIFLE:
-				_switch_weapon(&"rifle")
-			KEY_WEAPON_PISTOL:
-				_switch_weapon(&"pistol")
-			KEY_WEAPON_DMR:
-				_switch_weapon(&"dmr")
-			KEY_WEAPON_SHOTGUN:
-				_switch_weapon(&"shotgun")
+			KEY_CATEGORY_PISTOL:
+				_select_weapon_category(1)
+			KEY_CATEGORY_SMG:
+				_select_weapon_category(2)
+			KEY_CATEGORY_RIFLE:
+				_select_weapon_category(3)
+			KEY_CATEGORY_SHOTGUN:
+				_select_weapon_category(4)
+			KEY_CATEGORY_MACHINE_GUN:
+				_select_weapon_category(5)
+			KEY_CATEGORY_HEAVY:
+				_select_weapon_category(6)
 			KEY_NIGHT_VISION:
 				_toggle_night_vision()
 			KEY_MEDKIT:
@@ -529,7 +537,57 @@ func _on_weapon_recoil_kick(pitch_delta: float) -> void:
 	_camera.rotation.x = _pitch
 
 
-## 1/2/3/4：切枪——改写 GameState.current_weapon + 发信号。
+func _select_weapon_category(category_number: int) -> void:
+	Events.weapon_category_selected.emit(category_number)
+	for category: Dictionary in GameConfig.WEAPON_CATEGORIES:
+		if category.number != category_number:
+			continue
+		var weapons: Array = category.weapons
+		if weapons.is_empty():
+			Events.message_posted.emit("该武器类别尚未获取")
+			return
+		var current_index := weapons.find(GameState.current_weapon)
+		if current_index >= 0:
+			for step in range(1, weapons.size()):
+				var candidate: StringName = weapons[(current_index + step) % weapons.size()]
+				if GameState.weapon_unlocked.get(candidate, false):
+					_switch_weapon(candidate)
+					return
+		else:
+			for weapon_id: StringName in weapons:
+				if GameState.weapon_unlocked.get(weapon_id, false):
+					_switch_weapon(weapon_id)
+					return
+		if current_index < 0:
+			Events.message_posted.emit("该类别武器尚未领取——前往 JB-02 后舱雷暴装备位")
+		return
+
+
+func _cycle_unlocked_weapon(direction: int) -> void:
+	var available: Array[StringName] = []
+	for weapon_id: StringName in GameConfig.WEAPON_SCROLL_ORDER:
+		if GameState.weapon_unlocked.get(weapon_id, false):
+			available.append(weapon_id)
+	if available.is_empty():
+		return
+	var index := available.find(GameState.current_weapon)
+	if index < 0:
+		index = 0 if direction > 0 else available.size() - 1
+	else:
+		index = posmod(index + direction, available.size())
+	var target := available[index]
+	_switch_weapon(target)
+	Events.weapon_category_selected.emit(_weapon_category_for(target))
+
+
+func _weapon_category_for(weapon_id: StringName) -> int:
+	for category: Dictionary in GameConfig.WEAPON_CATEGORIES:
+		if weapon_id in category.weapons:
+			return category.number
+	return 1
+
+
+## 改写 GameState.current_weapon + 发信号；类别选择与滚轮共用此入口。
 func _switch_weapon(weapon_id: StringName) -> void:
 	if GameState.current_weapon == weapon_id:
 		return
