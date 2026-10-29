@@ -61,6 +61,27 @@ func _run() -> void:
 	player._switch_weapon(&"rifle")
 	await create_timer(0.25).timeout
 	_assert(is_equal_approx(player._camera.fov, 60.0), "switching back to rifle restores ADS settings")
+	player._switch_weapon(&"shotgun")
+	player._set_aiming(false)
+	await create_timer(0.3).timeout
+	_assert(player._weapon_mount.position.is_equal_approx(player._mount_hip_pos), "shotgun compensation preserves the hip-fire mount")
+	var hip_optic: Vector3 = player._camera.global_transform.affine_inverse() * optic_aim.global_position
+	player._set_aiming(true)
+	await create_timer(0.06).timeout
+	_assert(player._ads_weight > 0.05 and player._ads_weight < 0.95, "ADS regression samples a real transition frame")
+	_assert(absf(player._ads_weight - shotgun._aim_weight) < 0.001, "shotgun pose and camera mount share the same ADS timing")
+	optic_in_camera = player._camera.global_transform.affine_inverse() * optic_aim.global_position
+	var expected_optic: Vector2 = Vector2(hip_optic.x, hip_optic.y) * (1.0 - shotgun._aim_weight)
+	_assert(Vector2(optic_in_camera.x, optic_in_camera.y).distance_to(expected_optic) < 0.002, "shotgun optic follows the compensated hip-to-ADS trajectory")
+	var frozen_weight: float = shotgun._aim_weight
+	state.shotgun_mag = 0
+	shotgun._start_reload()
+	player._set_aiming(false)
+	await create_timer(0.06).timeout
+	_assert(is_equal_approx(shotgun._aim_weight, frozen_weight) and player._ads_weight < frozen_weight, "reload freezes pose while player ADS weight continues")
+	_assert(player._weapon_mount.position.is_equal_approx(player._shotgun_mount_for_weight(shotgun._aim_weight)), "reload transition mount follows the actual weapon pose weight")
+	player._switch_weapon(&"rifle")
+	await create_timer(shotgun.weapon_data.reload_time + 0.1).timeout
 	player.queue_free()
 	await process_frame
 	var district := (load("res://scenes/levels/district_b.tscn") as PackedScene).instantiate()

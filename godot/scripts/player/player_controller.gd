@@ -50,11 +50,13 @@ var _ads_weight: float = 0.0
 var _last_ads_weapon: StringName = &""
 var _mount_hip_pos: Vector3 = Vector3.ZERO ## 腰射挂载位（_ready 从 player.tscn 实测读取）
 var _ads_mount_targets: Dictionary = {} ## weapon_id → 开镜挂载位（optic 中心对中）
+var _shotgun_optic_center := Vector3.ZERO
 var _ads_fov_targets: Dictionary = {} ## weapon_id → 开镜 FOV
 var _ads_reticle: AdsReticle = null
 var _dmr_scope: ColorRect = null
 var _dmr_scope_material: ShaderMaterial = null
 @onready var _dmr_view_model: Node3D = $Camera3D/WeaponMount/DMR/ViewModel
+@onready var _shotgun_controller: Node = $Camera3D/WeaponMount/Shotgun
 ## 瞄具双网格切换（2026-10-20 机主立项）：常规视角用完整瞄具（外观完好），
 ## 开镜过半把 optic 网格换成独立开孔版（透视镜筒），收镜过半换回。
 ## 开孔版由 extract_optic_bored.py / open_generated_optic.py 从完整 GLB 提取，几何同源、坐标系一致，直接换 mesh 即可。
@@ -74,6 +76,7 @@ var _armor_regen_wait: float = 0.0
 
 
 func _ready() -> void:
+	process_priority = 1 # 武器姿态先更新，再计算相机与挂载补偿
 	# 场景内数值仅为占位，全部以 GameConfig 契约为准逐项覆盖（验收基准）。
 	var capsule := _collision_shape.shape as CapsuleShape3D
 	capsule.radius = GameConfig.PLAYER_RADIUS
@@ -170,6 +173,8 @@ func _calibrate_ads() -> void:
 			_ads_mount_targets[pair[0]] = fallback
 		else:
 			var c: Vector3 = center
+			if pair[0] == &"shotgun":
+				_shotgun_optic_center = c
 			# optic 相机空间坐标 = 挂载位 + c；令其 x/y 归零 → 挂载位取 -c。
 			_ads_mount_targets[pair[0]] = Vector3(-c.x, -c.y, _mount_hip_pos.z)
 
@@ -421,11 +426,14 @@ func _process(delta: float) -> void:
 	# 开镜插值（ADS_LERP_TIME）：挂载位移 + FOV + 准星覆盖层同步驱动。
 	var ads_target := 1.0 if GameState.is_aiming else 0.0
 	var weapon_changed := _last_ads_weapon != GameState.current_weapon
-	if not is_equal_approx(_ads_weight, ads_target) or weapon_changed:
+	if not is_equal_approx(_ads_weight, ads_target) or weapon_changed or GameState.current_weapon == &"shotgun":
 		_last_ads_weapon = GameState.current_weapon
 		_ads_weight = move_toward(_ads_weight, ads_target, delta / GameConfig.ADS_LERP_TIME)
-		_weapon_mount.position = _mount_hip_pos.lerp(
-			_ads_mount_targets.get(GameState.current_weapon, _mount_hip_pos), _ads_weight)
+		if GameState.current_weapon == &"shotgun":
+			_weapon_mount.position = _shotgun_mount_for_weight(_shotgun_controller.get("_aim_weight"))
+		else:
+			_weapon_mount.position = _mount_hip_pos.lerp(
+				_ads_mount_targets.get(GameState.current_weapon, _mount_hip_pos), _ads_weight)
 		_camera.fov = lerpf(GameConfig.FOV_BASE,
 			_ads_fov_targets.get(GameState.current_weapon, GameConfig.FOV_BASE), _ads_weight)
 		var camera_forward: float = GameConfig.SHOTGUN_ADS_CAMERA_FORWARD if GameState.current_weapon == &"shotgun" else 0.0
@@ -454,6 +462,16 @@ func _process(delta: float) -> void:
 		var target_mesh: Mesh = pair.bored if want_bored else pair.intact
 		if pair.node.mesh != target_mesh:
 			pair.node.mesh = target_mesh
+
+
+func _shotgun_mount_for_weight(weight: float) -> Vector3:
+	var hip_q := Quaternion(Vector3.UP, GameConfig.SHOTGUN_HIP_POSE_YAW) * Quaternion(Vector3.RIGHT, GameConfig.SHOTGUN_HIP_POSE_PITCH)
+	var current_q := Quaternion(Vector3.UP, GameConfig.SHOTGUN_HIP_POSE_YAW * (1.0 - weight)) \
+		* Quaternion(Vector3.RIGHT, GameConfig.SHOTGUN_HIP_POSE_PITCH * (1.0 - weight))
+	var hip_center := _mount_hip_pos + hip_q * _shotgun_optic_center
+	var desired_center := hip_center.lerp(Vector3(0.0, 0.0, hip_center.z), weight)
+	var rotated_center := current_q * _shotgun_optic_center
+	return Vector3(desired_center.x - rotated_center.x, desired_center.y - rotated_center.y, _mount_hip_pos.z)
 
 
 ## 当前移速：趴下 > 瞄准 > 疾跑（Shift+W 前进中）> 站立取基速。

@@ -124,12 +124,6 @@ func _build_apc_interior(dark: StandardMaterial3D, frame: StandardMaterial3D) ->
 	_label("APCC4ILeftText", "C4I\nONLINE", Vector3(-0.34, 1.51, 10.305), 18)
 	_label("APCC4IRightText", "TROOP\n06", Vector3(0.34, 1.51, 10.305), 18)
 	_label("APCC4IHeader", "JB-02  //  EDAA", Vector3(0, 1.77, 10.29), 16)
-	for side: float in [-1.0, 1.0]:
-		var x := side * 0.66
-		for y in [0.95, 1.65]:
-			_detail_box("APCWeaponRail", Vector3(x, y, 12.22), Vector3(0.74, 0.055, 0.055), frame)
-		for clamp_x in [-0.25, 0.25]:
-			_detail_box("APCWeaponClamp", Vector3(x + clamp_x, 1.3, 12.25), Vector3(0.06, 0.5, 0.06), frame)
 	_lamp(Vector3(0, 1.94, 10.65), 2.2, 0.45, Color(0.36, 0.72, 0.9))
 	_lamp(Vector3(0, 1.94, 11.95), 2.2, 0.45, Color(0.36, 0.72, 0.9))
 

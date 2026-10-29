@@ -198,3 +198,8 @@ _process 每帧:
 **2026-10-29 昨日水平偏移收尾**
 - 按机主“小幅向左”口径，仅将 `OpticAim.x` 从0.0066307调至0.0063；Y/Z、4cm相机前移、双臂IK、腰射、换弹、弹道和数值均未改。
 - 截图 `tmp_shots/shotgun_ads_horizontal_final.png`；ADS25项及完整L1复验通过。
+
+**同日持枪姿态根因修复**
+- 新回归先证明玩家挂载与长枪姿态权重不一致；统一为 `ADS_LERP_TIME` 后，又定位直线挂载与旋转镜孔轨迹不一致。
+- `_shotgun_mount_for_weight` 以腰射旋转中心和当前旋转实时补偿；`process_priority=1` 消除一帧执行顺序残差；每帧读取武器实际 `_aim_weight`，换弹冻结也同步。
+- 腰射挂载不变，过渡残差约0.000000033；ADS31项全绿，独立复核无阻断。截图 `tmp_shots/shotgun_ads_pose_final.png`。

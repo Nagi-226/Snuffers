@@ -127,7 +127,7 @@ func _process(delta: float) -> void:
 	if not _is_reloading and _arms_animation != null and _arms_animation.has_animation(&"hold"):
 		var aim_target := 1.0 if GameState.is_aiming else 0.0
 		if not is_equal_approx(_aim_weight, aim_target):
-			_aim_weight = move_toward(_aim_weight, aim_target, delta * 4.0)
+			_aim_weight = move_toward(_aim_weight, aim_target, delta / GameConfig.ADS_LERP_TIME)
 			_apply_pose_rotation()
 			_pose_left_arm_mainstream(_aim_weight)
 	elif _is_reloading:
