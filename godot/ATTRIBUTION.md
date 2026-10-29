@@ -83,7 +83,7 @@
 | `assets/models/enemies/host_parasite_animated.glb`（含同名 .preview.png） | 寄生体 T-pose 绑骨与僵尸动画版；基于项目既有 `host_parasite_fullbody.glb`，Blender 本地焊接/蒙皮/矩阵重定向，含 65 骨与 idle/walk/run/attack/death；管线 `modeling/host-rig/rig_host_local.py`、`bake_host_animations.py` | 模型：Kimi model3d_generation（项目自有）；骨架/动作：Adobe Mixamo（https://www.mixamo.com/，仅烘焙 GLB 入库，原始 FBX 不入库） | 模型项目自有；Mixamo 按 Adobe 使用条款用于项目 | 2026-10-24 |
 | `assets/models/pickup_pistol_ammo.glb` | EM-57P 手枪弹匣组拾取道具（立式三联弹匣+琥珀电量窗） | 本项目程序化建模（Blender 脚本 `desktop-port/godot-spike/modeling/build_pistol_ammo.py` 烘焙） | 项目自有 | 2026-10-19 |
 | `assets/models/weapons/em40g_grenade.glb` | EM-40G「滚雷」EC-40P 破垒榴弹投射物模型（全长 0.20m，3000 三角面，弹头 -Z；概念图 `modeling/em-weapons/em40g_grenade_input.png` 图生 3D，task_id e8eeb882-85b2-41b9-90e8-1e530f665ef1；归一化/减面脚本 `modeling/scripts/normalize_em40g.py` + `decimate_em40g.py`） | Kimi model3d_generation 插件（v3.1 图生） | 项目自有（AI 生成） | 2026-10-22 |
-| `assets/models/weapons/em12g1_optic_bored.glb`（含自动提取贴图） | EM-12G-1 开镜专用真实开孔瞄具；由同名项目自有拆件模型的 optic 部件局部清理挡视线/碎片三角面，并以原材质重建64点圆角矩形薄框镜筒，坐标与材质保持一致；管线 `modeling/scripts/open_generated_optic.py` + `add_glb_tangents.py` | 基于项目自有 EM-12G-1 派生，本地 Python/trimesh 处理 | 项目自有（AI 生成模型派生） | 2026-10-28 |
+| `assets/models/weapons/em12g1_optic_bored.glb`（含自动提取贴图） | EM-12G-1 开镜专用真实开孔瞄具；由同名项目自有拆件模型的 optic 部件仅删除原生轴向镜片/后盖三角面以形成真实开孔，不新增任何几何，镜筒、坐标与材质保持一致；管线 `modeling/scripts/open_generated_optic.py` + `add_glb_tangents.py` | 基于项目自有 EM-12G-1 派生，本地 Python/trimesh 处理 | 项目自有（AI 生成模型派生） | 2026-10-28 |
 
 ---
 
