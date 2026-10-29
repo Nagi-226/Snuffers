@@ -19,7 +19,7 @@ position = Vector3(-0.04, -0.035, 0.12)
 position = Vector3(0, 0.02, -0.37)
 
 [node name="OpticAim" type="Marker3D" parent="ViewModel/Weapon"]
-position = Vector3(0.0063, 0.102591, 0.10706)
+position = Vector3(0.006, 0.102591, 0.10706)
 
 [node name="Arms" parent="ViewModel" instance=ExtResource("4_arms")]
 position = Vector3(-0.04, -0.035, 0.12)

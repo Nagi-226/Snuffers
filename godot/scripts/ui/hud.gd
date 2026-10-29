@@ -64,6 +64,7 @@ var _mission_sig := ""
 var _weapon_selector: PanelContainer
 var _selector_slots: Dictionary = {}
 var _selector_name: Label
+var _selector_members: VBoxContainer
 var _selector_time_left: float = 0.0
 var _selector_style_normal: StyleBoxFlat
 var _selector_style_active: StyleBoxFlat
@@ -146,6 +147,11 @@ func _build_weapon_selector() -> void:
 		column.add_child(_selector_label(str(category.number), 16, Color(0.65, 0.9, 1.0)))
 		column.add_child(_selector_label(category.name, 12, Color(0.65, 0.8, 0.85)))
 		_selector_slots[category.number] = slot
+	_selector_members = VBoxContainer.new()
+	_selector_members.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_selector_members.add_theme_constant_override("separation", 0)
+	_selector_members.visible = false
+	rows.add_child(_selector_members)
 	_selector_name = _selector_label("", 14, Color(1.0, 0.84, 0.35))
 	rows.add_child(_selector_name)
 
@@ -154,7 +160,7 @@ func _selector_style(background: Color, border: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = background
 	style.border_color = border
-	style.set_border_width_all(1)
+	style.set_border_width_all(0)
 	style.set_corner_radius_all(2)
 	return style
 
@@ -172,9 +178,10 @@ func _selector_label(text: String, font_size: int, color: Color) -> Label:
 func _show_weapon_selector(category_number: int) -> void:
 	_weapon_selector.set_meta("category", category_number)
 	_weapon_selector.visible = true
-	_heli_timer_label.offset_top = 142.0
-	_heli_timer_label.offset_bottom = 174.0
 	_selector_time_left = GameConfig.WEAPON_SELECTOR_HOLD_TIME
+	for child in _selector_members.get_children():
+		child.free()
+	var member_count := 0
 	for category: Dictionary in GameConfig.WEAPON_CATEGORIES:
 		var number: int = category.number
 		var slot := _selector_slots[number] as PanelContainer
@@ -189,6 +196,17 @@ func _show_weapon_selector(category_number: int) -> void:
 				_selector_name.text = _weapon_display_name(GameState.current_weapon)
 			else:
 				_selector_name.text = category.name + (" · 预留" if category.weapons.is_empty() else " · 未领取")
+			for weapon_id: StringName in category.weapons:
+				if not GameState.weapon_unlocked.get(weapon_id, false):
+					continue
+				member_count += 1
+				var color := Color(1.0, 0.84, 0.35) if weapon_id == GameState.current_weapon else Color(0.65, 0.85, 0.9)
+				_selector_members.add_child(_selector_label(_weapon_display_name(weapon_id), 14, color))
+	_selector_members.visible = member_count > 1
+	_selector_name.visible = member_count <= 1
+	_weapon_selector.offset_bottom = 132.0 + maxi(0, member_count - 1) * 22.0
+	_heli_timer_label.offset_top = _weapon_selector.offset_bottom + 10.0
+	_heli_timer_label.offset_bottom = _heli_timer_label.offset_top + 32.0
 
 
 func _category_for_weapon(weapon_id: StringName) -> int:

@@ -203,3 +203,7 @@ _process 每帧:
 - 新回归先证明玩家挂载与长枪姿态权重不一致；统一为 `ADS_LERP_TIME` 后，又定位直线挂载与旋转镜孔轨迹不一致。
 - `_shotgun_mount_for_weight` 以腰射旋转中心和当前旋转实时补偿；`process_priority=1` 消除一帧执行顺序残差；每帧读取武器实际 `_aim_weight`，换弹冻结也同步。
 - 腰射挂载不变，过渡残差约0.000000033；ADS31项全绿，独立复核无阻断。截图 `tmp_shots/shotgun_ads_pose_final.png`。
+
+**同日最终水平微调**
+- 机主确认开镜瞬间偏移修复后，仅将 `OpticAim.x` 从0.0063调至0.0060向右微调；Y/Z与姿态补偿保持。
+- 截图 `tmp_shots/shotgun_ads_right_final.png`；全量回归复验通过。
