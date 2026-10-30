@@ -1,9 +1,70 @@
-"""Open the EM-12G-1 optic using only its native lens/back-cover faces."""
+"""Open the EM-12G-1 optic by subdividing native triangles around the bore."""
 import json
 import os
 import sys
 import numpy as np
 import trimesh
+from trimesh.visual import TextureVisuals
+
+
+def clip_mesh_to_bore(mesh, center_xy, radius, subdivisions=8):
+    vertices = []
+    faces = []
+    uv = []
+
+    def edge_intersects(a, b):
+        direction = b[:2] - a[:2]
+        offset = a[:2] - center_xy
+        qa = float(np.dot(direction, direction))
+        qb = 2.0 * float(np.dot(offset, direction))
+        qc = float(np.dot(offset, offset)) - radius * radius
+        return qb * qb - 4.0 * qa * qc > 0.0
+
+    def append_triangle(triangle, triangle_uv, original_area):
+        if np.linalg.norm(triangle[:, :2].mean(axis=0) - center_xy) < radius:
+            return
+        clipped_area = float((triangle[1, 0] - triangle[0, 0]) * (triangle[2, 1] - triangle[0, 1])
+                             - (triangle[1, 1] - triangle[0, 1]) * (triangle[2, 0] - triangle[0, 0]))
+        if abs(clipped_area) < 1e-16:
+            return
+        start = len(vertices)
+        order = [2, 1, 0] if (clipped_area < 0.0) != (original_area < 0.0) else [0, 1, 2]
+        for index in order:
+            vertices.append(triangle[index])
+            uv.append(triangle_uv[index])
+        faces.append([start, start + 1, start + 2])
+
+    for face in mesh.faces:
+        triangle = mesh.vertices[face]
+        triangle_uv = mesh.visual.uv[face]
+        distances = np.linalg.norm(triangle[:, :2] - center_xy, axis=1)
+        if np.all(distances < radius):
+            continue
+        original_area = float((triangle[1, 0] - triangle[0, 0]) * (triangle[2, 1] - triangle[0, 1])
+                              - (triangle[1, 1] - triangle[0, 1]) * (triangle[2, 0] - triangle[0, 0]))
+        intersects = any(edge_intersects(triangle[first], triangle[second]) for first, second in [(0, 1), (1, 2), (2, 0)])
+        if not intersects and np.all(distances >= radius):
+            basis = np.column_stack((triangle[1, :2] - triangle[0, :2], triangle[2, :2] - triangle[0, :2]))
+            center_weights = np.linalg.lstsq(basis, center_xy - triangle[0, :2], rcond=None)[0]
+            if not (np.all(center_weights >= -1e-8) and center_weights.sum() <= 1.0 + 1e-8):
+                append_triangle(triangle, triangle_uv, original_area)
+                continue
+        for i in range(subdivisions):
+            for j in range(subdivisions - i):
+                p00 = triangle[0] + (triangle[1] - triangle[0]) * (i / subdivisions) + (triangle[2] - triangle[0]) * (j / subdivisions)
+                p10 = triangle[0] + (triangle[1] - triangle[0]) * ((i + 1) / subdivisions) + (triangle[2] - triangle[0]) * (j / subdivisions)
+                p01 = triangle[0] + (triangle[1] - triangle[0]) * (i / subdivisions) + (triangle[2] - triangle[0]) * ((j + 1) / subdivisions)
+                uv00 = triangle_uv[0] + (triangle_uv[1] - triangle_uv[0]) * (i / subdivisions) + (triangle_uv[2] - triangle_uv[0]) * (j / subdivisions)
+                uv10 = triangle_uv[0] + (triangle_uv[1] - triangle_uv[0]) * ((i + 1) / subdivisions) + (triangle_uv[2] - triangle_uv[0]) * (j / subdivisions)
+                uv01 = triangle_uv[0] + (triangle_uv[1] - triangle_uv[0]) * (i / subdivisions) + (triangle_uv[2] - triangle_uv[0]) * ((j + 1) / subdivisions)
+                append_triangle(np.array([p00, p10, p01]), np.array([uv00, uv10, uv01]), original_area)
+                if i + j < subdivisions - 1:
+                    p11 = triangle[0] + (triangle[1] - triangle[0]) * ((i + 1) / subdivisions) + (triangle[2] - triangle[0]) * ((j + 1) / subdivisions)
+                    uv11 = triangle_uv[0] + (triangle_uv[1] - triangle_uv[0]) * ((i + 1) / subdivisions) + (triangle_uv[2] - triangle_uv[0]) * ((j + 1) / subdivisions)
+                    append_triangle(np.array([p10, p11, p01]), np.array([uv10, uv11, uv01]), original_area)
+    result = trimesh.Trimesh(vertices=np.array(vertices), faces=np.array(faces), process=False)
+    result.visual = TextureVisuals(uv=np.array(uv), material=mesh.visual.material)
+    return result
 
 
 def main():
@@ -21,32 +82,8 @@ def main():
     if len(estimates) <= 50:
         raise RuntimeError("too few axial faces to estimate bore: %d" % len(estimates))
     center_xy = (0.00663074, 0.10259105)
-    radius = float(np.max(np.abs(estimates[:, 0] - cx)) * 0.78)
-    radial = (centers[:, 0] - center_xy[0]) ** 2 + (centers[:, 1] - center_xy[1]) ** 2
-    remove = (radial < radius ** 2) & (np.abs(normals[:, 2]) > 0.8)
-    if not 0 < int(remove.sum()) < len(optic.faces) * 0.45:
-        raise RuntimeError("unsafe bore face count: %d / %d" % (remove.sum(), len(optic.faces)))
-    optic.update_faces(~remove)
-    optic.remove_unreferenced_vertices()
-    parts = optic.split(only_watertight=False)
-    largest_faces = max(len(part.faces) for part in parts)
-    kept = []
-    inner_faces = 0
-    for part in parts:
-        center = part.bounds.mean(axis=0)
-        inner_radial = (center[0] - center_xy[0]) ** 2 + (center[1] - center_xy[1]) ** 2
-        if len(part.faces) < largest_faces and inner_radial < radius ** 2 and center[2] > 0.09:
-            part_centers = part.triangles_center
-            part_radial = (part_centers[:, 0] - center_xy[0]) ** 2 + (part_centers[:, 1] - center_xy[1]) ** 2
-            part_remove = (part_radial < radius ** 2) & (part_centers[:, 2] > 0.09)
-            inner_faces += int(part_remove.sum())
-            part.update_faces(~part_remove)
-            part.remove_unreferenced_vertices()
-            if len(part.faces) > 0:
-                kept.append(part)
-            continue
-        kept.append(part)
-    optic = trimesh.util.concatenate(kept)
+    radius = 0.014
+    optic = clip_mesh_to_bore(optic, center_xy, radius)
     out_scene = trimesh.Scene()
     out_scene.add_geometry(optic, node_name="em12g1_optic", geom_name="em12g1_optic")
     os.makedirs(os.path.dirname(output), exist_ok=True)
@@ -55,12 +92,11 @@ def main():
         "source": source,
         "output": output,
         "bore_center_xy": list(center_xy),
-        "method": "native_lens_back_cover_and_bore_faces",
+        "method": "native_triangle_subdivision_centroid",
+        "subdivisions": 8,
         "bore_radius": radius,
-        "inner_component_faces": inner_faces,
         "faces_before": len(centers),
         "faces_after": len(optic.faces),
-        "deleted": int(remove.sum()) + inner_faces,
     }
     report_path = os.path.splitext(output)[0] + "_report.json"
     with open(report_path, "w", encoding="utf-8") as handle:

@@ -5,10 +5,9 @@
     0.00663074,
     0.10259105
   ],
-  "method": "native_lens_back_cover_and_bore_faces",
-  "bore_radius": 0.017400523107498886,
-  "inner_component_faces": 89,
+  "method": "native_triangle_subdivision_centroid",
+  "subdivisions": 8,
+  "bore_radius": 0.014,
   "faces_before": 3390,
-  "faces_after": 3142,
-  "deleted": 248
+  "faces_after": 88055
 }
