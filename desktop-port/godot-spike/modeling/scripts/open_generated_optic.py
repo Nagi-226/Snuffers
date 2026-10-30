@@ -36,7 +36,14 @@ def main():
         center = part.bounds.mean(axis=0)
         inner_radial = (center[0] - center_xy[0]) ** 2 + (center[1] - center_xy[1]) ** 2
         if len(part.faces) < largest_faces and inner_radial < radius ** 2 and center[2] > 0.09:
-            inner_faces += len(part.faces)
+            part_centers = part.triangles_center
+            part_radial = (part_centers[:, 0] - center_xy[0]) ** 2 + (part_centers[:, 1] - center_xy[1]) ** 2
+            part_remove = (part_radial < radius ** 2) & (part_centers[:, 2] > 0.09)
+            inner_faces += int(part_remove.sum())
+            part.update_faces(~part_remove)
+            part.remove_unreferenced_vertices()
+            if len(part.faces) > 0:
+                kept.append(part)
             continue
         kept.append(part)
     optic = trimesh.util.concatenate(kept)
@@ -48,7 +55,7 @@ def main():
         "source": source,
         "output": output,
         "bore_center_xy": list(center_xy),
-        "method": "native_lens_back_cover_and_inner_components",
+        "method": "native_lens_back_cover_and_bore_faces",
         "bore_radius": radius,
         "inner_component_faces": inner_faces,
         "faces_before": len(centers),
