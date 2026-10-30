@@ -5,9 +5,10 @@
     0.00663074,
     0.10259105
   ],
-  "method": "native_axial_faces_only",
+  "method": "native_lens_back_cover_and_inner_components",
   "bore_radius": 0.017400523107498886,
+  "inner_component_faces": 652,
   "faces_before": 3390,
-  "faces_after": 3231,
-  "deleted": 159
+  "faces_after": 2579,
+  "deleted": 811
 }
