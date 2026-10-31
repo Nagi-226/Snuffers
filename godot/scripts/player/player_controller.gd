@@ -56,6 +56,7 @@ var _ads_fov_targets: Dictionary = {} ## weapon_id → 开镜 FOV
 var _ads_reticle: AdsReticle = null
 var _dmr_scope: ColorRect = null
 var _dmr_scope_material: ShaderMaterial = null
+var _dmr_tactical: Control = null
 @onready var _dmr_view_model: Node3D = $Camera3D/WeaponMount/DMR/ViewModel
 @onready var _shotgun_controller: Node = $Camera3D/WeaponMount/Shotgun
 ## 瞄具双网格切换（2026-10-20 机主立项）：常规视角用完整瞄具（外观完好），
@@ -123,6 +124,13 @@ func _ready() -> void:
 	_dmr_scope.material = _dmr_scope_material
 	_dmr_scope.visible = false
 	reticle_layer.add_child(_dmr_scope)
+	_dmr_tactical = load("res://scripts/player/dmr_tactical_overlay.gd").new() as Control
+	_dmr_tactical.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_dmr_tactical.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dmr_tactical.set("camera", _camera)
+	_dmr_tactical.set("excluded_rids", [get_rid()])
+	_dmr_tactical.visible = false
+	reticle_layer.add_child(_dmr_tactical)
 	_calibrate_ads()
 	_load_optic_meshes()
 	# 承伤管线挂接（发射侧在 enemy_base._damage_player；结算收口在本类 _apply_damage）。
@@ -450,6 +458,7 @@ func _process(delta: float) -> void:
 	var full_scope := GameState.current_weapon == &"dmr" and _ads_weight > 0.6
 	if _dmr_scope != null:
 		_dmr_scope.visible = full_scope
+		_dmr_tactical.visible = full_scope
 		_dmr_view_model.visible = not full_scope
 		var viewport_size := get_viewport().get_visible_rect().size
 		_dmr_scope_material.set_shader_parameter("aspect", viewport_size.x / viewport_size.y)

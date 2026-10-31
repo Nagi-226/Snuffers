@@ -34,6 +34,7 @@ func _run() -> void:
 	_assert(is_equal_approx(player._camera.position.z, player._camera_hip_z), "DMR aiming does not inherit shotgun camera travel")
 	_assert(player._weapon_mount.position.is_equal_approx(player._ads_mount_targets[&"dmr"]), "switching to DMR while aiming applies its mount")
 	_assert(player._dmr_scope.visible, "DMR full-screen scope is visible while aiming")
+	_assert(player._dmr_tactical.visible, "DMR tactical overlay activates with the full-screen scope")
 	var dmr := player.get_node("Camera3D/WeaponMount/DMR")
 	_assert(not dmr._view_model.visible, "DMR full-screen scope hides the complete weapon and floating arms")
 	player._switch_weapon(&"shotgun")

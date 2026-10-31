@@ -33,6 +33,10 @@ const FOV_BASE: float = 75.0 ## 主相机 FOV（L465）
 const RIFLE_ADS_FOV: float = 60.0 ## EM-68A 全息瞄具开镜 FOV（全息=低倍率，微收窄）
 const PISTOL_ADS_FOV: float = 65.0 ## EM-57P 点状瞄具开镜 FOV
 const DMR_ADS_FOV: float = 35.0 ## EM-68D 精确射手瞄具开镜 FOV
+const DMR_SCOPE_REFRESH_INTERVAL: float = 1.0 / 30.0 ## 测距/遮挡查询频率 s；投影绘制仍逐帧
+const DMR_SCOPE_MAX_TARGETS: int = 6 ## 同屏蓝框上限，按离准星距离优先
+const DMR_SCOPE_ACQUIRE_TIME: float = 0.15 ## Target Finder 式蓝框出现扫描过渡 s
+const DMR_SCOPE_MIL_STEPS: Array[int] = [5, 10, 15, 20] ## 角度刻度；当前 hitscan 无下坠补偿
 const SHOTGUN_ADS_FOV: float = 60.0 ## EM-12G-1 低倍率瞄具开镜 FOV
 const ADS_LERP_TIME: float = 0.12 ## 开镜/关镜过渡时长 s（挂载位移与 FOV 同步插值）
 const ADS_RIFLE_OPTIC_BORE_LOCAL := Vector3(0.00092, 0.18047, -0.0204) ## EM-68A 镜孔轴心（网格局部空间，Blender 实测，轴系已换算 glTF；2026-10-19 开窗手术配套）
