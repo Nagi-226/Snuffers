@@ -7,21 +7,21 @@ import trimesh
 from trimesh.visual import TextureVisuals
 
 
-def clip_mesh_to_bore(mesh, center_xy, radius, subdivisions=8):
+def clip_mesh_to_bore(mesh, center_xy, half_extents, corner_radius, subdivisions=8):
     vertices = []
     faces = []
     uv = []
+    half_extents = np.asarray(half_extents, dtype=float)
 
-    def edge_intersects(a, b):
-        direction = b[:2] - a[:2]
-        offset = a[:2] - center_xy
-        qa = float(np.dot(direction, direction))
-        qb = 2.0 * float(np.dot(offset, direction))
-        qc = float(np.dot(offset, offset)) - radius * radius
-        return qb * qb - 4.0 * qa * qc > 0.0
+    def signed_distance(points):
+        points = np.asarray(points, dtype=float)
+        q = np.abs(points - center_xy) - (half_extents - corner_radius)
+        outside = np.linalg.norm(np.maximum(q, 0.0), axis=-1)
+        inside = np.minimum(np.maximum(q[..., 0], q[..., 1]), 0.0)
+        return outside + inside - corner_radius
 
     def append_triangle(triangle, triangle_uv, original_area):
-        if np.linalg.norm(triangle[:, :2].mean(axis=0) - center_xy) < radius:
+        if signed_distance(triangle[:, :2].mean(axis=0)) < 0.0:
             return
         clipped_area = float((triangle[1, 0] - triangle[0, 0]) * (triangle[2, 1] - triangle[0, 1])
                              - (triangle[1, 1] - triangle[0, 1]) * (triangle[2, 0] - triangle[0, 0]))
@@ -37,18 +37,17 @@ def clip_mesh_to_bore(mesh, center_xy, radius, subdivisions=8):
     for face in mesh.faces:
         triangle = mesh.vertices[face]
         triangle_uv = mesh.visual.uv[face]
-        distances = np.linalg.norm(triangle[:, :2] - center_xy, axis=1)
-        if np.all(distances < radius):
+        if np.all(signed_distance(triangle[:, :2]) < 0.0):
             continue
         original_area = float((triangle[1, 0] - triangle[0, 0]) * (triangle[2, 1] - triangle[0, 1])
                               - (triangle[1, 1] - triangle[0, 1]) * (triangle[2, 0] - triangle[0, 0]))
-        intersects = any(edge_intersects(triangle[first], triangle[second]) for first, second in [(0, 1), (1, 2), (2, 0)])
-        if not intersects and np.all(distances >= radius):
-            basis = np.column_stack((triangle[1, :2] - triangle[0, :2], triangle[2, :2] - triangle[0, :2]))
-            center_weights = np.linalg.lstsq(basis, center_xy - triangle[0, :2], rcond=None)[0]
-            if not (np.all(center_weights >= -1e-8) and center_weights.sum() <= 1.0 + 1e-8):
-                append_triangle(triangle, triangle_uv, original_area)
-                continue
+        triangle_lo = triangle[:, :2].min(axis=0)
+        triangle_hi = triangle[:, :2].max(axis=0)
+        bore_lo = center_xy - half_extents
+        bore_hi = center_xy + half_extents
+        if np.any(triangle_hi < bore_lo) or np.any(triangle_lo > bore_hi):
+            append_triangle(triangle, triangle_uv, original_area)
+            continue
         for i in range(subdivisions):
             for j in range(subdivisions - i):
                 p00 = triangle[0] + (triangle[1] - triangle[0]) * (i / subdivisions) + (triangle[2] - triangle[0]) * (j / subdivisions)
@@ -81,9 +80,10 @@ def main():
     estimates = centers[axial]
     if len(estimates) <= 50:
         raise RuntimeError("too few axial faces to estimate bore: %d" % len(estimates))
-    center_xy = (0.00663074, 0.10259105)
-    radius = 0.014
-    optic = clip_mesh_to_bore(optic, center_xy, radius)
+    center_xy = np.array((0.00663074, 0.10259105))
+    half_extents = np.array((0.014, 0.014))
+    corner_radius = 0.0035
+    optic = clip_mesh_to_bore(optic, center_xy, half_extents, corner_radius)
     out_scene = trimesh.Scene()
     out_scene.add_geometry(optic, node_name="em12g1_optic", geom_name="em12g1_optic")
     os.makedirs(os.path.dirname(output), exist_ok=True)
@@ -91,10 +91,11 @@ def main():
     report = {
         "source": source,
         "output": output,
-        "bore_center_xy": list(center_xy),
-        "method": "native_triangle_subdivision_centroid",
+        "bore_center_xy": center_xy.tolist(),
+        "method": "native_triangle_subdivision_centroid_rounded_rect",
         "subdivisions": 8,
-        "bore_radius": radius,
+        "bore_half_extents": half_extents.tolist(),
+        "bore_corner_radius": corner_radius,
         "faces_before": len(centers),
         "faces_after": len(optic.faces),
     }

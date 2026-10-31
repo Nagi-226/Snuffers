@@ -5,9 +5,13 @@
     0.00663074,
     0.10259105
   ],
-  "method": "native_triangle_subdivision_centroid",
+  "method": "native_triangle_subdivision_centroid_rounded_rect",
   "subdivisions": 8,
-  "bore_radius": 0.014,
+  "bore_half_extents": [
+    0.014,
+    0.014
+  ],
+  "bore_corner_radius": 0.0035,
   "faces_before": 3390,
-  "faces_after": 88055
+  "faces_after": 7038
 }
