@@ -1,0 +1,21 @@
+{
+  "kind": "spore",
+  "output": "godot/assets/models/enemies/spore_husk_animated.glb",
+  "bones": 8,
+  "clips": [
+    "idle",
+    "crawl",
+    "alert",
+    "leap",
+    "land",
+    "death"
+  ],
+  "vertices": 36147,
+  "polygons": 14963,
+  "dimensions": [
+    0.7144315838813782,
+    1.0687544345855713,
+    0.3565303087234497
+  ],
+  "preview": "godot/tmp_shots/spore_husk_rig.png"
+}

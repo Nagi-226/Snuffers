@@ -1,0 +1,33 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/spore_husk.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/models/enemies/spore_husk_animated.glb" id="2_model"]
+
+[sub_resource type="CapsuleShape3D" id="Capsule_body"]
+radius = 0.42
+height = 0.55
+
+[sub_resource type="SphereShape3D" id="Sphere_core"]
+radius = 0.36
+
+[node name="SporeHusk" type="CharacterBody3D"]
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.275, 0)
+shape = SubResource("Capsule_body")
+
+[node name="HeadHitbox" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.28, 0)
+metadata/hit_part = &"head"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HeadHitbox"]
+shape = SubResource("Sphere_core")
+
+[node name="BodyMesh" parent="." instance=ExtResource("2_model")]
+
+[node name="Eye" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.32, -0.35)
+
+[node name="Muzzle" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.32, -0.35)

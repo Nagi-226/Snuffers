@@ -48,6 +48,10 @@ func _run() -> void:
 	var wall_mesh := district.get_node("WarehouseFrontPier_0/Mesh") as MeshInstance3D
 	var wall_material := wall_mesh.mesh.material as StandardMaterial3D
 	_assert(wall_material != null and wall_material.normal_texture != null and wall_material.roughness_texture != null, "warehouse exterior uses full PBR textures")
+	_assert(district.has_node("WickShelf") and district.has_node("WickAmmoBox"), "SPAS and 12GA ammo are displayed as abandoned shelf contents")
+	_assert(district.has_node("PartitionWestA") and district.has_node("PartitionEastA"), "warehouse has interior maze partitions")
+	_assert(district.has_node("ReceivingOffice") and district.has_node("CargoPallet_0"), "warehouse has an office and freight props")
+	_assert(district.has_node("HulkingHost"), "second district contains the secondary-mutated host")
 	district.queue_free()
 	await process_frame
 	_free_autoloads()

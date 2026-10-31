@@ -1,0 +1,33 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/hulking_host.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/models/enemies/hulking_host_animated.glb" id="2_model"]
+
+[sub_resource type="CapsuleShape3D" id="Capsule_body"]
+radius = 0.55
+height = 2.3
+
+[sub_resource type="SphereShape3D" id="Sphere_head"]
+radius = 0.32
+
+[node name="HulkingHost" type="CharacterBody3D"]
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, 0)
+shape = SubResource("Capsule_body")
+
+[node name="HeadHitbox" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.05, 0)
+metadata/hit_part = &"head"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HeadHitbox"]
+shape = SubResource("Sphere_head")
+
+[node name="BodyMesh" parent="." instance=ExtResource("2_model")]
+
+[node name="Eye" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9, -0.25)
+
+[node name="Muzzle" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, -0.6)

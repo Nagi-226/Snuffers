@@ -5,6 +5,7 @@ const PICKUP_SCENE := preload("res://scenes/levels/pickup.tscn")
 const LORE_NOTE := preload("res://scripts/levels/lore_note.gd")
 const APC_MODEL := "res://assets/models/vehicles/jb02_apc.glb"
 const SPAS_MODEL := "res://assets/models/weapons/spas12_display.glb"
+const HULKING_SCENE := preload("res://scenes/enemies/hulking_host.tscn")
 const TEXTURES := {
 	"concrete": "res://assets/textures/warehouse/wall_concrete.bmp",
 	"panel": "res://assets/textures/warehouse/facade_panel.bmp",
@@ -19,6 +20,10 @@ func _ready() -> void:
 	_build_yard()
 	_build_warehouse()
 	_build_prequel_lore()
+	var hulking := HULKING_SCENE.instantiate() as Node3D
+	hulking.name = "HulkingHost"
+	hulking.position = Vector3(0, 0, 20)
+	add_child(hulking)
 	_build_apc_bay()
 	_build_return_link()
 
@@ -74,6 +79,7 @@ func _build_warehouse() -> void:
 			_lamp(Vector3(x, 18.5, z), 38.0, 2.4, Color(0.65, 0.82, 1.0))
 	_build_storage_racks()
 	_build_mezzanine()
+	_build_warehouse_rooms()
 
 
 func _build_storage_racks() -> void:
@@ -117,6 +123,56 @@ func _build_mezzanine() -> void:
 	_stair_ramp(Vector3(-110, 0, -52), Vector3(-110, 6, -80), 4.0, steel)
 
 
+func _build_warehouse_rooms() -> void:
+	var concrete := _pbr_material("concrete_floor_02", Color(0.62, 0.67, 0.71), Vector3(4, 2, 1))
+	var metal := _plain(Color(0.16, 0.22, 0.25), 0.65)
+	_box("PartitionWestA", Vector3(-20, 2.75, 10), Vector3(0.35, 5.5, 50), concrete)
+	_box("PartitionWestB", Vector3(-20, 2.75, -45), Vector3(0.35, 5.5, 30), concrete)
+	_box("PartitionWestC", Vector3(-20, 2.75, 45), Vector3(0.35, 5.5, 10), concrete)
+	_box("PartitionEastA", Vector3(55, 2.75, 10), Vector3(0.35, 5.5, 50), concrete)
+	_box("PartitionEastB", Vector3(55, 2.75, -50), Vector3(0.35, 5.5, 40), concrete)
+	_box("PartitionEastC", Vector3(55, 2.75, 50), Vector3(0.35, 5.5, 20), concrete)
+	for wall in [[-130.0, 90.0], [-45.0, 50.0], [25.0, 60.0], [120.0, 110.0]]:
+		_box("CrossStoreWall", Vector3(wall[0], 2.75, 40), Vector3(wall[1], 5.5, 0.35), concrete)
+	_box("ReceivingOffice", Vector3(-150, 2.75, 45), Vector3(30, 5.5, 0.35), concrete)
+	_box("OfficeWest", Vector3(-165, 2.75, 57.5), Vector3(0.35, 5.5, 25), concrete)
+	_box("OfficeEastNorth", Vector3(-135, 2.75, 48.5), Vector3(0.35, 5.5, 7), concrete)
+	_box("OfficeEastSouth", Vector3(-135, 2.75, 66.5), Vector3(0.35, 5.5, 7), concrete)
+	_box("OfficeFront", Vector3(-150, 2.75, 70), Vector3(30, 5.5, 0.35), concrete)
+	_box("OfficeDesk", Vector3(-151, 0.5, 54), Vector3(3.2, 1.0, 1.2), metal)
+	_detail_box("OfficeTerminal", Vector3(-151, 1.15, 54), Vector3(0.75, 0.5, 0.08), _emissive(Color(0.2, 0.65, 0.8), 0.65))
+	_label("OfficeSign", "收货登记 / RECEIVING", Vector3(-150, 3.9, 69.75), 36)
+	_lamp(Vector3(-150, 4.2, 56), 14, 1.8, Color(0.55, 0.78, 1.0))
+	for x in [-20.0, 55.0]:
+		for z in [-30.0, 37.5]:
+			_detail_box("PartitionDoorFrame", Vector3(x, 2.2, z), Vector3(0.55, 4.4, 0.55), metal)
+			_lamp(Vector3(x, 4.4, z), 10, 1.2, Color(0.4, 0.75, 1.0))
+	for z in [60.0, 20.0, -20.0, -60.0]:
+		_detail_box("CargoLaneMarking", Vector3(0, 0.115, z), Vector3(0.18, 0.015, 18), _plain(Color(0.72, 0.58, 0.12), 0.8))
+		_label("RouteSign", "收货 → 复检 → 储运", Vector3(-19.75, 3.3, z), 28)
+	var pallet_positions := [Vector3(-160, 0, 25), Vector3(-155, 0, -15), Vector3(-90, 0, 55), Vector3(75, 0, 55), Vector3(145, 0, 15), Vector3(115, 0, -85)]
+	for i in pallet_positions.size():
+		_prop_model("res://assets/models/prop_pallet.glb", "CargoPallet_%d" % i, pallet_positions[i], 1.8, i * 0.35)
+		_detail_box("PalletCargo", pallet_positions[i] + Vector3(0, 1.0, 0), Vector3(2.2, 1.4, 1.5), _material("panel", Color(0.36, 0.3, 0.22)))
+	for i in 6:
+		_prop_model("res://assets/models/prop_barrel.glb", "CargoBarrel_%d" % i, Vector3(82 + (i % 3) * 1.2, 0, -65 + int(i / 3) * 1.2), 1.4, i * 0.4)
+	for i in 8:
+		_prop_model("res://assets/models/prop_cone.glb", "SafetyCone_%d" % i, Vector3(-7 + (i % 2) * 14, 0, 65 - int(i / 2) * 22), 1.2, 0.0)
+	for i in 4:
+		_prop_model("res://assets/models/prop_toolbox.glb", "MaintenanceToolbox_%d" % i, Vector3(-45 + i * 30, 0, 32), 1.2, i * 0.3)
+
+
+func _prop_model(path: String, nm: String, pos: Vector3, model_scale: float, yaw: float) -> void:
+	if not ResourceLoader.exists(path):
+		return
+	var model := (load(path) as PackedScene).instantiate() as Node3D
+	model.name = nm
+	model.position = pos
+	model.rotation.y = yaw
+	model.scale = Vector3.ONE * model_scale
+	add_child(model)
+
+
 func _build_prequel_lore() -> void:
 	var metal := _plain(Color(0.12, 0.17, 0.19), 0.62)
 	var cyan := _emissive(Color(0.3, 0.82, 0.92), 1.2)
@@ -133,7 +189,12 @@ func _build_prequel_lore() -> void:
 	_lamp(Vector3(-135, 7.25, -95), 4.0, 0.8, Color(0.3, 0.85, 1.0))
 	_lore_node(&"LanternSurveyBeacon", Vector3(-135, 6, -95), "提灯留下的勘测灯标",
 		"灯还亮着。剩下的，交给雷暴。", "E  查看勘测灯标")
-	_box("WickCrate", Vector3(-150, 0.45, -105), Vector3(2.0, 0.9, 1.2), _material("panel", Color(0.3, 0.27, 0.22)))
+	_box("WickShelf", Vector3(-150, 0.55, -105), Vector3(2.4, 1.1, 1.2), metal, false)
+	for dx in [-1.1, 1.1]:
+		for dz in [-0.5, 0.5]:
+			_detail_box("WickShelfPost", Vector3(-150 + dx, 0.55, -105 + dz), Vector3(0.08, 1.1, 0.08), metal)
+	for y in [0.35, 0.9]:
+		_detail_box("WickShelfDeck", Vector3(-150, y, -105), Vector3(2.4, 0.08, 1.2), metal)
 	if ResourceLoader.exists(SPAS_MODEL):
 		var spas := (load(SPAS_MODEL) as PackedScene).instantiate() as Node3D
 		spas.name = "WickSPAS12"
@@ -141,6 +202,9 @@ func _build_prequel_lore() -> void:
 		spas.rotation.y = PI * 0.5 + 0.2
 		spas.scale = Vector3.ONE * 0.12
 		add_child(spas)
+	_detail_box("WickAmmoBox", Vector3(-149.15, 1.08, -104.75), Vector3(0.5, 0.3, 0.34), _plain(Color(0.42, 0.32, 0.18), 0.92))
+	_detail_box("WickAmmoBoxLid", Vector3(-149.15, 1.24, -104.75), Vector3(0.52, 0.035, 0.36), _plain(Color(0.28, 0.22, 0.13), 0.9))
+	_label("WickAmmoLabel", "12 GAUGE\n25 SHELLS", Vector3(-149.15, 1.08, -104.56), 12)
 	for i in 4:
 		_cylinder("WickShell", Vector3(-149.45 + i * 0.11, 0.98, -104.65), 0.025, 0.16, _plain(Color(0.45, 0.16, 0.1), 0.5))
 	_detail_box("WickIdentityTag", Vector3(-150.55, 0.94, -104.65), Vector3(0.32, 0.025, 0.2), metal)

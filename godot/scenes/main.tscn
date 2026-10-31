@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 ; G2 驻军集成（W6 质检蜂串行）：灰盒关卡 + 代表性驻军
 ;   步兵×6（靠近 cover_point 分布）/ 机枪手×2（MG1/MG2 标记位）/
@@ -22,6 +22,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/mission_end_screen.tscn" id="9_end_screen"]
 [ext_resource type="Script" path="res://scripts/levels/mission_director.gd" id="10_director"]
 [ext_resource type="Script" path="res://scripts/weapons/combat_fx.gd" id="11_combat_fx"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/spore_husk.tscn" id="12_spore"]
 
 [node name="Main" type="Node3D"]
 
@@ -101,6 +102,16 @@ position = Vector3(-30, 0, 45)
 
 [node name="Infantry14" parent="Garrison" instance=ExtResource("2_infantry")]
 position = Vector3(15, 0, 55)
+
+; AE-219 游离孢子：贴地休眠，接近后蠕动并跳扑
+[node name="SporeHusk01" parent="Garrison" instance=ExtResource("12_spore")]
+position = Vector3(58, 0, -28)
+
+[node name="SporeHusk02" parent="Garrison" instance=ExtResource("12_spore")]
+position = Vector3(8, 0, 12)
+
+[node name="SporeHusk03" parent="Garrison" instance=ExtResource("12_spore")]
+position = Vector3(-35, 0, 30)
 
 ; ===== Phase 0b 系统层（蜂后串行总装）=====
 ; 任务流程控制器：事件狙击手场景由组合层注入（复用 5_sniper）

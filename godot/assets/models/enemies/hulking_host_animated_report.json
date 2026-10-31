@@ -1,0 +1,19 @@
+{
+  "kind": "hulking",
+  "output": "godot/assets/models/enemies/hulking_host_animated.glb",
+  "bones": 16,
+  "clips": [
+    "idle",
+    "walk",
+    "attack",
+    "death"
+  ],
+  "vertices": 27796,
+  "polygons": 14997,
+  "dimensions": [
+    1.9647376537322998,
+    1.3908308744430542,
+    2.2964975833892822
+  ],
+  "preview": "godot/tmp_shots/hulking_host_rig.png"
+}

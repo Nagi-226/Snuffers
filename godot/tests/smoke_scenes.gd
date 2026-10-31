@@ -80,6 +80,16 @@ const CASES: Array = [
 		"optional": false,
 		"expect": ["CollisionShape3D", "BodyMesh", "GunMesh", "Eye", "Muzzle"],
 	},
+	{
+		"scene": "res://scenes/enemies/spore_husk.tscn",
+		"optional": false,
+		"expect": ["CollisionShape3D", "HeadHitbox", "BodyMesh", "Eye", "Muzzle"],
+	},
+	{
+		"scene": "res://scenes/enemies/hulking_host.tscn",
+		"optional": false,
+		"expect": ["CollisionShape3D", "HeadHitbox", "BodyMesh", "Eye", "Muzzle"],
+	},
 	# ===== 室内拾取物（2026-10-07 交付：贴近即拾）=====
 	# 触发体/视觉件均由 pickup.gd 在 _ready 运行时生成，场景文件本身只有 Area3D + 脚本，
 	# 故 expect 为空——本用例验证「场景可加载可实例化」这一条（防脚本语法/依赖炸在加载期）。
