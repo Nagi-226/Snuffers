@@ -56,7 +56,9 @@ func _run() -> void:
 	_assert(district.has_node("HulkingHost"), "second district contains the secondary-mutated host")
 	var hosts := district.find_children("HostParasite_*", "CharacterBody3D", true, false)
 	var spores := district.find_children("SporeHusk_*", "CharacterBody3D", true, false)
-	_assert(hosts.size() >= 5 and spores.size() >= 3, "warehouse has many human hosts and spores but few hulking hosts")
+	var hulks := district.find_children("HulkingHost*", "CharacterBody3D", true, false)
+	_assert(hosts.size() == 30 and spores.size() == 24 and hulks.size() == 10, "warehouse roster is 30 human hosts, 24 spores and 10 hulking hosts")
+	_assert(district.has_node("WarehouseSign/Panel") and district.has_node("RouteSign/Panel"), "cargo zone text uses mounted electronic screens")
 	if not hosts.is_empty():
 		_assert(hosts[0]._animation_player != null and hosts[0]._animation_player.has_animation(&"walk"), "human host plays its rigged animation in district")
 	if not spores.is_empty():

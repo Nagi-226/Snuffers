@@ -61,9 +61,9 @@ func _build_warehouse() -> void:
 		var x: float = door_x[i]
 		_box("CargoDoorHeader_%d" % i, Vector3(x, 15.5, 80), Vector3(14, 13, 0.5), panel)
 		_quad("CargoDoorOpen_%d" % i, Vector3(x, 8.2, 80.28), Vector2(14, 1.2), "gate")
-		_label("CargoDoorLabel_%d" % i, "货运通道 %02d" % [i + 1], Vector3(x, 10.2, 80.32), 54)
+		_screen("CargoDoorLabel_%d" % i, "货运通道 %02d" % [i + 1], Vector3(x, 10.2, 80.32), 54)
 		_lamp(Vector3(x, 8.5, 77), 24.0, 2.2, Color(0.55, 0.72, 1.0))
-	_label("WarehouseSign", "EDAA 转运仓库", Vector3(0, 20.0, 80.32), 96)
+	_screen("WarehouseSign", "EDAA 转运仓库", Vector3(0, 20.0, 80.32), 96)
 	for z in [-95.0, -55.0, -15.0, 25.0, 65.0]:
 		_quad("WarehouseWindowsWest", Vector3(-175.28, 16.5, z), Vector2(28, 3.0), "windows", -90.0)
 		_quad("WarehouseWindowsEast", Vector3(175.28, 16.5, z), Vector2(28, 3.0), "windows", 90.0)
@@ -140,7 +140,7 @@ func _build_warehouse_rooms() -> void:
 	_box("OfficeFront", Vector3(-150, 2.75, 70), Vector3(30, 5.5, 0.35), concrete)
 	_box("OfficeDesk", Vector3(-151, 0.5, 54), Vector3(3.2, 1.0, 1.2), metal)
 	_detail_box("OfficeTerminal", Vector3(-151, 1.15, 54), Vector3(0.75, 0.5, 0.08), _emissive(Color(0.2, 0.65, 0.8), 0.65))
-	_label("OfficeSign", "收货登记 / RECEIVING", Vector3(-150, 3.9, 69.75), 36)
+	_screen("OfficeSign", "收货登记 / RECEIVING", Vector3(-150, 3.9, 69.75), 36)
 	_lamp(Vector3(-150, 4.2, 56), 14, 1.8, Color(0.55, 0.78, 1.0))
 	for x in [-20.0, 55.0]:
 		for z in [-30.0, 37.5]:
@@ -148,7 +148,7 @@ func _build_warehouse_rooms() -> void:
 			_lamp(Vector3(x, 4.4, z), 10, 1.2, Color(0.4, 0.75, 1.0))
 	for z in [60.0, 20.0, -20.0, -60.0]:
 		_detail_box("CargoLaneMarking", Vector3(0, 0.115, z), Vector3(0.18, 0.015, 18), _plain(Color(0.72, 0.58, 0.12), 0.8))
-		_label("RouteSign", "收货 → 复检 → 储运", Vector3(-19.75, 3.3, z), 28)
+		_screen("RouteSign", "收货 → 复检 → 储运", Vector3(-19.75, 3.3, z), 28, 90.0)
 	var pallet_positions := [Vector3(-160, 0, 25), Vector3(-155, 0, -15), Vector3(-90, 0, 55), Vector3(75, 0, 55), Vector3(145, 0, 15), Vector3(115, 0, -85)]
 	for i in pallet_positions.size():
 		_prop_model("res://assets/models/prop_pallet.glb", "CargoPallet_%d" % i, pallet_positions[i], 1.8, i * 0.35)
@@ -178,13 +178,13 @@ func _build_prequel_lore() -> void:
 	_detail_box("ReconPlate", Vector3(-49, 1.45, 80.42), Vector3(0.9, 0.55, 0.06), metal)
 	for i in 3:
 		_detail_box("ReconMark", Vector3(-49.25 + i * 0.16, 1.55, 80.47), Vector3(0.045, 0.3, 0.025), cyan)
-	_label("ReconText", "提灯 / 已查", Vector3(-48.85, 1.25, 80.48), 24)
+	_screen("ReconText", "提灯 / 已查", Vector3(-48.85, 1.25, 80.48), 24)
 	_lore_node(&"LanternReconMarker", Vector3(-49, 0, 80.4), "提灯的侦察标记",
 		"转运记录已回传。东侧撤离信标确认——提灯。", "E  查看侦察标记")
 	_detail_box("SurveyStand", Vector3(-135, 6.45, -95), Vector3(0.7, 0.9, 0.7), metal)
 	_cylinder("SurveyBeacon", Vector3(-135, 7.05, -95), 0.16, 0.32, cyan)
 	_detail_box("SurveyMap", Vector3(-134.55, 6.94, -94.8), Vector3(0.65, 0.025, 0.45), _plain(Color(0.65, 0.65, 0.56)))
-	_label("SurveyText", "提灯 / 勘测灯标", Vector3(-135, 6.65, -94.6), 22)
+	_screen("SurveyText", "提灯 / 勘测灯标", Vector3(-135, 6.65, -94.6), 22)
 	_lamp(Vector3(-135, 7.25, -95), 4.0, 0.8, Color(0.3, 0.85, 1.0))
 	_lore_node(&"LanternSurveyBeacon", Vector3(-135, 6, -95), "提灯留下的勘测灯标",
 		"灯还亮着。剩下的，交给雷暴。", "E  查看勘测灯标")
@@ -197,11 +197,11 @@ func _build_prequel_lore() -> void:
 		add_child(spas)
 	_detail_box("WickAmmoBox", Vector3(-36.6, 1.82, 50.65), Vector3(0.5, 0.3, 0.34), _plain(Color(0.42, 0.32, 0.18), 0.92))
 	_detail_box("WickAmmoBoxLid", Vector3(-36.6, 1.98, 50.65), Vector3(0.52, 0.035, 0.36), _plain(Color(0.28, 0.22, 0.13), 0.9))
-	_label("WickAmmoLabel", "12 GAUGE\n25 SHELLS", Vector3(-36.6, 1.82, 50.84), 12)
+	_screen("WickAmmoLabel", "12 GAUGE\n25 SHELLS", Vector3(-36.6, 1.82, 50.84), 12)
 	for i in 4:
 		_cylinder("WickShell", Vector3(-36.1 + i * 0.11, 1.7, 50.7), 0.025, 0.16, _plain(Color(0.45, 0.16, 0.1), 0.5))
 	_detail_box("WickIdentityTag", Vector3(-39.1, 1.68, 50.75), Vector3(0.32, 0.025, 0.2), metal)
-	_label("WickText", "灯芯 / 遗物", Vector3(-37.5, 2.4, 50.9), 26)
+	_screen("WickText", "灯芯 / 遗物", Vector3(-37.5, 2.4, 50.9), 26)
 	_lore_node(&"WickMemento", Vector3(-37.5, 0.65, 51.45), "灯芯的遗物",
 		"先一步进入的灯芯已失联，只留下老式 SPAS-12 和几枚霰弹。它不是提灯的装备。", "E  查看灯芯遗物")
 
@@ -237,7 +237,7 @@ func _build_legacy_landmarks() -> void:
 			_detail_box("WaterTowerLeg", Vector3(205 + dx, 6, 10 + dz), Vector3(0.45, 12, 0.45), steel)
 	_box("WaterTowerPlatform", Vector3(205, 12, 10), Vector3(6, 0.4, 6), steel)
 	_cylinder("WaterTowerTank", Vector3(205, 15.5, 10), 5.0, 6.5, concrete)
-	_label("WaterTowerLabel", "小区水塔", Vector3(205, 12.8, 15.1), 44)
+	_screen("WaterTowerLabel", "小区水塔", Vector3(205, 12.8, 15.1), 44)
 	var cabin := Node3D.new()
 	cabin.name = "LegacyCabin"
 	cabin.position = Vector3(-205, 0, 10)
@@ -308,25 +308,43 @@ func _stair_ramp(low: Vector3, high: Vector3, width: float, mat: Material) -> vo
 
 
 func _spawn_district_enemies() -> void:
-	var hulking := HULKING_SCENE.instantiate() as Node3D
-	hulking.name = "HulkingHost"
-	hulking.position = Vector3(0, 0, 20)
-	add_child(hulking)
-	var host_positions := [
+	var host_zones := [
 		Vector3(-55, 0, 58), Vector3(20, 0, 58), Vector3(-50, 0, 5),
 		Vector3(20, 0, -5), Vector3(90, 0, -40), Vector3(-55, 0, -75),
+		Vector3(120, 0, 45), Vector3(-125, 0, 45), Vector3(105, 0, -85), Vector3(-110, 0, -15),
 	]
-	for i in host_positions.size():
-		var host := INFANTRY_SCENE.instantiate() as Node3D
-		host.name = "HostParasite_%d" % i
-		host.position = host_positions[i]
-		add_child(host)
-	var spore_positions := [Vector3(-10, 0, 60), Vector3(10, 0, 25), Vector3(-45, 0, -35), Vector3(75, 0, -70)]
-	for i in spore_positions.size():
-		var spore := SPORE_SCENE.instantiate() as Node3D
-		spore.name = "SporeHusk_%d" % i
-		spore.position = spore_positions[i]
-		add_child(spore)
+	var host_offsets := [Vector3(-2, 0, -2), Vector3(2, 0, 0), Vector3(0, 0, 2)]
+	var index := 0
+	for zone in host_zones:
+		for offset in host_offsets:
+			var host := INFANTRY_SCENE.instantiate() as Node3D
+			host.name = "HostParasite_%d" % index
+			host.position = zone + offset
+			add_child(host)
+			index += 1
+	var spore_zones := [
+		Vector3(-10, 0, 60), Vector3(10, 0, 25), Vector3(-45, 0, -35), Vector3(75, 0, -70),
+		Vector3(-120, 0, 60), Vector3(125, 0, 60), Vector3(-90, 0, -10), Vector3(115, 0, -15),
+	]
+	var spore_offsets := [Vector3.ZERO, Vector3(1.5, 0, 1.5), Vector3(-1.5, 0, -1.5)]
+	index = 0
+	for zone in spore_zones:
+		for offset in spore_offsets:
+			var spore := SPORE_SCENE.instantiate() as Node3D
+			spore.name = "SporeHusk_%d" % index
+			spore.position = zone + offset
+			add_child(spore)
+			index += 1
+	var hulk_positions := [
+		Vector3(0, 0, 20), Vector3(-70, 0, 35), Vector3(65, 0, 30),
+		Vector3(-115, 0, 0), Vector3(115, 0, 0), Vector3(-55, 0, -55),
+		Vector3(45, 0, -65), Vector3(135, 0, -45), Vector3(-135, 0, -45), Vector3(0, 0, -95),
+	]
+	for i in hulk_positions.size():
+		var hulking := HULKING_SCENE.instantiate() as Node3D
+		hulking.name = "HulkingHost" if i == 0 else "HulkingHost_%d" % i
+		hulking.position = hulk_positions[i]
+		add_child(hulking)
 
 
 func _build_apc_bay() -> void:
@@ -348,7 +366,7 @@ func _build_apc_bay() -> void:
 	_box("CargoRoof", Vector3(0, 2.55, 11.25), Vector3(3.2, 0.14, 2.4), frame)
 	var ramp := _box("CargoRamp", Vector3(0, 0.292, 13.5), Vector3(3.1, 0.12, 2.1), frame)
 	(ramp.get_parent() as Node3D).rotation_degrees.x = 16.0
-	_label("EquipmentSign", "雷暴装备领取", Vector3(0, 2.48, 12.52), 40)
+	_screen("EquipmentSign", "雷暴装备领取", Vector3(0, 2.48, 12.52), 40)
 	_lamp(Vector3(0, 2.0, 11.7), 4.5, 1.3, Color(0.3, 0.85, 1.0))
 	_build_apc_interior(dark, frame)
 	_spawn_equipment(&"dmr", Vector3(-0.65, 1.1, 11.65))
@@ -396,9 +414,9 @@ func _build_apc_interior(dark: StandardMaterial3D, frame: StandardMaterial3D) ->
 	for side: float in [-1.0, 1.0]:
 		_detail_box("APCC4IScreen", Vector3(side * 0.34, 1.5, 10.285), Vector3(0.56, 0.36, 0.025), screen)
 		_detail_box("APCC4IKeys", Vector3(side * 0.34, 1.23, 10.285), Vector3(0.48, 0.055, 0.025), dark)
-	_label("APCC4ILeftText", "C4I\nONLINE", Vector3(-0.34, 1.51, 10.305), 18)
-	_label("APCC4IRightText", "TROOP\n06", Vector3(0.34, 1.51, 10.305), 18)
-	_label("APCC4IHeader", "JB-02  //  EDAA", Vector3(0, 1.77, 10.29), 16)
+	_screen("APCC4ILeftText", "C4I\nONLINE", Vector3(-0.34, 1.51, 10.305), 18)
+	_screen("APCC4IRightText", "TROOP\n06", Vector3(0.34, 1.51, 10.305), 18)
+	_screen("APCC4IHeader", "JB-02  //  EDAA", Vector3(0, 1.77, 10.29), 16)
 	_lamp(Vector3(0, 1.94, 10.65), 2.2, 0.45, Color(0.36, 0.72, 0.9))
 	_lamp(Vector3(0, 1.94, 11.95), 2.2, 0.45, Color(0.36, 0.72, 0.9))
 
@@ -530,6 +548,39 @@ func _quad(nm: String, pos: Vector3, size: Vector2, texture_key: String, yaw: fl
 	mi.position = pos
 	mi.rotation_degrees.y = yaw
 	add_child(mi)
+
+
+func _screen(nm: String, text: String, pos: Vector3, font_size: int, yaw: float = 0.0) -> void:
+	var root := Node3D.new()
+	root.name = nm
+	root.position = pos
+	root.rotation_degrees.y = yaw
+	var panel := MeshInstance3D.new()
+	panel.name = "Panel"
+	var panel_mesh := BoxMesh.new()
+	var width := maxf(1.2, font_size * 0.08)
+	var height := maxf(0.45, font_size * 0.025 + 0.22)
+	panel_mesh.size = Vector3(width, height, 0.08)
+	panel_mesh.material = _plain(Color(0.025, 0.045, 0.055), 0.52)
+	panel.mesh = panel_mesh
+	root.add_child(panel)
+	var label := Label3D.new()
+	label.name = "Display"
+	label.text = text
+	label.font_size = font_size
+	label.outline_size = 5
+	label.modulate = Color(0.45, 0.85, 1.0)
+	label.position.z = 0.055
+	root.add_child(label)
+	var status := MeshInstance3D.new()
+	status.name = "StatusLight"
+	var status_mesh := BoxMesh.new()
+	status_mesh.size = Vector3(0.06, 0.06, 0.025)
+	status_mesh.material = _emissive(Color(0.25, 0.9, 0.65), 1.0)
+	status.mesh = status_mesh
+	status.position = Vector3(-width * 0.5 + 0.1, -height * 0.5 + 0.1, 0.065)
+	root.add_child(status)
+	add_child(root)
 
 
 func _label(nm: String, text: String, pos: Vector3, font_size: int) -> void:
