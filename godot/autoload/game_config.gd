@@ -42,6 +42,7 @@ const WORLD_BOUND_X: float = 98.0 ## 活动范围 x（L3438）
 const WORLD_BOUND_Z: float = 100.0 ## 活动范围 z（2026-10-23 机主裁决：58→100——58 是网页版灰盒残留钳制，
 ## 在街景图形成力场幕墙前的「空气墙」（南场 z=68/北场 z=-95 永远无法走近）。放宽到幕墙之外，
 ## 由幕墙实体碰撞做真实拦截；玩家/寄生体共用此钳制（player_controller/infantry 同口径）
+const DISTRICT_B_WORLD_BOUNDS := Vector2(228.0, 158.0) ## 第二关 460×320m 庭院，实体围墙前留 1m 余量
 const PLAYER_RADIUS: float = 0.4 ## 碰撞半径（L3388）
 const PLAYER_HEIGHT_STAND: float = 1.8 ## 站立碰撞高（L3389）
 const PLAYER_HEIGHT_PRONE: float = 0.4 ## 趴下碰撞高（L3413）

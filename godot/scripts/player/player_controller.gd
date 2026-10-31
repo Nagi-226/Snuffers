@@ -39,6 +39,7 @@ var _cam_height_target: float = 0.0
 var _cam_lerp_elapsed: float = 0.0
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
+@export var world_bounds := Vector2(GameConfig.WORLD_BOUND_X, GameConfig.WORLD_BOUND_Z)
 
 # E 键通用交互（2026-10-18 机主立项）：准星射线命中带 interact() 方法的节点即生效
 var _interact_target: Node = null
@@ -319,8 +320,8 @@ func _physics_process(delta: float) -> void:
 			_try_step_up(wish)
 
 	# 世界边界钳制。
-	global_position.x = clampf(global_position.x, -GameConfig.WORLD_BOUND_X, GameConfig.WORLD_BOUND_X)
-	global_position.z = clampf(global_position.z, -GameConfig.WORLD_BOUND_Z, GameConfig.WORLD_BOUND_Z)
+	global_position.x = clampf(global_position.x, -world_bounds.x, world_bounds.x)
+	global_position.z = clampf(global_position.z, -world_bounds.y, world_bounds.y)
 
 	# 每物理帧写入玩家世界坐标（G2 冻结新增字段；敌人感知/AI 共用）。
 	GameState.player_position = global_position

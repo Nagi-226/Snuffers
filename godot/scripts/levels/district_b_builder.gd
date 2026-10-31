@@ -12,6 +12,7 @@ const TEXTURES := {
 
 
 func _ready() -> void:
+	($Player as CharacterBody3D).set("world_bounds", GameConfig.DISTRICT_B_WORLD_BOUNDS)
 	_world_env()
 	_build_yard()
 	_build_warehouse()
@@ -20,45 +21,183 @@ func _ready() -> void:
 
 
 func _build_yard() -> void:
-	_box("Ground", Vector3(0, -0.15, 0), Vector3(64, 0.3, 58), _material("concrete", Color(0.32, 0.34, 0.36)))
-	_box("WallNorth", Vector3(0, 1.5, -28), Vector3(64, 3, 0.3), _material("panel", Color(0.5, 0.52, 0.54)))
-	_box("WallSouthWest", Vector3(-17, 1.5, 28), Vector3(30, 3, 0.3), _material("panel", Color(0.5, 0.52, 0.54)))
-	_box("WallSouthEast", Vector3(17, 1.5, 28), Vector3(30, 3, 0.3), _material("panel", Color(0.5, 0.52, 0.54)))
-	_box("WallWest", Vector3(-32, 1.5, 0), Vector3(0.3, 3, 56), _material("panel", Color(0.5, 0.52, 0.54)))
-	_box("WallEast", Vector3(32, 1.5, 0), Vector3(0.3, 3, 56), _material("panel", Color(0.5, 0.52, 0.54)))
-	for x in [-23.0, 23.0]:
-		for z in [-18.0, 5.0, 21.0]:
-			var pole := _box("YardLampPole", Vector3(x, 2.5, z), Vector3(0.14, 5, 0.14), _plain(Color(0.12, 0.14, 0.16)))
+	_box("Ground", Vector3(0, -0.15, 0), Vector3(460, 0.3, 320), _material("concrete", Color(0.32, 0.34, 0.36)))
+	_box("WallNorth", Vector3(0, 1.5, -159), Vector3(460, 3, 0.3), _material("panel", Color(0.5, 0.52, 0.54)))
+	_box("WallSouthWest", Vector3(-116, 1.5, 159), Vector3(228, 3, 0.3), _material("panel", Color(0.5, 0.52, 0.54)))
+	_box("WallSouthEast", Vector3(116, 1.5, 159), Vector3(228, 3, 0.3), _material("panel", Color(0.5, 0.52, 0.54)))
+	_box("WallWest", Vector3(-229, 1.5, 0), Vector3(0.3, 3, 318), _material("panel", Color(0.5, 0.52, 0.54)))
+	_box("WallEast", Vector3(229, 1.5, 0), Vector3(0.3, 3, 318), _material("panel", Color(0.5, 0.52, 0.54)))
+	for x in [-205.0, 205.0]:
+		for z in [-135.0, -45.0, 45.0, 135.0]:
+			var pole := _box("YardLampPole", Vector3(x, 4.5, z), Vector3(0.22, 9, 0.22), _plain(Color(0.12, 0.14, 0.16)))
 			pole.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-			_lamp(Vector3(x, 4.7, z), 13.0, 1.4, Color(0.55, 0.72, 1.0))
+			_lamp(Vector3(x, 8.7, z), 34.0, 2.0, Color(0.55, 0.72, 1.0))
+	_build_legacy_landmarks()
 
 
 func _build_warehouse() -> void:
 	var concrete := _material("concrete", Color(0.64, 0.66, 0.68))
 	var panel := _material("panel", Color(0.7, 0.72, 0.74))
-	_box("WarehouseFloor", Vector3(0, 0.05, -12), Vector3(26, 0.1, 18), concrete)
-	_box("WarehouseBack", Vector3(0, 3.5, -21), Vector3(26, 7, 0.35), concrete)
-	_box("WarehouseWest", Vector3(-13, 3.5, -12), Vector3(0.35, 7, 18), concrete)
-	_box("WarehouseEast", Vector3(13, 3.5, -12), Vector3(0.35, 7, 18), concrete)
-	_box("WarehouseFrontWest", Vector3(-8, 3.5, -3), Vector3(10, 7, 0.35), panel)
-	_box("WarehouseFrontEast", Vector3(8, 3.5, -3), Vector3(10, 7, 0.35), panel)
-	_box("WarehouseDoorHeader", Vector3(0, 5.8, -3), Vector3(6, 2.4, 0.35), panel)
-	_box("WarehouseRoof", Vector3(0, 7.1, -12), Vector3(27, 0.25, 19), _plain(Color(0.16, 0.19, 0.22), 0.72))
-	_quad("WarehouseWindowBand", Vector3(0, 4.5, -2.8), Vector2(21.5, 2.0), "windows")
-	_quad("CargoDoorOpen", Vector3(0, 4.05, -2.79), Vector2(6, 0.9), "gate")
-	_quad("WarehouseWindowsWest", Vector3(-13.2, 4.5, -12), Vector2(15, 2.0), "windows", -90.0)
-	_quad("WarehouseWindowsEast", Vector3(13.2, 4.5, -12), Vector2(15, 2.0), "windows", 90.0)
-	_label("WarehouseSign", "EDAA 转运仓库", Vector3(0, 6.35, -2.75), 48)
-	for x in [-8.0, 0.0, 8.0]:
-		_box("WarehouseColumn", Vector3(x, 3.0, -12), Vector3(0.45, 6, 0.45), concrete)
-	for item in [[-9.0, -17.5], [-6.5, -17.5], [7.5, -16.0], [9.0, -8.0], [-9.0, -7.0]]:
-		_box("CargoCrate", Vector3(item[0], 0.75, item[1]), Vector3(1.5, 1.5, 1.5), _plain(Color(0.32, 0.27, 0.2)))
-	for x in [-7.0, 7.0]:
-		_lamp(Vector3(x, 5.5, -12), 12.0, 1.8, Color(0.65, 0.82, 1.0))
-	_lamp(Vector3(0, 5.0, -1), 13.0, 1.6, Color(0.55, 0.72, 1.0))
+	var steel := _plain(Color(0.16, 0.19, 0.22), 0.72)
+	_box("WarehouseFloor", Vector3(0, 0.05, -20), Vector3(350, 0.1, 200), concrete)
+	_box("WarehouseBack", Vector3(0, 11, -120), Vector3(350, 22, 0.5), concrete)
+	_box("WarehouseWest", Vector3(-175, 11, -20), Vector3(0.5, 22, 200), concrete)
+	_box("WarehouseEast", Vector3(175, 11, -20), Vector3(0.5, 22, 200), concrete)
+	_box("WarehouseRoof", Vector3(0, 22.15, -20), Vector3(351, 0.35, 201), steel)
+	var piers := [[-151.0, 48.0], [-80.0, 66.0], [0.0, 66.0], [80.0, 66.0], [151.0, 48.0]]
+	for i in piers.size():
+		var pier: Array = piers[i]
+		_box("WarehouseFrontPier_%d" % i, Vector3(pier[0], 11, 80), Vector3(pier[1], 22, 0.5), panel)
+		_quad("WarehouseWindowBand_%d" % i, Vector3(pier[0], 16.5, 80.28), Vector2(pier[1] - 4.0, 3.0), "windows")
+	var door_x := [-120.0, -40.0, 40.0, 120.0]
+	for i in door_x.size():
+		var x: float = door_x[i]
+		_box("CargoDoorHeader_%d" % i, Vector3(x, 15.5, 80), Vector3(14, 13, 0.5), panel)
+		_quad("CargoDoorOpen_%d" % i, Vector3(x, 8.2, 80.28), Vector2(14, 1.2), "gate")
+		_label("CargoDoorLabel_%d" % i, "货运通道 %02d" % [i + 1], Vector3(x, 10.2, 80.32), 54)
+		_lamp(Vector3(x, 8.5, 77), 24.0, 2.2, Color(0.55, 0.72, 1.0))
+	_label("WarehouseSign", "EDAA 转运仓库", Vector3(0, 20.0, 80.32), 96)
+	for z in [-95.0, -55.0, -15.0, 25.0, 65.0]:
+		_quad("WarehouseWindowsWest", Vector3(-175.28, 16.5, z), Vector2(28, 3.0), "windows", -90.0)
+		_quad("WarehouseWindowsEast", Vector3(175.28, 16.5, z), Vector2(28, 3.0), "windows", 90.0)
+	for x in [-140.0, -105.0, -70.0, -35.0, 0.0, 35.0, 70.0, 105.0, 140.0]:
+		for z in [-90.0, -50.0, -10.0, 30.0]:
+			_box("WarehouseColumn", Vector3(x, 10.5, z), Vector3(0.8, 21, 0.8), concrete)
+			_detail_box("ColumnBase", Vector3(x, 0.35, z), Vector3(1.5, 0.7, 1.5), steel)
+		_detail_box("RoofBeamLongitudinal", Vector3(x, 20.8, -20), Vector3(0.35, 0.45, 199), steel)
+	for z in [-100.0, -60.0, -20.0, 20.0, 60.0]:
+		_detail_box("RoofTruss", Vector3(0, 20.2, z), Vector3(349, 0.55, 0.55), steel)
+		for x in [-120.0, -40.0, 40.0, 120.0]:
+			_lamp(Vector3(x, 18.5, z), 38.0, 2.4, Color(0.65, 0.82, 1.0))
+	_build_storage_racks()
+	_build_mezzanine()
+
+
+func _build_storage_racks() -> void:
+	var rack_mat := _plain(Color(0.18, 0.27, 0.31), 0.58)
+	var shelf_mat := _plain(Color(0.38, 0.31, 0.2), 0.82)
+	var crate_mat := _material("panel", Color(0.4, 0.36, 0.28))
+	var uprights: Array[Vector3] = []
+	var shelves: Array[Vector3] = []
+	var crates: Array[Vector3] = []
+	for x in [-140.0, -105.0, -70.0, -35.0, 35.0, 70.0, 105.0, 140.0]:
+		for z in [-90.0, -55.0, -20.0, 15.0, 50.0]:
+			if x < -95.0 and z < -45.0:
+				continue
+			_box("StorageRackCollision", Vector3(x, 2.75, z), Vector3(18, 5.5, 2.4), rack_mat, false)
+			for dx in [-8.85, 8.85]:
+				for dz in [-1.1, 1.1]:
+					uprights.append(Vector3(x + dx, 2.75, z + dz))
+			for y in [0.35, 1.65, 2.95, 4.25, 5.55]:
+				shelves.append(Vector3(x, y, z))
+			for dx in [-6.0, 0.0, 6.0]:
+				for y in [1.0, 2.3, 3.6]:
+					crates.append(Vector3(x + dx, y, z))
+	_multi_boxes("RackUprights", Vector3(0.16, 5.5, 0.16), uprights, rack_mat)
+	_multi_boxes("RackShelves", Vector3(18, 0.14, 2.4), shelves, shelf_mat)
+	_multi_boxes("RackCrates", Vector3(3.6, 1.05, 1.8), crates, crate_mat)
+
+
+func _build_mezzanine() -> void:
+	var steel := _plain(Color(0.18, 0.22, 0.25), 0.68)
+	_box("MezzanineFloor", Vector3(-135, 5.825, -95), Vector3(60, 0.35, 30), steel)
+	for x in [-160.0, -135.0, -110.0]:
+		_box("MezzanineSupport", Vector3(x, 2.9, -82), Vector3(0.45, 5.8, 0.45), steel)
+	_detail_box("MezzanineRailWest", Vector3(-164.7, 6.8, -95), Vector3(0.12, 1.5, 29), steel)
+	_detail_box("MezzanineRailFrontA", Vector3(-139.5, 6.8, -80.2), Vector3(50, 1.5, 0.12), steel)
+	_detail_box("MezzanineRailFrontB", Vector3(-106.0, 6.8, -80.2), Vector3(2, 1.5, 0.12), steel)
+	var steps := 24
+	for i in steps:
+		var height := 6.0 * float(i + 1) / steps
+		var z := -52.0 - 28.0 * (float(i) + 0.5) / steps
+		_detail_box("MezzanineStairStep", Vector3(-110, height * 0.5, z), Vector3(4, height, 28.0 / steps), steel)
+	_stair_ramp(Vector3(-110, 0, -52), Vector3(-110, 6, -80), 4.0, steel)
+
+
+func _build_legacy_landmarks() -> void:
+	var steel := _plain(Color(0.22, 0.26, 0.29), 0.72)
+	var concrete := _material("concrete", Color(0.5, 0.52, 0.54))
+	var tower := Node3D.new()
+	tower.name = "WaterTower"
+	tower.position = Vector3(205, 0, 10)
+	add_child(tower)
+	for dx in [-2.0, 2.0]:
+		for dz in [-2.0, 2.0]:
+			_detail_box("WaterTowerLeg", Vector3(205 + dx, 6, 10 + dz), Vector3(0.45, 12, 0.45), steel)
+	_box("WaterTowerPlatform", Vector3(205, 12, 10), Vector3(6, 0.4, 6), steel)
+	_cylinder("WaterTowerTank", Vector3(205, 15.5, 10), 5.0, 6.5, concrete)
+	_label("WaterTowerLabel", "小区水塔", Vector3(205, 12.8, 15.1), 44)
+	var cabin := Node3D.new()
+	cabin.name = "LegacyCabin"
+	cabin.position = Vector3(-205, 0, 10)
+	add_child(cabin)
+	_box("CabinBack", Vector3(-205, 2.25, 5), Vector3(8, 4.5, 0.3), concrete)
+	_box("CabinWest", Vector3(-209, 2.25, 10), Vector3(0.3, 4.5, 10), concrete)
+	_box("CabinEast", Vector3(-201, 2.25, 10), Vector3(0.3, 4.5, 10), concrete)
+	_box("CabinFrontLeft", Vector3(-207.5, 2.25, 15), Vector3(3, 4.5, 0.3), concrete)
+	_box("CabinFrontRight", Vector3(-202.5, 2.25, 15), Vector3(3, 4.5, 0.3), concrete)
+	_box("CabinRoof", Vector3(-205, 4.65, 10), Vector3(8.6, 0.3, 10.6), steel)
+	var bunker := Node3D.new()
+	bunker.name = "LegacyBunker"
+	bunker.position = Vector3(-195, 0, 130)
+	add_child(bunker)
+	_box("BunkerCollision", Vector3(-195, 1.5, 130), Vector3(11, 3, 11), concrete, false)
+	_cylinder("BunkerWall", Vector3(-195, 1.5, 130), 6.2, 3.0, concrete)
+	_cylinder("BunkerRoof", Vector3(-195, 3.1, 130), 6.4, 0.25, steel)
+	for i in 8:
+		var angle := TAU * float(i) / 8.0
+		_box("BunkerSandbag", Vector3(-195 + cos(angle) * 8.0, 0.45, 130 + sin(angle) * 8.0), Vector3(2.4, 0.9, 0.8), _plain(Color(0.38, 0.34, 0.25)))
+
+
+func _multi_boxes(nm: String, size: Vector3, positions: Array[Vector3], mat: Material) -> void:
+	var multi := MultiMesh.new()
+	multi.transform_format = MultiMesh.TRANSFORM_3D
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	mesh.material = mat
+	multi.mesh = mesh
+	multi.instance_count = positions.size()
+	for i in positions.size():
+		multi.set_instance_transform(i, Transform3D(Basis.IDENTITY, positions[i]))
+	var mi := MultiMeshInstance3D.new()
+	mi.name = nm
+	mi.multimesh = multi
+	add_child(mi)
+
+
+func _cylinder(nm: String, center: Vector3, radius: float, height: float, mat: Material) -> void:
+	var mi := MeshInstance3D.new()
+	mi.name = nm
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = radius
+	mesh.bottom_radius = radius
+	mesh.height = height
+	mesh.material = mat
+	mi.mesh = mesh
+	mi.position = center
+	add_child(mi)
+
+
+func _stair_ramp(low: Vector3, high: Vector3, width: float, mat: Material) -> void:
+	var forward := (high - low).normalized()
+	var flat := Vector3(forward.x, 0, forward.z).normalized()
+	var side := flat.cross(Vector3.UP)
+	var up := side.cross(forward)
+	var body := StaticBody3D.new()
+	body.name = "MezzanineStairRamp"
+	body.transform = Transform3D(Basis(forward, up, side), (low + high) * 0.5 - up * 0.1)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(low.distance_to(high), 0.2, width)
+	collision.shape = shape
+	body.add_child(collision)
+	add_child(body)
+	var stringer := _detail_box("MezzanineStairStringer", Vector3.ZERO, Vector3(low.distance_to(high), 0.15, 0.15), mat)
+	stringer.transform = Transform3D(Basis(forward, up, side), (low + high) * 0.5 - up * 0.3)
 
 
 func _build_apc_bay() -> void:
+	var first_child := get_child_count()
 	if ResourceLoader.exists(APC_MODEL):
 		var apc := (load(APC_MODEL) as PackedScene).instantiate() as Node3D
 		apc.name = "JB02APC"
@@ -81,6 +220,9 @@ func _build_apc_bay() -> void:
 	_build_apc_interior(dark, frame)
 	_spawn_equipment(&"dmr", Vector3(-0.65, 1.1, 11.65))
 	_spawn_equipment(&"shotgun", Vector3(0.65, 1.1, 11.65))
+	for index in range(first_child, get_child_count()):
+		var child := get_child(index) as Node3D
+		child.position.z += 100.0
 
 
 func _build_apc_interior(dark: StandardMaterial3D, frame: StandardMaterial3D) -> void:
@@ -137,12 +279,12 @@ func _spawn_equipment(kind: StringName, pos: Vector3) -> void:
 
 
 func _build_return_link() -> void:
-	_box("ReturnPostWest", Vector3(-1.2, 1.2, 25.5), Vector3(0.16, 2.4, 0.16), _plain(Color(0.1, 0.12, 0.14)))
-	_box("ReturnPostEast", Vector3(1.2, 1.2, 25.5), Vector3(0.16, 2.4, 0.16), _plain(Color(0.1, 0.12, 0.14)))
+	_box("ReturnPostWest", Vector3(-1.2, 1.2, 150.5), Vector3(0.16, 2.4, 0.16), _plain(Color(0.1, 0.12, 0.14)))
+	_box("ReturnPostEast", Vector3(1.2, 1.2, 150.5), Vector3(0.16, 2.4, 0.16), _plain(Color(0.1, 0.12, 0.14)))
 	var link := Node3D.new()
 	link.name = "Link_DistrictBReturn"
 	link.set_script(SCENE_GATE)
-	link.position = Vector3(0, 0, 25.0)
+	link.position = Vector3(0, 0, 150.0)
 	var area := Area3D.new()
 	area.name = "TriggerArea"
 	var shape := CollisionShape3D.new()
@@ -167,7 +309,7 @@ func _world_env() -> void:
 	env.ambient_light_energy = 1.5
 	env.fog_enabled = true
 	env.fog_light_color = Color(0.035, 0.045, 0.065)
-	env.fog_density = 0.006
+	env.fog_density = 0.0018
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)

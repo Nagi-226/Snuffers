@@ -23,21 +23,26 @@ func _run() -> void:
 	var nv := _scene.get_node("NightVisionOverlay")
 	print("NV_STATE enabled=", root.get_node("GameState").night_vision, " overlay=", nv._overlay.visible, " args=", args)
 	await _shot(out_dir + "/spawn.png")
-	_camera.global_position = Vector3(22, 12, 22)
-	_camera.look_at(Vector3(0, 2.5, -8))
+	_camera.global_position = Vector3(230, 95, 175)
+	_camera.look_at(Vector3(0, 8, -20))
 	await _shot(out_dir + "/warehouse_exterior.png")
-	_camera.global_position = Vector3(0, 2.1, -4.5)
-	_camera.look_at(Vector3(0, 2.0, -16)
-	)
+	_camera.global_position = Vector3(0, 18, 135)
+	_camera.look_at(Vector3(0, 10, 65))
+	await _shot(out_dir + "/warehouse_front.png")
+	_camera.global_position = Vector3(-40, 2.2, 74)
+	_camera.look_at(Vector3(-40, 7, -50))
 	await _shot(out_dir + "/warehouse_interior.png")
-	_camera.global_position = Vector3(3.4, 2.5, 15.3)
-	_camera.look_at(Vector3(0, 1.25, 11.2))
+	_camera.global_position = Vector3(0, 18, 60)
+	_camera.look_at(Vector3(0, 1, -45))
+	await _shot(out_dir + "/warehouse_overview.png")
+	_camera.global_position = Vector3(3.4, 2.5, 115.3)
+	_camera.look_at(Vector3(0, 1.25, 111.2))
 	await _shot(out_dir + "/apc_rear.png")
-	_camera.global_position = Vector3(0, 1.58, 12.62)
-	_camera.look_at(Vector3(0, 1.35, 10.45))
+	_camera.global_position = Vector3(0, 1.58, 112.62)
+	_camera.look_at(Vector3(0, 1.35, 110.45))
 	await _shot(out_dir + "/apc_cabin.png")
-	_camera.global_position = Vector3(0.82, 1.58, 12.1)
-	_camera.look_at(Vector3(-1.1, 1.2, 10.85))
+	_camera.global_position = Vector3(0.82, 1.58, 112.1)
+	_camera.look_at(Vector3(-1.1, 1.2, 110.85))
 	await _shot(out_dir + "/apc_cabin_seats.png")
 	var player := _scene.get_node("Player") as CharacterBody3D
 	var state = root.get_node("GameState")
@@ -45,7 +50,14 @@ func _run() -> void:
 		push_error("JB-02 standing walk-in or stand-up clearance failed")
 		quit(1)
 		return
-	for item in [[&"dmr", Vector3(-0.65, 0.65, 11.65)], [&"shotgun", Vector3(0.65, 0.65, 11.65)]]:
+	if not await _verify_mezzanine_walk(player):
+		push_error("warehouse mezzanine walk-up failed")
+		quit(1)
+		return
+	_camera.global_position = player.global_position + Vector3(0, 1.6, 0)
+	_camera.look_at(Vector3(-140, 6.5, -100))
+	await _shot(out_dir + "/warehouse_mezzanine.png")
+	for item in [[&"dmr", Vector3(-0.65, 0.65, 111.65)], [&"shotgun", Vector3(0.65, 0.65, 111.65)]]:
 		player.global_position = item[1]
 		for i in 12:
 			await physics_frame
@@ -59,7 +71,8 @@ func _run() -> void:
 
 
 func _verify_apc_walk(player: CharacterBody3D) -> bool:
-	player.global_position = Vector3(0, 0.08, 14.4)
+	player.global_position = Vector3(0, 0.08, 114.4)
+	player.rotation = Vector3.ZERO
 	player.velocity = Vector3.ZERO
 	var forward := InputEventKey.new()
 	forward.physical_keycode = KEY_W
@@ -67,7 +80,7 @@ func _verify_apc_walk(player: CharacterBody3D) -> bool:
 	Input.parse_input_event(forward)
 	for frame in 360:
 		await physics_frame
-		if player.global_position.z <= 11.65:
+		if player.global_position.z <= 111.65:
 			break
 	var release := InputEventKey.new()
 	release.physical_keycode = KEY_W
@@ -77,7 +90,7 @@ func _verify_apc_walk(player: CharacterBody3D) -> bool:
 	print("APC_WALK position=", player.global_position)
 	for hit in player.get_slide_collision_count():
 		print("APC_WALK_COLLIDER ", player.get_slide_collision(hit).get_collider())
-	if player.global_position.z > 11.8 or player.global_position.y < 0.55:
+	if player.global_position.z > 111.8 or player.global_position.y < 0.55:
 		return false
 	player.call("_toggle_prone")
 	await physics_frame
@@ -96,6 +109,29 @@ func _verify_apc_walk(player: CharacterBody3D) -> bool:
 		if hit.collider.name in [&"CargoRoof", &"CargoWest", &"CargoEast", &"CargoBack"]:
 			return false
 	return true
+
+
+func _verify_mezzanine_walk(player: CharacterBody3D) -> bool:
+	player.global_position = Vector3(-110, 0.1, -48)
+	player.rotation = Vector3.ZERO
+	player.velocity = Vector3.ZERO
+	var forward := InputEventKey.new()
+	forward.physical_keycode = KEY_W
+	forward.pressed = true
+	Input.parse_input_event(forward)
+	for frame in 720:
+		await physics_frame
+		if player.global_position.y >= 5.75 and player.global_position.z <= -79.5:
+			break
+	var release := InputEventKey.new()
+	release.physical_keycode = KEY_W
+	release.pressed = false
+	Input.parse_input_event(release)
+	await physics_frame
+	print("MEZZANINE_WALK position=", player.global_position)
+	for hit in player.get_slide_collision_count():
+		print("MEZZANINE_COLLIDER ", player.get_slide_collision(hit).get_collider())
+	return player.global_position.y >= 5.75 and player.global_position.z <= -79.5
 
 
 func _shot(path: String) -> void:
