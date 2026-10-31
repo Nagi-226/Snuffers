@@ -85,7 +85,7 @@ func _ready() -> void:
 	_damage_label_base_y = _damage_label.position.y
 	_damage_flash.color.a = 0.0
 	if district_mode:
-		get_node("Minimap").visible = false
+		get_node("Minimap").visible = true
 		get_node("CompassBar").show_mission_markers = false
 		_intel_label.visible = false
 	_build_weapon_selector()

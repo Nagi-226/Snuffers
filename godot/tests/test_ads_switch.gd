@@ -91,7 +91,10 @@ func _run() -> void:
 	root.add_child(district)
 	await process_frame
 	_assert(not district.get_node("HUD/CompassBar").show_mission_markers, "district compass hides street mission markers")
-	_assert(not district.get_node("HUD/Minimap").visible, "district hides street minimap")
+	_assert(district.get_node("HUD/Minimap").visible, "district shows its live minimap")
+	_assert(district.get_node("HUD/Minimap")._map_ok, "district minimap loads warehouse-specific terrain and calibration")
+	_assert(district.get_node("HUD/Minimap")._calib_min.x < -200.0, "district minimap uses the expanded warehouse bounds rather than street calibration")
+	_assert(not district.get_node("HUD/Minimap")._show_mission_points, "district minimap does not show street mission markers")
 	var seats_present := true
 	for side in ["L", "R"]:
 		for row in 3:

@@ -25,8 +25,10 @@ func _run() -> void:
 	state.weapon_unlocked[&"dmr"] = true
 	player._switch_weapon(&"dmr")
 	await create_timer(0.3).timeout
+	DirAccess.make_dir_recursive_absolute("tmp_shots")
+	root.get_texture().get_image().save_png("tmp_shots/dmr_tactical_minimap.png")
 	player._set_aiming(true)
-	await create_timer(0.8).timeout
+	await create_timer(2.5).timeout
 	for i in 8:
 		await process_frame
 	DirAccess.make_dir_recursive_absolute("tmp_shots")

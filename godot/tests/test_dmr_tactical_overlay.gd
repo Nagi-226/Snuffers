@@ -77,6 +77,8 @@ func _run() -> void:
 	overlay._refresh_range()
 	_assert(is_inf(overlay._range_distance) and overlay._range_text == "RNG >180 M", "out-of-range center ray has an explicit display")
 	_assert(is_equal_approx(overlay._mil_to_pixels(2.0), overlay._mil_to_pixels(1.0) * 2.0), "MIL marks scale by angular interval")
+	_assert(overlay._mil_to_pixels(100.0) > overlay._scope_radius() * 0.15 and overlay._mil_to_pixels(200.0) < overlay._scope_radius(), "MIL ticks spread across the large scope instead of the center ring")
+	_assert(GameConfig.DMR_SCOPE_MIL_STEPS.max() >= 100, "configured MIL labels use outer-scope intervals")
 	enemy.queue_free()
 	await process_frame
 	overlay._refresh_targets()

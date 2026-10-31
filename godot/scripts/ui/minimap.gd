@@ -22,11 +22,16 @@ var _calib_min := Vector2.ZERO ## (min_x, min_z)
 var _calib_ppm: float = 1.0 ## 底图像素/米
 var _map_ok: bool = false
 var _enemies: Array = []
+var _show_mission_points := true
 
 
 func _ready() -> void:
-	var tex: Texture2D = load(GameConfig.MINIMAP_MAP_TEXTURE)
-	var calib := _load_calib(GameConfig.MINIMAP_MAP_CALIB)
+	var district := bool(get_parent().get("district_mode"))
+	var texture_path := GameConfig.DISTRICT_MINIMAP_MAP_TEXTURE if district else GameConfig.MINIMAP_MAP_TEXTURE
+	var calib_path := GameConfig.DISTRICT_MINIMAP_MAP_CALIB if district else GameConfig.MINIMAP_MAP_CALIB
+	_show_mission_points = not district
+	var tex: Texture2D = load(texture_path)
+	var calib := _load_calib(calib_path)
 	if tex == null or calib.is_empty():
 		visible = false
 		return
@@ -79,17 +84,18 @@ func _dots_draw() -> void:
 		if off.length() > _dots.size.x * 0.5 - GameConfig.MINIMAP_ENEMY_DOT_R:
 			continue
 		_dots.draw_circle(center + off, GameConfig.MINIMAP_ENEMY_DOT_R, GameConfig.MINIMAP_ENEMY_COLOR)
-	# —— 任务关键点 ——
-	for key in GameState.mission_points:
-		var rec: Dictionary = GameState.mission_points[key]
-		var txz: Vector2 = Vector2((rec["pos"] as Vector3).x, (rec["pos"] as Vector3).z)
-		var moff := (txz - player_xz) * m2px
-		var maxr := _dots.size.x * 0.5 - 8.0
-		if moff.length() > maxr:
-			moff = moff.normalized() * maxr
-		var mcol := Color(1.0, 0.8, 0.3, 1.0) if rec["kind"] == &"gate_key" \
-			else Color(0.45, 0.95, 1.0, 0.95)
-		_dots_draw_diamond(center + moff, 5.0, mcol)
+	# —— 任务关键点（第二关不混入主街任务标记）——
+	if _show_mission_points:
+		for key in GameState.mission_points:
+			var rec: Dictionary = GameState.mission_points[key]
+			var txz: Vector2 = Vector2((rec["pos"] as Vector3).x, (rec["pos"] as Vector3).z)
+			var moff := (txz - player_xz) * m2px
+			var maxr := _dots.size.x * 0.5 - 8.0
+			if moff.length() > maxr:
+				moff = moff.normalized() * maxr
+			var mcol := Color(1.0, 0.8, 0.3, 1.0) if rec["kind"] == &"gate_key" \
+				else Color(0.45, 0.95, 1.0, 0.95)
+			_dots_draw_diamond(center + moff, 5.0, mcol)
 	## 玩家箭头：北向固定图，箭头随偏航旋转（Godot 前向 -Z，屏幕上=-Z）
 	_dots.draw_set_transform(center, -GameState.player_yaw, Vector2.ONE)
 	var r := 5.0
