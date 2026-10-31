@@ -26,6 +26,7 @@ const KEY_SPRINT: Key = KEY_SHIFT ## 左 Shift+W：疾跑（2026-10-19 机主立
 const KEY_INTERACT: Key = KEY_E ## E：通用交互（2026-10-18 机主立项：开门等；拾取物不走此键，贴近自动捡拾）
 const KEY_FIRE_MODE: Key = KEY_X ## X：射击模式循环 全自动→三发点射→半自动（2026-10-19 机主立项）
 const KEY_RELEASE_MOUSE: Key = KEY_ESCAPE ## Esc：释放鼠标（点击画面恢复捕获）
+const KEY_BIG_MAP: Key = KEY_M ## M：全屏实时战术地图
 
 var _pitch: float = 0.0
 var _is_moving: bool = false
@@ -57,6 +58,7 @@ var _ads_reticle: AdsReticle = null
 var _dmr_scope: ColorRect = null
 var _dmr_scope_material: ShaderMaterial = null
 var _dmr_tactical: Control = null
+var _big_map: Control = null
 @onready var _dmr_view_model: Node3D = $Camera3D/WeaponMount/DMR/ViewModel
 @onready var _shotgun_controller: Node = $Camera3D/WeaponMount/Shotgun
 ## 瞄具双网格切换（2026-10-20 机主立项）：常规视角用完整瞄具（外观完好），
@@ -131,6 +133,9 @@ func _ready() -> void:
 	_dmr_tactical.set("excluded_rids", [get_rid()])
 	_dmr_tactical.visible = false
 	reticle_layer.add_child(_dmr_tactical)
+	_big_map = load("res://scripts/player/big_map.gd").new() as Control
+	_big_map.visible = false
+	reticle_layer.add_child(_big_map)
 	_calibrate_ads()
 	_load_optic_meshes()
 	# 承伤管线挂接（发射侧在 enemy_base._damage_player；结算收口在本类 _apply_damage）。
@@ -249,6 +254,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		match key_event.physical_keycode:
 			KEY_RELEASE_MOUSE:
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			KEY_BIG_MAP:
+				_toggle_big_map()
 			KEY_PRONE:
 				_toggle_prone()
 			KEY_CATEGORY_PISTOL:
@@ -546,6 +553,15 @@ func _start_cam_height_lerp(target: float) -> void:
 	_cam_height_from = _camera.position.y
 	_cam_height_target = target
 	_cam_lerp_elapsed = 0.0
+
+
+func _toggle_big_map() -> void:
+	if _big_map == null:
+		return
+	_big_map.visible = not _big_map.visible
+	if _big_map.visible:
+		_big_map.call("_refresh_markers")
+		_big_map.queue_redraw()
 
 
 ## 右键按住开镜（2026-10-19 机主立项重做：原切换式只减速像潜行，现带挂载归中 +
