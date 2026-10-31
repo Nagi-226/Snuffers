@@ -40,6 +40,14 @@ func _run() -> void:
 	_assert(is_equal_approx((district.get_node("Equipment_dmr") as Node3D).position.z, 111.65), "DMR pickup follows APC")
 	_assert(is_equal_approx((district.get_node("Equipment_shotgun") as Node3D).position.z, 111.65), "shotgun pickup follows APC")
 	_assert(is_equal_approx((district.get_node("Link_DistrictBReturn") as Node3D).position.z, 150.0), "return link remains behind the player")
+	for lore_name in [&"LanternReconMarker", &"LanternSurveyBeacon", &"WickMemento"]:
+		_assert(district.has_node(NodePath(String(lore_name))), "prequel lore exists: %s" % lore_name)
+		if district.has_node(NodePath(String(lore_name))):
+			var lore := district.get_node(NodePath(String(lore_name)))
+			_assert(lore.has_method(&"interact") and lore.has_method(&"interact_prompt"), "%s supports E interaction" % lore_name)
+	var wall_mesh := district.get_node("WarehouseFrontPier_0/Mesh") as MeshInstance3D
+	var wall_material := wall_mesh.mesh.material as StandardMaterial3D
+	_assert(wall_material != null and wall_material.normal_texture != null and wall_material.roughness_texture != null, "warehouse exterior uses full PBR textures")
 	district.queue_free()
 	await process_frame
 	_free_autoloads()

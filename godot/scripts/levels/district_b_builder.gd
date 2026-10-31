@@ -2,7 +2,9 @@ extends Node3D
 
 const SCENE_GATE := preload("res://scripts/levels/scene_link.gd")
 const PICKUP_SCENE := preload("res://scenes/levels/pickup.tscn")
+const LORE_NOTE := preload("res://scripts/levels/lore_note.gd")
 const APC_MODEL := "res://assets/models/vehicles/jb02_apc.glb"
+const SPAS_MODEL := "res://assets/models/weapons/spas12_display.glb"
 const TEXTURES := {
 	"concrete": "res://assets/textures/warehouse/wall_concrete.bmp",
 	"panel": "res://assets/textures/warehouse/facade_panel.bmp",
@@ -16,6 +18,7 @@ func _ready() -> void:
 	_world_env()
 	_build_yard()
 	_build_warehouse()
+	_build_prequel_lore()
 	_build_apc_bay()
 	_build_return_link()
 
@@ -36,8 +39,8 @@ func _build_yard() -> void:
 
 
 func _build_warehouse() -> void:
-	var concrete := _material("concrete", Color(0.64, 0.66, 0.68))
-	var panel := _material("panel", Color(0.7, 0.72, 0.74))
+	var concrete := _pbr_material("concrete_floor_02", Color(0.68, 0.72, 0.76), Vector3(10, 4, 1))
+	var panel := _pbr_material("corrugated_iron", Color(0.64, 0.7, 0.74), Vector3(10, 3, 1))
 	var steel := _plain(Color(0.16, 0.19, 0.22), 0.72)
 	_box("WarehouseFloor", Vector3(0, 0.05, -20), Vector3(350, 0.1, 200), concrete)
 	_box("WarehouseBack", Vector3(0, 11, -120), Vector3(350, 22, 0.5), concrete)
@@ -112,6 +115,57 @@ func _build_mezzanine() -> void:
 		var z := -52.0 - 28.0 * (float(i) + 0.5) / steps
 		_detail_box("MezzanineStairStep", Vector3(-110, height * 0.5, z), Vector3(4, height, 28.0 / steps), steel)
 	_stair_ramp(Vector3(-110, 0, -52), Vector3(-110, 6, -80), 4.0, steel)
+
+
+func _build_prequel_lore() -> void:
+	var metal := _plain(Color(0.12, 0.17, 0.19), 0.62)
+	var cyan := _emissive(Color(0.3, 0.82, 0.92), 1.2)
+	_detail_box("ReconPlate", Vector3(-49, 1.45, 80.42), Vector3(0.9, 0.55, 0.06), metal)
+	for i in 3:
+		_detail_box("ReconMark", Vector3(-49.25 + i * 0.16, 1.55, 80.47), Vector3(0.045, 0.3, 0.025), cyan)
+	_label("ReconText", "提灯 / 已查", Vector3(-48.85, 1.25, 80.48), 24)
+	_lore_node(&"LanternReconMarker", Vector3(-49, 0, 80.4), "提灯的侦察标记",
+		"转运记录已回传。东侧撤离信标确认——提灯。", "E  查看侦察标记")
+	_detail_box("SurveyStand", Vector3(-135, 6.45, -95), Vector3(0.7, 0.9, 0.7), metal)
+	_cylinder("SurveyBeacon", Vector3(-135, 7.05, -95), 0.16, 0.32, cyan)
+	_detail_box("SurveyMap", Vector3(-134.55, 6.94, -94.8), Vector3(0.65, 0.025, 0.45), _plain(Color(0.65, 0.65, 0.56)))
+	_label("SurveyText", "提灯 / 勘测灯标", Vector3(-135, 6.65, -94.6), 22)
+	_lamp(Vector3(-135, 7.25, -95), 4.0, 0.8, Color(0.3, 0.85, 1.0))
+	_lore_node(&"LanternSurveyBeacon", Vector3(-135, 6, -95), "提灯留下的勘测灯标",
+		"灯还亮着。剩下的，交给雷暴。", "E  查看勘测灯标")
+	_box("WickCrate", Vector3(-150, 0.45, -105), Vector3(2.0, 0.9, 1.2), _material("panel", Color(0.3, 0.27, 0.22)))
+	if ResourceLoader.exists(SPAS_MODEL):
+		var spas := (load(SPAS_MODEL) as PackedScene).instantiate() as Node3D
+		spas.name = "WickSPAS12"
+		spas.position = Vector3(-150, 1.08, -105)
+		spas.rotation.y = PI * 0.5 + 0.2
+		spas.scale = Vector3.ONE * 0.12
+		add_child(spas)
+	for i in 4:
+		_cylinder("WickShell", Vector3(-149.45 + i * 0.11, 0.98, -104.65), 0.025, 0.16, _plain(Color(0.45, 0.16, 0.1), 0.5))
+	_detail_box("WickIdentityTag", Vector3(-150.55, 0.94, -104.65), Vector3(0.32, 0.025, 0.2), metal)
+	_label("WickText", "灯芯 / 遗物", Vector3(-150, 1.45, -104.55), 26)
+	_lore_node(&"WickMemento", Vector3(-150, 0, -104.3), "灯芯的遗物",
+		"先一步进入的灯芯已失联，只留下老式 SPAS-12 和几枚霰弹。它不是提灯的装备。", "E  查看灯芯遗物")
+
+
+func _lore_node(nm: StringName, pos: Vector3, title: String, body: String, prompt: String) -> void:
+	var lore := Node3D.new()
+	lore.name = nm
+	lore.position = pos
+	lore.set_script(LORE_NOTE)
+	lore.set("title", title)
+	lore.set("body", body)
+	lore.set("prompt", prompt)
+	var body_shape := StaticBody3D.new()
+	var collision := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(1.4, 2.0, 0.8)
+	collision.shape = box
+	collision.position.y = 1.0
+	body_shape.add_child(collision)
+	lore.add_child(body_shape)
+	add_child(lore)
 
 
 func _build_legacy_landmarks() -> void:
@@ -325,6 +379,17 @@ func _material(key: String, fallback: Color) -> StandardMaterial3D:
 	var path: String = TEXTURES[key]
 	if ResourceLoader.exists(path):
 		mat.albedo_texture = load(path)
+	return mat
+
+
+func _pbr_material(kind: String, tint: Color, tiling: Vector3) -> StandardMaterial3D:
+	var mat := _plain(tint, 1.0)
+	var root := "res://assets/textures/warehouse/pbr/" + kind
+	mat.albedo_texture = load(root + "_diff_2k.jpg")
+	mat.normal_texture = load(root + "_nor_gl_2k.jpg")
+	mat.roughness_texture = load(root + "_rough_2k.jpg")
+	mat.uv1_scale = tiling
+	mat.metallic = 0.55 if kind == "corrugated_iron" else 0.0
 	return mat
 
 

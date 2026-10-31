@@ -34,3 +34,12 @@
 - **原始模型**: `desktop-port/godot-spike/modeling/em-weapons/em68d_raw.glb`、`em12g1_raw.glb`
 - **本地处理**: 米制/朝向归一、游戏面数处理；Kimi Code 使用 `split_generated_weapon.py` 按实测连通分量拆出 body/magazine/optic、弹匣顶部枢轴、`add_glb_tangents.py` 补标准切线；未改变主体外形、UV 或材质
 - **生成源备份**: `em68d_whole.glb`、`em12g1_whole.glb`（ modeling 工作区，非游戏引用）
+
+## Low Poly SPAS-12（2026-10-31 引入）
+
+- 正式资产：`spas12_display.glb`，当前仅用于第二关灯芯遗物展示，尚未作为可拾取武器启用。
+- 作者：LowPolyCount（Sketchfab 用户 @EndangeredOXX）。
+- 来源：https://sketchfab.com/3d-models/low-poly-spas-12-a8d79e51ed18443dbb8bbcc6d59cb9d7
+- 许可证：Creative Commons Attribution（CC-BY）；下载页明确允许商用，必须署名。
+- 署名文案：`Low Poly SPAS-12 by LowPolyCount is licensed under Creative Commons Attribution.`
+- 本地改动：仅作为静态展示模型缩放与摆放；未改网格或材质，未引入原始 .blend 文件。
