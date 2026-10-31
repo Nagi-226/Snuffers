@@ -4,6 +4,8 @@ const SCENE_GATE := preload("res://scripts/levels/scene_link.gd")
 const PICKUP_SCENE := preload("res://scenes/levels/pickup.tscn")
 const LORE_NOTE := preload("res://scripts/levels/lore_note.gd")
 const APC_MODEL := "res://assets/models/vehicles/jb02_apc.glb"
+const FORKLIFT_MODEL := "res://assets/models/vehicles/forklift.glb"
+const CRANE_MODEL := "res://assets/models/vehicles/gantry_crane.glb"
 const SPAS_MODEL := "res://assets/models/weapons/spas12_display.glb"
 const HULKING_SCENE := preload("res://scenes/enemies/hulking_host.tscn")
 const INFANTRY_SCENE := preload("res://scenes/enemies/infantry.tscn")
@@ -21,6 +23,8 @@ func _ready() -> void:
 	_world_env()
 	_build_yard()
 	_build_warehouse()
+	_build_processing_factories()
+	_build_industrial_assets()
 	_build_prequel_lore()
 	_spawn_district_enemies()
 	_build_apc_bay()
@@ -122,6 +126,34 @@ func _build_mezzanine() -> void:
 	_stair_ramp(Vector3(-110, 0, -52), Vector3(-110, 6, -80), 4.0, steel)
 
 
+func _build_processing_factories() -> void:
+	for side in [-1.0, 1.0]:
+		var cx: float = side * 195.0
+		var root := Node3D.new()
+		root.name = "FactoryWest" if side < 0.0 else "FactoryEast"
+		root.position = Vector3(cx, 0, 0)
+		add_child(root)
+		var concrete := _pbr_material("concrete_floor_02", Color(0.62, 0.67, 0.71), Vector3(3, 2, 1))
+		var panel := _pbr_material("corrugated_iron", Color(0.58, 0.65, 0.7), Vector3(4, 2, 1))
+		var metal := _plain(Color(0.16, 0.22, 0.25), 0.65)
+		_box("FactoryFloor", Vector3(cx, 0.05, -72.5), Vector3(40, 0.1, 55), concrete)
+		_box("FactoryBack", Vector3(cx, 4.5, -100), Vector3(40, 9, 0.35), concrete)
+		_box("FactoryWestWall", Vector3(cx - 20, 4.5, -72.5), Vector3(0.35, 9, 55), panel)
+		_box("FactoryEastWall", Vector3(cx + 20, 4.5, -72.5), Vector3(0.35, 9, 55), panel)
+		_box("FactoryFrontLeft", Vector3(cx - 11.25, 4.5, -45), Vector3(17.5, 9, 0.35), panel)
+		_box("FactoryFrontRight", Vector3(cx + 11.25, 4.5, -45), Vector3(17.5, 9, 0.35), panel)
+		_box("FactoryDoorHeader", Vector3(cx, 6.5, -45), Vector3(5, 5, 0.35), panel)
+		_box("FactoryRoof", Vector3(cx, 9.1, -72.5), Vector3(41, 0.25, 56), metal)
+		_screen("FactorySign", "加工车间 / PROCESS", Vector3(cx, 7.2, -44.72), 44)
+		for dx in [-10.0, 10.0]:
+			for z in [-65.0, -85.0]:
+				_box("ProcessingMachine", Vector3(cx + dx, 1.6, z), Vector3(5, 3.2, 4), metal)
+				_detail_box("MachineStatus", Vector3(cx + dx, 2.3, z + 2.03), Vector3(1.2, 0.25, 0.04), _emissive(Color(0.25, 0.75, 0.85), 0.8))
+				_detail_box("MachineTop", Vector3(cx + dx, 3.35, z), Vector3(4.2, 0.2, 3.2), concrete)
+		for dx in [-12.0, 12.0]:
+			_lamp(Vector3(cx + dx, 6.5, -70), 20, 2.0, Color(0.55, 0.78, 1.0))
+
+
 func _build_warehouse_rooms() -> void:
 	var concrete := _pbr_material("concrete_floor_02", Color(0.62, 0.67, 0.71), Vector3(4, 2, 1))
 	var metal := _plain(Color(0.16, 0.22, 0.25), 0.65)
@@ -148,6 +180,7 @@ func _build_warehouse_rooms() -> void:
 			_lamp(Vector3(x, 4.4, z), 10, 1.2, Color(0.4, 0.75, 1.0))
 	for z in [60.0, 20.0, -20.0, -60.0]:
 		_detail_box("CargoLaneMarking", Vector3(0, 0.115, z), Vector3(0.18, 0.015, 18), _plain(Color(0.72, 0.58, 0.12), 0.8))
+		_detail_box("RouteSignPost", Vector3(-20, 1.65, z), Vector3(0.12, 3.3, 0.12), metal)
 		_screen("RouteSign", "收货 → 复检 → 储运", Vector3(-19.75, 3.3, z), 28, 90.0)
 	var pallet_positions := [Vector3(-160, 0, 25), Vector3(-155, 0, -15), Vector3(-90, 0, 55), Vector3(75, 0, 55), Vector3(145, 0, 15), Vector3(115, 0, -85)]
 	for i in pallet_positions.size():
@@ -170,6 +203,27 @@ func _prop_model(path: String, nm: String, pos: Vector3, model_scale: float, yaw
 	model.rotation.y = yaw
 	model.scale = Vector3.ONE * model_scale
 	add_child(model)
+
+
+func _build_industrial_assets() -> void:
+	var forklift_positions := [Vector3(-8, 0, 65), Vector3(12, 0, 55), Vector3(195, 0, -55)]
+	for i in forklift_positions.size():
+		var pos: Vector3 = forklift_positions[i]
+		var model := (load(FORKLIFT_MODEL) as PackedScene).instantiate() as Node3D
+		model.name = "Forklift_%d" % i
+		model.position = pos
+		model.rotation.y = -0.35 + i * 0.5
+		model.scale = Vector3.ONE * 0.014
+		add_child(model)
+		_box("ForkliftCollision", pos + Vector3(0, 0.9, 0), Vector3(3.2, 1.8, 1.5), _plain(Color.BLACK), false)
+	for i in 2:
+		var crane := (load(CRANE_MODEL) as PackedScene).instantiate() as Node3D
+		crane.name = "GantryCrane_%d" % i
+		crane.position = Vector3(0, 0, -45 + i * 70)
+		crane.scale = Vector3(13.0, 1.2, 1.2)
+		add_child(crane)
+	for x in [-160.0, 160.0]:
+		_detail_box("CraneRail", Vector3(x, 17.2, -20), Vector3(0.35, 0.3, 190), _plain(Color(0.2, 0.22, 0.23), 0.55))
 
 
 func _build_prequel_lore() -> void:

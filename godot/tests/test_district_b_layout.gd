@@ -59,6 +59,13 @@ func _run() -> void:
 	var hulks := district.find_children("HulkingHost*", "CharacterBody3D", true, false)
 	_assert(hosts.size() == 30 and spores.size() == 24 and hulks.size() == 10, "warehouse roster is 30 human hosts, 24 spores and 10 hulking hosts")
 	_assert(district.has_node("WarehouseSign/Panel") and district.has_node("RouteSign/Panel"), "cargo zone text uses mounted electronic screens")
+	_assert(district.has_node("RouteSignPost"), "route screen has a physical support post")
+	_assert(district.has_node("FactoryWest") and district.has_node("FactoryEast"), "outer yard contains two accessible processing buildings")
+	_assert(district.has_node("Forklift_0"), "warehouse contains a forklift")
+	_assert(district.has_node("GantryCrane_0"), "warehouse roof contains an overhead gantry crane")
+	for cx in [-195.0, 195.0]:
+		var query := PhysicsRayQueryParameters3D.create(Vector3(cx, 1.7, -42), Vector3(cx, 1.7, -48))
+		_assert(district.get_world_3d().direct_space_state.intersect_ray(query).is_empty(), "factory door is physically open at x=%f" % cx)
 	if not hosts.is_empty():
 		_assert(hosts[0]._animation_player != null and hosts[0]._animation_player.has_animation(&"walk"), "human host plays its rigged animation in district")
 	if not spores.is_empty():
