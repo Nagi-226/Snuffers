@@ -24,7 +24,7 @@ func _run() -> void:
 	await _shot("warehouse_pbr")
 	await _visit(&"LanternReconMarker", Vector3(-49, 0.2, 82.2), Vector3(-49, 1.45, 80.42), "recon_marker")
 	await _visit(&"LanternSurveyBeacon", Vector3(-135, 6.1, -93), Vector3(-135, 6.9, -95), "survey_beacon")
-	await _visit(&"WickMemento", Vector3(-150, 0.2, -103), Vector3(-150, 1.05, -105), "wick_memento")
+	await _visit(&"WickMemento", Vector3(-37.5, 0.2, 53), Vector3(-37.5, 1.82, 50.65), "wick_memento")
 	print("PREQUEL_LORE failures=", _failures)
 	quit(1 if _failures > 0 else 0)
 

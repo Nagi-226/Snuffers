@@ -6,6 +6,8 @@ const LORE_NOTE := preload("res://scripts/levels/lore_note.gd")
 const APC_MODEL := "res://assets/models/vehicles/jb02_apc.glb"
 const SPAS_MODEL := "res://assets/models/weapons/spas12_display.glb"
 const HULKING_SCENE := preload("res://scenes/enemies/hulking_host.tscn")
+const INFANTRY_SCENE := preload("res://scenes/enemies/infantry.tscn")
+const SPORE_SCENE := preload("res://scenes/enemies/spore_husk.tscn")
 const TEXTURES := {
 	"concrete": "res://assets/textures/warehouse/wall_concrete.bmp",
 	"panel": "res://assets/textures/warehouse/facade_panel.bmp",
@@ -20,10 +22,7 @@ func _ready() -> void:
 	_build_yard()
 	_build_warehouse()
 	_build_prequel_lore()
-	var hulking := HULKING_SCENE.instantiate() as Node3D
-	hulking.name = "HulkingHost"
-	hulking.position = Vector3(0, 0, 20)
-	add_child(hulking)
+	_spawn_district_enemies()
 	_build_apc_bay()
 	_build_return_link()
 
@@ -189,27 +188,21 @@ func _build_prequel_lore() -> void:
 	_lamp(Vector3(-135, 7.25, -95), 4.0, 0.8, Color(0.3, 0.85, 1.0))
 	_lore_node(&"LanternSurveyBeacon", Vector3(-135, 6, -95), "提灯留下的勘测灯标",
 		"灯还亮着。剩下的，交给雷暴。", "E  查看勘测灯标")
-	_box("WickShelf", Vector3(-150, 0.55, -105), Vector3(2.4, 1.1, 1.2), metal, false)
-	for dx in [-1.1, 1.1]:
-		for dz in [-0.5, 0.5]:
-			_detail_box("WickShelfPost", Vector3(-150 + dx, 0.55, -105 + dz), Vector3(0.08, 1.1, 0.08), metal)
-	for y in [0.35, 0.9]:
-		_detail_box("WickShelfDeck", Vector3(-150, y, -105), Vector3(2.4, 0.08, 1.2), metal)
 	if ResourceLoader.exists(SPAS_MODEL):
 		var spas := (load(SPAS_MODEL) as PackedScene).instantiate() as Node3D
 		spas.name = "WickSPAS12"
-		spas.position = Vector3(-150, 1.08, -105)
+		spas.position = Vector3(-38, 1.82, 50.65)
 		spas.rotation.y = PI * 0.5 + 0.2
 		spas.scale = Vector3.ONE * 0.12
 		add_child(spas)
-	_detail_box("WickAmmoBox", Vector3(-149.15, 1.08, -104.75), Vector3(0.5, 0.3, 0.34), _plain(Color(0.42, 0.32, 0.18), 0.92))
-	_detail_box("WickAmmoBoxLid", Vector3(-149.15, 1.24, -104.75), Vector3(0.52, 0.035, 0.36), _plain(Color(0.28, 0.22, 0.13), 0.9))
-	_label("WickAmmoLabel", "12 GAUGE\n25 SHELLS", Vector3(-149.15, 1.08, -104.56), 12)
+	_detail_box("WickAmmoBox", Vector3(-36.6, 1.82, 50.65), Vector3(0.5, 0.3, 0.34), _plain(Color(0.42, 0.32, 0.18), 0.92))
+	_detail_box("WickAmmoBoxLid", Vector3(-36.6, 1.98, 50.65), Vector3(0.52, 0.035, 0.36), _plain(Color(0.28, 0.22, 0.13), 0.9))
+	_label("WickAmmoLabel", "12 GAUGE\n25 SHELLS", Vector3(-36.6, 1.82, 50.84), 12)
 	for i in 4:
-		_cylinder("WickShell", Vector3(-149.45 + i * 0.11, 0.98, -104.65), 0.025, 0.16, _plain(Color(0.45, 0.16, 0.1), 0.5))
-	_detail_box("WickIdentityTag", Vector3(-150.55, 0.94, -104.65), Vector3(0.32, 0.025, 0.2), metal)
-	_label("WickText", "灯芯 / 遗物", Vector3(-150, 1.45, -104.55), 26)
-	_lore_node(&"WickMemento", Vector3(-150, 0, -104.3), "灯芯的遗物",
+		_cylinder("WickShell", Vector3(-36.1 + i * 0.11, 1.7, 50.7), 0.025, 0.16, _plain(Color(0.45, 0.16, 0.1), 0.5))
+	_detail_box("WickIdentityTag", Vector3(-39.1, 1.68, 50.75), Vector3(0.32, 0.025, 0.2), metal)
+	_label("WickText", "灯芯 / 遗物", Vector3(-37.5, 2.4, 50.9), 26)
+	_lore_node(&"WickMemento", Vector3(-37.5, 0.65, 51.45), "灯芯的遗物",
 		"先一步进入的灯芯已失联，只留下老式 SPAS-12 和几枚霰弹。它不是提灯的装备。", "E  查看灯芯遗物")
 
 
@@ -312,6 +305,28 @@ func _stair_ramp(low: Vector3, high: Vector3, width: float, mat: Material) -> vo
 	add_child(body)
 	var stringer := _detail_box("MezzanineStairStringer", Vector3.ZERO, Vector3(low.distance_to(high), 0.15, 0.15), mat)
 	stringer.transform = Transform3D(Basis(forward, up, side), (low + high) * 0.5 - up * 0.3)
+
+
+func _spawn_district_enemies() -> void:
+	var hulking := HULKING_SCENE.instantiate() as Node3D
+	hulking.name = "HulkingHost"
+	hulking.position = Vector3(0, 0, 20)
+	add_child(hulking)
+	var host_positions := [
+		Vector3(-55, 0, 58), Vector3(20, 0, 58), Vector3(-50, 0, 5),
+		Vector3(20, 0, -5), Vector3(90, 0, -40), Vector3(-55, 0, -75),
+	]
+	for i in host_positions.size():
+		var host := INFANTRY_SCENE.instantiate() as Node3D
+		host.name = "HostParasite_%d" % i
+		host.position = host_positions[i]
+		add_child(host)
+	var spore_positions := [Vector3(-10, 0, 60), Vector3(10, 0, 25), Vector3(-45, 0, -35), Vector3(75, 0, -70)]
+	for i in spore_positions.size():
+		var spore := SPORE_SCENE.instantiate() as Node3D
+		spore.name = "SporeHusk_%d" % i
+		spore.position = spore_positions[i]
+		add_child(spore)
 
 
 func _build_apc_bay() -> void:

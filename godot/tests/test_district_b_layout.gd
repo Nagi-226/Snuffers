@@ -48,10 +48,19 @@ func _run() -> void:
 	var wall_mesh := district.get_node("WarehouseFrontPier_0/Mesh") as MeshInstance3D
 	var wall_material := wall_mesh.mesh.material as StandardMaterial3D
 	_assert(wall_material != null and wall_material.normal_texture != null and wall_material.roughness_texture != null, "warehouse exterior uses full PBR textures")
-	_assert(district.has_node("WickShelf") and district.has_node("WickAmmoBox"), "SPAS and 12GA ammo are displayed as abandoned shelf contents")
+	_assert(district.has_node("WickSPAS12") and district.has_node("WickAmmoBox"), "SPAS and 12GA ammo are displayed on a hall rack")
+	_assert(not district.has_node("WickShelf"), "standalone souvenir shelf is removed")
+	_assert((district.get_node("WickSPAS12") as Node3D).position.y > 1.5, "SPAS rests on an existing rack shelf rather than the floor")
 	_assert(district.has_node("PartitionWestA") and district.has_node("PartitionEastA"), "warehouse has interior maze partitions")
 	_assert(district.has_node("ReceivingOffice") and district.has_node("CargoPallet_0"), "warehouse has an office and freight props")
 	_assert(district.has_node("HulkingHost"), "second district contains the secondary-mutated host")
+	var hosts := district.find_children("HostParasite_*", "CharacterBody3D", true, false)
+	var spores := district.find_children("SporeHusk_*", "CharacterBody3D", true, false)
+	_assert(hosts.size() >= 5 and spores.size() >= 3, "warehouse has many human hosts and spores but few hulking hosts")
+	if not hosts.is_empty():
+		_assert(hosts[0]._animation_player != null and hosts[0]._animation_player.has_animation(&"walk"), "human host plays its rigged animation in district")
+	if not spores.is_empty():
+		_assert(spores[0]._animation_player != null and spores[0]._animation_player.has_animation(&"crawl") and spores[0]._animation_player.has_animation(&"leap"), "spore plays crawl and leap clips in district")
 	district.queue_free()
 	await process_frame
 	_free_autoloads()
