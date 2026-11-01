@@ -164,7 +164,9 @@ func _pose_left_arm_mainstream(weight: float = 0.0) -> void:
 		return
 	var to_skel_from_weapon: Transform3D = _arms_skeleton.global_transform.affine_inverse() * _weapon_node.global_transform
 	var hip: Vector3 = GameConfig.DMR_SUPPORT_WRIST_HIP if weapon_data.weapon_id in [&"dmr", &"spas12"] else GameConfig.SHOTGUN_SUPPORT_WRIST_HIP
-	var ads: Vector3 = GameConfig.DMR_SUPPORT_WRIST_ADS if weapon_data.weapon_id in [&"dmr", &"spas12"] else GameConfig.SHOTGUN_SUPPORT_WRIST_ADS
+	var ads: Vector3 = GameConfig.DMR_SUPPORT_WRIST_ADS if weapon_data.weapon_id == &"dmr" else GameConfig.SHOTGUN_SUPPORT_WRIST_ADS
+	if weapon_data.weapon_id == &"spas12":
+		ads = GameConfig.SPAS12_SUPPORT_WRIST_ADS
 	var wrist_t := to_skel_from_weapon * hip.lerp(ads, weight)
 	var shoulder_t := wrist_t + to_skel_from_weapon.basis * (GameConfig.LONG_GUN_SHOULDER_DIRECTION.normalized() * (_arm_upper_len + _arm_fore_len) * 0.94)
 	var pole_offset: Vector3 = Vector3(0.08, -0.35, 0.22) if weapon_data.weapon_id in [&"dmr", &"spas12"] else GameConfig.SHOTGUN_ELBOW_POLE
@@ -190,7 +192,7 @@ func _pose_left_arm_mainstream(weight: float = 0.0) -> void:
 	var muzzle_dir := to_skel_from_weapon.basis * Vector3(0.0, 0.0, -1.0)
 	var palm_rot := Quaternion(hand_g.basis.y, muzzle_dir)
 	_arms_skeleton.set_bone_global_pose(hand, Transform3D(Basis(palm_rot) * hand_g.basis, hand_g.origin))
-	if weapon_data.weapon_id == &"shotgun" and weight > 0.0:
+	if weapon_data.weapon_id in [&"shotgun", &"spas12"] and weight > 0.0:
 		_pose_right_arm_shotgun(weight)
 
 

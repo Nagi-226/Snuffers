@@ -19,14 +19,45 @@ func _ready() -> void:
 		_shell.visible = false
 
 
+func _pose_spas_right_arm_ads() -> void:
+	var uparm := _find_bone_by_prefix("UpArm_R")
+	var fore := _find_bone_by_prefix("Forearm_R")
+	var ctrl := _find_bone_by_prefix("IK_Hand_Cntrl_R")
+	var hand := _find_bone_by_prefix("Hand_R")
+	if uparm < 0 or fore < 0 or ctrl < 0 or hand < 0:
+		return
+	var up_g := _arms_skeleton.get_bone_global_pose(uparm)
+	var fore_g := _arms_skeleton.get_bone_global_pose(fore)
+	var hand_g := _arms_skeleton.get_bone_global_pose(hand)
+	var upper_len := up_g.origin.distance_to(fore_g.origin)
+	var fore_len := fore_g.origin.distance_to(hand_g.origin)
+	var to_skel := _arms_skeleton.global_transform.affine_inverse() * _view_model.global_transform
+	var wrist_t := to_skel * GameConfig.SPAS12_RIGHT_WRIST_ADS
+	var pole_t := wrist_t + to_skel.basis * GameConfig.SPAS12_RIGHT_ELBOW_ADS
+	var d := wrist_t - up_g.origin
+	var dist := clampf(d.length(), absf(upper_len - fore_len) + 0.001, upper_len + fore_len - 0.001)
+	d = d.normalized()
+	var a := (upper_len * upper_len - fore_len * fore_len + dist * dist) / (2.0 * dist)
+	var h := sqrt(maxf(0.0, upper_len * upper_len - a * a))
+	var pole_off := pole_t - up_g.origin
+	pole_off -= d * pole_off.dot(d)
+	pole_off /= maxf(pole_off.length(), 0.0001)
+	var elbow_t := up_g.origin + d * a + pole_off * h
+	_aim_bone_y_at(uparm, elbow_t)
+	_aim_bone_y_at(fore, wrist_t)
+	fore_g = _arms_skeleton.get_bone_global_pose(fore)
+	var wrist_end := fore_g.origin + fore_g.basis.y * fore_len
+	var ctrl_g := _arms_skeleton.get_bone_global_pose(ctrl)
+	_arms_skeleton.set_bone_global_pose(ctrl, Transform3D(ctrl_g.basis, wrist_end))
+	var finger_dir := to_skel.basis * Vector3.LEFT
+	var palm_rot := Quaternion(hand_g.basis.y, finger_dir.normalized())
+	_arms_skeleton.set_bone_global_pose(hand, Transform3D(Basis(palm_rot) * hand_g.basis, wrist_end))
+
+
 func _process(delta: float) -> void:
 	super._process(delta)
 	if GameState.is_aiming and _arms_skeleton != null:
-		for bone in _arms_skeleton.get_bone_count():
-			if String(_arms_skeleton.get_bone_name(bone)).contains("_R"):
-				var pose := _arms_skeleton.get_bone_global_pose(bone)
-				pose.origin.y -= 100.0
-				_arms_skeleton.set_bone_global_pose(bone, pose)
+		_pose_spas_right_arm_ads()
 	_pump_left = maxf(0.0, _pump_left - delta)
 	if _pump_sleeve != null:
 		var phase := 1.0 - _pump_left / GameConfig.SPAS12_PUMP_TIME if _pump_left > 0.0 else 0.0

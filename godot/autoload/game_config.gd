@@ -224,6 +224,9 @@ const SPAS12_PUMP_TIME: float = 0.62
 const SPAS12_RELOAD_CANT: float = 0.3
 const SPAS12_ADS_FOV: float = 65.0
 const SPAS12_PICKUP_TRIGGER_OFFSET := Vector3(0, -1.0, 0.65) ## 枪留高层货架，触发区下探至玩家可接近处
+const SPAS12_SUPPORT_WRIST_ADS := Vector3(0.04, -0.08, -0.10)
+const SPAS12_RIGHT_WRIST_ADS := Vector3(0.10, -0.12, 0.18)
+const SPAS12_RIGHT_ELBOW_ADS := Vector3(0.22, -0.32, 0.18)
 
 # ===== EM-40G「滚雷」下挂榴弹模块（2026-10-22 机主裁决：并入 EM-68A 第四射击档，
 #       X 键闭环 全自动→半自动→三发点射→榴→全自动；旧 3 号位 RPG 火箭筒整体退役）=====
