@@ -175,8 +175,9 @@ func _calibrate_ads() -> void:
 		&"pistol": GameConfig.PISTOL_ADS_FOV,
 		&"dmr": GameConfig.DMR_ADS_FOV,
 		&"shotgun": GameConfig.SHOTGUN_ADS_FOV,
+		&"spas12": GameConfig.SPAS12_ADS_FOV,
 	}
-	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"]]:
+	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"], [&"spas12", "Spas12"]]:
 		var weapon_root := _weapon_mount.get_node_or_null(pair[1]) as Node3D
 		var fallback := Vector3(0.0, _mount_hip_pos.y, _mount_hip_pos.z)
 		if weapon_root == null:
@@ -207,6 +208,8 @@ func _find_optic_mesh(weapon_root: Node) -> MeshInstance3D:
 ## 新武器优先读取实测标定的 OpticAim 标记；旧步枪/手枪保留原有几何标定路径。
 func _find_optic_center_in_mount(weapon_root: Node, weapon_id: StringName) -> Variant:
 	var marker := weapon_root.get_node_or_null("ViewModel/Weapon/OpticAim") as Marker3D
+	if marker == null:
+		marker = weapon_root.get_node_or_null("ViewModel/OpticAim") as Marker3D
 	if marker != null:
 		return _weapon_mount.global_transform.affine_inverse() * marker.global_position
 	var mi := _find_optic_mesh(weapon_root)
@@ -642,10 +645,10 @@ func _switch_weapon(weapon_id: StringName) -> void:
 	Events.weapon_switched.emit(weapon_id)
 
 
-## X：步枪四态、手枪三态、DMR 固定半自动、霰弹枪半自动/全自动。
+## X：步枪四态、手枪三态、DMR/SPAS 固定半自动、EM 霰弹枪半自动/全自动。
 func _cycle_fire_mode() -> void:
 	var w := GameState.current_weapon
-	if w == &"dmr":
+	if w in [&"dmr", &"spas12"]:
 		return
 	const ORDER_RIFLE: Array[StringName] = [&"auto", &"semi", &"burst", &"grenade"]
 	const ORDER_PISTOL: Array[StringName] = [&"auto", &"burst", &"semi"]

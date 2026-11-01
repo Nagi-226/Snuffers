@@ -37,9 +37,19 @@
 
 ## Low Poly SPAS-12（2026-10-31 引入）
 
-- 正式资产：`spas12_display.glb`，当前仅用于第二关灯芯遗物展示，尚未作为可拾取武器启用。
+- 正式资产：`spas12_display.glb`，用于第二关灯芯遗物货架拾取展示；第一人称使用下述 Saucy 部件模型。
 - 作者：LowPolyCount（Sketchfab 用户 @EndangeredOXX）。
 - 来源：https://sketchfab.com/3d-models/low-poly-spas-12-a8d79e51ed18443dbb8bbcc6d59cb9d7
 - 许可证：Creative Commons Attribution（CC-BY）；下载页明确允许商用，必须署名。
 - 署名文案：`Low Poly SPAS-12 by LowPolyCount is licensed under Creative Commons Attribution.`
 - 本地改动：仅作为静态展示模型缩放与摆放；未改网格或材质，未引入原始 .blend 文件。
+
+## Franchi SPAS-12 (Low-poly)（2026-11-01 第一人称启用）
+
+- 正式资产：`spas12_viewmodel.glb`，用于 SPAS-12 第一人称模型与独立泵套部件运动。
+- 作者：Saucy（Sketchfab 用户 @saucy）。
+- 来源：https://sketchfab.com/3d-models/franchi-spas-12-low-poly-bed6a6e266cb44fc871d1cf18b268787
+- 许可证：Creative Commons Attribution（CC-BY）；下载页明确允许商用，必须署名。
+- 署名文案：`Franchi SPAS-12 (Low-poly) by Saucy is licensed under Creative Commons Attribution.`
+- 动画：原始绑定含 `SPAS-12|Pump_01/02/03` 等动画；游戏内按独立 `Action_sleeve` 网格驱动泵动，第一人称双臂复用项目已登记手臂。
+- 本地改动：静态部件烘焙以避免 Godot 蒙皮姿态异常，统一米制尺度与第一人称朝向；原始绑定备份在 modeling 工作区，未引入原始 .blend 文件。

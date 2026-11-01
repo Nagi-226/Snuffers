@@ -166,4 +166,25 @@ func sync_from_config() -> void:
 			view_recoil_rot_factor = GameConfig.SHOTGUN_RECOIL_VIEW_ROT
 			view_recoil_y_factor = GameConfig.SHOTGUN_RECOIL_VIEW_Y_FACTOR
 			view_recoil_z_factor = GameConfig.SHOTGUN_RECOIL_VIEW_Z_FACTOR
+		&"spas12":
+			damage_body = GameConfig.SPAS12_DAMAGE_BODY
+			headshot_factor = GameConfig.SPAS12_DMG_HEAD_FACTOR
+			dmg_vs_sniper = GameConfig.SPAS12_DMG_VS_SNIPER
+			pellet_count = GameConfig.SPAS12_PELLET_COUNT
+			fire_interval = GameConfig.SPAS12_FIRE_INTERVAL
+			semi_fire_interval = GameConfig.SPAS12_SEMI_FIRE_INTERVAL
+			mag_size = GameConfig.SPAS12_MAG
+			reserve_size = GameConfig.SPAS12_RESERVE
+			reload_time = GameConfig.SPAS12_RELOAD_SHELL_TIME
+			hitscan_range = GameConfig.SPAS12_RANGE
+			spread_hip = GameConfig.SPAS12_SPREAD_HIP
+			spread_prone = GameConfig.SPAS12_SPREAD_PRONE
+			spread_aim = GameConfig.SPAS12_SPREAD_AIM
+			recoil_pitch = GameConfig.SPAS12_RECOIL_PITCH
+			recoil_view_offset = GameConfig.SPAS12_RECOIL_VIEW_OFFSET
+			recoil_decay = GameConfig.SPAS12_RECOIL_DECAY
+			recoil_recover_rate = GameConfig.SPAS12_RECOIL_RECOVER_RATE
+			view_recoil_rot_factor = GameConfig.SPAS12_RECOIL_VIEW_ROT
+			view_recoil_y_factor = GameConfig.SPAS12_RECOIL_VIEW_Y_FACTOR
+			view_recoil_z_factor = GameConfig.SPAS12_RECOIL_VIEW_Z_FACTOR
 ## （旧 &"rpg" 分支已于 2026-10-22 随 RPG 退役删除；榴弹参数并入 &"rifle" 分支）

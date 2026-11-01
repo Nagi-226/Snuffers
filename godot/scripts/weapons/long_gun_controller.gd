@@ -1,3 +1,4 @@
+class_name LongGunController
 extends WeaponController
 
 @export var weapon_node_path: NodePath = ^"ViewModel/Weapon"

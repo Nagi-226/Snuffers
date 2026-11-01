@@ -311,13 +311,16 @@ func _build_prequel_lore() -> void:
 	_lamp(Vector3(-135, 7.25, -95), 4.0, 0.8, Color(0.3, 0.85, 1.0))
 	_lore_node(&"LanternSurveyBeacon", Vector3(-135, 6, -95), "提灯留下的勘测灯标",
 		"灯还亮着。剩下的，交给雷暴。", "E  查看勘测灯标")
-	if ResourceLoader.exists(SPAS_MODEL):
-		var spas := (load(SPAS_MODEL) as PackedScene).instantiate() as Node3D
-		spas.name = "WickSPAS12"
-		spas.position = Vector3(-38, 1.82, 50.65)
-		spas.rotation.y = PI * 0.5 + 0.2
-		spas.scale = Vector3.ONE * 0.12
-		add_child(spas)
+	var spas := PICKUP_SCENE.instantiate() as Node3D
+	spas.name = "WickSPAS12"
+	spas.position = Vector3(-38, 1.82, 50.65)
+	spas.set(&"kind", &"spas12")
+	spas.set(&"trigger_offset", GameConfig.SPAS12_PICKUP_TRIGGER_OFFSET)
+	add_child(spas)
+	var spas_visual := spas.get_node_or_null("Visual") as Node3D
+	if spas_visual != null:
+		spas_visual.rotation.y = PI * 0.5 + 0.2
+		spas_visual.scale = Vector3.ONE * 0.12
 	_detail_box("WickAmmoBox", Vector3(-36.6, 1.82, 50.65), Vector3(0.5, 0.3, 0.34), _plain(Color(0.42, 0.32, 0.18), 0.92))
 	_detail_box("WickAmmoBoxLid", Vector3(-36.6, 1.98, 50.65), Vector3(0.52, 0.035, 0.36), _plain(Color(0.28, 0.22, 0.13), 0.9))
 	_screen("WickAmmoLabel", "12 GAUGE\n25 SHELLS", Vector3(-36.6, 1.82, 50.84), 12)

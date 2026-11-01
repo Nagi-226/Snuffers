@@ -7,6 +7,7 @@ extends Area3D
 ## 视觉件由 builder 按 kind 装载 pickup_<kind>.glb；浮动+自转参数走 GameConfig.PICKUP_*。
 
 @export var kind: StringName = &"battery"
+@export var trigger_offset: Vector3 = Vector3.ZERO
 ## 取证终端专用：本图收集品总数（builder 注入；其他 kind 忽略）
 var intel_total: int = 0
 
@@ -20,6 +21,7 @@ const MODELS := {
 	&"shotgun_ammo": "res://assets/models/weapons/em12g1_magazine.glb",
 	&"dmr": "res://assets/models/weapons/em68d_viewmodel.glb",
 	&"shotgun": "res://assets/models/weapons/em12g1_viewmodel.glb",
+	&"spas12": "res://assets/models/weapons/spas12_display.glb",
 	&"medkit": "res://assets/models/pickup_medkit.glb",
 	&"intel": "res://assets/models/pickup_intel.glb",
 	# 榴弹补给（2026-10-25 机主立项）：复用项目自有 EM-40G 弹体模型，放大 2.5 倍做悬浮件
@@ -34,6 +36,7 @@ func _ready() -> void:
 	var sphere := SphereShape3D.new()
 	sphere.radius = GameConfig.PICKUP_TRIGGER_RADIUS
 	shape.shape = sphere
+	shape.position = trigger_offset
 	add_child(shape)
 	body_entered.connect(_on_body_entered)
 	# 视觉件
@@ -92,6 +95,12 @@ func _on_body_entered(body: Node3D) -> void:
 			Events.ammo_changed.emit(kind, GameState.get(kind + "_mag"), reserve)
 			Events.weapon_switched.emit(kind)
 			Events.message_posted.emit("雷暴装备已领取：%s" % ("EM-68D 穿杨" if kind == &"dmr" else "EM-12G-1 霰·Ⅰ"))
+		&"spas12":
+			GameState.weapon_unlocked[kind] = true
+			GameState.current_weapon = kind
+			Events.ammo_changed.emit(kind, GameState.spas12_mag, GameState.spas12_reserve)
+			Events.weapon_switched.emit(kind)
+			Events.message_posted.emit("灯芯遗物已取用：SPAS-12 · 12GA")
 		&"medkit":
 			if GameState.medkits >= GameConfig.MEDKIT_MAX_CARRY:
 				return  # 携带上限：留在原地不吞件

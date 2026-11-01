@@ -226,6 +226,8 @@ func _weapon_display_name(weapon_id: StringName) -> String:
 			return "EM-68D 穿杨 · DMR"
 		&"shotgun":
 			return "EM-12G-1 霰·Ⅰ"
+		&"spas12":
+			return "SPAS-12 · 12GA"
 	return "未获取"
 
 
@@ -390,6 +392,8 @@ func _refresh_ammo() -> void:
 			_set_ammo_text(&"dmr", GameState.dmr_mag, GameState.rifle_reserve)
 		&"shotgun":
 			_set_ammo_text(&"shotgun", GameState.shotgun_mag, GameState.shotgun_reserve)
+		&"spas12":
+			_set_ammo_text(&"spas12", GameState.spas12_mag, GameState.spas12_reserve)
 		_:
 			_set_ammo_text(&"rifle", GameState.rifle_mag, GameState.rifle_reserve)
 
@@ -423,6 +427,8 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 			_ammo_label.text = "EM-68D 穿杨 %s EC-68 无壳步枪弹：%d / %d" % [mode_tag, mag, reserve]
 		&"shotgun":
 			_ammo_label.text = "EM-12G-1 霰·Ⅰ %s EC-12 砂：%d / %d" % [mode_tag, mag, reserve]
+		&"spas12":
+			_ammo_label.text = "SPAS-12 [泵动] 12GA 霰弹：%d / %d" % [mag, reserve]
 		_:
 			_ammo_label.text = "EM-68A %s EC-68 无壳步枪弹：%d / %d" % [mode_tag, mag, reserve]
 
