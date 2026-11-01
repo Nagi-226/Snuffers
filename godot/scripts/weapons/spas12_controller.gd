@@ -9,8 +9,6 @@ var _pump_home := Vector3.ZERO
 
 func _ready() -> void:
 	super()
-	_arms_placed = GameConfig.SPAS12_ARMS_PLACED
-	_arms_node.transform = _arms_placed
 	for node in _weapon_node.find_children("*", "Node3D", true, false):
 		if String(node.name).contains("Action_sleeve"):
 			_pump_sleeve = node as Node3D
@@ -21,70 +19,9 @@ func _ready() -> void:
 		_shell.visible = false
 
 
-func _setup_arms() -> void:
-	if _arms_node == null:
-		return
-	var players := _arms_node.find_children("*", "AnimationPlayer", true, false)
-	if not players.is_empty():
-		_arms_animation = players[0] as AnimationPlayer
-		_prepare_native_hold(&"Armature|Arms_FPS_Anim_Reload_Fast")
-	for node in _arms_node.find_children("*", "MeshInstance3D", true, false):
-		var mesh_instance := node as MeshInstance3D
-		if mesh_instance.mesh == null or not mesh_instance.mesh.resource_name.contains("arms"):
-			mesh_instance.visible = false
-	var skeletons := _arms_node.find_children("*", "Skeleton3D", true, false)
-	if not skeletons.is_empty():
-		_arms_skeleton = skeletons[0] as Skeleton3D
-
-
-func _pose_spas_right_arm() -> void:
-	_arms_animation.seek(0.0, true)
-	var uparm := _find_bone_by_prefix("UpArm_R")
-	var fore := _find_bone_by_prefix("Forearm_R")
-	var ctrl := _find_bone_by_prefix("IK_Hand_Cntrl_R")
-	var hand := _find_bone_by_prefix("Hand_R")
-	if uparm < 0 or fore < 0 or ctrl < 0 or hand < 0:
-		return
-	var up_g := _arms_skeleton.get_bone_global_pose(uparm)
-	var fore_g := _arms_skeleton.get_bone_global_pose(fore)
-	var hand_g := _arms_skeleton.get_bone_global_pose(hand)
-	var upper_len := up_g.origin.distance_to(fore_g.origin)
-	var fore_len := fore_g.origin.distance_to(hand_g.origin)
-	var to_skel := _arms_skeleton.global_transform.affine_inverse() * _view_model.global_transform
-	var wrist_t := to_skel * GameConfig.SPAS12_RIGHT_WRIST
-	var pole_t := wrist_t + to_skel.basis * GameConfig.SPAS12_RIGHT_ELBOW
-	var d := wrist_t - up_g.origin
-	var dist := clampf(d.length(), absf(upper_len - fore_len) + 0.001, upper_len + fore_len - 0.001)
-	d = d.normalized()
-	var a := (upper_len * upper_len - fore_len * fore_len + dist * dist) / (2.0 * dist)
-	var h := sqrt(maxf(0.0, upper_len * upper_len - a * a))
-	var pole_off := pole_t - up_g.origin
-	pole_off -= d * pole_off.dot(d)
-	pole_off /= maxf(pole_off.length(), 0.0001)
-	var elbow_t := up_g.origin + d * a + pole_off * h
-	_aim_bone_y_at(uparm, elbow_t)
-	_aim_bone_y_at(fore, wrist_t)
-	fore_g = _arms_skeleton.get_bone_global_pose(fore)
-	var wrist_end := fore_g.origin + fore_g.basis.y * fore_len
-	var ctrl_g := _arms_skeleton.get_bone_global_pose(ctrl)
-	_arms_skeleton.set_bone_global_pose(ctrl, Transform3D(ctrl_g.basis, wrist_end))
-	var finger_dir := to_skel.basis * Vector3.LEFT
-	var palm_rot := Quaternion(hand_g.basis.y, finger_dir.normalized())
-	_arms_skeleton.set_bone_global_pose(hand, Transform3D(Basis(palm_rot) * hand_g.basis, wrist_end))
-
-
 func _process(delta: float) -> void:
-	_update_camera_recover(delta)
-	_update_view_recoil(delta)
-	var cant := _reload_cant_counter() if _is_reloading else 0.0
-	var q := Quaternion(Vector3.UP, GameConfig.SHOTGUN_HIP_POSE_YAW) \
-		* Quaternion(Vector3.RIGHT, GameConfig.SHOTGUN_HIP_POSE_PITCH) \
-		* Quaternion(Vector3.BACK, cant)
-	_pose_extra = Transform3D(Basis(q), Vector3.ZERO)
-	_weapon_node.transform = _pose_extra * _weapon_home
-	_arms_node.transform = _pose_extra * _arms_placed
-	if _arms_skeleton != null:
-		_pose_spas_right_arm()
+	super._process(delta)
+	_arms_node.visible = not GameState.is_aiming
 	_pump_left = maxf(0.0, _pump_left - delta)
 	if _pump_sleeve != null:
 		var phase := 1.0 - _pump_left / GameConfig.SPAS12_PUMP_TIME if _pump_left > 0.0 else 0.0
@@ -143,19 +80,6 @@ func _play_reload_anim() -> void:
 
 func _reload_cant_counter() -> float:
 	return sin(clampf(_reload_progress, 0.0, 1.0) * PI) * GameConfig.SPAS12_RELOAD_CANT
-
-
-func _reset_reload_visuals() -> void:
-	_reload_counter = 0.0
-	_pose_extra = Transform3D.IDENTITY
-	if _weapon_node != null:
-		_weapon_node.transform = _weapon_home
-	if _arms_node != null:
-		_arms_node.transform = _arms_placed
-	if _arms_animation != null and _arms_animation.has_animation(&"hold"):
-		_arms_animation.play(&"hold")
-		_arms_animation.seek(0.0, true)
-		_arms_animation.pause()
 
 
 func _on_weapon_reloaded(weapon_id: StringName) -> void:

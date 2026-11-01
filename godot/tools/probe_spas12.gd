@@ -60,6 +60,13 @@ func _run() -> void:
 	events.weapon_switched.emit(&"shotgun")
 	await create_timer(0.3).timeout
 	await _shot("em_shotgun_compare")
+	var dmr := _player.get_node("Camera3D/WeaponMount/DMR") as Node3D
+	print("DMR_MAGAZINE_TRANSFORM ", dmr.get("_mag_home_transform"))
+	print("DMR_ARMS_PLACED ", dmr.get("_arms_placed"))
+	state.current_weapon = &"dmr"
+	events.weapon_switched.emit(&"dmr")
+	await create_timer(0.3).timeout
+	await _shot("dmr_compare")
 	quit()
 
 
