@@ -21,7 +21,12 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	super._process(delta)
-	_arms_node.visible = not GameState.is_aiming
+	if GameState.is_aiming and _arms_skeleton != null:
+		for bone in _arms_skeleton.get_bone_count():
+			if String(_arms_skeleton.get_bone_name(bone)).contains("_R"):
+				var pose := _arms_skeleton.get_bone_global_pose(bone)
+				pose.origin.y -= 100.0
+				_arms_skeleton.set_bone_global_pose(bone, pose)
 	_pump_left = maxf(0.0, _pump_left - delta)
 	if _pump_sleeve != null:
 		var phase := 1.0 - _pump_left / GameConfig.SPAS12_PUMP_TIME if _pump_left > 0.0 else 0.0
