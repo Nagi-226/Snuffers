@@ -53,6 +53,13 @@ func _run() -> void:
 	await _shot("reload")
 	await create_timer(3.0).timeout
 	print("SPAS12_AMMO mag=", state.spas12_mag, " reserve=", state.spas12_reserve)
+	var shotgun := _player.get_node("Camera3D/WeaponMount/Shotgun") as Node3D
+	print("SHOTGUN_ARMS_PLACED ", shotgun.get("_arms_placed"))
+	print("SPAS_ARMS_PLACED ", _weapon.get("_arms_placed"))
+	state.current_weapon = &"shotgun"
+	events.weapon_switched.emit(&"shotgun")
+	await create_timer(0.3).timeout
+	await _shot("em_shotgun_compare")
 	quit()
 
 

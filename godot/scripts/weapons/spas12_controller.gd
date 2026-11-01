@@ -9,7 +9,8 @@ var _pump_home := Vector3.ZERO
 
 func _ready() -> void:
 	super()
-	_arms_placed = _arms_node.transform
+	_arms_placed = GameConfig.SPAS12_ARMS_PLACED
+	_arms_node.transform = _arms_placed
 	for node in _weapon_node.find_children("*", "Node3D", true, false):
 		if String(node.name).contains("Action_sleeve"):
 			_pump_sleeve = node as Node3D
@@ -26,7 +27,7 @@ func _setup_arms() -> void:
 	var players := _arms_node.find_children("*", "AnimationPlayer", true, false)
 	if not players.is_empty():
 		_arms_animation = players[0] as AnimationPlayer
-		_prepare_native_hold(&"Armature|Arms_FPS_Anim_Reload_Fast")
+		_prepare_native_hold(&"Armature|Arms_FPS_Anim_Run")
 	for node in _arms_node.find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := node as MeshInstance3D
 		if mesh_instance.mesh == null or not mesh_instance.mesh.resource_name.contains("arms"):
@@ -34,20 +35,14 @@ func _setup_arms() -> void:
 	var skeletons := _arms_node.find_children("*", "Skeleton3D", true, false)
 	if not skeletons.is_empty():
 		_arms_skeleton = skeletons[0] as Skeleton3D
-		_pose_spas_arms()
 
 
-func _pose_spas_arms() -> void:
+func _pose_spas_left_arm() -> void:
 	_arms_animation.seek(0.0, true)
-	_pose_spas_arm("R", GameConfig.SPAS12_RIGHT_WRIST, GameConfig.SPAS12_RIGHT_ELBOW)
-	_pose_spas_arm("L", GameConfig.SPAS12_LEFT_WRIST, GameConfig.SPAS12_LEFT_ELBOW)
-
-
-func _pose_spas_arm(side: String, wrist_view: Vector3, pole_view: Vector3) -> void:
-	var uparm := _find_bone_by_prefix("UpArm_" + side)
-	var fore := _find_bone_by_prefix("Forearm_" + side)
-	var ctrl := _find_bone_by_prefix("IK_Hand_Cntrl_" + side)
-	var hand := _find_bone_by_prefix("Hand_" + side)
+	var uparm := _find_bone_by_prefix("UpArm_L")
+	var fore := _find_bone_by_prefix("Forearm_L")
+	var ctrl := _find_bone_by_prefix("IK_Hand_Cntrl_L")
+	var hand := _find_bone_by_prefix("Hand_L")
 	if uparm < 0 or fore < 0 or ctrl < 0 or hand < 0:
 		return
 	var up_g := _arms_skeleton.get_bone_global_pose(uparm)
@@ -56,9 +51,12 @@ func _pose_spas_arm(side: String, wrist_view: Vector3, pole_view: Vector3) -> vo
 	var upper_len := up_g.origin.distance_to(fore_g.origin)
 	var fore_len := fore_g.origin.distance_to(hand_g.origin)
 	var to_skel := _arms_skeleton.global_transform.affine_inverse() * _view_model.global_transform
+	var wrist_view: Vector3 = GameConfig.SPAS12_LEFT_WRIST_ADS if GameState.is_aiming else GameConfig.SPAS12_LEFT_WRIST
 	var wrist_t := to_skel * wrist_view
+	var pole_t := wrist_t + to_skel.basis * GameConfig.SPAS12_LEFT_ELBOW
 	var shoulder_t := up_g.origin
-	var pole_t := wrist_t + to_skel.basis * pole_view
+	if GameState.is_aiming:
+		shoulder_t = wrist_t + to_skel.basis * (GameConfig.LONG_GUN_SHOULDER_DIRECTION.normalized() * (upper_len + fore_len) * GameConfig.SPAS12_ADS_SHOULDER_REACH)
 	var d := wrist_t - shoulder_t
 	var dist := clampf(d.length(), absf(upper_len - fore_len) + 0.001, upper_len + fore_len - 0.001)
 	d = d.normalized()
@@ -75,7 +73,7 @@ func _pose_spas_arm(side: String, wrist_view: Vector3, pole_view: Vector3) -> vo
 	var wrist_end := fore_g.origin + fore_g.basis.y * fore_len
 	var ctrl_g := _arms_skeleton.get_bone_global_pose(ctrl)
 	_arms_skeleton.set_bone_global_pose(ctrl, Transform3D(ctrl_g.basis, wrist_end))
-	var finger_dir := to_skel.basis * (Vector3.LEFT if side == "R" else Vector3.RIGHT)
+	var finger_dir := to_skel.basis * Vector3.FORWARD
 	var palm_rot := Quaternion(hand_g.basis.y, finger_dir.normalized())
 	_arms_skeleton.set_bone_global_pose(hand, Transform3D(Basis(palm_rot) * hand_g.basis, wrist_end))
 
@@ -91,7 +89,7 @@ func _process(delta: float) -> void:
 	_weapon_node.transform = _pose_extra * _weapon_home
 	_arms_node.transform = _pose_extra * _arms_placed
 	if _arms_skeleton != null:
-		_pose_spas_arms()
+		_pose_spas_left_arm()
 	_pump_left = maxf(0.0, _pump_left - delta)
 	if _pump_sleeve != null:
 		var phase := 1.0 - _pump_left / GameConfig.SPAS12_PUMP_TIME if _pump_left > 0.0 else 0.0
