@@ -34,15 +34,17 @@ func _pose_spas_right_arm_ads() -> void:
 	var to_skel := _arms_skeleton.global_transform.affine_inverse() * _view_model.global_transform
 	var wrist_t := to_skel * GameConfig.SPAS12_RIGHT_WRIST_ADS
 	var pole_t := wrist_t + to_skel.basis * GameConfig.SPAS12_RIGHT_ELBOW_ADS
-	var d := wrist_t - up_g.origin
+	var shoulder_t := wrist_t + to_skel.basis * (GameConfig.LONG_GUN_SHOULDER_DIRECTION.normalized() * (upper_len + fore_len) * 0.94)
+	var d := wrist_t - shoulder_t
 	var dist := clampf(d.length(), absf(upper_len - fore_len) + 0.001, upper_len + fore_len - 0.001)
 	d = d.normalized()
 	var a := (upper_len * upper_len - fore_len * fore_len + dist * dist) / (2.0 * dist)
 	var h := sqrt(maxf(0.0, upper_len * upper_len - a * a))
-	var pole_off := pole_t - up_g.origin
+	var pole_off := pole_t - shoulder_t
 	pole_off -= d * pole_off.dot(d)
 	pole_off /= maxf(pole_off.length(), 0.0001)
-	var elbow_t := up_g.origin + d * a + pole_off * h
+	var elbow_t := shoulder_t + d * a + pole_off * h
+	_arms_skeleton.set_bone_global_pose(uparm, Transform3D(up_g.basis, shoulder_t))
 	_aim_bone_y_at(uparm, elbow_t)
 	_aim_bone_y_at(fore, wrist_t)
 	fore_g = _arms_skeleton.get_bone_global_pose(fore)
