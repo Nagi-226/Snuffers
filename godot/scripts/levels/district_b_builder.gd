@@ -128,30 +128,99 @@ func _build_mezzanine() -> void:
 
 func _build_processing_factories() -> void:
 	for side in [-1.0, 1.0]:
-		var cx: float = side * 195.0
+		var cx: float = side * 202.0
 		var root := Node3D.new()
 		root.name = "FactoryWest" if side < 0.0 else "FactoryEast"
 		root.position = Vector3(cx, 0, 0)
 		add_child(root)
-		var concrete := _pbr_material("concrete_floor_02", Color(0.62, 0.67, 0.71), Vector3(3, 2, 1))
-		var panel := _pbr_material("corrugated_iron", Color(0.58, 0.65, 0.7), Vector3(4, 2, 1))
+		var concrete := _pbr_material("concrete_floor_02", Color(0.62, 0.67, 0.71), Vector3(4, 3, 1))
+		var panel := _pbr_material("corrugated_iron", Color(0.58, 0.65, 0.7), Vector3(5, 2, 1))
 		var metal := _plain(Color(0.16, 0.22, 0.25), 0.65)
-		_box("FactoryFloor", Vector3(cx, 0.05, -72.5), Vector3(40, 0.1, 55), concrete)
-		_box("FactoryBack", Vector3(cx, 4.5, -100), Vector3(40, 9, 0.35), concrete)
-		_box("FactoryWestWall", Vector3(cx - 20, 4.5, -72.5), Vector3(0.35, 9, 55), panel)
-		_box("FactoryEastWall", Vector3(cx + 20, 4.5, -72.5), Vector3(0.35, 9, 55), panel)
-		_box("FactoryFrontLeft", Vector3(cx - 11.25, 4.5, -45), Vector3(17.5, 9, 0.35), panel)
-		_box("FactoryFrontRight", Vector3(cx + 11.25, 4.5, -45), Vector3(17.5, 9, 0.35), panel)
-		_box("FactoryDoorHeader", Vector3(cx, 6.5, -45), Vector3(5, 5, 0.35), panel)
-		_box("FactoryRoof", Vector3(cx, 9.1, -72.5), Vector3(41, 0.25, 56), metal)
-		_screen("FactorySign", "加工车间 / PROCESS", Vector3(cx, 7.2, -44.72), 44)
-		for dx in [-10.0, 10.0]:
-			for z in [-65.0, -85.0]:
-				_box("ProcessingMachine", Vector3(cx + dx, 1.6, z), Vector3(5, 3.2, 4), metal)
-				_detail_box("MachineStatus", Vector3(cx + dx, 2.3, z + 2.03), Vector3(1.2, 0.25, 0.04), _emissive(Color(0.25, 0.75, 0.85), 0.8))
-				_detail_box("MachineTop", Vector3(cx + dx, 3.35, z), Vector3(4.2, 0.2, 3.2), concrete)
-		for dx in [-12.0, 12.0]:
-			_lamp(Vector3(cx + dx, 6.5, -70), 20, 2.0, Color(0.55, 0.78, 1.0))
+		_box("FactoryFloor", Vector3(cx, 0.05, -72.5), Vector3(50, 0.1, 75), concrete)
+		_box("FactoryBack", Vector3(cx, 5.5, -110), Vector3(50, 11, 0.35), concrete)
+		_box("FactoryWestWall", Vector3(cx - 25, 5.5, -72.5), Vector3(0.35, 11, 75), panel)
+		_box("FactoryEastWall", Vector3(cx + 25, 5.5, -72.5), Vector3(0.35, 11, 75), panel)
+		_box("FactoryFrontLeft", Vector3(cx - 14, 5.5, -35), Vector3(22, 11, 0.35), panel)
+		_box("FactoryFrontRight", Vector3(cx + 14, 5.5, -35), Vector3(22, 11, 0.35), panel)
+		_box("FactoryDoorHeader", Vector3(cx, 7.5, -35), Vector3(6, 7, 0.35), panel)
+		_box("FactoryRoof", Vector3(cx, 11.1, -72.5), Vector3(51, 0.25, 76), metal)
+		_screen("FactorySign", "精密加工 / MACHINING", Vector3(cx, 8.4, -34.72), 44)
+		for dx in [-11.0, 11.0]:
+			for z in [-50.0, -67.0, -82.0]:
+				_precision_lathe(Vector3(cx + dx, 0.83, z), 0.0 if dx < 0.0 else PI)
+				_box("LatheOperatorConsole", Vector3(cx + dx * 0.62, 0.75, z), Vector3(0.8, 1.5, 0.65), metal)
+				_detail_box("LatheConsoleDisplay", Vector3(cx + dx * 0.62, 1.12, z + 0.34), Vector3(0.55, 0.32, 0.035), _emissive(Color(0.18, 0.62, 0.75), 0.75))
+		_box("FactoryControlPartitionLeft", Vector3(cx - 14, 2.75, -91), Vector3(22, 5.5, 0.25), concrete)
+		_box("FactoryControlPartitionRight", Vector3(cx + 14, 2.75, -91), Vector3(22, 5.5, 0.25), concrete)
+		_box("FactoryControlHeader", Vector3(cx, 4.5, -91), Vector3(6, 2.0, 0.25), concrete)
+		_screen("FactoryControlSign", "质检与控制 / QC", Vector3(cx, 4.15, -90.82), 30)
+		for dx in [-17.0, -11.0, 11.0, 17.0]:
+			_box("FactoryControlCabinet", Vector3(cx + dx, 1.35, -105), Vector3(3.6, 2.7, 1.2), metal)
+			_detail_box("FactoryCabinetScreen", Vector3(cx + dx, 1.75, -104.38), Vector3(1.4, 0.65, 0.035), _emissive(Color(0.16, 0.55, 0.68), 0.65))
+		for dx in [-21.5, 21.5]:
+			_detail_box("FactoryOverheadPipe", Vector3(cx + dx, 8.2, -72.5), Vector3(0.35, 0.35, 70), metal)
+			for z in [-50.0, -72.0, -99.0]:
+				_lamp(Vector3(cx + dx * 0.65, 8.5, z), 20, 2.0, Color(0.55, 0.78, 1.0))
+		_detail_box("FactorySafetyLane", Vector3(cx, 0.115, -61), Vector3(0.16, 0.015, 48), _plain(Color(0.72, 0.58, 0.12), 0.8))
+	_build_support_buildings()
+
+
+func _precision_lathe(pos: Vector3, yaw: float) -> void:
+	var path := "res://assets/models/props/lathe_machine.glb"
+	if not ResourceLoader.exists(path):
+		return
+	var lathe := (load(path) as PackedScene).instantiate() as Node3D
+	lathe.name = "PrecisionLathe_%d_%d" % [int(pos.x), int(pos.z)]
+	lathe.position = pos
+	lathe.rotation.y = yaw
+	add_child(lathe)
+	_box("PrecisionLatheCollision", pos, Vector3(4.95, 1.66, 1.2), _plain(Color.BLACK), false)
+
+
+func _build_support_buildings() -> void:
+	var buildings := [
+		{"name": "MaintenanceHall", "label": "机修库 / MAINTENANCE", "center": Vector3(-120, 0, 125), "size": Vector2(38, 28)},
+		{"name": "ElectricalHouse", "label": "配电间 / ELECTRICAL", "center": Vector3(120, 0, 125), "size": Vector2(32, 26)},
+		{"name": "PumpHouse", "label": "冷却泵房 / PUMPS", "center": Vector3(0, 0, -140), "size": Vector2(34, 24)},
+	]
+	for data in buildings:
+		var center: Vector3 = data["center"]
+		var size: Vector2 = data["size"]
+		var half := size * 0.5
+		var front := center.z + half.y
+		var concrete := _pbr_material("concrete_floor_02", Color(0.62, 0.67, 0.71), Vector3(3, 2, 1))
+		var panel := _pbr_material("corrugated_iron", Color(0.56, 0.63, 0.68), Vector3(3, 2, 1))
+		var metal := _plain(Color(0.14, 0.19, 0.22), 0.68)
+		var root := Node3D.new()
+		root.name = data["name"]
+		root.position = center
+		add_child(root)
+		_box(data["name"] + "Floor", center + Vector3(0, 0.05, 0), Vector3(size.x, 0.1, size.y), concrete)
+		_box(data["name"] + "Back", center + Vector3(0, 3.5, -half.y), Vector3(size.x, 7, 0.3), concrete)
+		for side in [-1.0, 1.0]:
+			_box(data["name"] + "Side", center + Vector3(side * half.x, 3.5, 0), Vector3(0.3, 7, size.y), panel)
+			_box(data["name"] + "Front", Vector3(center.x + side * (half.x + 2.5) * 0.5, 3.5, front), Vector3(half.x - 2.5, 7, 0.3), panel)
+		_box(data["name"] + "Header", Vector3(center.x, 5.5, front), Vector3(5, 3, 0.3), panel)
+		_box(data["name"] + "Roof", center + Vector3(0, 7.1, 0), Vector3(size.x + 0.6, 0.25, size.y + 0.6), metal)
+		_screen(data["name"] + "Sign", data["label"], Vector3(center.x, 5.7, front + 0.2), 38)
+		_lamp(center + Vector3(0, 5.5, 0), 18, 1.8, Color(0.55, 0.78, 1.0))
+		if data["name"] == "MaintenanceHall":
+			_precision_lathe(center + Vector3(-9, 0.83, -5), 0.0)
+			_precision_lathe(center + Vector3(9, 0.83, -5), PI)
+			for dx in [-12.0, 0.0, 12.0]:
+				_box("MaintenanceWorkbench", center + Vector3(dx, 0.55, 8), Vector3(6, 1.1, 1.6), metal)
+				_detail_box("MaintenancePegboard", center + Vector3(dx, 2.1, 8.75), Vector3(5.5, 1.6, 0.08), panel)
+		elif data["name"] == "ElectricalHouse":
+			for dx in [-10.0, -5.0, 0.0, 5.0, 10.0]:
+				_box("ElectricalCabinet", center + Vector3(dx, 1.4, -8), Vector3(3.5, 2.8, 1.4), metal)
+				_detail_box("ElectricalMeter", center + Vector3(dx, 1.75, -7.28), Vector3(0.65, 0.5, 0.035), _emissive(Color(0.2, 0.68, 0.78), 0.7))
+			for dx in [-11.5, 11.5]:
+				_detail_box("ElectricalConduit", center + Vector3(dx, 4.8, 0), Vector3(0.25, 0.25, 22), metal)
+		else:
+			for dx in [-9.0, 0.0, 9.0]:
+				_cylinder("CoolantPump", center + Vector3(dx, 1.25, -4), 1.35, 2.5, metal)
+				_box("PumpBase", center + Vector3(dx, 0.2, -4), Vector3(3.5, 0.4, 3.5), concrete)
+				_detail_box("PumpFeedPipe", center + Vector3(dx, 2.2, 2), Vector3(0.55, 0.55, 10), metal)
 
 
 func _build_warehouse_rooms() -> void:
@@ -242,13 +311,16 @@ func _build_prequel_lore() -> void:
 	_lamp(Vector3(-135, 7.25, -95), 4.0, 0.8, Color(0.3, 0.85, 1.0))
 	_lore_node(&"LanternSurveyBeacon", Vector3(-135, 6, -95), "提灯留下的勘测灯标",
 		"灯还亮着。剩下的，交给雷暴。", "E  查看勘测灯标")
-	if ResourceLoader.exists(SPAS_MODEL):
-		var spas := (load(SPAS_MODEL) as PackedScene).instantiate() as Node3D
-		spas.name = "WickSPAS12"
-		spas.position = Vector3(-38, 1.82, 50.65)
-		spas.rotation.y = PI * 0.5 + 0.2
-		spas.scale = Vector3.ONE * 0.12
-		add_child(spas)
+	var spas := PICKUP_SCENE.instantiate() as Node3D
+	spas.name = "WickSPAS12"
+	spas.position = Vector3(-38, 1.82, 50.65)
+	spas.set(&"kind", &"spas12")
+	spas.set(&"trigger_offset", GameConfig.SPAS12_PICKUP_TRIGGER_OFFSET)
+	add_child(spas)
+	var spas_visual := spas.get_node_or_null("Visual") as Node3D
+	if spas_visual != null:
+		spas_visual.rotation.y = PI * 0.5 + 0.2
+		spas_visual.scale = Vector3.ONE * 0.12
 	_detail_box("WickAmmoBox", Vector3(-36.6, 1.82, 50.65), Vector3(0.5, 0.3, 0.34), _plain(Color(0.42, 0.32, 0.18), 0.92))
 	_detail_box("WickAmmoBoxLid", Vector3(-36.6, 1.98, 50.65), Vector3(0.52, 0.035, 0.36), _plain(Color(0.28, 0.22, 0.13), 0.9))
 	_screen("WickAmmoLabel", "12 GAUGE\n25 SHELLS", Vector3(-36.6, 1.82, 50.84), 12)

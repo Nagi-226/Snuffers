@@ -44,6 +44,7 @@ func _run() -> void:
 	await process_frame
 	state.weapon_unlocked[&"dmr"] = true
 	state.weapon_unlocked[&"shotgun"] = true
+	state.weapon_unlocked[&"spas12"] = true
 	_press(KEY_1)
 	_assert(state.current_weapon == &"pistol", "number 1 selects pistol")
 	_assert(hud.get_node("WeaponSelector").visible, "number selection shows the weapon HUD")
@@ -59,18 +60,22 @@ func _run() -> void:
 	_press(KEY_3)
 	_assert(state.current_weapon == &"rifle", "number 3 cycles back to EM-68A")
 	_press(KEY_4)
-	_assert(state.current_weapon == &"shotgun", "number 4 selects shotgun")
-	_assert(not hud._selector_members.visible, "single-weapon category does not expand a list")
+	_assert(state.current_weapon == &"shotgun", "number 4 selects EM shotgun first")
 	_press(KEY_4)
-	_assert(state.current_weapon == &"shotgun", "reserved sniper does not create a phantom switch")
+	_assert(state.current_weapon == &"spas12", "number 4 repeats into SPAS-12")
+	_assert(hud._selector_members.visible and hud._selector_members.get_child_count() == 2, "shotgun category expands both unlocked weapons")
+	_press(KEY_4)
+	_assert(state.current_weapon == &"shotgun", "number 4 cycles back to EM shotgun")
 	_press(KEY_5)
 	_press(KEY_6)
 	_assert(state.current_weapon == &"shotgun", "reserved machine gun and heavy weapons stay locked")
 	_wheel(MOUSE_BUTTON_WHEEL_DOWN)
+	_assert(state.current_weapon == &"spas12", "wheel down appends SPAS after EM shotgun")
+	_wheel(MOUSE_BUTTON_WHEEL_DOWN)
 	_assert(state.current_weapon == &"pistol", "wheel down wraps to the first unlocked weapon")
 	_assert(hud.get_node("WeaponSelector").get_meta("category") == 1, "wheel selection highlights the correct category")
 	_wheel(MOUSE_BUTTON_WHEEL_UP)
-	_assert(state.current_weapon == &"shotgun", "wheel up returns to the previous unlocked weapon")
+	_assert(state.current_weapon == &"spas12", "wheel up returns to SPAS")
 	_assert(hud._heli_timer_label.offset_top >= 132.0, "helicopter timer moves below the visible weapon selector")
 	hud._selector_time_left = 0.01
 	await create_timer(0.1).timeout

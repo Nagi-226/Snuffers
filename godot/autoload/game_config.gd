@@ -195,6 +195,39 @@ const SHOTGUN_ELBOW_POLE := Vector3(-0.18, -0.45, 0.12) ## 开镜支撑肘向左
 const SHOTGUN_RIGHT_ELBOW_POLE := Vector3(0.12, -0.25, -0.45) ## 右握枪肘向前下方收拢，保留原生右手握点
 const SHOTGUN_ADS_CAMERA_FORWARD: float = 0.04 ## 玩家视角向瞄具前移4cm；枪挂载不再向远处推，视觉上枪相应后收
 
+# ===== SPAS-12 传统泵动霰弹枪（独立 12GA 弹药，不与 EC-12 混用）=====
+const SPAS12_DAMAGE_BODY: float = 20.0
+const SPAS12_DMG_HEAD_FACTOR: float = 1.5
+const SPAS12_DMG_VS_SNIPER: float = 999.0
+const SPAS12_PELLET_COUNT: int = 8
+const SPAS12_FIRE_INTERVAL: float = 0.85
+const SPAS12_SEMI_FIRE_INTERVAL: float = 0.85
+const SPAS12_MAG: int = 8
+const SPAS12_RESERVE: int = 40
+const SPAS12_RESERVE_MAX: int = 64
+const SPAS12_AMMO_PICKUP_ROUNDS: int = 8
+const SPAS12_RELOAD_SHELL_TIME: float = 0.55
+const SPAS12_RANGE: float = 35.0
+const SPAS12_SPREAD_START: float = 10.0
+const SPAS12_SPREAD_HIP: float = 0.07
+const SPAS12_SPREAD_PRONE: float = 0.05
+const SPAS12_SPREAD_AIM: float = 0.045
+const SPAS12_RECOIL_PITCH: float = 0.016
+const SPAS12_RECOIL_VIEW_OFFSET: float = 0.18
+const SPAS12_RECOIL_DECAY: float = 0.8
+const SPAS12_RECOIL_RECOVER_RATE: float = 7.0
+const SPAS12_RECOIL_VIEW_ROT: float = 2.5
+const SPAS12_RECOIL_VIEW_Y_FACTOR: float = 0.03
+const SPAS12_RECOIL_VIEW_Z_FACTOR: float = 0.06
+const SPAS12_SOUND_PITCH: float = 0.58
+const SPAS12_PUMP_TIME: float = 0.62
+const SPAS12_RELOAD_CANT: float = 0.3
+const SPAS12_ADS_FOV: float = 65.0
+const SPAS12_PICKUP_TRIGGER_OFFSET := Vector3(0, -1.0, 0.65) ## 枪留高层货架，触发区下探至玩家可接近处
+const SPAS12_SUPPORT_WRIST_ADS := Vector3(0.04, -0.08, -0.10)
+const SPAS12_RIGHT_WRIST_ADS := Vector3(0.08, -0.14, 0.36)
+const SPAS12_RIGHT_ELBOW_ADS := Vector3(0.22, -0.32, 0.18)
+
 # ===== EM-40G「滚雷」下挂榴弹模块（2026-10-22 机主裁决：并入 EM-68A 第四射击档，
 #       X 键闭环 全自动→半自动→三发点射→榴→全自动；旧 3 号位 RPG 火箭筒整体退役）=====
 # 设定出处（E系列电磁轻武器-概念图谱）：直射档=EC-40P「破垒」全功率平直弹道；
@@ -333,11 +366,11 @@ const WEAPON_CATEGORIES: Array = [
 	{"number": 1, "name": "手枪", "weapons": [&"pistol"]},
 	{"number": 2, "name": "冲锋枪", "weapons": []},
 	{"number": 3, "name": "突击 / DMR", "weapons": [&"rifle", &"dmr"]},
-	{"number": 4, "name": "霰弹 / 狙击", "weapons": [&"shotgun"]},
+	{"number": 4, "name": "霰弹 / 狙击", "weapons": [&"shotgun", &"spas12"]},
 	{"number": 5, "name": "机枪", "weapons": []},
 	{"number": 6, "name": "爆破重火力", "weapons": []},
 ]
-const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"rifle", &"dmr", &"shotgun"]
+const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"rifle", &"dmr", &"shotgun", &"spas12"]
 const WEAPON_SELECTOR_HOLD_TIME: float = 1.6
 
 # ===== UI 反馈动效（G2 冻结自 W5 脚本常量迁入）=====
