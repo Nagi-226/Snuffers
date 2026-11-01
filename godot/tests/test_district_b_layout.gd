@@ -61,11 +61,20 @@ func _run() -> void:
 	_assert(district.has_node("WarehouseSign/Panel") and district.has_node("RouteSign/Panel"), "cargo zone text uses mounted electronic screens")
 	_assert(district.has_node("RouteSignPost"), "route screen has a physical support post")
 	_assert(district.has_node("FactoryWest") and district.has_node("FactoryEast"), "outer yard contains two accessible processing buildings")
+	_assert_mesh_size(district, "FactoryFloor/Mesh", Vector3(50, 0.1, 75), "processing factory expanded to 50x75m")
+	_assert(district.find_children("PrecisionLathe_*", "", true, false).size() == 14, "fourteen detailed precision lathes are installed")
+	_assert(district.has_node("FactoryControlPartitionLeft") and district.has_node("FactoryControlCabinet"), "factory has a separate quality-control room")
 	_assert(district.has_node("Forklift_0"), "warehouse contains a forklift")
 	_assert(district.has_node("GantryCrane_0"), "warehouse roof contains an overhead gantry crane")
-	for cx in [-195.0, 195.0]:
-		var query := PhysicsRayQueryParameters3D.create(Vector3(cx, 1.7, -42), Vector3(cx, 1.7, -48))
+	for cx in [-202.0, 202.0]:
+		var query := PhysicsRayQueryParameters3D.create(Vector3(cx, 1.7, -32), Vector3(cx, 1.7, -38))
 		_assert(district.get_world_3d().direct_space_state.intersect_ray(query).is_empty(), "factory door is physically open at x=%f" % cx)
+	for building in [["MaintenanceHall", Vector3(-120, 1.7, 125), 139.0], ["ElectricalHouse", Vector3(120, 1.7, 125), 138.0], ["PumpHouse", Vector3(0, 1.7, -140), -128.0]]:
+		_assert(district.has_node(building[0]), "accessible support building exists: %s" % building[0])
+		var center: Vector3 = building[1]
+		var front: float = building[2]
+		var query := PhysicsRayQueryParameters3D.create(Vector3(center.x, 1.7, front + 3), Vector3(center.x, 1.7, front - 3))
+		_assert(district.get_world_3d().direct_space_state.intersect_ray(query).is_empty(), "%s door is physically open" % building[0])
 	if not hosts.is_empty():
 		_assert(hosts[0]._animation_player != null and hosts[0]._animation_player.has_animation(&"walk"), "human host plays its rigged animation in district")
 	if not spores.is_empty():
