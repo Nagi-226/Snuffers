@@ -67,6 +67,16 @@ func _run() -> void:
 	events.weapon_switched.emit(&"dmr")
 	await create_timer(0.3).timeout
 	await _shot("dmr_compare")
+	state.current_weapon = &"shotgun"
+	events.weapon_switched.emit(&"shotgun")
+	state.is_aiming = true
+	events.player_aim_changed.emit(true)
+	await create_timer(0.3).timeout
+	await _shot("em_shotgun_ads_compare")
+	state.current_weapon = &"rifle"
+	events.weapon_switched.emit(&"rifle")
+	await create_timer(0.3).timeout
+	await _shot("rifle_ads_compare")
 	quit()
 
 
