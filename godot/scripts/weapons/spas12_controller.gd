@@ -51,7 +51,7 @@ func _pose_spas_right_arm_ads() -> void:
 	var wrist_end := fore_g.origin + fore_g.basis.y * fore_len
 	var ctrl_g := _arms_skeleton.get_bone_global_pose(ctrl)
 	_arms_skeleton.set_bone_global_pose(ctrl, Transform3D(ctrl_g.basis, wrist_end))
-	var finger_dir := to_skel.basis * Vector3.LEFT
+	var finger_dir := to_skel.basis * Vector3.FORWARD
 	var palm_rot := Quaternion(hand_g.basis.y, finger_dir.normalized())
 	_arms_skeleton.set_bone_global_pose(hand, Transform3D(Basis(palm_rot) * hand_g.basis, wrist_end))
 
