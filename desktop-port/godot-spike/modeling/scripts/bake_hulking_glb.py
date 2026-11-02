@@ -41,9 +41,9 @@ def animation_definitions():
         }),
         "attack": (2.4, {
             0.0: {"upper_arm_r": (0, 0, 0), "forearm_r": (0, 0, 0), "chest": (0, 0, 0)},
-            0.85: {"upper_arm_r": (-1.15, 0.1, -0.35), "forearm_r": (-0.55, 0, 0), "chest": (0, 0, -0.25)},
-            1.25: {"upper_arm_r": (1.35, 0, 0.45), "forearm_r": (0.65, 0, 0), "chest": (0.22, 0, 0.28)},
-            1.6: {"upper_arm_r": (1.35, 0, 0.45), "forearm_r": (0.65, 0, 0), "chest": (0.22, 0, 0.28)},
+            0.85: {"upper_arm_r": (-1.75, 0.1, -0.35), "forearm_r": (-0.85, 0, 0), "chest": (-0.18, 0, -0.4)},
+            1.25: {"upper_arm_r": (1.65, 0, 0.45), "forearm_r": (0.95, 0, 0), "chest": (0.5, 0, 0.35)},
+            1.6: {"upper_arm_r": (1.65, 0, 0.45), "forearm_r": (0.95, 0, 0), "chest": (0.5, 0, 0.35)},
             2.4: {"upper_arm_r": (0, 0, 0), "forearm_r": (0, 0, 0), "chest": (0, 0, 0)},
         }),
         "death": (2.4, {

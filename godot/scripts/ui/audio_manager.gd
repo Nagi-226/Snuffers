@@ -325,3 +325,5 @@ func _on_enemy_fired(kind: StringName, _position: Vector3) -> void:
 			play_sfx_pitched(&"rifle", ENEMY_MG_PITCH)
 		&"spore":
 			play_sfx(&"spore")
+		&"hulking_smash":
+			play_sfx_pitched(&"explosion", GameConfig.HULKING_HOST_SMASH_SOUND_PITCH)
