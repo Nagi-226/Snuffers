@@ -51,6 +51,16 @@ func _run() -> void:
 	spore.set_physics_process(false)
 	var skeletons := hulking.get_node("BodyMesh").find_children("*", "Skeleton3D", true, false)
 	var skeleton := skeletons[0] as Skeleton3D
+	var thigh_bone := skeleton.find_bone("thigh_r")
+	var hips_bone := skeleton.find_bone("hips")
+	hulking.position.z = -20.0
+	var thigh_start := skeleton.get_bone_global_pose(thigh_bone)
+	var hips_start_y := skeleton.get_bone_global_pose(hips_bone).origin.y
+	hulking._play(&"walk", true)
+	await create_timer(0.25).timeout
+	_assert(not thigh_start.is_equal_approx(skeleton.get_bone_global_pose(thigh_bone)), "Mixamo walk rotates the thighs during forward locomotion")
+	_assert(not is_equal_approx(hips_start_y, skeleton.get_bone_global_pose(hips_bone).origin.y), "Mixamo walk has real hip vertical motion")
+	hulking.position.z = -2.5
 	var arm_bone := skeleton.find_bone("upper_arm_r")
 	var pose_start := skeleton.get_bone_global_pose(arm_bone)
 	hulking.current_state = hulking.State.WINDUP

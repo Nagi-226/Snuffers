@@ -17,6 +17,8 @@ func _ready() -> void:
 	if not players.is_empty():
 		_animation_player = players[0] as AnimationPlayer
 		_animation_player.animation_finished.connect(_on_animation_finished)
+		if ResourceLoader.exists("res://assets/models/enemies/hulking_mixamo_walk.tres"):
+			_animation_player.get_animation_library("").add_animation(&"walk", load("res://assets/models/enemies/hulking_mixamo_walk.tres"))
 		for clip_name in [&"idle", &"walk"]:
 			var clip := _animation_player.get_animation(clip_name)
 			if clip != null:
