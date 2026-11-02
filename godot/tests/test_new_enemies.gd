@@ -46,11 +46,19 @@ func _run() -> void:
 	_assert(spore.velocity.y > 0.0 and Vector2(spore.velocity.x, spore.velocity.z).length() > 1.0, "spore leap has ballistic vertical and horizontal velocity")
 	_assert(not spore._leap_hit, "spore leap starts with a single available hit")
 	spore.set_physics_process(false)
+	var skeletons := hulking.get_node("BodyMesh").find_children("*", "Skeleton3D", true, false)
+	var skeleton := skeletons[0] as Skeleton3D
+	var arm_bone := skeleton.find_bone("upper_arm_r")
+	var pose_start := skeleton.get_bone_global_pose(arm_bone)
 	hulking.current_state = hulking.State.WINDUP
 	hulking._state_timer = 0.4
+	hulking._play(&"attack", true)
 	await create_timer(0.2).timeout
+	var pose_windup := skeleton.get_bone_global_pose(arm_bone)
+	_assert(not pose_start.is_equal_approx(pose_windup), "hulking right arm actually rotates during attack anticipation")
 	_assert(_hits == 0, "hulking smash does not deal damage during right-arm anticipation")
 	await create_timer(0.5).timeout
+	_assert(not pose_windup.is_equal_approx(skeleton.get_bone_global_pose(arm_bone)), "hulking right arm actually swings through the impact window")
 	_assert(_hits == 1, "hulking smash deals damage only after the impact window")
 	_assert(hulking.current_state == hulking.State.RECOVER, "hulking enters recovery after smash")
 	world.queue_free()
