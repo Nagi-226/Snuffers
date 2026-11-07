@@ -551,7 +551,8 @@ func _process(delta: float) -> void:
 	# 切换点取过渡中点（0.5），此时镜筒正在归中途中，换网格肉眼不可察。
 	for weapon_id: StringName in _optic_meshes:
 		var pair: Dictionary = _optic_meshes[weapon_id]
-		var want_bored := GameState.current_weapon == weapon_id and _ads_weight > 0.5
+		var wants_rifle_optic := GameState.current_weapon == weapon_id or (weapon_id == &"rifle" and GameState.current_weapon in [&"smg", &"lmg"])
+		var want_bored := wants_rifle_optic and _ads_weight > 0.5
 		var target_mesh: Mesh = pair.bored if want_bored else pair.intact
 		if pair.node.mesh != target_mesh:
 			pair.node.mesh = target_mesh

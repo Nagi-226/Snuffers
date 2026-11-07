@@ -108,10 +108,12 @@ func _run() -> void:
 	for frame in 20:
 		_player._process(1.0 / 60.0)
 	_assert(not _player._scope_view_models[&"smg"].visible and _player.get_node("Camera3D/WeaponMount/Rifle").visible, "SMG uses the validated EM-68A holographic scope")
+	_assert(_player._optic_meshes[&"rifle"].node.mesh == _player._optic_meshes[&"rifle"].bored, "SMG and LMG use the open EM-68A optic mesh")
 	_player._set_aiming(false)
 	for frame in 20:
 		_player._process(1.0 / 60.0)
 	_assert(_player._scope_view_models[&"smg"].visible and not _player.get_node("Camera3D/WeaponMount/Rifle").visible, "hip fire restores the SMG model and hides the scope model")
+	_assert(_player._optic_meshes[&"rifle"].node.mesh == _player._optic_meshes[&"rifle"].intact, "hip fire restores the intact EM-68A optic mesh")
 	await process_frame
 	await process_frame
 	var minimap = scene.get_node("HUD/Minimap")
