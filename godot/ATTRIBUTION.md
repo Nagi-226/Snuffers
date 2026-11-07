@@ -56,6 +56,8 @@
 | medkit.mp3（治疗/包扎） | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/3102/ | Mixkit Free License | 2026-07-14 |
 | ui_click.mp3（UI 点击） | Mixkit（页面未单独署名） | https://mixkit.co/free-sound-effects/download/2568/ | Mixkit Free License | 2026-07-14 |
 | ambient.wav（战场环境音，可循环 34s） | 本项目程序合成占位（Node 脚本生成，非第三方素材） | 无（本地合成） | 项目自有资产（等同 CC0） | 2026-07-14 |
+| nano_armor.wav（装甲模式机械装甲＋轻护盾底音，1.2s 混合/淡变/响度统一） | Breviceps（机械启动）；Beussa（能量底音） | https://freesound.org/people/Breviceps/sounds/505670/ ；https://freesound.org/people/Beussa/sounds/659967/ | 均 CC0 | 2026-11-07 |
+| nano_stealth.wav（隐形模式短促力场展开音，淡变/响度统一） | unfa | https://freesound.org/people/unfa/sounds/584173/ | CC0 | 2026-11-07 |
 
 ---
 
@@ -83,7 +85,10 @@
 | `assets/models/enemies/host_parasite_animated.glb`（含同名 .preview.png） | 寄生体 T-pose 绑骨与僵尸动画版；基于项目既有 `host_parasite_fullbody.glb`，Blender 本地焊接/蒙皮/矩阵重定向，含 65 骨与 idle/walk/run/attack/death；管线 `modeling/host-rig/rig_host_local.py`、`bake_host_animations.py` | 模型：Kimi model3d_generation（项目自有）；骨架/动作：Adobe Mixamo（https://www.mixamo.com/，仅烘焙 GLB 入库，原始 FBX 不入库） | 模型项目自有；Mixamo 按 Adobe 使用条款用于项目 | 2026-10-24 |
 | `assets/models/pickup_pistol_ammo.glb` | EM-57P 手枪弹匣组拾取道具（立式三联弹匣+琥珀电量窗） | 本项目程序化建模（Blender 脚本 `desktop-port/godot-spike/modeling/build_pistol_ammo.py` 烘焙） | 项目自有 | 2026-10-19 |
 | `assets/models/weapons/em40g_grenade.glb` | EM-40G「滚雷」EC-40P 破垒榴弹投射物模型（全长 0.20m，3000 三角面，弹头 -Z；概念图 `modeling/em-weapons/em40g_grenade_input.png` 图生 3D，task_id e8eeb882-85b2-41b9-90e8-1e530f665ef1；归一化/减面脚本 `modeling/scripts/normalize_em40g.py` + `decimate_em40g.py`） | Kimi model3d_generation 插件（v3.1 图生） | 项目自有（AI 生成） | 2026-10-22 |
-| `assets/models/weapons/em12g1_optic_bored.glb`（含自动提取贴图） | EM-12G-1 开镜专用真实开孔瞄具；对同名项目自有拆件模型的原生三角面进行8等分细分并按镜孔中心清理遮挡，保留原镜筒、UV与材质，不新增独立补丁框或玻璃；管线 `modeling/scripts/open_generated_optic.py` + `add_glb_tangents.py` | 基于项目自有 EM-12G-1 派生，本地 Python/trimesh 处理 | 项目自有（AI 生成模型派生） | 2026-10-28 |
+| `assets/models/weapons/em68d_viewmodel.glb` | EM-68D「穿杨」精确射手步枪（项目自有概念图 `modeling/em-weapons/em68d_dmr_input.png`；Tripo task_id bf1826ca-dbe1-4441-a86b-942b39954021；原始 GLB 保留在 modeling，游戏版 1.10m / 120,000 三角面 / 弹头 -Z） | Kimi model3d_generation 插件（Tripo API，v3.1 图生）+ Blender 本地归一化/减面 | 项目自有（AI 生成） | 2026-10-27 |
+| `assets/models/weapons/em12g1_viewmodel.glb` | EM-12G-1「霰·Ⅰ」霰弹枪（项目自有概念图 `modeling/em-weapons/em12g1_shotgun_input.png`；Tripo task_id eb3ece45-0f22-46d6-aef2-6c7ad8a19b20；原始 GLB 保留在 modeling，游戏版 0.75m / 120,000 三角面 / 弹头 -Z） | Kimi model3d_generation 插件（Tripo API，v3.1 图生）+ Blender 本地归一化/减面 | 项目自有（AI 生成） | 2026-10-27 |
+| `assets/models/weapons/em12g1_optic_bored.glb`（含自动提取贴图） | EM-12G-1 开镜专用真实开孔瞄具；由同名项目自有拆件模型的 optic 部件对原生三角面进行8等分细分并按镜孔中心清理遮挡，保留原镜筒、UV与材质，不新增独立补丁框或玻璃；管线 `modeling/scripts/open_generated_optic.py` + `add_glb_tangents.py` | 基于项目自有 EM-12G-1 派生，本地 Python/trimesh 处理 | 项目自有（AI 生成模型派生） | 2026-10-28 |
+| `assets/models/vehicles/jb02_apc.glb` | JB-02 装甲运兵车静态模型（项目自有概念图 `modeling/units/jb-02/jb02_apc_input.png`；Tripo task_id 5bc72f20-bf7e-49be-ab58-e816f18181f1；原始 GLB 保留在 modeling，游戏版约 7.60×4.19×3.38m / 119,999 三角面 / 车头 -Z / 履带落地；车尾为封闭结构，开放货舱需另行结构施工） | Kimi model3d_generation 插件（Tripo API，v3.1 图生）+ Blender 本地归一化/减面 | 项目自有（AI 生成） | 2026-10-27 |
 
 ---
 

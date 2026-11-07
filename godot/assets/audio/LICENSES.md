@@ -32,8 +32,8 @@
 | spore.mp3 | 寄生体孢子团投掷（黏性有机喷吐质感，2026-10-21 机主裁决：与枪声彻底区分，参考《半衰期》牛乌贼喷酸） | **AI 生成** | Kimi audio_generation 插件 sound-effects 流程（英文描述生成，1.5s） | 本项目自生成 | 无（AI 生成） | 项目自有资产（等同 CC0） | 2026-10-21 |
 | spore.mp3（2026-10-25 重渲染） | 戈诺姆式厚重孢子投掷（降调 0.74× 增重+响度规整 I=-20LUFS，时长 1.5→2.0s；机主 2026-10-25 指令：原音效又快又响与动作不搭，参考《半衰期：针锋相对》戈诺姆远程孢子；因 Valve 版权不入库，以自有 AI 生成源改制） | **AI 生成后本地改制** | ffmpeg `asetrate=44100*0.74,aresample=44100,loudnorm=I=-20:TP=-3:LRA=7`，源为 2026-10-21 自生成文件（git 历史可溯） | 本项目自生成 | 无（AI 生成） | 项目自有资产（等同 CC0） | 2026-10-25 |
 
-| nano_armor.wav | 纳米护甲模式启动（低频电子上行+短促噪声，参考纳米服启动感） | **程序合成** | Python 标准库波形合成，0.65s，22050Hz 单声道 16bit WAV | 本项目自生成 | 无（本地合成） | 项目自有资产（等同 CC0） | 2026-11-07 |
-| nano_stealth.wav | 隐形模式启动（下行电子扫频+短促滤波噪声，力场收束感；与夜视仪完全独立） | **程序合成** | Python 标准库波形合成，0.85s，22050Hz 单声道 16bit WAV | 本项目自生成 | 无（本地合成） | 项目自有资产（等同 CC0） | 2026-11-07 |
+| nano_armor.wav | 装甲模式启动（机械装甲＋轻护盾能量底音，替换先前 3.2s 机器启动候选） | Freesound | Robot / Mech movement；EnergyShield.mp3（仅 22% 音量底音） | Breviceps；Beussa | https://freesound.org/people/Breviceps/sounds/505670/ （预览 https://cdn.freesound.org/previews/505/505670_9159316-hq.mp3 ）；https://freesound.org/people/Beussa/sounds/659967/ | 均 CC0（可商用、可修改） | 2026-11-07（混合为 1.2s，淡入淡出、-18 LUFS、44.1kHz 立体声） |
+| nano_stealth.wav | 隐形模式启动（短促力场展开，替换原 0.85s 合成占位；与夜视仪完全独立） | Freesound | Landing Forcefield | unfa | https://freesound.org/people/unfa/sounds/584173/ （官方预览 https://cdn.freesound.org/previews/584/584173_1038806-hq.mp3 ） | CC0（可商用、可修改） | 2026-11-07（淡入淡出、-18 LUFS 响度统一、44.1kHz 立体声） |
 
 ---
 
