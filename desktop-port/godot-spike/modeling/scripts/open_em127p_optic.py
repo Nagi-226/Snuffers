@@ -1,7 +1,6 @@
-"""Open the EM-127P upper optic and restore original rear cyan UVs, without added panels."""
+"""Open only the full upper EM-127P optic sightline, leaving the rear model unchanged."""
 import bpy
 import bmesh
-import numpy as np
 import os
 import sys
 
@@ -16,66 +15,6 @@ meshes = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
 if len(meshes) != 1:
     raise RuntimeError("expected one EM-127P mesh, got %d" % len(meshes))
 obj = meshes[0]
-
-
-def base_color_image(material):
-    if not material or not material.use_nodes:
-        return None
-    for node in material.node_tree.nodes:
-        if node.type == "TEX_IMAGE" and node.image:
-            return node.image
-    return None
-
-
-images = {}
-for material in obj.data.materials:
-    image = base_color_image(material)
-    if image:
-        pixels = np.empty(image.size[0] * image.size[1] * 4, dtype=np.float32)
-        image.pixels.foreach_get(pixels)
-        images[image.name] = (image, pixels.reshape((-1, 4)))
-
-
-def is_cyan(image_name, uv):
-    image, pixels = images[image_name]
-    width, height = image.size
-    x = min(width - 1, max(0, int((uv.x % 1.0) * width)))
-    y = min(height - 1, max(0, int((uv.y % 1.0) * height)))
-    r, g, b, _ = pixels[y * width + x]
-    return b > 0.3 and g > 0.2 and r < 0.2 and b > r * 1.8
-
-
-uv_layer = obj.data.uv_layers.active.data
-cyan_uv_faces = []
-for poly in obj.data.polygons:
-    center = poly.center
-    if not (0.10 < center.z < 0.20 and -0.48 < center.y < -0.38 and abs(center.x) < 0.06):
-        continue
-    image = base_color_image(obj.data.materials[poly.material_index])
-    if image and all(is_cyan(image.name, uv_layer[i].uv) for i in poly.loop_indices):
-        cyan_uv_faces.append(poly)
-if len(cyan_uv_faces) < 4:
-    raise RuntimeError("original cyan UV region not found: %d" % len(cyan_uv_faces))
-
-cyan_material = obj.data.materials[0].copy()
-cyan_material.name = "EM127P_Original_Cyan_Restore"
-cyan_bsdf = cyan_material.node_tree.nodes.get("Principled BSDF")
-cyan_bsdf.inputs["Emission Color"].default_value = (0.0, 0.45, 0.8, 1.0)
-cyan_bsdf.inputs["Emission Strength"].default_value = 0.8
-cyan_index = len(obj.data.materials)
-obj.data.materials.append(cyan_material)
-cyan_uv = sum((uv_layer[i].uv for poly in cyan_uv_faces for i in poly.loop_indices), start=__import__("mathutils").Vector((0, 0))) / sum(len(poly.loop_indices) for poly in cyan_uv_faces)
-panel_faces = []
-for poly in obj.data.polygons:
-    center = poly.center
-    in_original_panel = 0.10 < center.z < 0.20 and -0.455 < center.y < -0.425 and abs(center.x) < 0.035
-    if in_original_panel:
-        panel_faces.append(poly)
-for poly in panel_faces:
-    poly.material_index = cyan_index
-    for loop_index in poly.loop_indices:
-        uv_layer[loop_index].uv = cyan_uv
-print("ORIGINAL_PANEL_FACES_RESTORED", len(panel_faces), "REAR_GEOMETRY_ADDED 0", flush=True)
 
 CENTER_Z = 0.27
 HALF_X = 0.015
@@ -117,6 +56,7 @@ bm.to_mesh(obj.data)
 bm.free()
 obj.data.update()
 print("UPPER_OPTIC_COVERS_REMOVED", len(selected), flush=True)
+print("REAR_GEOMETRY_AND_MATERIAL_CHANGES 0", flush=True)
 print("LENS_CENTER_VIEWMODEL", (0.03, 0.03 + 0.48 * CENTER_Z, 0.04), flush=True)
 
 bpy.ops.object.select_all(action="DESELECT")

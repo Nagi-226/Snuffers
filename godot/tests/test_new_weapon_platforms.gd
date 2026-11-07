@@ -188,18 +188,17 @@ func _run() -> void:
 	_assert(_player._ads_mount_targets[&"magnum"].is_equal_approx(Vector3(-magnum_center.x, -magnum_center.y, _player._mount_hip_pos.z)) and not _player._ads_mount_targets[&"magnum"].is_equal_approx(_player._ads_mount_targets[&"pistol"]), "Magnum uses its own optic center instead of the EM-57P calibration")
 	var lens_center: Variant = _magnum_lens_center(magnum)
 	_assert(lens_center != null and (lens_center as Vector3).distance_to((magnum.get_node("ViewModel/OpticAim") as Marker3D).position) < 0.01, "Magnum optic marker matches its actual transparent lens")
-	var original_cyan := false
-	var added_glow := false
+	var original_texture := false
+	var added_glow_vertices := 0
 	for node in magnum.get_node("ViewModel/EM57P").find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := node as MeshInstance3D
 		for surface in mesh_instance.mesh.get_surface_count():
 			var material := mesh_instance.get_active_material(surface) as StandardMaterial3D
-			if material != null and material.emission_enabled and material.emission_energy_multiplier > 0.0:
-				if material.albedo_texture != null:
-					original_cyan = true
-				else:
-					added_glow = true
-	_assert(original_cyan and not added_glow, "Magnum restores original textured cyan faces without untextured emissive overlays")
+			if material != null:
+				original_texture = original_texture or material.albedo_texture != null
+				if material.emission_enabled and material.emission_energy_multiplier > 0.0:
+					added_glow_vertices += (mesh_instance.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
+	_assert(original_texture and added_glow_vertices == 0, "Magnum preserves its original textured model without added emissive panels")
 	_press(KEY_2)
 	_player._set_aiming(true)
 	for frame in 20:
