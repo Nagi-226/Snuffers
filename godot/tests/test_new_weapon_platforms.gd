@@ -163,12 +163,16 @@ func _run() -> void:
 	var lens_center: Variant = _magnum_lens_center(magnum)
 	_assert(lens_center != null and (lens_center as Vector3).distance_to((magnum.get_node("ViewModel/OpticAim") as Marker3D).position) < 0.01, "Magnum optic marker matches its actual transparent lens")
 	var rear_glow := false
+	var rear_glow_vertices := 0
 	for node in magnum.get_node("ViewModel/EM57P").find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := node as MeshInstance3D
 		for surface in mesh_instance.mesh.get_surface_count():
 			var material := mesh_instance.get_active_material(surface) as StandardMaterial3D
-			rear_glow = rear_glow or (material != null and material.emission_enabled and material.emission.b > 0.5 and material.emission_energy_multiplier > 0.0)
+			if material != null and material.emission_enabled and material.emission.b > 0.5 and material.emission_energy_multiplier > 0.0:
+				rear_glow = true
+				rear_glow_vertices += (mesh_instance.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
 	_assert(rear_glow, "Magnum rear cyan panel retains its emissive glow")
+	_assert(rear_glow_vertices == 8, "Magnum rear glow uses one clean window and one narrow light strip instead of fragmented weapon faces")
 	_press(KEY_2)
 	_player._set_aiming(true)
 	for frame in 20:
