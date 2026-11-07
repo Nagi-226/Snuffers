@@ -259,6 +259,12 @@ func _on_weapon_fired(weapon_id: StringName) -> void:
 			play_sfx_pitched(&"rifle", GameConfig.SHOTGUN_SOUND_PITCH)
 		&"spas12":
 			play_sfx_pitched(&"rifle", GameConfig.SPAS12_SOUND_PITCH)
+		&"smg":
+			play_sfx_pitched(&"pistol", GameConfig.SMG_SOUND_PITCH)
+		&"lmg":
+			play_sfx_pitched(&"rifle", GameConfig.LMG_SOUND_PITCH)
+		&"magnum":
+			play_sfx_pitched(&"pistol", GameConfig.MAGNUM_SOUND_PITCH)
 		&"grenade":
 			play_sfx(&"rocket") ## EM-40G 榴弹出膛复用 rocket 音源；爆炸音走 rpg_exploded→explosion
 

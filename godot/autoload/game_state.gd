@@ -22,6 +22,10 @@ var shotgun_mag: int = 0 ## EM-12G-1 弹匣（2026-10-26）
 var shotgun_reserve: int = 0 ## EM-12G-1 备弹（EC-12）
 var spas12_mag: int = 0 ## SPAS-12 管状弹仓（独立 12GA）
 var spas12_reserve: int = 0 ## SPAS-12 独立 12GA 备弹
+var smg_mag: int = 0 ## EM-57S-1；EC-57 备弹与 pistol_reserve 共用
+var lmg_mag: int = 0 ## EM-68L；EC-68 备弹与 rifle_reserve 共用
+var magnum_mag: int = 0 ## EM-127P 弹匣（独立 EC-127）
+var magnum_reserve: int = 0 ## EM-127P 独立 EC-127 备弹
 ## EM-40G「滚雷」榴弹余量（2026-10-22 冻结新增：并入步枪第四射击档，模块 6 发弹匣
 ## =雷池，总数制无换弹；旧 rpg_ammo 随 RPG 武器退役移除）
 var rifle_grenades: int = 0
@@ -85,6 +89,10 @@ func reset() -> void:
 	shotgun_reserve = GameConfig.SHOTGUN_RESERVE
 	spas12_mag = GameConfig.SPAS12_MAG
 	spas12_reserve = GameConfig.SPAS12_RESERVE
+	smg_mag = GameConfig.SMG_MAG
+	lmg_mag = GameConfig.LMG_MAG
+	magnum_mag = GameConfig.MAGNUM_MAG
+	magnum_reserve = GameConfig.MAGNUM_RESERVE
 	rifle_grenades = GameConfig.GRENADE_AMMO
 	medkits = 0
 	kills = 0
@@ -92,8 +100,8 @@ func reset() -> void:
 	intel_total = 0
 	mission_points = {}
 	current_weapon = &"rifle"
-	weapon_unlocked = {&"rifle": true, &"pistol": true, &"dmr": false, &"shotgun": false, &"spas12": false}
-	fire_modes = {&"rifle": &"auto", &"pistol": &"semi", &"dmr": &"semi", &"shotgun": &"semi", &"spas12": &"semi"}
+	weapon_unlocked = {&"rifle": true, &"pistol": true, &"dmr": false, &"shotgun": false, &"spas12": false, &"smg": false, &"lmg": false, &"magnum": false}
+	fire_modes = {&"rifle": &"auto", &"pistol": &"semi", &"dmr": &"semi", &"shotgun": &"semi", &"spas12": &"semi", &"smg": &"auto", &"lmg": &"auto", &"magnum": &"semi"}
 	is_prone = false
 	is_aiming = false
 	nano_mode = &"normal"

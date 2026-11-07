@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/pistol_controller.gd" id="1_controller"]
+[ext_resource type="Resource" path="res://scenes/weapons/magnum.tres" id="2_data"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/em127p_viewmodel.glb" id="3_model"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/arms_pistol_native.glb" id="4_arms"]
+
+[node name="Magnum" type="Node3D"]
+script = ExtResource("1_controller")
+weapon_data = ExtResource("2_data")
+mag_state_property = &"magnum_mag"
+reserve_state_property = &"magnum_reserve"
+retime_reload = false
+
+[node name="ViewModel" type="Node3D" parent="."]
+
+[node name="EM57P" parent="ViewModel" instance=ExtResource("3_model")]
+scale = Vector3(0.48, 0.48, 0.48)
+position = Vector3(0.03, 0.03, 0.04)
+
+[node name="em57p_magazine" type="Marker3D" parent="ViewModel/EM57P"]
+position = Vector3(-0.008677, -0.147712, 0.187488)
+
+[node name="OpticAim" type="Marker3D" parent="ViewModel"]
+position = Vector3(0, 0.145, 0.04)
+
+[node name="Muzzle" type="Marker3D" parent="ViewModel/EM57P"]
+position = Vector3(0, 0, -0.5)
+
+[node name="ArmsEM57P" parent="ViewModel" instance=ExtResource("4_arms")]
+position = Vector3(0, 0.03, 0.04)

@@ -1,7 +1,7 @@
 """Prepare a generated weapon/vehicle GLB for Godot while preserving its raw source.
 
 blender -b --factory-startup --python-exit-code 1 --python prepare_generated_asset.py -- \
-    <input.glb> <output.glb> <weapon|vehicle> <target_length_m> <triangle_target> <preview_dir>
+    <input.glb> <output.glb> <weapon|vehicle> <target_length_m> <triangle_target> <preview_dir> [weapon_yaw_degrees]
 """
 import bpy
 import math
@@ -10,10 +10,11 @@ import os
 import sys
 
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
-if len(argv) != 6:
-    raise SystemExit("usage: <input.glb> <output.glb> <weapon|vehicle> <length_m> <triangles> <preview_dir>")
+if len(argv) not in {6, 7}:
+    raise SystemExit("usage: <input.glb> <output.glb> <weapon|vehicle> <length_m> <triangles> <preview_dir> [weapon_yaw_degrees]")
 SRC, DST, KIND, TARGET_LENGTH, TARGET_TRIS, PREVIEW = (
     os.path.abspath(argv[0]), os.path.abspath(argv[1]), argv[2], float(argv[3]), int(argv[4]), os.path.abspath(argv[5]))
+WEAPON_YAW = float(argv[6]) if len(argv) == 7 else 0.0
 if KIND not in {"weapon", "vehicle"}:
     raise ValueError("kind must be weapon or vehicle")
 os.makedirs(os.path.dirname(DST), exist_ok=True)
@@ -37,10 +38,11 @@ def bounds():
     return lo, hi
 
 
-# Generated guns point along +Y; the JB-02 points along +X in Blender.
-# Both finish pointing +Y, which glTF export maps to Godot -Z.
-if KIND == "vehicle":
-    turn = mathutils.Matrix.Rotation(math.radians(90.0), 4, "Z")
+# Vehicle default +90°; generated weapons use the measured muzzle yaw.
+# glTF export maps Blender +Y to Godot +Z, so a forward muzzle must point Blender -Y.
+turn_angle = 90.0 if KIND == "vehicle" else WEAPON_YAW
+if turn_angle != 0.0:
+    turn = mathutils.Matrix.Rotation(math.radians(turn_angle), 4, "Z")
     for obj in meshes:
         if obj.parent is None:
             obj.matrix_world = turn @ obj.matrix_world

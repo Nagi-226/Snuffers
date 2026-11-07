@@ -6,6 +6,9 @@ const ICONS: Dictionary = {
 	&"dmr": preload("res://assets/ui/weapons/em68d.svg"),
 	&"shotgun": preload("res://assets/ui/weapons/em12g1.svg"),
 	&"spas12": preload("res://assets/ui/weapons/spas12.svg"),
+	&"smg": preload("res://assets/ui/weapons/em57s1.svg"),
+	&"lmg": preload("res://assets/ui/weapons/em68l.svg"),
+	&"magnum": preload("res://assets/ui/weapons/em127p.svg"),
 }
 
 var weapon_id: StringName = &"rifle":

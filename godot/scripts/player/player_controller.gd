@@ -64,6 +64,7 @@ var _dmr_scope: ColorRect = null
 var _dmr_scope_material: ShaderMaterial = null
 var _dmr_tactical: Control = null
 var _big_map: Control = null
+var _scope_view_models: Dictionary = {}
 @onready var _dmr_view_model: Node3D = $Camera3D/WeaponMount/DMR/ViewModel
 @onready var _shotgun_controller: Node = $Camera3D/WeaponMount/Shotgun
 ## 瞄具双网格切换（2026-10-20 机主立项）：常规视角用完整瞄具（外观完好），
@@ -142,6 +143,11 @@ func _ready() -> void:
 	_big_map.visible = false
 	reticle_layer.add_child(_big_map)
 	_calibrate_ads()
+	_ads_mount_targets[&"smg"] = _ads_mount_targets[&"rifle"]
+	_ads_mount_targets[&"lmg"] = _ads_mount_targets[&"rifle"]
+	_ads_mount_targets[&"magnum"] = _ads_mount_targets[&"pistol"]
+	for pair: Array in [[&"smg", "SMG/ViewModel/EM68A"], [&"lmg", "LMG/ViewModel/EM68A"], [&"magnum", "Magnum/ViewModel/EM57P"]]:
+		_scope_view_models[pair[0]] = _weapon_mount.get_node_or_null(pair[1])
 	_load_optic_meshes()
 	# 承伤管线挂接（发射侧在 enemy_base._damage_player；结算收口在本类 _apply_damage）。
 	Events.player_damaged.connect(_apply_damage)
@@ -181,8 +187,11 @@ func _calibrate_ads() -> void:
 		&"dmr": GameConfig.DMR_ADS_FOV,
 		&"shotgun": GameConfig.SHOTGUN_ADS_FOV,
 		&"spas12": GameConfig.SPAS12_ADS_FOV,
+		&"smg": GameConfig.SMG_ADS_FOV,
+		&"lmg": GameConfig.LMG_ADS_FOV,
+		&"magnum": GameConfig.MAGNUM_ADS_FOV,
 	}
-	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"], [&"spas12", "Spas12"]]:
+	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"], [&"spas12", "Spas12"], [&"smg", "SMG"], [&"lmg", "LMG"], [&"magnum", "Magnum"]]:
 		var weapon_root := _weapon_mount.get_node_or_null(pair[1]) as Node3D
 		var fallback := Vector3(0.0, _mount_hip_pos.y, _mount_hip_pos.z)
 		if weapon_root == null:
@@ -521,6 +530,14 @@ func _process(delta: float) -> void:
 			_ads_reticle.mode = mode
 			_ads_reticle.weight = _ads_weight
 			_ads_reticle.queue_redraw()
+	for weapon_id in _scope_view_models:
+		var model := _scope_view_models[weapon_id] as Node3D
+		if model != null:
+			model.visible = GameState.current_weapon != weapon_id or _ads_weight < 0.75
+	if GameState.current_weapon in [&"smg", &"lmg"]:
+		_weapon_mount.get_node("Rifle").visible = _ads_weight >= 0.75
+	if GameState.current_weapon == &"magnum":
+		_weapon_mount.get_node("Pistol").visible = _ads_weight >= 0.75
 	var full_scope := GameState.current_weapon == &"dmr" and _ads_weight > 0.6
 	if _dmr_scope != null:
 		_dmr_scope.visible = full_scope
@@ -534,7 +551,8 @@ func _process(delta: float) -> void:
 	# 切换点取过渡中点（0.5），此时镜筒正在归中途中，换网格肉眼不可察。
 	for weapon_id: StringName in _optic_meshes:
 		var pair: Dictionary = _optic_meshes[weapon_id]
-		var want_bored := GameState.current_weapon == weapon_id and _ads_weight > 0.5
+		var wants_rifle_optic := GameState.current_weapon == weapon_id or (weapon_id == &"rifle" and GameState.current_weapon in [&"smg", &"lmg"])
+		var want_bored := wants_rifle_optic and _ads_weight > 0.5
 		var target_mesh: Mesh = pair.bored if want_bored else pair.intact
 		if pair.node.mesh != target_mesh:
 			pair.node.mesh = target_mesh
@@ -730,16 +748,16 @@ func _apply_nano_visuals() -> void:
 		(mesh as MeshInstance3D).transparency = 0.82 if GameState.nano_mode == &"stealth" else 0.0
 
 
-## X：步枪四态、手枪三态、DMR/SPAS 固定半自动、EM 霰弹枪半自动/全自动。
+## X：步枪/SMG 加榴档，其他自动武器三档，DMR/SPAS/重手枪固定半自动。
 func _cycle_fire_mode() -> void:
 	var w := GameState.current_weapon
-	if w in [&"dmr", &"spas12"]:
+	if w in [&"dmr", &"spas12", &"magnum"]:
 		return
 	const ORDER_RIFLE: Array[StringName] = [&"auto", &"semi", &"burst", &"grenade"]
 	const ORDER_PISTOL: Array[StringName] = [&"auto", &"burst", &"semi"]
 	const ORDER_SHOTGUN: Array[StringName] = [&"semi", &"auto"]
 	var order: Array[StringName] = ORDER_PISTOL
-	if w == &"rifle":
+	if w in [&"rifle", &"smg"]:
 		order = ORDER_RIFLE
 	elif w == &"shotgun":
 		order = ORDER_SHOTGUN
@@ -815,13 +833,13 @@ class AdsReticle extends Control:
 					draw_line(center + dir * 28.0, center + dir * maxf(size.x, size.y), color, 1.2, true)
 				draw_arc(center, 18.0, 0.0, TAU, 64, color, 1.6, true)
 				draw_circle(center, 2.2, color)
-			&"rifle", &"shotgun":
+			&"rifle", &"shotgun", &"smg", &"lmg":
 				# 全息环：外环 + 心点 + 四向短刻度
 				draw_arc(center, 22.0, 0.0, TAU, 64, color, 1.6, true)
 				draw_circle(center, 2.2, color)
 				for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
 					draw_line(center + dir * 26.0, center + dir * 31.0, color, 1.6, true)
-			&"pistol":
+			&"pistol", &"magnum":
 				# 点状准星：心点 + 微光晕圈
 				draw_arc(center, 5.0, 0.0, TAU, 32, Color(color, alpha * 0.45), 1.2, true)
 				draw_circle(center, 2.0, color)

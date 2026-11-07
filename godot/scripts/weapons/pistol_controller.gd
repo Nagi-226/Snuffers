@@ -9,13 +9,18 @@
 ## - 弹药走 GameState.pistol_mag / pistol_reserve 契约字段。
 extends WeaponController
 
+@export var mag_state_property: StringName = &"pistol_mag"
+@export var reserve_state_property: StringName = &"pistol_reserve"
+@export var magazine_node_path: NodePath = ^"ViewModel/EM57P/em57p_magazine"
+@export var retime_reload: bool = true
+
 ## 射击模式机制已上收基类（2026-10-19：半自动/三发点射/全自动三档，X 键切换）；
 ## 本子类只保留弹药结算、散布射线与换弹三件套。
 var _is_reloading: bool = false
 var _reload_generation: int = 0
 
 # Cransh 原生手臂与动画；EM 枪身和弹匣共享原生武器骨，不再跨手臂重定向。
-@onready var _magazine: Node3D = get_node_or_null("ViewModel/EM57P/em57p_magazine")
+@onready var _magazine: Node3D = get_node_or_null(magazine_node_path)
 @onready var _weapon_node: Node3D = $ViewModel/EM57P
 var _mag_home_transform: Transform3D = Transform3D.IDENTITY
 var _weapon_home: Transform3D = Transform3D.IDENTITY
@@ -27,6 +32,22 @@ var _mag_motion_start: Transform3D = Transform3D.IDENTITY
 var _weapon_motion_start: Transform3D = Transform3D.IDENTITY
 
 
+func _mag_value() -> int:
+	return int(GameState.get(mag_state_property))
+
+
+func _reserve_value() -> int:
+	return int(GameState.get(reserve_state_property))
+
+
+func _set_mag_value(value: int) -> void:
+	GameState.set(mag_state_property, value)
+
+
+func _set_reserve_value(value: int) -> void:
+	GameState.set(reserve_state_property, value)
+
+
 func _ready() -> void:
 	super()
 	if _magazine != null:
@@ -35,7 +56,10 @@ func _ready() -> void:
 	var players := $ViewModel/ArmsEM57P.find_children("*", "AnimationPlayer", true, false)
 	if not players.is_empty():
 		_arms_animation = players[0] as AnimationPlayer
-		_prepare_native_reload("Armature|FPS_Pistol_Reload_full")
+		if retime_reload:
+			_prepare_native_reload("Armature|FPS_Pistol_Reload_full")
+		else:
+			_arms_animation.get_animation_library("").add_animation(&"reload", _arms_animation.get_animation("Armature|FPS_Pistol_Reload_full"))
 		_prepare_native_idle("Armature|FPS_Pistol_Idle")
 	var skeletons := $ViewModel/ArmsEM57P.find_children("*", "Skeleton3D", true, false)
 	if not skeletons.is_empty():
@@ -51,8 +75,21 @@ func _ready() -> void:
 	Events.weapon_reloaded.connect(_on_weapon_reloaded)
 
 
+func _copy_animation(clip: StringName) -> Animation:
+	var source := _arms_animation.get_animation(clip) as Animation
+	var copy := Animation.new()
+	for track in source.get_track_count():
+		var index := copy.add_track(source.track_get_type(track))
+		copy.track_set_path(index, source.track_get_path(track))
+		copy.track_set_interpolation_type(index, source.track_get_interpolation_type(track))
+		for key in source.track_get_key_count(track):
+			copy.track_insert_key(index, source.track_get_key_time(track, key), source.track_get_key_value(track, key))
+	copy.length = source.length
+	return copy
+
+
 func _prepare_native_reload(clip: StringName) -> void:
-	var animation := _arms_animation.get_animation(clip).duplicate() as Animation
+	var animation := _copy_animation(clip)
 	var source_length := animation.length
 	for track in animation.get_track_count():
 		for key in animation.track_get_key_count(track):
@@ -68,7 +105,7 @@ func _prepare_native_reload(clip: StringName) -> void:
 ## 待机剪辑：骨架常态停在握持位。换弹剪辑 stop 后骨架回落绑定姿势，
 ## 手臂整体跌出第一人称视野（2026-10-24 机主实机反馈常态隐形的根因）。
 func _prepare_native_idle(clip: StringName) -> void:
-	var animation := _arms_animation.get_animation(clip).duplicate() as Animation
+	var animation := _copy_animation(clip)
 	animation.loop_mode = Animation.LOOP_LINEAR
 	_arms_animation.get_animation_library("").add_animation(&"idle", animation)
 	_arms_animation.play(&"idle")
@@ -147,16 +184,16 @@ func _unhandled_input(event: InputEvent) -> void:
 func _fire() -> bool:
 	if _is_reloading:
 		return false
-	if GameState.pistol_mag <= 0:
+	if _mag_value() <= 0:
 		# 弹尽自动换弹（与步枪同口径）。
 		_start_reload()
 		return false
 
-	GameState.pistol_mag -= 1
-	Events.ammo_changed.emit(&"pistol", GameState.pistol_mag, GameState.pistol_reserve)
-	Events.weapon_fired.emit(&"pistol")
+	_set_mag_value(_mag_value() - 1)
+	Events.ammo_changed.emit(weapon_data.weapon_id, _mag_value(), _reserve_value())
+	Events.weapon_fired.emit(weapon_data.weapon_id)
 	# 微弱青蓝枪口焰（与步枪同口径）。
-	Events.player_muzzle_flash.emit(&"pistol",
+	Events.player_muzzle_flash.emit(weapon_data.weapon_id,
 		global_position + (-global_transform.basis.z) * GameConfig.PLAYER_MUZZLE_OFFSET)
 	_apply_recoil()
 
@@ -214,21 +251,21 @@ func _current_spread() -> float:
 
 ## 换弹启动（R 键手动 / 弹尽自动共用）：自发 started →（reload_time）→ reloaded 信号序列。
 func _start_reload() -> void:
-	if _is_reloading or GameState.pistol_reserve <= 0:
+	if _is_reloading or _reserve_value() <= 0:
 		return
-	if GameState.pistol_mag >= weapon_data.mag_size:
+	if _mag_value() >= weapon_data.mag_size:
 		return
 	_reload_generation += 1
 	var generation := _reload_generation
-	Events.weapon_reload_started.emit(&"pistol")
+	Events.weapon_reload_started.emit(weapon_data.weapon_id)
 	await get_tree().create_timer(weapon_data.reload_time).timeout
 	if not is_instance_valid(self) or generation != _reload_generation:
 		return
-	Events.weapon_reloaded.emit(&"pistol")
+	Events.weapon_reloaded.emit(weapon_data.weapon_id)
 
 
 func _on_reload_started(weapon_id: StringName) -> void:
-	if weapon_id == &"pistol":
+	if weapon_id == weapon_data.weapon_id:
 		_is_reloading = true
 		_play_reload_anim()
 
@@ -276,12 +313,12 @@ func _set_sleeve_extenders_visible(value: bool) -> void:
 
 ## 换弹完成：标准弹药迁移（弹匣缺口 ← 备弹），广播 ammo_changed。
 func _on_weapon_reloaded(weapon_id: StringName) -> void:
-	if weapon_id != &"pistol":
+	if weapon_id != weapon_data.weapon_id:
 		return
 	_reset_reload_visuals()
 	_is_reloading = false
-	var need: int = weapon_data.mag_size - GameState.pistol_mag
-	var take: int = mini(need, GameState.pistol_reserve)
-	GameState.pistol_mag += take
-	GameState.pistol_reserve -= take
-	Events.ammo_changed.emit(&"pistol", GameState.pistol_mag, GameState.pistol_reserve)
+	var need: int = weapon_data.mag_size - _mag_value()
+	var take: int = mini(need, _reserve_value())
+	_set_mag_value(_mag_value() + take)
+	_set_reserve_value(_reserve_value() - take)
+	Events.ammo_changed.emit(weapon_data.weapon_id, _mag_value(), _reserve_value())

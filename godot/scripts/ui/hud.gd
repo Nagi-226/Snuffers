@@ -15,6 +15,7 @@ extends CanvasLayer
 const WeaponIcon = preload("res://scripts/ui/weapon_icon.gd")
 
 @export var district_mode: bool = false
+@export var range_mode: bool = false
 
 ## 准星恢复过渡时长 s（视觉表现常量）。
 const CROSSHAIR_RECOVER_TIME: float = 0.1
@@ -94,7 +95,7 @@ func _ready() -> void:
 	_kill_label_base_y = _kill_label.position.y
 	_damage_label_base_y = _damage_label.position.y
 	_damage_flash.color.a = 0.0
-	if district_mode:
+	if district_mode or range_mode:
 		get_node("Minimap").visible = true
 		get_node("CompassBar").show_mission_markers = false
 		_intel_label.visible = false
@@ -239,6 +240,12 @@ func _weapon_display_name(weapon_id: StringName) -> String:
 			return "EM-12G-1 霰·Ⅰ"
 		&"spas12":
 			return "SPAS-12 · 12GA"
+		&"smg":
+			return "EM-57S-1 雹·Ⅰ"
+		&"lmg":
+			return "EM-68L 殷雷"
+		&"magnum":
+			return "EM-127P 锏"
 	return "未获取"
 
 
@@ -246,6 +253,15 @@ func _weapon_display_name(weapon_id: StringName) -> String:
 ## 目标进度——门 B 通行前置 = 铁栅栏门钥匙（E5 车库后院）+ 取证终端（E1/E2 楼内）。
 ## 数据源 GameState（gate_key_have / intel / intel_total）+ GameConfig（GATE_INTEL_REQUIRED）。
 func _refresh_mission(force: bool) -> void:
+	if range_mode:
+		if force or _mission_sig != "range":
+			_mission_sig = "range"
+			_mission_title.text = "综合武器靶场"
+			_mission_key.text = "室内近战 / 迷宫 / 近距高台"
+			_mission_intel.text = "远程狙击 · NPC 靶标不反击"
+			_mission_key.add_theme_color_override("font_color", MISSION_TODO_COLOR)
+			_mission_intel.add_theme_color_override("font_color", MISSION_TODO_COLOR)
+		return
 	if district_mode:
 		var dmr_done: bool = GameState.weapon_unlocked.get(&"dmr", false)
 		var shotgun_done: bool = GameState.weapon_unlocked.get(&"shotgun", false)
@@ -433,6 +449,12 @@ func _refresh_ammo() -> void:
 	match GameState.current_weapon:
 		&"pistol":
 			_set_ammo_text(&"pistol", GameState.pistol_mag, GameState.pistol_reserve)
+		&"smg":
+			_set_ammo_text(&"smg", GameState.smg_mag, GameState.pistol_reserve)
+		&"lmg":
+			_set_ammo_text(&"lmg", GameState.lmg_mag, GameState.rifle_reserve)
+		&"magnum":
+			_set_ammo_text(&"magnum", GameState.magnum_mag, GameState.magnum_reserve)
 		&"dmr":
 			_set_ammo_text(&"dmr", GameState.dmr_mag, GameState.rifle_reserve)
 		&"shotgun":
@@ -462,19 +484,22 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 		mode_tag = "泵动"
 	var ammo_type: String = {
 		&"pistol": "EC-57",
+		&"smg": "EC-57",
 		&"rifle": "EC-68",
+		&"lmg": "EC-68",
+		&"magnum": "EC-127",
 		&"dmr": "EC-68",
 		&"shotgun": "EC-12",
 		&"spas12": "12GA",
 	}.get(weapon_id, "")
-	if weapon_id == &"rifle" and mode == &"grenade":
+	if weapon_id in [&"rifle", &"smg"] and mode == &"grenade":
 		mode_tag = "滚雷"
 	_weapon_ammo.set("weapon_id", weapon_id)
 	_weapon_ammo.set("mag", mag)
 	_weapon_ammo.set("reserve", reserve)
 	_weapon_ammo.set("mode_tag", mode_tag)
 	_weapon_ammo.set("ammo_type", ammo_type)
-	_weapon_ammo.set("show_grenades", weapon_id == &"rifle")
+	_weapon_ammo.set("show_grenades", weapon_id in [&"rifle", &"smg"])
 	_weapon_ammo.set("grenade_stock", GameState.rifle_grenades)
 
 

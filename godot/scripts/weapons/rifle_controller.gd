@@ -17,13 +17,18 @@
 ## 弹尽自动换弹（网页版 L2954）与 R 键手动换弹共用 _start_reload，两条路径信号序列一致。
 extends WeaponController
 
+@export var mag_state_property: StringName = &"rifle_mag"
+@export var reserve_state_property: StringName = &"rifle_reserve"
+@export var grenade_enabled: bool = true
+@export var magazine_node_path: NodePath = ^"ViewModel/EM68A/em68a_magazine"
+
 ## 射击模式机制已上收基类（2026-10-19：半自动/三发点射/全自动三档，X 键切换）；
 ## 本子类只保留弹药结算、散布射线与换弹三件套。
 var _is_reloading: bool = false
 var _reload_generation: int = 0
 
 # Cransh 原生手臂与动画；EM 枪身和弹匣共享原生武器骨，不再跨手臂重定向。
-@onready var _magazine: Node3D = get_node_or_null("ViewModel/EM68A/em68a_magazine")
+@onready var _magazine: Node3D = get_node_or_null(magazine_node_path)
 @onready var _weapon_node: Node3D = $ViewModel/EM68A
 @onready var _arms_node: Node3D = $ViewModel/ArmsEM68A
 var _mag_home_transform: Transform3D = Transform3D.IDENTITY
@@ -69,6 +74,22 @@ var _pose_pending: bool = false
 # 左臂链实测骨长（就绪时 Run 姿势采样；两骨 IK 求解用）。
 var _arm_upper_len: float = 0.0
 var _arm_fore_len: float = 0.0
+
+
+func _mag_value() -> int:
+	return int(GameState.get(mag_state_property))
+
+
+func _reserve_value() -> int:
+	return int(GameState.get(reserve_state_property))
+
+
+func _set_mag_value(value: int) -> void:
+	GameState.set(mag_state_property, value)
+
+
+func _set_reserve_value(value: int) -> void:
+	GameState.set(reserve_state_property, value)
 
 
 func _ready() -> void:
@@ -362,20 +383,20 @@ func _unhandled_input(event: InputEvent) -> void:
 ## 单发流程：榴档分流投射物；否则弹药门控 → 扣弹广播 → 后坐 → 散布射线 → 命中结算。
 ## 返回是否真正击发。
 func _fire() -> bool:
-	if _current_fire_mode() == &"grenade":
+	if grenade_enabled and _current_fire_mode() == &"grenade":
 		return _fire_grenade()
 	if _is_reloading:
 		return false
-	if GameState.rifle_mag <= 0:
+	if _mag_value() <= 0:
 		# 网页版弹尽自动换弹（index.html L2954）。
 		_start_reload()
 		return false
 
-	GameState.rifle_mag -= 1
-	Events.ammo_changed.emit(&"rifle", GameState.rifle_mag, GameState.rifle_reserve)
-	Events.weapon_fired.emit(&"rifle")
+	_set_mag_value(_mag_value() - 1)
+	Events.ammo_changed.emit(weapon_data.weapon_id, _mag_value(), _reserve_value())
+	Events.weapon_fired.emit(weapon_data.weapon_id)
 	# 微弱青蓝枪口焰（2026-10-19 机主立项）：炮口近似位 = 武器原点沿 -Z 前移 PLAYER_MUZZLE_OFFSET。
-	Events.player_muzzle_flash.emit(&"rifle",
+	Events.player_muzzle_flash.emit(weapon_data.weapon_id,
 		global_position + (-global_transform.basis.z) * GameConfig.PLAYER_MUZZLE_OFFSET)
 	_apply_recoil()
 
@@ -422,7 +443,7 @@ func _fire_grenade() -> bool:
 		push_error("rifle.tres 未配置 projectile_scene（EM-40G 投射物）")
 		return false
 	GameState.rifle_grenades -= 1
-	Events.ammo_changed.emit(&"rifle", GameState.rifle_grenades, -1)
+	Events.ammo_changed.emit(weapon_data.weapon_id, _mag_value(), _reserve_value())
 	Events.weapon_fired.emit(&"grenade")
 	_apply_recoil()
 	var projectile: Node3D = weapon_data.projectile_scene.instantiate()
@@ -472,23 +493,23 @@ func _current_spread() -> float:
 
 
 ## 换弹启动（R 键手动 / 弹尽自动共用）：自发 started →（reload_time）→ reloaded 信号序列。
-## 守卫：换弹中 / 无备弹 / 弹匣已满时不触发。
+## 守卫：榴弹档 / 换弹中 / 无备弹 / 弹匣已满时不触发。
 func _start_reload() -> void:
-	if _is_reloading or GameState.rifle_reserve <= 0:
+	if _current_fire_mode() == &"grenade" or _is_reloading or _reserve_value() <= 0:
 		return
-	if GameState.rifle_mag >= weapon_data.mag_size:
+	if _mag_value() >= weapon_data.mag_size:
 		return
 	_reload_generation += 1
 	var generation := _reload_generation
-	Events.weapon_reload_started.emit(&"rifle")
+	Events.weapon_reload_started.emit(weapon_data.weapon_id)
 	await get_tree().create_timer(weapon_data.reload_time).timeout
 	if not is_instance_valid(self) or generation != _reload_generation:
 		return
-	Events.weapon_reloaded.emit(&"rifle")
+	Events.weapon_reloaded.emit(weapon_data.weapon_id)
 
 
 func _on_reload_started(weapon_id: StringName) -> void:
-	if weapon_id == &"rifle":
+	if weapon_id == weapon_data.weapon_id:
 		_is_reloading = true
 		_play_reload_anim()
 
@@ -552,12 +573,12 @@ func _set_sleeve_extenders_visible(value: bool) -> void:
 
 ## 换弹完成：标准弹药迁移（弹匣缺口 ← 备弹），广播 ammo_changed。
 func _on_weapon_reloaded(weapon_id: StringName) -> void:
-	if weapon_id != &"rifle":
+	if weapon_id != weapon_data.weapon_id:
 		return
 	_reset_reload_visuals()
 	_is_reloading = false
-	var need: int = weapon_data.mag_size - GameState.rifle_mag
-	var take: int = mini(need, GameState.rifle_reserve)
-	GameState.rifle_mag += take
-	GameState.rifle_reserve -= take
-	Events.ammo_changed.emit(&"rifle", GameState.rifle_mag, GameState.rifle_reserve)
+	var need: int = weapon_data.mag_size - _mag_value()
+	var take: int = mini(need, _reserve_value())
+	_set_mag_value(_mag_value() + take)
+	_set_reserve_value(_reserve_value() - take)
+	Events.ammo_changed.emit(weapon_data.weapon_id, _mag_value(), _reserve_value())

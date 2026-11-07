@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_controller"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/rifle.tscn" id="2_rifle"]
@@ -8,9 +8,11 @@
 [ext_resource type="PackedScene" path="res://scenes/weapons/dmr.tscn" id="7_dmr"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/shotgun.tscn" id="8_shotgun"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/spas12.tscn" id="9_spas12"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/smg.tscn" id="10_smg"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/lmg.tscn" id="11_lmg"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/magnum.tscn" id="12_magnum"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
-; 占位数值：_ready 时由脚本按 GameConfig（PLAYER_RADIUS × PLAYER_HEIGHT_STAND）逐项覆盖
 radius = 0.4
 height = 1.8
 
@@ -29,7 +31,6 @@ fov = 75.0
 [node name="WeaponMount" type="Marker3D" parent="Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.27, -0.62)
 
-; 武器挂载（W2 域场景，实例化只读；输入门控/可见性由 weapon_controller 自治）
 [node name="Rifle" parent="Camera3D/WeaponMount" instance=ExtResource("2_rifle")]
 
 [node name="Pistol" parent="Camera3D/WeaponMount" instance=ExtResource("4_pistol")]
@@ -40,17 +41,23 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.27, -0.62)
 
 [node name="Spas12" parent="Camera3D/WeaponMount" instance=ExtResource("9_spas12")]
 
-; 玩家弹道特效（2026-10-19 机主立项：青蓝枪口焰/弹坑贴花/金属火星；只监听 Events 总线）
+[node name="SMG" parent="Camera3D/WeaponMount" instance=ExtResource("10_smg")]
+
+[node name="LMG" parent="Camera3D/WeaponMount" instance=ExtResource("11_lmg")]
+
+[node name="Magnum" parent="Camera3D/WeaponMount" instance=ExtResource("12_magnum")]
+
 [node name="PlayerCombatFx" type="Node3D" parent="."]
 script = ExtResource("5_fx")
 
-; 榴弹爆炸特效（2026-10-22 机主立项：程序化多层爆炸替换灰盒占位橙球；监听 rpg_exploded）
 [node name="ExplosionFx" type="Node3D" parent="."]
 script = ExtResource("6_explosion_fx")
 
-; 后坐通路（蜂后裁决：不上 Events 总线，player 场景内局部连接到相机 pitch）
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Rifle" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Pistol" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/DMR" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Shotgun" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Spas12" to="." method="_on_weapon_recoil_kick"]
+[connection signal="recoil_kick" from="Camera3D/WeaponMount/SMG" to="." method="_on_weapon_recoil_kick"]
+[connection signal="recoil_kick" from="Camera3D/WeaponMount/LMG" to="." method="_on_weapon_recoil_kick"]
+[connection signal="recoil_kick" from="Camera3D/WeaponMount/Magnum" to="." method="_on_weapon_recoil_kick"]

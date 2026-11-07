@@ -27,9 +27,10 @@ var _show_mission_points := true
 
 func _ready() -> void:
 	var district := bool(get_parent().get("district_mode"))
-	var texture_path := GameConfig.DISTRICT_MINIMAP_MAP_TEXTURE if district else GameConfig.MINIMAP_MAP_TEXTURE
-	var calib_path := GameConfig.DISTRICT_MINIMAP_MAP_CALIB if district else GameConfig.MINIMAP_MAP_CALIB
-	_show_mission_points = not district
+	var range_test := bool(get_parent().get("range_mode"))
+	var texture_path := GameConfig.RANGE_MINIMAP_MAP_TEXTURE if range_test else (GameConfig.DISTRICT_MINIMAP_MAP_TEXTURE if district else GameConfig.MINIMAP_MAP_TEXTURE)
+	var calib_path := GameConfig.RANGE_MINIMAP_MAP_CALIB if range_test else (GameConfig.DISTRICT_MINIMAP_MAP_CALIB if district else GameConfig.MINIMAP_MAP_CALIB)
+	_show_mission_points = not district and not range_test
 	var tex: Texture2D = load(texture_path)
 	var calib := _load_calib(calib_path)
 	if tex == null or calib.is_empty():
@@ -64,7 +65,7 @@ func _process(_delta: float) -> void:
 		- _calib_min) * _calib_ppm
 	_map_tex.scale = Vector2(zoom, zoom)
 	_map_tex.position = center - player_map_px * zoom
-	_enemies = get_tree().get_nodes_in_group(&"enemy")
+	_enemies = get_tree().get_nodes_in_group(&"enemy") + get_tree().get_nodes_in_group(&"range_target")
 	_dots.queue_redraw()
 	queue_redraw()
 
