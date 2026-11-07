@@ -18,6 +18,9 @@ enum Mode { DAY, NIGHT }
 ## 开局初始模式（场景/代码均可配置）。
 @export var initial_mode: Mode = Mode.NIGHT
 
+## 可选白天全景天空；为空时保留原有关卡的纯色白天。
+@export var day_sky: Texture2D = null
+
 ## 当前运行模式（只读访问）。
 var current_mode: Mode = Mode.NIGHT
 
@@ -82,6 +85,9 @@ func is_night() -> bool:
 func _apply_mode(mode: Mode) -> void:
 	# 同步昼夜运行时状态到契约（GameState.is_night；夜视仪门控消费——蜂后集成 2026-07-30）
 	GameState.is_night = (mode == Mode.NIGHT)
+	if mode == Mode.DAY and GameState.night_vision:
+		GameState.night_vision = false
+		Events.night_vision_toggled.emit(false)
 	var env := _world_env.environment
 	if env == null:
 		env = Environment.new()
@@ -89,9 +95,18 @@ func _apply_mode(mode: Mode) -> void:
 
 	match mode:
 		Mode.DAY:
-			env.background_mode = Environment.BG_COLOR
-			env.background_color = DAY_BG_COLOR
-			env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+			if day_sky != null:
+				var sky_material := PanoramaSkyMaterial.new()
+				sky_material.panorama = day_sky
+				var sky := Sky.new()
+				sky.sky_material = sky_material
+				env.sky = sky
+				env.background_mode = Environment.BG_SKY
+				env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+			else:
+				env.background_mode = Environment.BG_COLOR
+				env.background_color = DAY_BG_COLOR
+				env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 			env.ambient_light_color = DAY_AMBIENT_COLOR
 			env.ambient_light_energy = DAY_AMBIENT_ENERGY
 			env.fog_enabled = DAY_FOG_ENABLED
