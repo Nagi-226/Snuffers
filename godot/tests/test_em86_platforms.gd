@@ -62,6 +62,10 @@ func _run() -> void:
 		var weapon = _player.get_node("Camera3D/WeaponMount/" + node_name)
 		var fired: bool = weapon._fire()
 		_assert(fired and int(_state.get(weapon_id + "_mag")) == 44, "%s consumes its own magazine on a real shot" % weapon_id)
+		var muzzle_path := "ViewModel/EM68A/Muzzle" if weapon_id == &"em86b" else "ViewModel/Weapon/Muzzle"
+		var muzzle := weapon.get_node(muzzle_path) as Marker3D
+		var forward_offset: float = (muzzle.global_position - weapon.global_position).dot(-_player._camera.global_basis.z)
+		_assert(forward_offset > 0.0, "%s muzzle is in front of the first-person camera" % weapon_id)
 		_state.set(weapon_id + "_mag", 0)
 		_state.em86_reserve = 900
 		weapon._on_weapon_reloaded(weapon_id)
