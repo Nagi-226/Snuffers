@@ -25,6 +25,14 @@ var ammo_type: String = "EC-68":
 	set(value):
 		ammo_type = value
 		queue_redraw()
+var show_grenades: bool = false:
+	set(value):
+		show_grenades = value
+		queue_redraw()
+var grenade_stock: int = 0:
+	set(value):
+		grenade_stock = value
+		queue_redraw()
 
 var _icon: Control
 
@@ -49,3 +57,7 @@ func _draw() -> void:
 	if mode_tag != "":
 		draw_string(font, Vector2(0, 78), mode_tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, secondary)
 	draw_string(font, Vector2(128, 78), ammo_type, HORIZONTAL_ALIGNMENT_RIGHT, 120, 12, color)
+	if show_grenades:
+		draw_string(font, Vector2(0, 98), "榴弹", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, secondary)
+		draw_string(font, Vector2(42, 98), "EC-40P", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, color)
+		draw_string(font, Vector2(128, 98), str(grenade_stock), HORIZONTAL_ALIGNMENT_RIGHT, 120, 12, color)

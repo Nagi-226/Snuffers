@@ -449,9 +449,8 @@ func _on_fire_mode_changed(weapon_id: StringName, _mode: StringName) -> void:
 		_refresh_ammo()
 
 
-## 弹药行：步枪/手枪附加当前射击模式标（GameState.fire_modes 契约字段）。
-## 步枪榴档（&"grenade"，EM-40G 滚雷，2026-10-22 并入）显示榴弹余量而非弹匣——
-## 模块总数制无备弹，余量直读 GameState.rifle_grenades。
+## 弹药行：主弹显示武器弹匣/备弹；EM-68A 另起一行显示 EC-40P 榴弹总余量。
+## 滚雷档只切换射击模式标签，不再用榴弹余量替换步枪主弹。
 func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 	var mode: StringName = GameState.fire_modes.get(weapon_id, &"auto")
 	var mode_tag: String = {
@@ -469,15 +468,14 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 		&"spas12": "12GA",
 	}.get(weapon_id, "")
 	if weapon_id == &"rifle" and mode == &"grenade":
-		mag = GameState.rifle_grenades
-		reserve = 0
 		mode_tag = "滚雷"
-		ammo_type = "EC-40P"
 	_weapon_ammo.set("weapon_id", weapon_id)
 	_weapon_ammo.set("mag", mag)
 	_weapon_ammo.set("reserve", reserve)
 	_weapon_ammo.set("mode_tag", mode_tag)
 	_weapon_ammo.set("ammo_type", ammo_type)
+	_weapon_ammo.set("show_grenades", weapon_id == &"rifle")
+	_weapon_ammo.set("grenade_stock", GameState.rifle_grenades)
 
 
 ## 腿部警告分级（2026-10-21 随三部位耐久制退役，函数移除）。

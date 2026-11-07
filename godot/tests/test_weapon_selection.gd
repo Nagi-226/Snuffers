@@ -61,6 +61,7 @@ func _run() -> void:
 	_press(KEY_3)
 	_assert(state.current_weapon == &"rifle", "number 3 cycles back to EM-68A")
 	_assert(hud._weapon_ammo.ammo_type == "EC-68", "rifle displays EC-68 ammunition")
+	_assert(hud._weapon_ammo.show_grenades and hud._weapon_ammo.grenade_stock == state.rifle_grenades, "rifle always displays its underbarrel EC-40P stock")
 	_press(KEY_4)
 	_assert(state.current_weapon == &"shotgun", "number 4 selects EM shotgun first")
 	_assert(hud._weapon_ammo.ammo_type == "EC-12", "EM shotgun displays EC-12 ammunition")
@@ -90,8 +91,8 @@ func _run() -> void:
 	state.fire_modes[&"rifle"] = &"grenade"
 	state.rifle_grenades = 3
 	hud._set_ammo_text(&"rifle", state.rifle_mag, state.rifle_reserve)
-	_assert(hud._weapon_ammo.mag == 3 and hud._weapon_ammo.reserve == 0 and hud._weapon_ammo.mode_tag == "滚雷", "grenade mode shows grenade stock without reserve ammo")
-	_assert(hud._weapon_ammo.ammo_type == "EC-40P", "grenade mode displays EC-40P ammunition")
+	_assert(hud._weapon_ammo.mag == state.rifle_mag and hud._weapon_ammo.reserve == state.rifle_reserve and hud._weapon_ammo.mode_tag == "滚雷", "grenade mode keeps rifle magazine and reserve visible")
+	_assert(hud._weapon_ammo.ammo_type == "EC-68" and hud._weapon_ammo.show_grenades and hud._weapon_ammo.grenade_stock == 3, "grenade mode displays EC-68 and EC-40P stock together")
 	state.fire_modes[&"rifle"] = &"auto"
 	hud._selector_time_left = 0.01
 	await create_timer(0.1).timeout
