@@ -46,10 +46,18 @@ func _run() -> void:
 	var state = root.get_node("GameState")
 	state.weapon_unlocked[&"dmr"] = true
 	state.weapon_unlocked[&"shotgun"] = true
+	state.weapon_unlocked[&"spas12"] = true
 	_key(KEY_1)
 	_key(KEY_3)
 	await create_timer(0.05).timeout
 	_check(state.current_weapon == &"rifle", "real number 3 enters rifle")
+	await _shot(out_dir + "/weapon_selector_rifle.png")
+	for step in 3:
+		_key(KEY_X)
+	await create_timer(0.05).timeout
+	_check(state.fire_modes[&"rifle"] == &"grenade", "real X enters underbarrel grenade mode")
+	await _shot(out_dir + "/weapon_selector_rifle_grenade.png")
+	_key(KEY_X)
 	_key(KEY_3)
 	await create_timer(0.05).timeout
 	_check(state.current_weapon == &"dmr", "real number 3 repeats into DMR")
@@ -58,6 +66,10 @@ func _run() -> void:
 	await create_timer(0.05).timeout
 	_check(state.current_weapon == &"shotgun", "real wheel selects shotgun")
 	await _shot(out_dir + "/weapon_selector_shotgun.png")
+	_wheel()
+	await create_timer(0.05).timeout
+	_check(state.current_weapon == &"spas12", "real wheel selects SPAS-12")
+	await _shot(out_dir + "/weapon_selector_spas12.png")
 	_wheel()
 	await create_timer(0.05).timeout
 	_check(state.current_weapon == &"pistol", "real wheel wraps to pistol")
