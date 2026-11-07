@@ -143,7 +143,7 @@ func _run() -> void:
 		battle._process(1.0 / 60.0)
 	_assert(not _player._dmr_scope.visible and battle._view_model.visible and _player._ads_reticle.mode == &"em86b", "EM-86B keeps its weapon visible with a local cross circle-dot reticle")
 	var bore_model := battle.get_node("ViewModel/EM68A") as Node3D
-	var bore_camera: Vector3 = _player._camera.global_transform.affine_inverse() * (bore_model.global_transform * Vector3(0, 0.175, -0.03))
+	var bore_camera: Vector3 = _player._camera.global_transform.affine_inverse() * (bore_model.global_transform * Vector3(0, 0.22, -0.03))
 	_assert(Vector2(bore_camera.x, bore_camera.y).length() < 0.001, "EM-86B physical bore center aligns with the camera axis")
 	for weapon_id in ids:
 		var node_name := weapon_id.to_pascal_case()
