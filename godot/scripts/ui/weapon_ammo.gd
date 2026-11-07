@@ -21,6 +21,10 @@ var mode_tag: String = "":
 	set(value):
 		mode_tag = value
 		queue_redraw()
+var ammo_type: String = "EC-68":
+	set(value):
+		ammo_type = value
+		queue_redraw()
 
 var _icon: Control
 
@@ -44,3 +48,4 @@ func _draw() -> void:
 	draw_string(font, Vector2(70, 60), "备弹", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, secondary)
 	if mode_tag != "":
 		draw_string(font, Vector2(0, 78), mode_tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, secondary)
+	draw_string(font, Vector2(128, 78), ammo_type, HORIZONTAL_ALIGNMENT_RIGHT, 120, 12, color)

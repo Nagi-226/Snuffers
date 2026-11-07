@@ -56,16 +56,20 @@ func _run() -> void:
 	_press(KEY_3)
 	_assert(state.current_weapon == &"dmr", "number 3 repeats into unlocked EM-68D")
 	_assert(hud._selector_icons[3].size() == 2 and hud._selector_icons[3].all(func(icon): return icon.visible), "multi-weapon category shows line-art icons")
+	_assert(hud._weapon_ammo.ammo_type == "EC-68", "DMR displays the shared EC-68 ammunition family")
 	_assert(hud._selector_style_active.border_width_left == 0, "weapon selector has no yellow border")
 	_press(KEY_3)
 	_assert(state.current_weapon == &"rifle", "number 3 cycles back to EM-68A")
+	_assert(hud._weapon_ammo.ammo_type == "EC-68", "rifle displays EC-68 ammunition")
 	_press(KEY_4)
 	_assert(state.current_weapon == &"shotgun", "number 4 selects EM shotgun first")
+	_assert(hud._weapon_ammo.ammo_type == "EC-12", "EM shotgun displays EC-12 ammunition")
 	_press(KEY_4)
 	_assert(state.current_weapon == &"spas12", "number 4 repeats into SPAS-12")
 	_assert(hud._selector_icons[4].size() == 2 and hud._selector_icons[4].all(func(icon): return icon.visible), "shotgun category shows both line-art icons")
 	_assert(hud._selector_icons[3].all(func(icon): return not icon.visible), "other categories show only their number")
 	_assert(hud._weapon_ammo.weapon_id == &"spas12" and hud._weapon_ammo.mag == state.spas12_mag and hud._weapon_ammo.reserve == state.spas12_reserve, "ammo HUD follows weapon, magazine and reserve")
+	_assert(hud._weapon_ammo.ammo_type == "12GA", "SPAS-12 displays its real 12GA ammunition")
 	for refresh in 20:
 		hud._set_ammo_text(&"spas12", 8, 40)
 	_assert(hud._weapon_ammo.get_child_count() == 1, "ammo redraws reuse one line-art icon")
@@ -78,6 +82,7 @@ func _run() -> void:
 	_assert(state.current_weapon == &"spas12", "wheel down appends SPAS after EM shotgun")
 	_wheel(MOUSE_BUTTON_WHEEL_DOWN)
 	_assert(state.current_weapon == &"pistol", "wheel down wraps to the first unlocked weapon")
+	_assert(hud._weapon_ammo.ammo_type == "EC-57", "pistol displays EC-57 ammunition")
 	_assert(hud.get_node("WeaponSelector").get_meta("category") == 1, "wheel selection highlights the correct category")
 	_wheel(MOUSE_BUTTON_WHEEL_UP)
 	_assert(state.current_weapon == &"spas12", "wheel up returns to SPAS")
@@ -86,6 +91,7 @@ func _run() -> void:
 	state.rifle_grenades = 3
 	hud._set_ammo_text(&"rifle", state.rifle_mag, state.rifle_reserve)
 	_assert(hud._weapon_ammo.mag == 3 and hud._weapon_ammo.reserve == 0 and hud._weapon_ammo.mode_tag == "滚雷", "grenade mode shows grenade stock without reserve ammo")
+	_assert(hud._weapon_ammo.ammo_type == "EC-40P", "grenade mode displays EC-40P ammunition")
 	state.fire_modes[&"rifle"] = &"auto"
 	hud._selector_time_left = 0.01
 	await create_timer(0.1).timeout

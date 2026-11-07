@@ -461,14 +461,23 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 	}.get(mode, "")
 	if weapon_id == &"spas12":
 		mode_tag = "泵动"
+	var ammo_type: String = {
+		&"pistol": "EC-57",
+		&"rifle": "EC-68",
+		&"dmr": "EC-68",
+		&"shotgun": "EC-12",
+		&"spas12": "12GA",
+	}.get(weapon_id, "")
 	if weapon_id == &"rifle" and mode == &"grenade":
 		mag = GameState.rifle_grenades
 		reserve = 0
 		mode_tag = "滚雷"
+		ammo_type = "EC-40P"
 	_weapon_ammo.set("weapon_id", weapon_id)
 	_weapon_ammo.set("mag", mag)
 	_weapon_ammo.set("reserve", reserve)
 	_weapon_ammo.set("mode_tag", mode_tag)
+	_weapon_ammo.set("ammo_type", ammo_type)
 
 
 ## 腿部警告分级（2026-10-21 随三部位耐久制退役，函数移除）。

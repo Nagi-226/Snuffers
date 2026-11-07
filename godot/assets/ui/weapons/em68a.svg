@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="116" viewBox="0 0 120 58">
+  <g fill="none" stroke="#61dbff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 22 L18 20 L29 22 L36 25 L34 30 L27 29 L20 35 L10 38 L6 36 Z M6 23 V36 M10 25 L20 24 L25 27 L17 33 L11 34 Z M20 21 V34 M27 23 L33 26"/>
+    <path d="M34 20 H65 L73 23 L78 28 L72 32 H58 L53 29 H47 L43 35 H37 L33 30 Z"/>
+    <path d="M72 21 H94 L101 24 V29 L96 33 H74 L78 28 Z M79 24 H95 M77 28 H97 M82 22 V31 M88 22 V32 M94 23 V31"/>
+    <path d="M101 23 H109 L113 25 V28 L109 30 H100 M105 23 V30 M110 24 V29"/>
+    <path d="M47 31 L54 33 L50 46 L46 49 L40 46 L42 40 Z M45 35 L50 36 M43 40 L49 41 M42 44 L48 45"/>
+    <path d="M59 32 H73 L71 51 L68 54 H58 L56 50 Z M61 35 H70 M60 39 H70 M59 48 H69 M63 35 V51 M67 35 V51"/>
+    <path d="M51 30 H62 L65 33 L62 39 H54 L51 35 Z M56 31 V35 L59 38"/>
+    <path d="M49 18 L52 11 H65 L70 15 V20 H48 Z M54 12 V17 H65 V13 M51 18 H69"/>
+    <path d="M35 17 H49 M70 17 H93 M38 15 V18 M43 15 V18 M75 15 V18 M80 15 V18 M85 15 V18 M90 15 V18"/>
+    <path d="M39 23 H55 L59 26 H69 M38 27 H47 M58 22 V28 M63 22 V28"/>
+    <path d="M70 34 H96 L100 36 V40 H74 L70 38 Z M77 34 V40 M96 34 V40"/>
+    <circle cx="77" cy="37" r="1.5"/><circle cx="83" cy="37" r="1.5"/><circle cx="89" cy="37" r="1.5"/>
+    <circle cx="39" cy="28" r="1.1"/><circle cx="70" cy="29" r="1.1"/>
+  </g>
+</svg>
