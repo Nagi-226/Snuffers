@@ -70,12 +70,11 @@ def add_rear_quad(x0, x1, z0, z1, y, material_index):
 
 add_rear_quad(-HALF_X, HALF_X, CENTER_Z - HALF_Z, CENTER_Z + HALF_Z, 0.0, lens_index)
 add_rear_quad(-0.027, 0.027, 0.12, 0.175, -0.448, glow_index)
-add_rear_quad(-0.043, -0.038, -0.16, 0.105, -0.472, glow_index)
 bm.to_mesh(obj.data)
 bm.free()
 obj.data.update()
 print("UPPER_OPTIC_COVERS_REMOVED", len(selected), flush=True)
-print("REAR_GLOW_VERTICES 8", flush=True)
+print("REAR_GLOW_VERTICES 4", flush=True)
 print("LENS_CENTER_VIEWMODEL", (0.03, 0.03 + 0.48 * CENTER_Z, 0.04), flush=True)
 
 bpy.ops.object.select_all(action="DESELECT")

@@ -59,7 +59,7 @@
 - **正式资产**: `em57s1_viewmodel.glb`、`em68l_viewmodel.glb`、`em127p_viewmodel.glb`。
 - **来源**: 项目自有 EDAA 概念设定，AI 图生 3D 原始模型；无第三方网格或贴图，无额外署名要求。
 - **原始模型**: `desktop-port/godot-spike/modeling/em-weapons/em57s1/em57s1_hunyuan_v31_raw.glb`、`em68l/em68l_hunyuan_v31_magazine_adjusted.glb`、`em127p/em127p_hunyuan_v31_raw.glb`（原始工作区，不直接入库）。
-- **本地处理**: `prepare_generated_asset.py` 统一米制长度与枪口 -Z、几何居中、贴图最长边 2048；三角面分别由 1500000/1499208/1500000 减至 59999/70000/40000；导出游戏用 GLB。EM-127P 另经 `open_em127p_optic.py` 清除上方小瞄具镜窗的 8 个遮挡面并加入单层淡蓝透明玻璃；后部仅新增一个规整青蓝灯窗和一条细灯带（共 8 顶点）的独立发光材质，原始枪身网格与材质保持。
+- **本地处理**: `prepare_generated_asset.py` 统一米制长度与枪口 -Z、几何居中、贴图最长边 2048；三角面分别由 1500000/1499208/1500000 减至 59999/70000/40000；导出游戏用 GLB。EM-127P 另经 `open_em127p_optic.py` 清除上方小瞄具镜窗的 8 个遮挡面并加入单层淡蓝透明玻璃；后部仅新增一个规整青蓝灯窗（4 顶点）的独立发光材质，无额外灯带，原始枪身网格与材质保持。
 - **生成日期**: 2026-11-07。
 
 ## EM-86S「惊蛰」/ EM-86B「裂空」/ EM-86D「贯日」（2026-11-07 入库）

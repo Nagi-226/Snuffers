@@ -172,7 +172,7 @@ func _run() -> void:
 				rear_glow = true
 				rear_glow_vertices += (mesh_instance.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
 	_assert(rear_glow, "Magnum rear cyan panel retains its emissive glow")
-	_assert(rear_glow_vertices == 8, "Magnum rear glow uses one clean window and one narrow light strip instead of fragmented weapon faces")
+	_assert(rear_glow_vertices == 4, "Magnum rear glow uses one clean window without any light strip on the hand or grip")
 	_press(KEY_2)
 	_player._set_aiming(true)
 	for frame in 20:
