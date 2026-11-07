@@ -13,7 +13,7 @@ func _draw() -> void:
 	for row in int(ceil(size.y / HEX_STEP_Y)) + 1:
 		for column in int(ceil(size.x / HEX_STEP_X)) + 1:
 			var center := Vector2(column * HEX_STEP_X + (row % 2) * HEX_STEP_X * 0.5, row * HEX_STEP_Y)
-			var normalized := (center - size * 0.5) / Vector2(size.x * 0.38, size.y * 0.36)
+			var normalized := (center - size * 0.5) / Vector2(size.x * 0.46, size.y * 0.43)
 			if normalized.length_squared() > 1.0:
 				_draw_hex(center)
 
