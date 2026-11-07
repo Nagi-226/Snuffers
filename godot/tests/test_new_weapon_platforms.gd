@@ -85,6 +85,8 @@ func _run() -> void:
 	var grenades_before: int = _state.rifle_grenades
 	var grenade_fired: bool = smg._fire_grenade()
 	_assert(grenade_fired and _state.rifle_grenades == grenades_before - 1, "SMG consumes the shared grenade pool")
+	var smg_ammo = scene.get_node("HUD")._weapon_ammo
+	_assert(smg_ammo.mag == _state.smg_mag and smg_ammo.reserve == _state.pistol_reserve and smg_ammo.grenade_stock == grenades_before - 1, "SMG grenade fire preserves primary ammo HUD and only decreases EC-40P stock")
 	_state.smg_mag = 17
 	_state.pistol_reserve = 600
 	_press_reload(smg)
@@ -128,6 +130,10 @@ func _run() -> void:
 	_state.rifle_reserve = 1800
 	_press_reload(rifle)
 	_assert(not rifle._is_reloading and _state.rifle_mag == 13 and _state.rifle_reserve == 1800, "rifle grenade mode ignores R without changing its ammunition display values")
+	var rifle_grenades_before: int = _state.rifle_grenades
+	var rifle_grenade_fired: bool = rifle._fire()
+	var rifle_ammo = scene.get_node("HUD")._weapon_ammo
+	_assert(rifle_grenade_fired and rifle_ammo.mag == 13 and rifle_ammo.reserve == 1800 and rifle_ammo.grenade_stock == rifle_grenades_before - 1, "rifle grenade fire preserves EC-68 HUD and only decreases EC-40P stock")
 	_state.fire_modes[&"rifle"] = &"auto"
 	_press_reload(rifle)
 	_assert(rifle._is_reloading, "rifle automatic mode still reloads with R")

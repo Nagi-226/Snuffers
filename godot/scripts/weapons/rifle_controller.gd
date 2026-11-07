@@ -443,7 +443,7 @@ func _fire_grenade() -> bool:
 		push_error("rifle.tres 未配置 projectile_scene（EM-40G 投射物）")
 		return false
 	GameState.rifle_grenades -= 1
-	Events.ammo_changed.emit(weapon_data.weapon_id, GameState.rifle_grenades, -1)
+	Events.ammo_changed.emit(weapon_data.weapon_id, _mag_value(), _reserve_value())
 	Events.weapon_fired.emit(&"grenade")
 	_apply_recoil()
 	var projectile: Node3D = weapon_data.projectile_scene.instantiate()
