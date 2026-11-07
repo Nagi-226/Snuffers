@@ -24,6 +24,21 @@ func _press(key: Key) -> void:
 	_player._unhandled_input(event)
 
 
+func _model_bounds(model: Node3D) -> AABB:
+	var result := AABB()
+	var first := true
+	var inverse := model.global_transform.affine_inverse()
+	for node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh := node as MeshInstance3D
+		var bounds: AABB = (inverse * mesh.global_transform) * mesh.get_aabb()
+		if first:
+			result = bounds
+			first = false
+		else:
+			result = result.merge(bounds)
+	return result
+
+
 func _run() -> void:
 	_state = root.get_node("GameState")
 	_state.reset()
@@ -92,6 +107,10 @@ func _run() -> void:
 	_assert(minimap.visible and minimap._enemies.size() == 10, "range minimap displays all ten passive targets")
 	_assert(minimap.get_node("View/Sub/MapTex").texture != null, "range minimap uses its rendered terrain texture")
 	_assert(smg_data.hitscan_range == 90.0 and lmg_data.hitscan_range == 140.0 and magnum_data.hitscan_range == 120.0, "new weapon ranges synchronize from config")
+	for entry in [["SMG", "EM68A"], ["LMG", "EM68A"], ["Magnum", "EM57P"]]:
+		var model := _player.get_node("Camera3D/WeaponMount/" + entry[0] + "/ViewModel/" + entry[1]) as Node3D
+		var bounds := _model_bounds(model)
+		_assert(bounds.size.z > bounds.size.x, entry[0] + " model long axis points forward instead of sideways")
 	var config = root.get_node("GameConfig")
 	_assert(config.RIFLE_MAG == 60 and config.PISTOL_MAG == 30 and config.DMR_MAG == 60 and config.SHOTGUN_MAG == 32 and config.SPAS12_MAG == 8, "existing weapon values remain unchanged")
 	scene.queue_free()
