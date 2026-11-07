@@ -81,7 +81,7 @@ const MEDKIT_MAX_CARRY: int = 5 ## 携带上限（L2305）
 # ===== 拾取（2026-10-07 机主裁决冻结：居民区室内补给 = 电池组/医疗注射/取证终端，无 RPG）=====
 const BATTERY_PICKUP_ROUNDS: int = 60 ## 电池组补充步枪备弹数
 const PISTOL_AMMO_PICKUP_ROUNDS: int = 60 ## 手枪弹匣组补充手枪备弹数（2026-10-19 机主立项）
-const RIFLE_RESERVE_MAX: int = 600 ## 步枪备弹携带上限（达上限不可拾取，2026-10-19 机主口径：与初始备弹拉平 600）
+const RIFLE_RESERVE_MAX: int = 1800 ## EC-68 备弹携带上限（与初始备弹一致）
 const PISTOL_RESERVE_MAX: int = 600 ## 手枪备弹携带上限（同口径：600）
 const PICKUP_TRIGGER_RADIUS: float = 0.7 ## 拾取触发半径（贴近即拾，无需按键）
 const PICKUP_BOB_AMP: float = 0.05 ## 浮动振幅 m
@@ -105,7 +105,7 @@ const RIFLE_DMG_VS_SNIPER: float = 999.0 ## 对狙击手固定伤害（L3014）
 const RIFLE_FIRE_INTERVAL: float = 0.075 ## 全自动/三发点射射速 s/发 = 800 RPM（2026-10-19 机主裁决：原 600 RPM L2609 提速）
 const RIFLE_SEMI_FIRE_INTERVAL: float = 0.1 ## 半自动最小击发间隔 s（机主口径：半自动维持原 600 RPM 手感上限不变）
 const RIFLE_MAG: int = 60 ## 弹匣（2026-10-19 机主裁决：按 EDAA 雷械设定 EM-68A 通用弹匣 60 发，原 30 为网页版 L327 值）
-const RIFLE_RESERVE: int = 600 ## 备弹（2026-10-19 机主裁决：60/600，原 150 为网页版 L327 值）
+const RIFLE_RESERVE: int = 1800 ## EC-68 备弹（2026-11-07 机主裁决：EM-68A/D/L 共用）
 const RIFLE_RELOAD_TIME: float = 2.0 ## 换弹 s（L2714）
 const RIFLE_RANGE: float = 100.0 ## 射程上限 u（L2971）
 const RIFLE_SPREAD_HIP: float = 0.004 ## 腰射散布（L2966）
@@ -186,7 +186,7 @@ const MAGNUM_DAMAGE_BODY: float = 150.0
 const MAGNUM_FIRE_INTERVAL: float = 0.55 ## 仅半自动
 const MAGNUM_SEMI_FIRE_INTERVAL: float = 0.55
 const MAGNUM_MAG: int = 15
-const MAGNUM_RESERVE: int = 75 ## 五个备用弹匣；未指定备弹量，按 15×5 落地
+const MAGNUM_RESERVE: int = 1500 ## EC-127 备弹（2026-11-07 机主裁决）
 const MAGNUM_RELOAD_TIME: float = 2.0
 const MAGNUM_RANGE: float = 120.0
 const MAGNUM_SPREAD_HIP: float = 0.003
@@ -434,14 +434,14 @@ const SFX_PITCH_JITTER: float = 0.1 ## 枪声音高抖动 ±10%（L392）
 
 # ===== 武器选择分类（2026-10-29 机主裁决：Half-Life 数字类别 + 同键循环 + 滚轮）=====
 const WEAPON_CATEGORIES: Array = [
-	{"number": 1, "name": "手枪", "weapons": [&"pistol"]},
+	{"number": 1, "name": "手枪", "weapons": [&"pistol", &"magnum"]},
 	{"number": 2, "name": "冲锋枪", "weapons": [&"smg"]},
 	{"number": 3, "name": "突击 / DMR", "weapons": [&"rifle", &"dmr"]},
 	{"number": 4, "name": "霰弹 / 狙击", "weapons": [&"shotgun", &"spas12"]},
 	{"number": 5, "name": "机枪", "weapons": [&"lmg"]},
-	{"number": 6, "name": "爆破重火力", "weapons": [&"magnum"]},
+	{"number": 6, "name": "爆破重火力", "weapons": []},
 ]
-const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"smg", &"rifle", &"dmr", &"shotgun", &"spas12", &"lmg", &"magnum"]
+const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"magnum", &"smg", &"rifle", &"dmr", &"shotgun", &"spas12", &"lmg"]
 const WEAPON_SELECTOR_HOLD_TIME: float = 1.6
 
 # ===== UI 反馈动效（G2 冻结自 W5 脚本常量迁入）=====

@@ -18,7 +18,7 @@ grenade_enabled = true
 position = Vector3(0.02, -0.035, 0.12)
 
 [node name="em68a_magazine" type="Marker3D" parent="ViewModel/EM68A"]
-position = Vector3(0, -0.08, 0.03)
+position = Vector3(-0.005748, -0.054112, -0.068322)
 
 [node name="OpticAim" type="Marker3D" parent="ViewModel/EM68A"]
 position = Vector3(0, 0.14, -0.05)

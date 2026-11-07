@@ -35,8 +35,10 @@ func _run() -> void:
 	for frame in 30:
 		await process_frame
 	DirAccess.make_dir_recursive_absolute("tmp_shots/new_weapons")
-	for entry in [[KEY_2, &"smg"], [KEY_5, &"lmg"], [KEY_6, &"magnum"]]:
+	for entry in [[KEY_2, &"smg"], [KEY_5, &"lmg"], [KEY_1, &"magnum"]]:
 		_key(entry[0])
+		if entry[1] == &"magnum":
+			_key(entry[0])
 		await create_timer(0.2).timeout
 		_check(root.get_node("GameState").current_weapon == entry[1], "real selection " + entry[1])
 		await _shot(entry[1] + "_hip")
