@@ -353,8 +353,8 @@ func _disconnect_events() -> void:
 
 
 func _on_nano_mode_changed(mode: StringName) -> void:
-	var labels := {&"armor": "护甲", &"power": "力量", &"stealth": "隐形"}
-	_nano_mode_label.text = "模式：%s" % labels.get(mode, "护甲")
+	var labels := {&"normal": "常规", &"armor": "装甲", &"stealth": "隐形"}
+	_nano_mode_label.text = "模式：%s" % labels.get(mode, "常规")
 
 
 func _update_awareness(delta: float) -> void:

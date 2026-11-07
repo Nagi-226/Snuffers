@@ -11,7 +11,7 @@ func _run() -> void:
 	for i in 30:
 		await process_frame
 	DirAccess.make_dir_recursive_absolute("tmp_shots/nano_modes")
-	root.get_texture().get_image().save_png("tmp_shots/nano_modes/armor.png")
+	root.get_texture().get_image().save_png("tmp_shots/nano_modes/normal.png")
 	var hud := scene.get_node("HUD") as CanvasLayer
 	for state: StringName in [&"green", &"yellow", &"red"]:
 		var color := Color(0.95, 0.25, 0.2) if state == &"red" else (Color(0.95, 0.75, 0.2) if state == &"yellow" else Color(0.35, 0.9, 0.45))
@@ -21,7 +21,10 @@ func _run() -> void:
 		for frame in 3:
 			await process_frame
 		root.get_texture().get_image().save_png("tmp_shots/nano_modes/awareness_%s.png" % state)
-	player._set_nano_mode(&"power")
+	player._set_nano_mode(&"armor")
+	await process_frame
+	root.get_texture().get_image().save_png("tmp_shots/nano_modes/armor.png")
+	player._set_nano_mode(&"normal")
 	var forward := InputEventKey.new()
 	forward.physical_keycode = KEY_W
 	forward.pressed = true
@@ -31,7 +34,7 @@ func _run() -> void:
 	sprint.pressed = true
 	Input.parse_input_event(sprint)
 	await create_timer(0.2).timeout
-	print("NANO_SPEED_GRAPHICS ", player._current_speed())
+	print("NANO_SPEED_GRAPHICS ", player._current_speed(), " energy=", root.get_node("GameState").armor, " mode=", root.get_node("GameState").nano_mode)
 	root.get_texture().get_image().save_png("tmp_shots/nano_modes/power.png")
 	root.get_node("GameState").current_weapon = &"rifle"
 	root.get_node("Events").weapon_switched.emit(&"rifle")

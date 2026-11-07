@@ -188,7 +188,7 @@ func _enable_loop(stream: AudioStream) -> void:
 ## weapon_reloaded → reload ｜ hit_confirmed → hitmark
 ## medkit_used → medkit ｜ night_vision_toggled → nightvision
 ## heli_called → helicopter（loop 总线循环）｜ mission_completed / game_over → 停全部 loop
-## nano_mode_changed → armor 播 nano_armor；stealth 短播 nightvision；power 无触发音
+## nano_mode_changed → armor 播 nano_armor；stealth 短播 nightvision；normal 无触发音
 ## rpg_exploded → explosion ｜ player_moving_changed → footstep 循环起停（loop 总线；
 ##   结束态由 mission_completed / game_over 的 stop_all_loops 兜底，开地图暂停沿用同一通道）
 ## enemy_fired → &"rifle" 用 rifle；&"machine_gun" 复用 rifle 音源按 ENEMY_MG_PITCH 降调

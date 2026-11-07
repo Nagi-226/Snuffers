@@ -28,7 +28,7 @@ signal player_speed_state_changed(state: StringName)
 signal player_moving_changed(is_moving: bool)
 ## 连续静止时长（秒），狙击手秒杀判定与 HUD 警告共用。仅在越过 1.0s 阈值时必需持续广播。
 signal player_still_time_changed(seconds: float)
-## 纳米护甲工作模式变化。mode: &"armor" / &"power" / &"stealth"
+## 主动模式变化。mode: &"normal" / &"armor" / &"stealth"；力量为可叠加被动能力，不占此状态
 signal nano_mode_changed(mode: StringName)
 
 # ===== 武器 =====

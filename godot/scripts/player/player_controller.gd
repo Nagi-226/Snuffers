@@ -27,7 +27,7 @@ const KEY_INTERACT: Key = KEY_F ## F：统一交互（开门/叙事等；拾取�
 const KEY_FIRE_MODE: Key = KEY_X ## X：射击模式循环 全自动→三发点射→半自动（2026-10-19 机主立项）
 const KEY_RELEASE_MOUSE: Key = KEY_ESCAPE ## Esc：释放鼠标（点击画面恢复捕获）
 const KEY_BIG_MAP: Key = KEY_M ## M：全屏实时战术地图
-const KEY_NANO_MODE: Key = KEY_Q ## Q：护甲模式
+const KEY_NANO_MODE: Key = KEY_Q ## Q：装甲模式开关
 const KEY_STEALTH: Key = KEY_E ## E：隐形模式开关
 
 var _pitch: float = 0.0
@@ -268,7 +268,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_BIG_MAP:
 				_toggle_big_map()
 			KEY_NANO_MODE:
-				_set_nano_mode(&"armor")
+				_toggle_armor()
 			KEY_STEALTH:
 				_toggle_stealth()
 			KEY_PRONE:
@@ -300,8 +300,6 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if GameState.nano_mode != &"stealth":
-		GameState.nano_mode = &"power" if Input.is_physical_key_pressed(KEY_SPRINT) or _jump_charge_time > 0.0 else &"armor"
 	if _jump_charge_time > 0.0 and Input.is_physical_key_pressed(KEY_JUMP):
 		_jump_charge_time += delta
 		if _jump_charge_time >= GameConfig.NANO_POWER_JUMP_HOLD_TIME and not _jump_queued:
@@ -313,7 +311,10 @@ func _physics_process(delta: float) -> void:
 	if is_on_floor():
 		if _jump_queued:
 			_jump_queued = false
-			velocity.y = GameConfig.NANO_POWER_JUMP_VELOCITY if _jump_power_queued else GameConfig.JUMP_VELOCITY
+			var power_jump := _jump_power_queued and GameState.armor > 0.0
+			if power_jump:
+				_consume_armor_energy(GameConfig.NANO_POWER_JUMP_COST)
+			velocity.y = GameConfig.NANO_POWER_JUMP_VELOCITY if power_jump else GameConfig.JUMP_VELOCITY
 			_jump_power_queued = false
 		else:
 			velocity.y = 0.0
@@ -410,13 +411,28 @@ func _release_jump() -> void:
 
 
 func _update_nano_energy(delta: float, moving: bool) -> void:
-	if GameState.nano_mode != &"stealth" or not moving:
+	var power_sprinting := moving and _power_sprint_requested() and GameState.armor > 0.0
+	var drain := 0.0
+	if GameState.nano_mode == &"stealth" and moving:
+		drain = GameConfig.NANO_STEALTH_SPRINT_DRAIN_PER_SEC if power_sprinting else GameConfig.NANO_STEALTH_WALK_DRAIN_PER_SEC
+	elif power_sprinting:
+		drain = GameConfig.NANO_POWER_SPRINT_DRAIN_PER_SEC
+	if drain > 0.0:
+		_consume_armor_energy(drain * delta)
+
+
+func _consume_armor_energy(amount: float) -> void:
+	if amount <= 0.0:
 		return
-	GameState.armor = maxf(0.0, GameState.armor - GameConfig.NANO_STEALTH_DRAIN_PER_SEC * delta)
+	_armor_regen_wait = 0.0
+	GameState.armor = maxf(0.0, GameState.armor - amount)
 	Events.armor_changed.emit(GameState.armor, GameConfig.ARMOR_MAX)
-	if GameState.armor <= 0.0:
-		_set_nano_mode(&"armor")
-		Events.message_posted.emit("护甲能量耗尽，隐形解除")
+	if GameState.armor > 0.0 or GameState.nano_mode == &"normal":
+		return
+	var previous_mode := GameState.nano_mode
+	_set_nano_mode(&"normal")
+	var labels := {&"armor": "装甲", &"stealth": "隐形"}
+	Events.message_posted.emit("护甲能量耗尽，%s解除" % labels.get(previous_mode, "主动模式"))
 
 
 ## F 键通用交互：当前射线目标（_update_interact_target 每物理帧刷新）响应即调用。
@@ -542,11 +558,16 @@ func _current_speed() -> float:
 		base = GameConfig.SPEED_PRONE
 	elif GameState.is_aiming:
 		base = GameConfig.SPEED_AIM
-	elif Input.is_physical_key_pressed(KEY_SPRINT) and Input.is_physical_key_pressed(KEY_FORWARD):
-		base = GameConfig.NANO_POWER_SPEED if GameState.nano_mode == &"power" else GameConfig.SPEED_SPRINT
+	elif _power_sprint_requested():
+		base = GameConfig.NANO_POWER_SPEED if GameState.armor > 0.0 else GameConfig.SPEED_SPRINT
 	else:
 		base = GameConfig.SPEED_STAND
 	return base
+
+
+func _power_sprint_requested() -> bool:
+	return not GameState.is_prone and not GameState.is_aiming \
+		and Input.is_physical_key_pressed(KEY_SPRINT) and Input.is_physical_key_pressed(KEY_FORWARD)
 
 
 ## 移速状态变化广播（供 HUD；契约既有信号）。
@@ -691,12 +712,16 @@ func _set_nano_mode(mode: StringName) -> void:
 		return
 	GameState.nano_mode = mode
 	Events.nano_mode_changed.emit(mode)
-	var labels := {&"armor": "护甲", &"power": "力量", &"stealth": "隐形"}
-	Events.message_posted.emit("模式：%s" % labels.get(mode, "护甲"))
+	var labels := {&"normal": "常规", &"armor": "装甲", &"stealth": "隐形"}
+	Events.message_posted.emit("模式：%s" % labels.get(mode, "常规"))
+
+
+func _toggle_armor() -> void:
+	_set_nano_mode(&"normal" if GameState.nano_mode == &"armor" else &"armor")
 
 
 func _toggle_stealth() -> void:
-	_set_nano_mode(&"armor" if GameState.nano_mode == &"stealth" else &"stealth")
+	_set_nano_mode(&"normal" if GameState.nano_mode == &"stealth" else &"stealth")
 
 
 func _apply_nano_visuals() -> void:
