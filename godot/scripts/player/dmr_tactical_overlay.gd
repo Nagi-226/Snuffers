@@ -4,6 +4,7 @@ var camera: Camera3D = null
 var excluded_rids: Array[RID] = []
 var _range_distance := INF
 var _range_text := "RNG --- M"
+var zoom_text := ""
 var _targets: Array[Dictionary] = []
 var _primary_target: Node3D = null
 var _target_age: Dictionary = {}
@@ -47,7 +48,8 @@ func _refresh_targets() -> void:
 	if camera == null:
 		return
 	var candidates: Array[Dictionary] = []
-	for node in get_tree().get_nodes_in_group(&"enemy"):
+	var nodes := get_tree().get_nodes_in_group(&"enemy") + get_tree().get_nodes_in_group(&"range_target")
+	for node in nodes:
 		var target := node as Node3D
 		if target == null or target.is_queued_for_deletion():
 			continue
@@ -148,6 +150,8 @@ func _draw() -> void:
 	var font := get_theme_default_font()
 	var center := size * 0.5
 	for entry in _targets:
+		if not is_instance_valid(entry.target):
+			continue
 		var target := entry.target as Node3D
 		var primary := target == _primary_target
 		var alpha := clampf(float(_target_age.get(target, 0.0)) / GameConfig.DMR_SCOPE_ACQUIRE_TIME, 0.0, 1.0)
@@ -167,6 +171,8 @@ func _draw() -> void:
 			draw_string(font, side + Vector2(-4, -8), str(mil), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, tick_color)
 	draw_string(font, center + Vector2(-12, _scope_radius() * 0.43), "MIL", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, tick_color)
 	draw_string(font, center + Vector2(_scope_radius() * 0.38, _scope_radius() * 0.72), _range_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, tick_color)
+	if zoom_text != "":
+		draw_string(font, center + Vector2(-_scope_radius() * 0.72, _scope_radius() * 0.72), zoom_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, tick_color)
 
 
 func _draw_target_frame(rect: Rect2, color: Color, primary: bool) -> void:

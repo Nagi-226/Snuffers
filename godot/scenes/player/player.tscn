@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_controller"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/rifle.tscn" id="2_rifle"]
@@ -11,6 +11,9 @@
 [ext_resource type="PackedScene" path="res://scenes/weapons/smg.tscn" id="10_smg"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/lmg.tscn" id="11_lmg"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/magnum.tscn" id="12_magnum"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/em86s.tscn" id="13_em86s"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/em86b.tscn" id="14_em86b"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/em86d.tscn" id="15_em86d"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -47,6 +50,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.27, -0.62)
 
 [node name="Magnum" parent="Camera3D/WeaponMount" instance=ExtResource("12_magnum")]
 
+[node name="Em86s" parent="Camera3D/WeaponMount" instance=ExtResource("13_em86s")]
+
+[node name="Em86b" parent="Camera3D/WeaponMount" instance=ExtResource("14_em86b")]
+
+[node name="Em86d" parent="Camera3D/WeaponMount" instance=ExtResource("15_em86d")]
+
 [node name="PlayerCombatFx" type="Node3D" parent="."]
 script = ExtResource("5_fx")
 
@@ -61,3 +70,6 @@ script = ExtResource("6_explosion_fx")
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/SMG" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/LMG" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Magnum" to="." method="_on_weapon_recoil_kick"]
+[connection signal="recoil_kick" from="Camera3D/WeaponMount/Em86s" to="." method="_on_weapon_recoil_kick"]
+[connection signal="recoil_kick" from="Camera3D/WeaponMount/Em86b" to="." method="_on_weapon_recoil_kick"]
+[connection signal="recoil_kick" from="Camera3D/WeaponMount/Em86d" to="." method="_on_weapon_recoil_kick"]

@@ -246,6 +246,12 @@ func _weapon_display_name(weapon_id: StringName) -> String:
 			return "EM-68L 殷雷"
 		&"magnum":
 			return "EM-127P 锏"
+		&"em86s":
+			return "EM-86S 惊蛰"
+		&"em86b":
+			return "EM-86B 裂空"
+		&"em86d":
+			return "EM-86D 贯日"
 	return "未获取"
 
 
@@ -457,6 +463,8 @@ func _refresh_ammo() -> void:
 			_set_ammo_text(&"magnum", GameState.magnum_mag, GameState.magnum_reserve)
 		&"dmr":
 			_set_ammo_text(&"dmr", GameState.dmr_mag, GameState.rifle_reserve)
+		&"em86s", &"em86b", &"em86d":
+			_set_ammo_text(GameState.current_weapon, GameState.get(GameState.current_weapon + "_mag"), GameState.em86_reserve)
 		&"shotgun":
 			_set_ammo_text(&"shotgun", GameState.shotgun_mag, GameState.shotgun_reserve)
 		&"spas12":
@@ -489,17 +497,20 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 		&"lmg": "EC-68",
 		&"magnum": "EC-127",
 		&"dmr": "EC-68",
+		&"em86s": "EC-86",
+		&"em86b": "EC-86",
+		&"em86d": "EC-86",
 		&"shotgun": "EC-12",
 		&"spas12": "12GA",
 	}.get(weapon_id, "")
-	if weapon_id in [&"rifle", &"smg"] and mode == &"grenade":
+	if weapon_id in [&"rifle", &"smg", &"em86b"] and mode == &"grenade":
 		mode_tag = "滚雷"
 	_weapon_ammo.set("weapon_id", weapon_id)
 	_weapon_ammo.set("mag", mag)
 	_weapon_ammo.set("reserve", reserve)
 	_weapon_ammo.set("mode_tag", mode_tag)
 	_weapon_ammo.set("ammo_type", ammo_type)
-	_weapon_ammo.set("show_grenades", weapon_id in [&"rifle", &"smg"])
+	_weapon_ammo.set("show_grenades", weapon_id in [&"rifle", &"smg", &"em86b"])
 	_weapon_ammo.set("grenade_stock", GameState.rifle_grenades)
 
 

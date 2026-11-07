@@ -49,6 +49,19 @@ func _run() -> void:
 		var target := _scene.get_node("RangeFacilities/Targets/CloseTarget") as Node3D
 		camera.look_at(target.global_position + Vector3(0, 1, 0))
 		await _shot(entry[1] + "_ads")
+		if entry[1] == &"magnum":
+			var magnum = player.get_node("Camera3D/WeaponMount/Magnum")
+			root.get_node("GameState").magnum_mag = 4
+			magnum._start_reload()
+			await _shot("magnum_ads_reload_start")
+			for phase in [0.5, 1.0, 1.5]:
+				await create_timer(0.5).timeout
+				await _shot("magnum_ads_reload_%03dms" % int(phase * 1000))
+			await create_timer(0.25).timeout
+			for weapon_name in ["Pistol", "Magnum"]:
+				var weapon = player.get_node("Camera3D/WeaponMount/" + weapon_name) as Node3D
+				var arms = weapon.get_node("ViewModel/ArmsEM57P") as Node3D
+				print("MAGNUM_ADS_VISIBILITY ", weapon_name, " weapon=", weapon.is_visible_in_tree(), " arms=", arms.is_visible_in_tree())
 		_aim(false)
 		await create_timer(0.2).timeout
 	print("NEW_WEAPON_PROBE failures=", _failures)

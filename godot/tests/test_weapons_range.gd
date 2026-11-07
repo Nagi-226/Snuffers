@@ -50,6 +50,26 @@ func _run() -> void:
 	var target := scene.get_node("RangeFacilities/Targets/CloseTarget") as CharacterBody3D
 	player.global_position = Vector3(44, 0.1, 20)
 	var camera := player.get_node("Camera3D") as Camera3D
+	var day_switch := scene.get_node_or_null("RangeFacilities/DayNightSwitch")
+	_assert(day_switch != null, "range has a physical day/night switch")
+	if day_switch != null:
+		player.global_position = day_switch.global_position + Vector3(0, 0.1, -2.0)
+		camera.look_at(day_switch.global_position + Vector3(0, 0.75, 0))
+		await physics_frame
+		player._update_interact_target()
+		_assert(player._interact_target == day_switch, "aiming at the switch acquires it through the shared F interaction ray")
+		state.night_vision = true
+		player._try_interact()
+		var day_night = scene.get_node("GreyboxArena/DayNightController")
+		var environment: Environment = day_night.get_node("WorldEnvironment").environment
+		_assert(day_night.current_mode == day_night.Mode.DAY and not state.is_night and not state.night_vision, "F switches to day and disables active night vision")
+		_assert(environment.background_mode == Environment.BG_SKY and environment.sky != null and environment.sky.sky_material is PanoramaSkyMaterial, "day mode uses a panoramic sky")
+		if environment.sky != null and environment.sky.sky_material is PanoramaSkyMaterial:
+			_assert(environment.sky.sky_material.panorama.resource_path == "res://assets/textures/skies/kloofendal_48d_partly_cloudy_puresky_2k.hdr", "day sky uses the registered Poly Haven CC0 HDR")
+		_assert(day_switch.interact_prompt() == "F  切换黑夜", "switch prompt offers the return to night")
+		player._try_interact()
+		_assert(day_night.current_mode == day_night.Mode.NIGHT and state.is_night and environment.background_mode == Environment.BG_COLOR, "second F restores the original night environment")
+	player.global_position = Vector3(44, 0.1, 20)
 	camera.look_at(target.global_position + Vector3(0, 1.0, 0))
 	state.current_weapon = &"rifle"
 	var rifle := player.get_node("Camera3D/WeaponMount/Rifle")

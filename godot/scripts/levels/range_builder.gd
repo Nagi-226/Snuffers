@@ -1,6 +1,8 @@
 extends Node3D
 
 const TARGET_SCRIPT := preload("res://scripts/levels/range_target.gd")
+const DAY_NIGHT_SWITCH_SCRIPT := preload("res://scripts/levels/range_day_night_switch.gd")
+const DAY_SKY := preload("res://assets/textures/skies/kloofendal_48d_partly_cloudy_puresky_2k.hdr")
 const TARGET_SCENES: Dictionary = {
 	&"infantry": preload("res://scenes/enemies/infantry.tscn"),
 	&"machine_gunner": preload("res://scenes/enemies/machine_gunner.tscn"),
@@ -29,6 +31,7 @@ func _ready() -> void:
 	_build_far_roosts()
 	_build_targets()
 	_build_signs()
+	_build_day_night_switch()
 
 
 func _build_maze() -> void:
@@ -104,6 +107,16 @@ func _build_signs() -> void:
 	_label(self, "SniperGuide", "远程狙击塔 / 12m\n165–172m 高台靶", Vector3(80, 14.5, 0), 46)
 	for z in [-45.0, 0.0, 45.0]:
 		_label(self, "FarGuide", "远距 NPC 靶\n安全测试 / 不反击", Vector3(-85, 14.8, z), 46)
+
+
+func _build_day_night_switch() -> void:
+	var controller = get_parent().get_node("GreyboxArena/DayNightController")
+	controller.day_sky = DAY_SKY
+	var day_switch := DAY_NIGHT_SWITCH_SCRIPT.new() as StaticBody3D
+	day_switch.name = "DayNightSwitch"
+	day_switch.position = Vector3(46.5, 0, 21)
+	day_switch.setup(controller)
+	add_child(day_switch)
 
 
 func _target(kind: StringName, nm: String, pos: Vector3, hp: float, caption: String, yaw: float = 0.0) -> void:

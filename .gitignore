@@ -31,3 +31,5 @@ godot/raw_assets/
 *.tga
 *.exr
 *.hdr
+# 游戏直接使用的精简 CC0 天空 HDR；原始高分辨率资产仍禁止入库
+!godot/assets/textures/skies/*.hdr

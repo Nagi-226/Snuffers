@@ -23,7 +23,8 @@ enum Kind { HITSCAN, PROJECTILE } ## 0=即时命中（步枪），1=投射物（
 @export var dmg_vs_sniper: float = 999.0 ## 对狙击手固定伤害（GameConfig.RIFLE_DMG_VS_SNIPER）
 
 # ===== 射速 / 弹药 / 换弹（hitscan）=====
-@export var fire_interval: float = 0.1 ## 全自动/点射射速 s/发（GameConfig.RIFLE_FIRE_INTERVAL）
+@export var fire_interval: float = 0.1 ## 全自动射速 s/发（GameConfig.RIFLE_FIRE_INTERVAL）
+@export var burst_fire_interval: float = 0.1 ## 三发点射射速；默认与全自动一致，EM-86B 独立 900 RPM
 @export var semi_fire_interval: float = 0.1 ## 半自动击发间隔 s/发（GameConfig.RIFLE_SEMI_FIRE_INTERVAL / PISTOL_SEMI_FIRE_INTERVAL，2026-10-19 机主口径：半自动射速独立于连发档位）
 @export var mag_size: int = 30 ## 弹匣（GameConfig.RIFLE_MAG）
 @export var reserve_size: int = 150 ## 备弹（GameConfig.RIFLE_RESERVE）
@@ -70,6 +71,7 @@ enum Kind { HITSCAN, PROJECTILE } ## 0=即时命中（步枪），1=投射物（
 ## 契约已冻结字段全部在此同步；RPG 的 recoil_view_offset / recoil_decay 契约无专属项，
 ## 保留 .tres 值（见文件头注释）。
 func sync_from_config() -> void:
+	burst_fire_interval = fire_interval
 	match weapon_id:
 		&"rifle":
 			damage_body = GameConfig.AMMO_DMG_EC68 ## EM-68A 用 EC-68 步枪弹（伤害绑口径不绑枪，2026-10-22 机主裁决）
@@ -217,6 +219,79 @@ func sync_from_config() -> void:
 			view_recoil_rot_factor = GameConfig.DMR_RECOIL_VIEW_ROT
 			view_recoil_y_factor = GameConfig.DMR_RECOIL_VIEW_Y_FACTOR
 			view_recoil_z_factor = GameConfig.DMR_RECOIL_VIEW_Z_FACTOR
+		&"em86s":
+			damage_body = GameConfig.EM86S_DAMAGE_BODY
+			headshot_factor = GameConfig.RIFLE_DMG_HEAD_FACTOR
+			dmg_vs_sniper = GameConfig.RIFLE_DMG_VS_SNIPER
+			fire_interval = GameConfig.EM86S_SEMI_FIRE_INTERVAL
+			semi_fire_interval = GameConfig.EM86S_SEMI_FIRE_INTERVAL
+			mag_size = GameConfig.EM86_MAG
+			reserve_size = GameConfig.EM86_RESERVE
+			reload_time = GameConfig.EM86_RELOAD_TIME
+			hitscan_range = GameConfig.EM86S_RANGE
+			spread_hip = GameConfig.EM86S_SPREAD_HIP
+			spread_prone = GameConfig.EM86S_SPREAD_PRONE
+			spread_aim = GameConfig.EM86S_SPREAD_AIM
+			recoil_pitch = GameConfig.EM86S_RECOIL_PITCH
+			recoil_view_offset = GameConfig.EM86S_RECOIL_VIEW_OFFSET
+			recoil_decay = GameConfig.EM86_RECOIL_DECAY
+			recoil_recover_rate = GameConfig.EM86_RECOIL_RECOVER_RATE
+			view_recoil_rot_factor = GameConfig.EM86_RECOIL_VIEW_ROT
+			view_recoil_y_factor = GameConfig.EM86_RECOIL_VIEW_Y_FACTOR
+			view_recoil_z_factor = GameConfig.EM86_RECOIL_VIEW_Z_FACTOR
+		&"em86b":
+			damage_body = GameConfig.EM86B_DAMAGE_BODY
+			headshot_factor = GameConfig.RIFLE_DMG_HEAD_FACTOR
+			dmg_vs_sniper = GameConfig.RIFLE_DMG_VS_SNIPER
+			fire_interval = GameConfig.EM86B_FIRE_INTERVAL
+			burst_fire_interval = GameConfig.EM86B_BURST_FIRE_INTERVAL
+			semi_fire_interval = GameConfig.EM86B_SEMI_FIRE_INTERVAL
+			mag_size = GameConfig.EM86_MAG
+			reserve_size = GameConfig.EM86_RESERVE
+			reload_time = GameConfig.EM86_RELOAD_TIME
+			hitscan_range = GameConfig.EM86B_RANGE
+			spread_hip = GameConfig.EM86B_SPREAD_HIP
+			spread_prone = GameConfig.EM86B_SPREAD_PRONE
+			spread_aim = GameConfig.EM86B_SPREAD_AIM
+			recoil_pitch = GameConfig.EM86B_RECOIL_PITCH
+			recoil_view_offset = GameConfig.EM86B_RECOIL_VIEW_OFFSET
+			recoil_decay = GameConfig.EM86_RECOIL_DECAY
+			recoil_recover_rate = GameConfig.EM86_RECOIL_RECOVER_RATE
+			view_recoil_rot_factor = GameConfig.EM86_RECOIL_VIEW_ROT
+			view_recoil_y_factor = GameConfig.EM86_RECOIL_VIEW_Y_FACTOR
+			view_recoil_z_factor = GameConfig.EM86_RECOIL_VIEW_Z_FACTOR
+			projectile_speed = GameConfig.GRENADE_PROJECTILE_SPEED
+			projectile_gravity = GameConfig.GRENADE_GRAVITY
+			projectile_max_range = GameConfig.GRENADE_MAX_RANGE
+			projectile_explode_below_y = GameConfig.GRENADE_EXPLODE_BELOW_Y
+			explode_radius = GameConfig.GRENADE_EXPLODE_RADIUS
+			explode_kill_radius = GameConfig.GRENADE_EXPLODE_KILL_RADIUS
+			explode_kill_damage = GameConfig.GRENADE_EXPLODE_KILL_DAMAGE
+			explode_falloff_factor = GameConfig.GRENADE_EXPLODE_FALLOFF_FACTOR
+			explode_damage = GameConfig.GRENADE_EXPLODE_DAMAGE
+			bunker_radius_bonus = GameConfig.GRENADE_BUNKER_RADIUS_BONUS
+			self_damage = GameConfig.GRENADE_SELF_DAMAGE
+			grenade_fire_interval = GameConfig.GRENADE_FIRE_INTERVAL
+		&"em86d":
+			damage_body = GameConfig.EM86D_DAMAGE_BODY
+			headshot_factor = GameConfig.RIFLE_DMG_HEAD_FACTOR
+			dmg_vs_sniper = GameConfig.RIFLE_DMG_VS_SNIPER
+			fire_interval = GameConfig.EM86D_SEMI_FIRE_INTERVAL
+			semi_fire_interval = GameConfig.EM86D_SEMI_FIRE_INTERVAL
+			mag_size = GameConfig.EM86_MAG
+			reserve_size = GameConfig.EM86_RESERVE
+			reload_time = GameConfig.EM86_RELOAD_TIME
+			hitscan_range = GameConfig.EM86D_RANGE
+			spread_hip = GameConfig.EM86D_SPREAD_HIP
+			spread_prone = GameConfig.EM86D_SPREAD_PRONE
+			spread_aim = GameConfig.EM86D_SPREAD_AIM
+			recoil_pitch = GameConfig.EM86D_RECOIL_PITCH
+			recoil_view_offset = GameConfig.EM86D_RECOIL_VIEW_OFFSET
+			recoil_decay = GameConfig.EM86_RECOIL_DECAY
+			recoil_recover_rate = GameConfig.EM86_RECOIL_RECOVER_RATE
+			view_recoil_rot_factor = GameConfig.EM86_RECOIL_VIEW_ROT
+			view_recoil_y_factor = GameConfig.EM86_RECOIL_VIEW_Y_FACTOR
+			view_recoil_z_factor = GameConfig.EM86_RECOIL_VIEW_Z_FACTOR
 		&"shotgun":
 			damage_body = GameConfig.AMMO_DMG_EC12_PELLET
 			headshot_factor = GameConfig.SHOTGUN_DMG_HEAD_FACTOR
