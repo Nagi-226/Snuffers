@@ -867,7 +867,7 @@ class AdsReticle extends Control:
 			&"em86b":
 				# 镜筒内局部准星：短十字不穿入空心圆，中央保留瞄点。
 				for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
-					draw_line(center + dir * 28.0, center + dir * 64.0, color, 1.2, true)
+					draw_line(center + dir * 28.0, center + dir * 48.0, color, 1.2, true)
 				draw_arc(center, 18.0, 0.0, TAU, 64, color, 1.6, true)
 				draw_circle(center, 2.2, color)
 			&"rifle", &"shotgun", &"smg", &"lmg":

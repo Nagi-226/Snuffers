@@ -19,7 +19,7 @@ if not meshes:
     raise RuntimeError("no mesh objects")
 
 CENTER_Y = 0.03
-CENTER_Z = 0.20
+CENTER_Z = 0.195
 HALF_LENGTH = 0.18
 BORE_RADIUS = 0.032
 removed = 0
