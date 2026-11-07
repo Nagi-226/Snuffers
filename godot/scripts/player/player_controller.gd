@@ -143,6 +143,9 @@ func _ready() -> void:
 	_big_map.visible = false
 	reticle_layer.add_child(_big_map)
 	_calibrate_ads()
+	_ads_mount_targets[&"smg"] = _ads_mount_targets[&"rifle"]
+	_ads_mount_targets[&"lmg"] = _ads_mount_targets[&"rifle"]
+	_ads_mount_targets[&"magnum"] = _ads_mount_targets[&"pistol"]
 	for pair: Array in [[&"smg", "SMG/ViewModel/EM68A"], [&"lmg", "LMG/ViewModel/EM68A"], [&"magnum", "Magnum/ViewModel/EM57P"]]:
 		_scope_view_models[pair[0]] = _weapon_mount.get_node_or_null(pair[1])
 	_load_optic_meshes()

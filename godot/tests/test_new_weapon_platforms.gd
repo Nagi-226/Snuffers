@@ -101,6 +101,8 @@ func _run() -> void:
 	_state.magnum_reserve = 1500
 	magnum._on_weapon_reloaded(&"magnum")
 	_assert(_state.magnum_mag == 15 and _state.magnum_reserve == 1485, "Magnum reloads from its independent EC-127 reserve")
+	_assert(_player._ads_mount_targets[&"smg"].is_equal_approx(_player._ads_mount_targets[&"rifle"]) and _player._ads_mount_targets[&"lmg"].is_equal_approx(_player._ads_mount_targets[&"rifle"]), "SMG and LMG inherit the exact EM-68A optic center")
+	_assert(_player._ads_mount_targets[&"magnum"].is_equal_approx(_player._ads_mount_targets[&"pistol"]), "Magnum inherits the exact EM-57P optic center")
 	_press(KEY_2)
 	_player._set_aiming(true)
 	for frame in 20:

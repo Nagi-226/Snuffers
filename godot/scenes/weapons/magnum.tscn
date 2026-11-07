@@ -15,7 +15,7 @@ retime_reload = false
 [node name="ViewModel" type="Node3D" parent="."]
 
 [node name="EM57P" parent="ViewModel" instance=ExtResource("3_model")]
-scale = Vector3(0.7, 0.7, 0.7)
+scale = Vector3(0.48, 0.48, 0.48)
 position = Vector3(0.03, 0.03, 0.04)
 
 [node name="em57p_magazine" type="Marker3D" parent="ViewModel/EM57P"]
