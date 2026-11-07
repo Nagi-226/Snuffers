@@ -24,6 +24,18 @@ func _press(key: Key) -> void:
 	_player._unhandled_input(event)
 
 
+func _press_reload(weapon: Node) -> void:
+	if DisplayServer.get_name() == "headless":
+		weapon._start_reload()
+		return
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	var event := InputEventKey.new()
+	event.keycode = KEY_R
+	event.physical_keycode = KEY_R
+	event.pressed = true
+	weapon._unhandled_input(event)
+
+
 func _model_bounds(model: Node3D) -> AABB:
 	var result := AABB()
 	var first := true
@@ -73,10 +85,18 @@ func _run() -> void:
 	var grenades_before: int = _state.rifle_grenades
 	var grenade_fired: bool = smg._fire_grenade()
 	_assert(grenade_fired and _state.rifle_grenades == grenades_before - 1, "SMG consumes the shared grenade pool")
+	_state.smg_mag = 17
+	_state.pistol_reserve = 600
+	_press_reload(smg)
+	_assert(not smg._is_reloading and _state.smg_mag == 17 and _state.pistol_reserve == 600 and _state.rifle_grenades == grenades_before - 1, "SMG grenade mode ignores R without changing either ammunition pool")
 	_state.smg_mag = 0
 	_state.pistol_reserve = 600
 	smg._on_weapon_reloaded(&"smg")
 	_assert(_state.smg_mag == 100 and _state.pistol_reserve == 500, "SMG reloads from the shared EC-57 reserve")
+	_state.fire_modes[&"smg"] = &"auto"
+	_state.smg_mag = 80
+	_press_reload(smg)
+	_assert(smg._is_reloading, "SMG automatic mode still reloads with R")
 	_press(KEY_5)
 	_assert(_state.current_weapon == &"lmg", "number 5 selects the LMG")
 	var lmg = _player.get_node("Camera3D/WeaponMount/LMG")
@@ -101,6 +121,16 @@ func _run() -> void:
 	_state.magnum_reserve = 1500
 	magnum._on_weapon_reloaded(&"magnum")
 	_assert(_state.magnum_mag == 15 and _state.magnum_reserve == 1485, "Magnum reloads from its independent EC-127 reserve")
+	_press(KEY_3)
+	var rifle = _player.get_node("Camera3D/WeaponMount/Rifle")
+	_state.fire_modes[&"rifle"] = &"grenade"
+	_state.rifle_mag = 13
+	_state.rifle_reserve = 1800
+	_press_reload(rifle)
+	_assert(not rifle._is_reloading and _state.rifle_mag == 13 and _state.rifle_reserve == 1800, "rifle grenade mode ignores R without changing its ammunition display values")
+	_state.fire_modes[&"rifle"] = &"auto"
+	_press_reload(rifle)
+	_assert(rifle._is_reloading, "rifle automatic mode still reloads with R")
 	_assert(_player._ads_mount_targets[&"smg"].is_equal_approx(_player._ads_mount_targets[&"rifle"]) and _player._ads_mount_targets[&"lmg"].is_equal_approx(_player._ads_mount_targets[&"rifle"]), "SMG and LMG inherit the exact EM-68A optic center")
 	_assert(_player._ads_mount_targets[&"magnum"].is_equal_approx(_player._ads_mount_targets[&"pistol"]), "Magnum inherits the exact EM-57P optic center")
 	_press(KEY_2)
@@ -126,6 +156,7 @@ func _run() -> void:
 		_assert(bounds.size.z > bounds.size.x, entry[0] + " model long axis points forward instead of sideways")
 	var config = root.get_node("GameConfig")
 	_assert(config.RIFLE_MAG == 60 and config.PISTOL_MAG == 30 and config.DMR_MAG == 60 and config.SHOTGUN_MAG == 32 and config.SPAS12_MAG == 8, "existing weapon values remain unchanged")
+	await create_timer(2.1).timeout
 	scene.queue_free()
 	await process_frame
 	print("test_new_weapon_platforms: %d assertion(s) failed" % _failures)

@@ -493,9 +493,9 @@ func _current_spread() -> float:
 
 
 ## 换弹启动（R 键手动 / 弹尽自动共用）：自发 started →（reload_time）→ reloaded 信号序列。
-## 守卫：换弹中 / 无备弹 / 弹匣已满时不触发。
+## 守卫：榴弹档 / 换弹中 / 无备弹 / 弹匣已满时不触发。
 func _start_reload() -> void:
-	if _is_reloading or _reserve_value() <= 0:
+	if _current_fire_mode() == &"grenade" or _is_reloading or _reserve_value() <= 0:
 		return
 	if _mag_value() >= weapon_data.mag_size:
 		return
