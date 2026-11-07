@@ -53,3 +53,11 @@
 - 署名文案：`Franchi SPAS-12 (Low-poly) by Saucy is licensed under Creative Commons Attribution.`
 - 动画：原始绑定含 `SPAS-12|Pump_01/02/03` 等动画；游戏内按独立 `Action_sleeve` 网格驱动泵动，第一人称双臂复用项目已登记手臂。
 - 本地改动：静态部件烘焙以避免 Godot 蒙皮姿态异常，统一米制尺度与第一人称朝向；原始绑定备份在 modeling 工作区，未引入原始 .blend 文件。
+
+## EM-57S-1「雹·Ⅰ」/ EM-68L「殷雷」/ EM-127P「锏」（2026-11-07 入库）
+
+- **正式资产**: `em57s1_viewmodel.glb`、`em68l_viewmodel.glb`、`em127p_viewmodel.glb`。
+- **来源**: 项目自有 EDAA 概念设定，AI 图生 3D 原始模型；无第三方网格或贴图，无额外署名要求。
+- **原始模型**: `desktop-port/godot-spike/modeling/em-weapons/em57s1/em57s1_hunyuan_v31_raw.glb`、`em68l/em68l_hunyuan_v31_magazine_adjusted.glb`、`em127p/em127p_hunyuan_v31_raw.glb`（原始工作区，不直接入库）。
+- **本地处理**: `prepare_generated_asset.py` 统一米制长度与枪口 -Z、几何居中、贴图最长边 2048；三角面分别由 1500000/1499208/1500000 减至 59999/70000/40000；导出游戏用 GLB。
+- **生成日期**: 2026-11-07。

@@ -15,6 +15,7 @@ position = Vector3(44, 0.1, 19)
 rotation = Vector3(0, 3.1415927, 0)
 
 [node name="HUD" parent="." instance=ExtResource("3_hud")]
+range_mode = true
 
 [node name="AudioManager" parent="." instance=ExtResource("4_audio")]
 

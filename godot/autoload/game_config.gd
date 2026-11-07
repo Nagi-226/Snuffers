@@ -143,6 +143,65 @@ const PISTOL_RECOIL_VIEW_ROT: float = 2.0 ## 视图模型后坐旋转系数
 const PISTOL_RECOIL_VIEW_Y_FACTOR: float = 0.02 ## 视图模型后坐位移系数 Y
 const PISTOL_RECOIL_VIEW_Z_FACTOR: float = 0.04 ## 视图模型后坐位移系数 Z
 
+# ===== EM-57S-1「雹·Ⅰ」冲锋枪（与 EM-57P 共用 EC-57 备弹池）=====
+const SMG_FIRE_INTERVAL: float = 0.06 ## 全自动/三发点射 1000 RPM
+const SMG_SEMI_FIRE_INTERVAL: float = 0.12 ## 半自动击发间隔
+const SMG_MAG: int = 100
+const SMG_RELOAD_TIME: float = 1.8
+const SMG_RANGE: float = 90.0
+const SMG_SPREAD_HIP: float = 0.005
+const SMG_SPREAD_PRONE: float = 0.0025
+const SMG_SPREAD_AIM: float = 0.0008
+const SMG_RECOIL_PITCH: float = 0.0022
+const SMG_RECOIL_VIEW_OFFSET: float = 0.055
+const SMG_RECOIL_DECAY: float = 0.84
+const SMG_RECOIL_RECOVER_RATE: float = 8.0
+const SMG_RECOIL_VIEW_ROT: float = 2.0
+const SMG_RECOIL_VIEW_Y_FACTOR: float = 0.02
+const SMG_RECOIL_VIEW_Z_FACTOR: float = 0.04
+const SMG_ADS_FOV: float = 60.0
+const SMG_SOUND_PITCH: float = 1.1
+
+# ===== EM-68L「殷雷」班用机枪（与 EM-68A/D 共用 EC-68 备弹池）=====
+const LMG_FIRE_INTERVAL: float = 0.05 ## 全自动/三发点射 1200 RPM
+const LMG_SEMI_FIRE_INTERVAL: float = 0.12 ## 半自动击发间隔
+const LMG_MAG: int = 600
+const LMG_RELOAD_TIME: float = 3.2
+const LMG_RANGE: float = 140.0
+const LMG_SPREAD_HIP: float = 0.006
+const LMG_SPREAD_PRONE: float = 0.002
+const LMG_SPREAD_AIM: float = 0.0008
+const LMG_RECOIL_PITCH: float = 0.0035
+const LMG_RECOIL_VIEW_OFFSET: float = 0.09
+const LMG_RECOIL_DECAY: float = 0.82
+const LMG_RECOIL_RECOVER_RATE: float = 6.5
+const LMG_RECOIL_VIEW_ROT: float = 2.25
+const LMG_RECOIL_VIEW_Y_FACTOR: float = 0.025
+const LMG_RECOIL_VIEW_Z_FACTOR: float = 0.05
+const LMG_ADS_FOV: float = 60.0
+const LMG_SOUND_PITCH: float = 0.75
+
+# ===== EM-127P「锏」马格南重型手枪（独立 EC-127 弹药）=====
+const MAGNUM_DAMAGE_BODY: float = 150.0
+const MAGNUM_FIRE_INTERVAL: float = 0.55 ## 仅半自动
+const MAGNUM_SEMI_FIRE_INTERVAL: float = 0.55
+const MAGNUM_MAG: int = 15
+const MAGNUM_RESERVE: int = 75 ## 五个备用弹匣；未指定备弹量，按 15×5 落地
+const MAGNUM_RELOAD_TIME: float = 2.0
+const MAGNUM_RANGE: float = 120.0
+const MAGNUM_SPREAD_HIP: float = 0.003
+const MAGNUM_SPREAD_PRONE: float = 0.0015
+const MAGNUM_SPREAD_AIM: float = 0.0004
+const MAGNUM_RECOIL_PITCH: float = 0.018
+const MAGNUM_RECOIL_VIEW_OFFSET: float = 0.17
+const MAGNUM_RECOIL_DECAY: float = 0.8
+const MAGNUM_RECOIL_RECOVER_RATE: float = 5.0
+const MAGNUM_RECOIL_VIEW_ROT: float = 2.5
+const MAGNUM_RECOIL_VIEW_Y_FACTOR: float = 0.03
+const MAGNUM_RECOIL_VIEW_Z_FACTOR: float = 0.06
+const MAGNUM_ADS_FOV: float = 65.0
+const MAGNUM_SOUND_PITCH: float = 0.55
+
 const LONG_GUN_SHOULDER_DIRECTION := Vector3(0.03, -0.36, 0.14) ## 新长枪双臂 IK 的肩部收拢方向
 
 # ===== EM-68D「穿杨」精确射手步枪（2026-10-26 机主裁决：弹匣与备弹池均和 EM-68A 通用）=====
@@ -376,13 +435,13 @@ const SFX_PITCH_JITTER: float = 0.1 ## 枪声音高抖动 ±10%（L392）
 # ===== 武器选择分类（2026-10-29 机主裁决：Half-Life 数字类别 + 同键循环 + 滚轮）=====
 const WEAPON_CATEGORIES: Array = [
 	{"number": 1, "name": "手枪", "weapons": [&"pistol"]},
-	{"number": 2, "name": "冲锋枪", "weapons": []},
+	{"number": 2, "name": "冲锋枪", "weapons": [&"smg"]},
 	{"number": 3, "name": "突击 / DMR", "weapons": [&"rifle", &"dmr"]},
 	{"number": 4, "name": "霰弹 / 狙击", "weapons": [&"shotgun", &"spas12"]},
-	{"number": 5, "name": "机枪", "weapons": []},
-	{"number": 6, "name": "爆破重火力", "weapons": []},
+	{"number": 5, "name": "机枪", "weapons": [&"lmg"]},
+	{"number": 6, "name": "爆破重火力", "weapons": [&"magnum"]},
 ]
-const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"rifle", &"dmr", &"shotgun", &"spas12"]
+const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"smg", &"rifle", &"dmr", &"shotgun", &"spas12", &"lmg", &"magnum"]
 const WEAPON_SELECTOR_HOLD_TIME: float = 1.6
 
 # ===== UI 反馈动效（G2 冻结自 W5 脚本常量迁入）=====
@@ -526,6 +585,8 @@ const MINIMAP_MAP_TEXTURE: String = "res://assets/ui/minimap_street.png" ## 俯�
 const MINIMAP_MAP_CALIB: String = "res://assets/ui/minimap_street.json" ## 世界→像素标定（与底图同批生成）
 const DISTRICT_MINIMAP_MAP_TEXTURE: String = "res://assets/ui/minimap_district_b.png" ## 第二关仓库俯视底图
 const DISTRICT_MINIMAP_MAP_CALIB: String = "res://assets/ui/minimap_district_b.json" ## 第二关世界→像素标定
+const RANGE_MINIMAP_MAP_TEXTURE: String = "res://assets/ui/minimap_range.png" ## 综合靶场俯视底图
+const RANGE_MINIMAP_MAP_CALIB: String = "res://assets/ui/minimap_range.json" ## 综合靶场世界→像素标定
 const MINIMAP_ENEMY_COLOR := Color(1.0, 0.28, 0.22, 0.95) ## 敌人红点（ASI 威胁标记）
 const MINIMAP_PLAYER_COLOR := Color(0.45, 0.95, 1.0, 1.0) ## 玩家箭头（青蓝，HUD 主色）
 const MINIMAP_BORDER_COLOR := Color(0.4, 0.95, 1.0, 0.55) ## 圆环边框

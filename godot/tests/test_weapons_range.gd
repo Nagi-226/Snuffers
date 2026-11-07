@@ -40,7 +40,7 @@ func _run() -> void:
 	_assert(get_nodes_in_group(&"enemy").is_empty(), "range contains no enemy AI")
 	var targets := get_nodes_in_group(&"range_target")
 	_assert(targets.size() == 10, "range contains ten passive NPC targets")
-	_assert(state.weapon_unlocked.values().all(func(unlocked): return unlocked), "all five weapons are unlocked")
+	_assert(state.weapon_unlocked.values().all(func(unlocked): return unlocked), "all available weapons are unlocked")
 	_assert(not scene.has_node("Garrison") and not scene.has_node("MissionDirector") and not scene.has_node("CombatFX"), "legacy garrison and combat systems are absent")
 	_assert(scene.has_node("RangeFacilities/IndoorMaze/Roof") and scene.has_node("RangeFacilities/IndoorMaze/TurnThree"), "covered multi-turn indoor maze exists")
 	_assert(scene.has_node("RangeFacilities/NearOverwatch/Platform"), "near overwatch platform exists")

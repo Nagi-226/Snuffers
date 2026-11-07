@@ -181,8 +181,11 @@ func _calibrate_ads() -> void:
 		&"dmr": GameConfig.DMR_ADS_FOV,
 		&"shotgun": GameConfig.SHOTGUN_ADS_FOV,
 		&"spas12": GameConfig.SPAS12_ADS_FOV,
+		&"smg": GameConfig.SMG_ADS_FOV,
+		&"lmg": GameConfig.LMG_ADS_FOV,
+		&"magnum": GameConfig.MAGNUM_ADS_FOV,
 	}
-	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"], [&"spas12", "Spas12"]]:
+	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"], [&"spas12", "Spas12"], [&"smg", "SMG"], [&"lmg", "LMG"], [&"magnum", "Magnum"]]:
 		var weapon_root := _weapon_mount.get_node_or_null(pair[1]) as Node3D
 		var fallback := Vector3(0.0, _mount_hip_pos.y, _mount_hip_pos.z)
 		if weapon_root == null:
@@ -730,16 +733,16 @@ func _apply_nano_visuals() -> void:
 		(mesh as MeshInstance3D).transparency = 0.82 if GameState.nano_mode == &"stealth" else 0.0
 
 
-## X：步枪四态、手枪三态、DMR/SPAS 固定半自动、EM 霰弹枪半自动/全自动。
+## X：步枪/SMG 加榴档，其他自动武器三档，DMR/SPAS/重手枪固定半自动。
 func _cycle_fire_mode() -> void:
 	var w := GameState.current_weapon
-	if w in [&"dmr", &"spas12"]:
+	if w in [&"dmr", &"spas12", &"magnum"]:
 		return
 	const ORDER_RIFLE: Array[StringName] = [&"auto", &"semi", &"burst", &"grenade"]
 	const ORDER_PISTOL: Array[StringName] = [&"auto", &"burst", &"semi"]
 	const ORDER_SHOTGUN: Array[StringName] = [&"semi", &"auto"]
 	var order: Array[StringName] = ORDER_PISTOL
-	if w == &"rifle":
+	if w in [&"rifle", &"smg"]:
 		order = ORDER_RIFLE
 	elif w == &"shotgun":
 		order = ORDER_SHOTGUN
@@ -815,13 +818,13 @@ class AdsReticle extends Control:
 					draw_line(center + dir * 28.0, center + dir * maxf(size.x, size.y), color, 1.2, true)
 				draw_arc(center, 18.0, 0.0, TAU, 64, color, 1.6, true)
 				draw_circle(center, 2.2, color)
-			&"rifle", &"shotgun":
+			&"rifle", &"shotgun", &"smg", &"lmg":
 				# 全息环：外环 + 心点 + 四向短刻度
 				draw_arc(center, 22.0, 0.0, TAU, 64, color, 1.6, true)
 				draw_circle(center, 2.2, color)
 				for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
 					draw_line(center + dir * 26.0, center + dir * 31.0, color, 1.6, true)
-			&"pistol":
+			&"pistol", &"magnum":
 				# 点状准星：心点 + 微光晕圈
 				draw_arc(center, 5.0, 0.0, TAU, 32, Color(color, alpha * 0.45), 1.2, true)
 				draw_circle(center, 2.0, color)
