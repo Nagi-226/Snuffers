@@ -150,6 +150,22 @@ func _run() -> void:
 		_player._process(1.0 / 60.0)
 	_assert(_player._scope_view_models[&"smg"].visible and not _player.get_node("Camera3D/WeaponMount/Rifle").visible, "hip fire restores the SMG model and hides the scope model")
 	_assert(_player._optic_meshes[&"rifle"].node.mesh == _player._optic_meshes[&"rifle"].intact, "hip fire restores the intact EM-68A optic mesh")
+	_press(KEY_1)
+	_press(KEY_1)
+	_player._set_aiming(true)
+	for frame in 20:
+		_player._process(1.0 / 60.0)
+	var pistol_arms := _player.get_node("Camera3D/WeaponMount/Pistol/ViewModel/ArmsEM57P") as Node3D
+	var magnum_arms := _player.get_node("Camera3D/WeaponMount/Magnum/ViewModel/ArmsEM57P") as Node3D
+	_assert(pistol_arms.is_visible_in_tree() and not magnum_arms.is_visible_in_tree(), "Magnum ADS displays only one set of arms")
+	_state.magnum_mag = 4
+	magnum._start_reload()
+	_player._process(1.0 / 60.0)
+	_assert(magnum_arms.is_visible_in_tree() and not pistol_arms.is_visible_in_tree() and _player._scope_view_models[&"magnum"].visible, "Magnum ADS reload displays only its own animated weapon and arms")
+	_player._set_aiming(false)
+	for frame in 20:
+		_player._process(1.0 / 60.0)
+	_assert(magnum_arms.is_visible_in_tree() and not pistol_arms.is_visible_in_tree(), "Magnum hip fire restores its own single arm assembly")
 	await process_frame
 	await process_frame
 	var minimap = scene.get_node("HUD/Minimap")

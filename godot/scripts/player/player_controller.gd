@@ -530,14 +530,19 @@ func _process(delta: float) -> void:
 			_ads_reticle.mode = mode
 			_ads_reticle.weight = _ads_weight
 			_ads_reticle.queue_redraw()
+	var magnum_reloading: bool = GameState.current_weapon == &"magnum" and _weapon_mount.get_node("Magnum")._is_reloading
 	for weapon_id in _scope_view_models:
 		var model := _scope_view_models[weapon_id] as Node3D
 		if model != null:
-			model.visible = GameState.current_weapon != weapon_id or _ads_weight < 0.75
+			var show_magnum_reload: bool = weapon_id == &"magnum" and magnum_reloading
+			model.visible = GameState.current_weapon != weapon_id or _ads_weight < 0.75 or show_magnum_reload
 	if GameState.current_weapon in [&"smg", &"lmg"]:
 		_weapon_mount.get_node("Rifle").visible = _ads_weight >= 0.75
 	if GameState.current_weapon == &"magnum":
-		_weapon_mount.get_node("Pistol").visible = _ads_weight >= 0.75
+		# 正常 ADS 借用已校准手枪枪臂；换弹改用 Magnum 自身完整动画，任何时刻只显示一套。
+		var show_magnum_reload := _ads_weight >= 0.75 and magnum_reloading
+		_weapon_mount.get_node("Magnum/ViewModel/ArmsEM57P").visible = _ads_weight < 0.75 or show_magnum_reload
+		_weapon_mount.get_node("Pistol").visible = _ads_weight >= 0.75 and not show_magnum_reload
 	var full_scope := GameState.current_weapon == &"dmr" and _ads_weight > 0.6
 	if _dmr_scope != null:
 		_dmr_scope.visible = full_scope
