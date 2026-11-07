@@ -176,6 +176,24 @@ func _load_optic_meshes() -> void:
 				"bored": bored_mi.mesh,
 			}
 		bored_root.free()
+	# EM-86B 整枪双模型：常规恢复完整镜框，ADS 才使用当前已验收的开孔版。
+	var em86b_root := _weapon_mount.get_node_or_null("Em86b") as Node3D
+	if em86b_root != null:
+		var current_mesh: MeshInstance3D = null
+		for node in em86b_root.find_children("*", "MeshInstance3D", true, false):
+			current_mesh = node as MeshInstance3D
+			break
+		var intact_scene: PackedScene = load("res://assets/models/weapons/em86b_viewmodel_intact.glb")
+		if current_mesh != null and intact_scene != null:
+			var intact_root := intact_scene.instantiate()
+			for node in intact_root.find_children("*", "MeshInstance3D", true, false):
+				_optic_meshes[&"em86b"] = {
+					"node": current_mesh,
+					"intact": (node as MeshInstance3D).mesh,
+					"bored": current_mesh.mesh,
+				}
+				break
+			intact_root.free()
 
 
 ## 开镜标定：从 player.tscn 实测腰射挂载位；步枪/手枪按 optic 网格 AABB 中心反推

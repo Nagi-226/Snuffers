@@ -142,9 +142,16 @@ func _run() -> void:
 		_player._process(1.0 / 60.0)
 		battle._process(1.0 / 60.0)
 	_assert(not _player._dmr_scope.visible and battle._view_model.visible and _player._ads_reticle.mode == &"em86b", "EM-86B keeps its weapon visible with a local cross circle-dot reticle")
+	var optic_pair: Dictionary = _player._optic_meshes.get(&"em86b", {})
+	_assert(not optic_pair.is_empty() and optic_pair.node.mesh == optic_pair.bored, "EM-86B ADS uses the open sight-channel model")
 	var bore_model := battle.get_node("ViewModel/EM68A") as Node3D
 	var bore_camera: Vector3 = _player._camera.global_transform.affine_inverse() * (bore_model.global_transform * Vector3(0, 0.195, -0.03))
 	_assert(Vector2(bore_camera.x, bore_camera.y).length() < 0.001, "EM-86B physical bore center aligns with the camera axis")
+	_player._set_aiming(false)
+	for frame in 20:
+		_player._process(1.0 / 60.0)
+		battle._process(1.0 / 60.0)
+	_assert(not optic_pair.is_empty() and optic_pair.node.mesh == optic_pair.intact, "EM-86B hip fire restores the complete intact optic and weapon")
 	for weapon_id in ids:
 		var node_name := weapon_id.to_pascal_case()
 		var model_path := "Camera3D/WeaponMount/" + node_name + "/ViewModel/Weapon" if weapon_id != &"em86b" else "Camera3D/WeaponMount/Em86b/ViewModel/EM68A"
