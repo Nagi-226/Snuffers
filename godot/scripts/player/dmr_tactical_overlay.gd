@@ -150,6 +150,8 @@ func _draw() -> void:
 	var font := get_theme_default_font()
 	var center := size * 0.5
 	for entry in _targets:
+		if not is_instance_valid(entry.target):
+			continue
 		var target := entry.target as Node3D
 		var primary := target == _primary_target
 		var alpha := clampf(float(_target_age.get(target, 0.0)) / GameConfig.DMR_SCOPE_ACQUIRE_TIME, 0.0, 1.0)

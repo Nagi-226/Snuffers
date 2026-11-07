@@ -81,6 +81,12 @@ func _run() -> void:
 	_assert(GameConfig.DMR_SCOPE_MIL_STEPS.max() >= 100, "configured MIL labels use outer-scope intervals")
 	enemy.queue_free()
 	await process_frame
+	var stale_targets: Array[Dictionary] = [{"target": enemy, "rect": Rect2(100, 100, 40, 80)}]
+	overlay._targets.assign(stale_targets)
+	overlay._target_age[enemy] = 0.2
+	overlay._refresh_left = 999.0
+	overlay.queue_redraw()
+	await process_frame
 	overlay._refresh_targets()
 	_assert(overlay._targets.is_empty(), "freed target is removed without stale references")
 	world.queue_free()
