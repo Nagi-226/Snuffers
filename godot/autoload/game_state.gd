@@ -42,6 +42,7 @@ var weapon_unlocked: Dictionary = {} ## 雷暴领装状态；初始仅 EM-68A / 
 var fire_modes: Dictionary = {}
 var is_prone: bool = false
 var is_aiming: bool = false
+var nano_mode: StringName = &"armor" ## 纳米护甲：护甲 / 力量 / 隐形
 ## 连续静止时长（狙击手判定用）
 var still_time: float = 0.0
 ## 玩家世界坐标（W1 每帧写入；敌人感知/AI 共用，替代 group 软引用——G2 冻结新增）
@@ -95,6 +96,7 @@ func reset() -> void:
 	fire_modes = {&"rifle": &"auto", &"pistol": &"semi", &"dmr": &"semi", &"shotgun": &"semi", &"spas12": &"semi"}
 	is_prone = false
 	is_aiming = false
+	nano_mode = &"armor"
 	still_time = 0.0
 	player_yaw = 0.0
 	heli_unlocked = false

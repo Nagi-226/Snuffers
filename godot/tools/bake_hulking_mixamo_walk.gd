@@ -25,7 +25,7 @@ func _init() -> void:
 
 
 func _run() -> void:
-	var source := (load("res://raw_assets/mixamo/walk.fbx") as PackedScene).instantiate() as Node3D
+	var source := (load("res://raw_assets/mixamo/run.fbx") as PackedScene).instantiate() as Node3D
 	root.add_child(source)
 	var source_player := source.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer
 	var source_skeleton := source.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
@@ -34,11 +34,12 @@ func _run() -> void:
 	var target_skeleton := target.get_node("BodyMesh").find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
 	var source_animation := source_player.get_animation(&"mixamo_com")
 	var animation := target._animation_player.get_animation(&"walk").duplicate() as Animation
-	animation.length = source_animation.length
+	animation.length = source_animation.length * 1.25
 	var frames := maxi(2, int(ceil(source_animation.length * 30.0)) + 1)
 	var height_ratio := target_skeleton.get_bone_rest(target_skeleton.find_bone("hips")).origin.y / source_skeleton.get_bone_rest(source_skeleton.find_bone("mixamorig_Hips")).origin.y
 	for frame in frames:
 		var time := source_animation.length * float(frame) / float(frames - 1)
+		var key_time := time * 1.25
 		source_player.play(&"mixamo_com")
 		source_player.seek(time, true)
 		for bone_name in BONE_MAP:
@@ -53,12 +54,12 @@ func _run() -> void:
 			var delta := source_rest.basis.get_rotation_quaternion().inverse() * source_pose.basis.get_rotation_quaternion()
 			var target_rotation := target_skeleton.get_bone_rest(target_bone).basis.get_rotation_quaternion() * delta
 			if target_track >= 0:
-				animation.track_insert_key(target_track, time, target_rotation)
+				animation.track_insert_key(target_track, key_time, target_rotation)
 			if bone_name == "hips":
 				var position_track := _find_or_add_position_track(animation, bone_name)
 				var offset := (source_pose.origin - source_rest.origin) * height_ratio
-				animation.track_insert_key(position_track, time, target_skeleton.get_bone_rest(target_bone).origin + offset)
-	var path := "res://assets/models/enemies/hulking_mixamo_walk.tres"
+				animation.track_insert_key(position_track, key_time, target_skeleton.get_bone_rest(target_bone).origin + offset)
+	var path := "res://assets/models/enemies/hulking_mixamo_big_stride.tres"
 	var error := ResourceSaver.save(animation, path)
 	print("HULKING_MIXAMO_WALK ", path, " frames=", frames, " length=", animation.length, " error=", error)
 	quit(error)

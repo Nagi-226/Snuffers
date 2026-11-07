@@ -54,6 +54,12 @@ const DAMAGE_TEXT_COLOR_HEADSHOT: Color = Color(0.9, 0.55, 0.25)
 @onready var _mission_title: Label = %MissionTitle
 @onready var _mission_key: Label = %MissionKey
 @onready var _mission_intel: Label = %MissionIntel
+@onready var _awareness_bar: ProgressBar = %AwarenessBar
+@onready var _awareness_label: Label = %AwarenessLabel
+@onready var _nano_mode_label: Label = %NanoModeLabel
+
+var _awareness: float = 0.0
+var _awareness_state: StringName = &"green"
 
 ## 任务栏文案色（视觉样式常量）：完成=绿 / 未完成=米白。
 const MISSION_DONE_COLOR := Color(0.55, 0.95, 0.55, 1.0)
@@ -96,6 +102,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_refresh_mission(false)
+	_update_awareness(delta)
 	if _selector_time_left > 0.0:
 		_selector_time_left -= delta
 		if _selector_time_left <= 0.0:
@@ -314,6 +321,7 @@ func _connect_events() -> void:
 	Events.heli_arrived.connect(_on_heli_arrived)
 	Events.mission_completed.connect(_on_mission_ended)
 	Events.game_over.connect(_on_game_over)
+	Events.nano_mode_changed.connect(_on_nano_mode_changed)
 
 
 func _disconnect_events() -> void:
@@ -337,6 +345,32 @@ func _disconnect_events() -> void:
 	Events.heli_arrived.disconnect(_on_heli_arrived)
 	Events.mission_completed.disconnect(_on_mission_ended)
 	Events.game_over.disconnect(_on_game_over)
+	Events.nano_mode_changed.disconnect(_on_nano_mode_changed)
+
+
+func _on_nano_mode_changed(mode: StringName) -> void:
+	var labels := {&"armor": "护甲", &"power": "力量", &"stealth": "隐形"}
+	_nano_mode_label.text = "纳米护甲：%s" % labels.get(mode, "护甲")
+
+
+func _update_awareness(delta: float) -> void:
+	var seen := false
+	var alerted := false
+	for enemy in get_tree().get_nodes_in_group(&"enemy"):
+		seen = seen or (GameState.nano_mode != &"stealth" and bool(enemy.get("_cached_can_see")))
+		alerted = alerted or bool(enemy.get("alerted"))
+	_awareness = clampf(_awareness + (GameConfig.NANO_AWARENESS_GAIN if seen else -GameConfig.NANO_AWARENESS_DECAY) * delta, 0.0, 1.0)
+	_awareness_bar.value = _awareness
+	var next_state: StringName = &"red" if seen else (&"yellow" if alerted or _awareness > 0.35 else &"green")
+	if next_state == _awareness_state:
+		return
+	_awareness_state = next_state
+	var color := Color(0.95, 0.25, 0.2) if next_state == &"red" else (Color(0.95, 0.75, 0.2) if next_state == &"yellow" else Color(0.35, 0.9, 0.45))
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = color
+	_awareness_bar.add_theme_stylebox_override("fill", fill)
+	_awareness_label.add_theme_color_override("font_color", color)
+	_awareness_label.text = {"red": "敌人已发现你", "yellow": "敌人正在警觉", "green": "未察觉"}[next_state]
 
 
 ## 生命值变化：刷新生命条 + 全量同步（part 恒为 &"hp"，2026-10-21 单一生命值制）。

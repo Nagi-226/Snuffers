@@ -474,6 +474,48 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
+[node name="AwarenessPanel" type="PanelContainer" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -196.0
+offset_top = 236.0
+offset_right = -16.0
+offset_bottom = 306.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel_bg")
+
+[node name="Rows" type="VBoxContainer" parent="AwarenessPanel"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="NanoModeLabel" type="Label" parent="AwarenessPanel/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.45, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "纳米护甲：护甲"
+
+[node name="AwarenessLabel" type="Label" parent="AwarenessPanel/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.45, 0.9, 0.55, 1)
+theme_override_font_sizes/font_size = 12
+text = "未察觉"
+
+[node name="AwarenessBar" type="ProgressBar" parent="AwarenessPanel/Rows"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 10)
+layout_mode = 2
+mouse_filter = 2
+max_value = 1.0
+value = 0.0
+show_percentage = false
+
 ; 受击方向指示弧（§11.1 A 方案三件套之三，2026-08-19 Phase 0b）：
 ; 全屏 Control，自包含监听 player_hit_direction，屏幕中心外圈画弧。
 [node name="DamageDirectionArc" type="Control" parent="."]

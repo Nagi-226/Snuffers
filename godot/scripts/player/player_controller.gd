@@ -27,6 +27,7 @@ const KEY_INTERACT: Key = KEY_E ## E：通用交互（2026-10-18 机主立项：
 const KEY_FIRE_MODE: Key = KEY_X ## X：射击模式循环 全自动→三发点射→半自动（2026-10-19 机主立项）
 const KEY_RELEASE_MOUSE: Key = KEY_ESCAPE ## Esc：释放鼠标（点击画面恢复捕获）
 const KEY_BIG_MAP: Key = KEY_M ## M：全屏实时战术地图
+const KEY_NANO_MODE: Key = KEY_Q ## Q：纳米护甲 护甲→力量→隐形 循环
 
 var _pitch: float = 0.0
 var _is_moving: bool = false
@@ -259,6 +260,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			KEY_BIG_MAP:
 				_toggle_big_map()
+			KEY_NANO_MODE:
+				_cycle_nano_mode()
 			KEY_PRONE:
 				_toggle_prone()
 			KEY_CATEGORY_PISTOL:
@@ -293,7 +296,7 @@ func _physics_process(delta: float) -> void:
 	if is_on_floor():
 		if _jump_queued:
 			_jump_queued = false
-			velocity.y = GameConfig.JUMP_VELOCITY
+			velocity.y = GameConfig.NANO_POWER_JUMP_VELOCITY if GameState.nano_mode == &"power" else GameConfig.JUMP_VELOCITY
 		else:
 			velocity.y = 0.0
 	else:
@@ -442,6 +445,7 @@ func _process(delta: float) -> void:
 		var t := clampf(_cam_lerp_elapsed / GameConfig.CAM_HEIGHT_LERP_TIME, 0.0, 1.0)
 		_camera.position.y = lerpf(_cam_height_from, _cam_height_target, t)
 
+	_weapon_mount.visible = GameState.nano_mode != &"stealth"
 	# 开镜插值（ADS_LERP_TIME）：挂载位移 + FOV + 准星覆盖层同步驱动。
 	var ads_target := 1.0 if GameState.is_aiming else 0.0
 	var weapon_changed := _last_ads_weapon != GameState.current_weapon
@@ -503,7 +507,7 @@ func _current_speed() -> float:
 	elif GameState.is_aiming:
 		base = GameConfig.SPEED_AIM
 	elif Input.is_physical_key_pressed(KEY_SPRINT) and Input.is_physical_key_pressed(KEY_FORWARD):
-		base = GameConfig.SPEED_SPRINT
+		base = GameConfig.NANO_POWER_SPEED if GameState.nano_mode == &"power" else GameConfig.SPEED_SPRINT
 	else:
 		base = GameConfig.SPEED_STAND
 	return base
@@ -645,6 +649,14 @@ func _switch_weapon(weapon_id: StringName) -> void:
 	Events.weapon_switched.emit(weapon_id)
 
 
+func _cycle_nano_mode() -> void:
+	const ORDER: Array[StringName] = [&"armor", &"power", &"stealth"]
+	var index := ORDER.find(GameState.nano_mode)
+	GameState.nano_mode = ORDER[(index + 1) % ORDER.size()]
+	Events.nano_mode_changed.emit(GameState.nano_mode)
+	Events.message_posted.emit("纳米护甲：%s" % GameState.nano_mode)
+
+
 ## X：步枪四态、手枪三态、DMR/SPAS 固定半自动、EM 霰弹枪半自动/全自动。
 func _cycle_fire_mode() -> void:
 	var w := GameState.current_weapon
@@ -689,7 +701,7 @@ func _apply_damage(_part: StringName, amount: float) -> void:
 	if GameState.mission_phase == GameState.MissionPhase.COMPLETED \
 			or GameState.mission_phase == GameState.MissionPhase.GAME_OVER:
 		return
-	var actual := amount
+	var actual := amount * (GameConfig.NANO_ARMOR_DAMAGE_FACTOR if GameState.nano_mode == &"armor" else 1.0)
 	# 受击即打断生命值/护甲回充计时（纳米服式回充）。
 	_armor_regen_wait = 0.0
 	if GameState.armor > 0.0:
