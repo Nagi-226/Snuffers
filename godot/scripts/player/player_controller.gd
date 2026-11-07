@@ -64,6 +64,7 @@ var _dmr_scope: ColorRect = null
 var _dmr_scope_material: ShaderMaterial = null
 var _dmr_tactical: Control = null
 var _big_map: Control = null
+var _scope_view_models: Dictionary = {}
 @onready var _dmr_view_model: Node3D = $Camera3D/WeaponMount/DMR/ViewModel
 @onready var _shotgun_controller: Node = $Camera3D/WeaponMount/Shotgun
 ## 瞄具双网格切换（2026-10-20 机主立项）：常规视角用完整瞄具（外观完好），
@@ -142,6 +143,8 @@ func _ready() -> void:
 	_big_map.visible = false
 	reticle_layer.add_child(_big_map)
 	_calibrate_ads()
+	for pair: Array in [[&"smg", "SMG/ViewModel/EM68A"], [&"lmg", "LMG/ViewModel/EM68A"], [&"magnum", "Magnum/ViewModel/EM57P"]]:
+		_scope_view_models[pair[0]] = _weapon_mount.get_node_or_null(pair[1])
 	_load_optic_meshes()
 	# 承伤管线挂接（发射侧在 enemy_base._damage_player；结算收口在本类 _apply_damage）。
 	Events.player_damaged.connect(_apply_damage)
@@ -524,6 +527,14 @@ func _process(delta: float) -> void:
 			_ads_reticle.mode = mode
 			_ads_reticle.weight = _ads_weight
 			_ads_reticle.queue_redraw()
+	for weapon_id in _scope_view_models:
+		var model := _scope_view_models[weapon_id] as Node3D
+		if model != null:
+			model.visible = GameState.current_weapon != weapon_id or _ads_weight < 0.75
+	if GameState.current_weapon in [&"smg", &"lmg"]:
+		_weapon_mount.get_node("Rifle").visible = _ads_weight >= 0.75
+	if GameState.current_weapon == &"magnum":
+		_weapon_mount.get_node("Pistol").visible = _ads_weight >= 0.75
 	var full_scope := GameState.current_weapon == &"dmr" and _ads_weight > 0.6
 	if _dmr_scope != null:
 		_dmr_scope.visible = full_scope

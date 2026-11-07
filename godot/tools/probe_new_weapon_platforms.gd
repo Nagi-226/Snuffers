@@ -44,6 +44,10 @@ func _run() -> void:
 		await _shot(entry[1] + "_hip")
 		_aim(true)
 		await create_timer(0.45).timeout
+		var player := _scene.get_node("Player")
+		var camera := player.get_node("Camera3D") as Camera3D
+		var target := _scene.get_node("RangeFacilities/Targets/CloseTarget") as Node3D
+		camera.look_at(target.global_position + Vector3(0, 1, 0))
 		await _shot(entry[1] + "_ads")
 		_aim(false)
 		await create_timer(0.2).timeout

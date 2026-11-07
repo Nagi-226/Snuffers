@@ -39,7 +39,7 @@ def bounds():
 
 
 # Vehicle default +90°; generated weapons use the measured muzzle yaw.
-# Both finish pointing +Y, which glTF export maps to Godot -Z.
+# glTF export maps Blender +Y to Godot +Z, so a forward muzzle must point Blender -Y.
 turn_angle = 90.0 if KIND == "vehicle" else WEAPON_YAW
 if turn_angle != 0.0:
     turn = mathutils.Matrix.Rotation(math.radians(turn_angle), 4, "Z")

@@ -21,8 +21,11 @@ position = Vector3(0.03, 0.03, 0.04)
 [node name="em57p_magazine" type="Marker3D" parent="ViewModel/EM57P"]
 position = Vector3(-0.008677, -0.147712, 0.187488)
 
-[node name="OpticAim" type="Marker3D" parent="ViewModel/EM57P"]
-position = Vector3(0, 0.105, 0.04)
+[node name="OpticAim" type="Marker3D" parent="ViewModel"]
+position = Vector3(0, 0.145, 0.04)
+
+[node name="Muzzle" type="Marker3D" parent="ViewModel/EM57P"]
+position = Vector3(0, 0, -0.5)
 
 [node name="ArmsEM57P" parent="ViewModel" instance=ExtResource("4_arms")]
 position = Vector3(0, 0.03, 0.04)
