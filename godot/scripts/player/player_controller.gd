@@ -59,6 +59,7 @@ var _mount_hip_pos: Vector3 = Vector3.ZERO ## 腰射挂载位（_ready 从 playe
 var _ads_mount_targets: Dictionary = {} ## weapon_id → 开镜挂载位（optic 中心对中）
 var _shotgun_optic_center := Vector3.ZERO
 var _ads_fov_targets: Dictionary = {} ## weapon_id → 开镜 FOV
+var _em86s_zoom_index: int = 0
 var _ads_reticle: AdsReticle = null
 var _dmr_scope: ColorRect = null
 var _dmr_scope_material: ShaderMaterial = null
@@ -190,8 +191,11 @@ func _calibrate_ads() -> void:
 		&"smg": GameConfig.SMG_ADS_FOV,
 		&"lmg": GameConfig.LMG_ADS_FOV,
 		&"magnum": GameConfig.MAGNUM_ADS_FOV,
+		&"em86s": GameConfig.EM86S_SCOPE_FOVS[0],
+		&"em86b": GameConfig.EM86B_ADS_FOV,
+		&"em86d": GameConfig.EM86D_ADS_FOV,
 	}
-	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"], [&"spas12", "Spas12"], [&"smg", "SMG"], [&"lmg", "LMG"], [&"magnum", "Magnum"]]:
+	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"], [&"spas12", "Spas12"], [&"smg", "SMG"], [&"lmg", "LMG"], [&"magnum", "Magnum"], [&"em86s", "Em86s"], [&"em86b", "Em86b"], [&"em86d", "Em86d"]]:
 		var weapon_root := _weapon_mount.get_node_or_null(pair[1]) as Node3D
 		var fallback := Vector3(0.0, _mount_hip_pos.y, _mount_hip_pos.z)
 		if weapon_root == null:
@@ -261,7 +265,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			_set_aiming(button.pressed)
 		elif button.pressed and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED \
 				and button.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
-			_cycle_unlocked_weapon(-1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else 1)
+			if GameState.current_weapon == &"em86s" and GameState.is_aiming:
+				_adjust_em86s_zoom(1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else -1)
+			else:
+				_cycle_unlocked_weapon(-1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else 1)
 		return
 
 	if event is InputEventKey:
@@ -510,7 +517,7 @@ func _process(delta: float) -> void:
 	# 开镜插值（ADS_LERP_TIME）：挂载位移 + FOV + 准星覆盖层同步驱动。
 	var ads_target := 1.0 if GameState.is_aiming else 0.0
 	var weapon_changed := _last_ads_weapon != GameState.current_weapon
-	if not is_equal_approx(_ads_weight, ads_target) or weapon_changed or GameState.current_weapon == &"shotgun":
+	if not is_equal_approx(_ads_weight, ads_target) or weapon_changed or GameState.current_weapon in [&"shotgun", &"em86s"]:
 		_last_ads_weapon = GameState.current_weapon
 		_ads_weight = move_toward(_ads_weight, ads_target, delta / GameConfig.ADS_LERP_TIME)
 		if GameState.current_weapon == &"shotgun":
@@ -518,14 +525,16 @@ func _process(delta: float) -> void:
 		else:
 			_weapon_mount.position = _mount_hip_pos.lerp(
 				_ads_mount_targets.get(GameState.current_weapon, _mount_hip_pos), _ads_weight)
-		_camera.fov = lerpf(GameConfig.FOV_BASE,
-			_ads_fov_targets.get(GameState.current_weapon, GameConfig.FOV_BASE), _ads_weight)
+		var fov_target: float = _ads_fov_targets.get(GameState.current_weapon, GameConfig.FOV_BASE)
+		if GameState.current_weapon == &"em86s":
+			fov_target = GameConfig.EM86S_SCOPE_FOVS[_em86s_zoom_index]
+		_camera.fov = lerpf(GameConfig.FOV_BASE, fov_target, _ads_weight)
 		var camera_forward: float = GameConfig.SHOTGUN_ADS_CAMERA_FORWARD if GameState.current_weapon == &"shotgun" else 0.0
 		_camera.position.z = _camera_hip_z - camera_forward * _ads_weight
 	# 准星覆盖层：权重过 60% 才显形（过渡中段不闪半吊子准星）；榴档沿用步枪全息准星
 	# （直射档平直弹道，全息环直瞄即可）。
 	if _ads_reticle != null:
-		var mode: StringName = GameState.current_weapon
+		var mode: StringName = &"dmr" if GameState.current_weapon == &"em86b" else GameState.current_weapon
 		if _ads_reticle.mode != mode or not is_equal_approx(_ads_reticle.weight, _ads_weight):
 			_ads_reticle.mode = mode
 			_ads_reticle.weight = _ads_weight
@@ -543,14 +552,22 @@ func _process(delta: float) -> void:
 		var show_magnum_reload := _ads_weight >= 0.75 and magnum_reloading
 		_weapon_mount.get_node("Magnum/ViewModel/ArmsEM57P").visible = _ads_weight < 0.75 or show_magnum_reload
 		_weapon_mount.get_node("Pistol").visible = _ads_weight >= 0.75 and not show_magnum_reload
-	var full_scope := GameState.current_weapon == &"dmr" and _ads_weight > 0.6
+	var full_scope := GameState.current_weapon in [&"dmr", &"em86s", &"em86d"] and _ads_weight > 0.6
 	if _dmr_scope != null:
 		_dmr_scope.visible = full_scope
 		_dmr_tactical.visible = full_scope
-		_dmr_view_model.visible = not full_scope
+		match GameState.current_weapon:
+			&"dmr":
+				_dmr_view_model.visible = not full_scope
+			&"em86s":
+				_weapon_mount.get_node("Em86s/ViewModel").visible = not full_scope
+			&"em86d":
+				_weapon_mount.get_node("Em86d/ViewModel").visible = not full_scope
 		var viewport_size := get_viewport().get_visible_rect().size
 		_dmr_scope_material.set_shader_parameter("aspect", viewport_size.x / viewport_size.y)
 		_dmr_scope_material.set_shader_parameter("weight", clampf((_ads_weight - 0.6) / 0.4, 0.0, 1.0))
+		_dmr_scope_material.set_shader_parameter("center_style", 1.0 if GameState.current_weapon == &"em86s" else 0.0)
+		_dmr_tactical.set("zoom_text", "%dX" % GameConfig.EM86S_SCOPE_ZOOMS[_em86s_zoom_index] if GameState.current_weapon == &"em86s" else "")
 		_ads_reticle.visible = not full_scope
 	# 瞄具双网格切换：当前武器且开镜过半用开孔版，其余情况回完整版。
 	# 切换点取过渡中点（0.5），此时镜筒正在归中途中，换网格肉眼不可察。
@@ -656,8 +673,14 @@ func _toggle_big_map() -> void:
 func _set_aiming(aiming: bool) -> void:
 	if GameState.is_aiming == aiming:
 		return
+	if aiming and GameState.current_weapon == &"em86s":
+		_em86s_zoom_index = 0
 	GameState.is_aiming = aiming
 	Events.player_aim_changed.emit(aiming)
+
+
+func _adjust_em86s_zoom(direction: int) -> void:
+	_em86s_zoom_index = clampi(_em86s_zoom_index + direction, 0, GameConfig.EM86S_SCOPE_FOVS.size() - 1)
 
 
 ## 武器后坐接收（蜂后裁决：recoil_kick 不上总线，player.tscn 内局部连接）。
@@ -753,19 +776,22 @@ func _apply_nano_visuals() -> void:
 		(mesh as MeshInstance3D).transparency = 0.82 if GameState.nano_mode == &"stealth" else 0.0
 
 
-## X：步枪/SMG 加榴档，其他自动武器三档，DMR/SPAS/重手枪固定半自动。
+## X：步枪/SMG/EM-86B 加榴档，其他自动武器三档，精确步枪/SPAS/重手枪固定半自动。
 func _cycle_fire_mode() -> void:
 	var w := GameState.current_weapon
-	if w in [&"dmr", &"spas12", &"magnum"]:
+	if w in [&"dmr", &"spas12", &"magnum", &"em86s", &"em86d"]:
 		return
 	const ORDER_RIFLE: Array[StringName] = [&"auto", &"semi", &"burst", &"grenade"]
 	const ORDER_PISTOL: Array[StringName] = [&"auto", &"burst", &"semi"]
 	const ORDER_SHOTGUN: Array[StringName] = [&"semi", &"auto"]
+	const ORDER_EM86B: Array[StringName] = [&"burst", &"semi", &"auto", &"grenade"]
 	var order: Array[StringName] = ORDER_PISTOL
 	if w in [&"rifle", &"smg"]:
 		order = ORDER_RIFLE
 	elif w == &"shotgun":
 		order = ORDER_SHOTGUN
+	elif w == &"em86b":
+		order = ORDER_EM86B
 	var cur: StringName = GameState.fire_modes.get(w, &"auto")
 	GameState.fire_modes[w] = order[(order.find(cur) + 1) % order.size()]
 	Events.fire_mode_changed.emit(w, GameState.fire_modes[w])

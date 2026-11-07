@@ -55,7 +55,7 @@ func _run() -> void:
 	_assert(state.current_weapon == &"rifle", "number 3 enters EM-68A first")
 	_press(KEY_3)
 	_assert(state.current_weapon == &"dmr", "number 3 repeats into unlocked EM-68D")
-	_assert(hud._selector_icons[3].size() == 2 and hud._selector_icons[3].all(func(icon): return icon.visible), "multi-weapon category shows line-art icons")
+	_assert(hud._selector_icons[3].filter(func(icon): return icon.visible).size() == 2 and hud._selector_icons[3].all(func(icon): return icon.visible == state.weapon_unlocked.get(icon.weapon_id, false)), "multi-weapon category shows only unlocked line-art icons")
 	_assert(hud._weapon_ammo.ammo_type == "EC-68", "DMR displays the shared EC-68 ammunition family")
 	_assert(hud._selector_style_active.border_width_left == 0, "weapon selector has no yellow border")
 	_press(KEY_3)

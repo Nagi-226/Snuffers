@@ -136,6 +136,8 @@ func _try_fire() -> bool:
 			_fire_cooldown = weapon_data.grenade_fire_interval
 		elif mode == &"semi":
 			_fire_cooldown = weapon_data.semi_fire_interval
+		elif mode == &"burst":
+			_fire_cooldown = weapon_data.burst_fire_interval
 		else:
 			_fire_cooldown = weapon_data.fire_interval
 		return true
