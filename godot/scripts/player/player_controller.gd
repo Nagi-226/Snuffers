@@ -534,7 +534,7 @@ func _process(delta: float) -> void:
 	# 准星覆盖层：权重过 60% 才显形（过渡中段不闪半吊子准星）；榴档沿用步枪全息准星
 	# （直射档平直弹道，全息环直瞄即可）。
 	if _ads_reticle != null:
-		var mode: StringName = &"dmr" if GameState.current_weapon == &"em86b" else GameState.current_weapon
+		var mode: StringName = GameState.current_weapon
 		if _ads_reticle.mode != mode or not is_equal_approx(_ads_reticle.weight, _ads_weight):
 			_ads_reticle.mode = mode
 			_ads_reticle.weight = _ads_weight
@@ -862,6 +862,12 @@ class AdsReticle extends Control:
 				# 高倍全息镜：青蓝十字边线 + 中央圆圈与瞄点。
 				for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
 					draw_line(center + dir * 28.0, center + dir * maxf(size.x, size.y), color, 1.2, true)
+				draw_arc(center, 18.0, 0.0, TAU, 64, color, 1.6, true)
+				draw_circle(center, 2.2, color)
+			&"em86b":
+				# 镜筒内局部准星：短十字不穿入空心圆，中央保留瞄点。
+				for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
+					draw_line(center + dir * 28.0, center + dir * 64.0, color, 1.2, true)
 				draw_arc(center, 18.0, 0.0, TAU, 64, color, 1.6, true)
 				draw_circle(center, 2.2, color)
 			&"rifle", &"shotgun", &"smg", &"lmg":

@@ -140,7 +140,7 @@ func _run() -> void:
 	_player._switch_weapon(&"em86b")
 	for frame in 20:
 		_player._process(1.0 / 60.0)
-	_assert(not _player._dmr_scope.visible and battle._view_model.visible and _player._ads_reticle.mode == &"dmr", "EM-86B keeps its weapon visible with the cross circle-dot reticle")
+	_assert(not _player._dmr_scope.visible and battle._view_model.visible and _player._ads_reticle.mode == &"em86b", "EM-86B keeps its weapon visible with a local cross circle-dot reticle")
 	for weapon_id in ids:
 		var node_name := weapon_id.to_pascal_case()
 		var model_path := "Camera3D/WeaponMount/" + node_name + "/ViewModel/Weapon" if weapon_id != &"em86b" else "Camera3D/WeaponMount/Em86b/ViewModel/EM68A"
