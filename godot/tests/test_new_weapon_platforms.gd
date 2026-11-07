@@ -162,6 +162,13 @@ func _run() -> void:
 	_assert(_player._ads_mount_targets[&"magnum"].is_equal_approx(Vector3(-magnum_center.x, -magnum_center.y, _player._mount_hip_pos.z)) and not _player._ads_mount_targets[&"magnum"].is_equal_approx(_player._ads_mount_targets[&"pistol"]), "Magnum uses its own optic center instead of the EM-57P calibration")
 	var lens_center: Variant = _magnum_lens_center(magnum)
 	_assert(lens_center != null and (lens_center as Vector3).distance_to((magnum.get_node("ViewModel/OpticAim") as Marker3D).position) < 0.01, "Magnum optic marker matches its actual transparent lens")
+	var rear_glow := false
+	for node in magnum.get_node("ViewModel/EM57P").find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := node as MeshInstance3D
+		for surface in mesh_instance.mesh.get_surface_count():
+			var material := mesh_instance.get_active_material(surface) as StandardMaterial3D
+			rear_glow = rear_glow or (material != null and material.emission_enabled and material.emission.b > 0.5 and material.emission_energy_multiplier > 0.0)
+	_assert(rear_glow, "Magnum rear cyan panel retains its emissive glow")
 	_press(KEY_2)
 	_player._set_aiming(true)
 	for frame in 20:
