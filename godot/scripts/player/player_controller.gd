@@ -691,7 +691,8 @@ func _set_nano_mode(mode: StringName) -> void:
 		return
 	GameState.nano_mode = mode
 	Events.nano_mode_changed.emit(mode)
-	Events.message_posted.emit("纳米护甲：%s" % mode)
+	var labels := {&"armor": "护甲", &"power": "力量", &"stealth": "隐形"}
+	Events.message_posted.emit("模式：%s" % labels.get(mode, "护甲"))
 
 
 func _toggle_stealth() -> void:

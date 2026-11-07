@@ -516,7 +516,7 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.45, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 12
-text = "纳米护甲：护甲"
+text = "模式：护甲"
 
 [node name="AwarenessLabel" type="Label" parent="AwarenessPanel/Rows"]
 unique_name_in_owner = true
@@ -526,10 +526,35 @@ theme_override_colors/font_color = Color(0.45, 0.9, 0.55, 1)
 theme_override_font_sizes/font_size = 12
 text = "未察觉"
 
-[node name="AwarenessBar" type="ProgressBar" parent="AwarenessPanel/Rows"]
+[node name="AwarenessBar" type="HBoxContainer" parent="AwarenessPanel/Rows"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(150, 10)
 layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Segment1" type="ProgressBar" parent="AwarenessPanel/Rows/AwarenessBar"]
+custom_minimum_size = Vector2(46, 10)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+max_value = 1.0
+value = 1.0
+show_percentage = false
+
+[node name="Segment2" type="ProgressBar" parent="AwarenessPanel/Rows/AwarenessBar"]
+custom_minimum_size = Vector2(46, 10)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+max_value = 1.0
+value = 0.0
+show_percentage = false
+
+[node name="Segment3" type="ProgressBar" parent="AwarenessPanel/Rows/AwarenessBar"]
+custom_minimum_size = Vector2(46, 10)
+layout_mode = 2
+size_flags_horizontal = 3
 mouse_filter = 2
 max_value = 1.0
 value = 0.0

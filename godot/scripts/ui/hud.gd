@@ -56,7 +56,7 @@ const DAMAGE_TEXT_COLOR_HEADSHOT: Color = Color(0.9, 0.55, 0.25)
 @onready var _mission_title: Label = %MissionTitle
 @onready var _mission_key: Label = %MissionKey
 @onready var _mission_intel: Label = %MissionIntel
-@onready var _awareness_bar: ProgressBar = %AwarenessBar
+@onready var _awareness_bar: HBoxContainer = %AwarenessBar
 @onready var _awareness_label: Label = %AwarenessLabel
 @onready var _nano_mode_label: Label = %NanoModeLabel
 @onready var _nano_armor_overlay: Control = %NanoArmorOverlay
@@ -102,6 +102,7 @@ func _ready() -> void:
 	_refresh_all_from_state()
 	_refresh_mission(true)
 	_connect_events()
+	_set_awareness_segments(_awareness_state, Color(0.35, 0.9, 0.45))
 
 
 func _process(delta: float) -> void:
@@ -353,7 +354,7 @@ func _disconnect_events() -> void:
 
 func _on_nano_mode_changed(mode: StringName) -> void:
 	var labels := {&"armor": "护甲", &"power": "力量", &"stealth": "隐形"}
-	_nano_mode_label.text = "纳米护甲：%s" % labels.get(mode, "护甲")
+	_nano_mode_label.text = "模式：%s" % labels.get(mode, "护甲")
 
 
 func _update_awareness(delta: float) -> void:
@@ -363,17 +364,24 @@ func _update_awareness(delta: float) -> void:
 		seen = seen or (GameState.nano_mode != &"stealth" and bool(enemy.get("_cached_can_see")))
 		alerted = alerted or bool(enemy.get("alerted"))
 	_awareness = clampf(_awareness + (GameConfig.NANO_AWARENESS_GAIN if seen else -GameConfig.NANO_AWARENESS_DECAY) * delta, 0.0, 1.0)
-	_awareness_bar.value = _awareness
 	var next_state: StringName = &"red" if seen else (&"yellow" if alerted or _awareness > 0.35 else &"green")
 	if next_state == _awareness_state:
 		return
 	_awareness_state = next_state
 	var color := Color(0.95, 0.25, 0.2) if next_state == &"red" else (Color(0.95, 0.75, 0.2) if next_state == &"yellow" else Color(0.35, 0.9, 0.45))
-	var fill := StyleBoxFlat.new()
-	fill.bg_color = color
-	_awareness_bar.add_theme_stylebox_override("fill", fill)
+	_set_awareness_segments(next_state, color)
 	_awareness_label.add_theme_color_override("font_color", color)
 	_awareness_label.text = {"red": "敌人已发现你", "yellow": "敌人正在警觉", "green": "未察觉"}[next_state]
+
+
+func _set_awareness_segments(state: StringName, color: Color) -> void:
+	var active_count: int = {"green": 1, "yellow": 2, "red": 3}[state]
+	for index in _awareness_bar.get_child_count():
+		var segment := _awareness_bar.get_child(index) as ProgressBar
+		segment.value = 1.0 if index < active_count else 0.0
+		var fill := StyleBoxFlat.new()
+		fill.bg_color = color
+		segment.add_theme_stylebox_override("fill", fill)
 
 
 ## 生命值变化：刷新生命条 + 全量同步（part 恒为 &"hp"，2026-10-21 单一生命值制）。
