@@ -44,7 +44,7 @@ func _run() -> void:
 		_assert(district.has_node(NodePath(String(lore_name))), "prequel lore exists: %s" % lore_name)
 		if district.has_node(NodePath(String(lore_name))):
 			var lore := district.get_node(NodePath(String(lore_name)))
-			_assert(lore.has_method(&"interact") and lore.has_method(&"interact_prompt"), "%s supports E interaction" % lore_name)
+			_assert(lore.has_method(&"interact") and lore.has_method(&"interact_prompt"), "%s supports F interaction" % lore_name)
 	var wall_mesh := district.get_node("WarehouseFrontPier_0/Mesh") as MeshInstance3D
 	var wall_material := wall_mesh.mesh.material as StandardMaterial3D
 	_assert(wall_material != null and wall_material.normal_texture != null and wall_material.roughness_texture != null, "warehouse exterior uses full PBR textures")

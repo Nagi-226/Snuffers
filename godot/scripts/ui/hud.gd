@@ -57,6 +57,7 @@ const DAMAGE_TEXT_COLOR_HEADSHOT: Color = Color(0.9, 0.55, 0.25)
 @onready var _awareness_bar: ProgressBar = %AwarenessBar
 @onready var _awareness_label: Label = %AwarenessLabel
 @onready var _nano_mode_label: Label = %NanoModeLabel
+@onready var _nano_armor_overlay: Control = %NanoArmorOverlay
 
 var _awareness: float = 0.0
 var _awareness_state: StringName = &"green"
@@ -103,6 +104,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_refresh_mission(false)
 	_update_awareness(delta)
+	_nano_armor_overlay.visible = GameState.nano_mode == &"armor"
 	if _selector_time_left > 0.0:
 		_selector_time_left -= delta
 		if _selector_time_left <= 0.0:

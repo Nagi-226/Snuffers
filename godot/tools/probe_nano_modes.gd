@@ -11,7 +11,8 @@ func _run() -> void:
 	for i in 30:
 		await process_frame
 	DirAccess.make_dir_recursive_absolute("tmp_shots/nano_modes")
-	player._cycle_nano_mode()
+	root.get_texture().get_image().save_png("tmp_shots/nano_modes/armor.png")
+	player._set_nano_mode(&"power")
 	var forward := InputEventKey.new()
 	forward.physical_keycode = KEY_W
 	forward.pressed = true
@@ -23,7 +24,9 @@ func _run() -> void:
 	await create_timer(0.2).timeout
 	print("NANO_SPEED_GRAPHICS ", player._current_speed())
 	root.get_texture().get_image().save_png("tmp_shots/nano_modes/power.png")
-	player._cycle_nano_mode()
+	root.get_node("GameState").current_weapon = &"rifle"
+	root.get_node("Events").weapon_switched.emit(&"rifle")
+	player._set_nano_mode(&"stealth")
 	await create_timer(0.3).timeout
 	root.get_texture().get_image().save_png("tmp_shots/nano_modes/stealth.png")
 	print("NANO_STEALTH_GRAPHICS weapon_visible=", player.get_node("Camera3D/WeaponMount").visible)

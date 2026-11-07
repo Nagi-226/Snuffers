@@ -1,7 +1,7 @@
 extends Node3D
 ## Door — 可交互门扇（2026-10-18 机主立项：E 键通用交互开门，半衰期式）。
 ##
-## 常闭门；玩家准星对准按 E 开/关。铰链在门洞一侧门垛，向室内旋转开启。
+## 常闭门；玩家准星对准按 F 开/关。铰链在门洞一侧门垛，向室内旋转开启。
 ## 交互契约：player_controller 射线命中碰撞体后沿父链找 interact() /
 ## interact_prompt()，本脚本实现这两个方法即接入，无需新信号/新契约。
 ## 视觉/碰撞由 setup() 按 builder 传入的门洞尺寸现场生成，参数来自
@@ -54,4 +54,4 @@ func interact() -> void:
 
 
 func interact_prompt() -> String:
-	return "E  关门" if _open else "E  开门"
+	return "F  关门" if _open else "F  开门"

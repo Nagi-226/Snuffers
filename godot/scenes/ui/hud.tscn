@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/ui/damage_direction_arc.gd" id="2_arc"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/ui/minimap.gd" id="4_minimap"]
 [ext_resource type="Shader" path="res://assets/ui/minimap_mask.gdshader" id="5_minimap_mask"]
 [ext_resource type="Script" path="res://scripts/ui/compass_bar.gd" id="6_compass"]
+[ext_resource type="Script" path="res://scripts/ui/nano_armor_overlay.gd" id="7_nano_armor"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel_bg"]
 bg_color = Color(0.02, 0.07, 0.1, 0.5)
@@ -527,6 +528,16 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("2_arc")
+
+[node name="NanoArmorOverlay" type="Control" parent="."]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_nano_armor")
 
 ; 头盔面甲屏显边框（2026-10-19 机主立项：HUD 科幻化，灯塔 ASI 战术屏显视角）。
 ; 全屏纯绘制层，置于最上层但低透明不抢信息。

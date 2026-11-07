@@ -303,14 +303,14 @@ func _build_prequel_lore() -> void:
 		_detail_box("ReconMark", Vector3(-49.25 + i * 0.16, 1.55, 80.47), Vector3(0.045, 0.3, 0.025), cyan)
 	_screen("ReconText", "提灯 / 已查", Vector3(-48.85, 1.25, 80.48), 24)
 	_lore_node(&"LanternReconMarker", Vector3(-49, 0, 80.4), "提灯的侦察标记",
-		"转运记录已回传。东侧撤离信标确认——提灯。", "E  查看侦察标记")
+		"转运记录已回传。东侧撤离信标确认——提灯。", "F  查看侦察标记")
 	_detail_box("SurveyStand", Vector3(-135, 6.45, -95), Vector3(0.7, 0.9, 0.7), metal)
 	_cylinder("SurveyBeacon", Vector3(-135, 7.05, -95), 0.16, 0.32, cyan)
 	_detail_box("SurveyMap", Vector3(-134.55, 6.94, -94.8), Vector3(0.65, 0.025, 0.45), _plain(Color(0.65, 0.65, 0.56)))
 	_screen("SurveyText", "提灯 / 勘测灯标", Vector3(-135, 6.65, -94.6), 22)
 	_lamp(Vector3(-135, 7.25, -95), 4.0, 0.8, Color(0.3, 0.85, 1.0))
 	_lore_node(&"LanternSurveyBeacon", Vector3(-135, 6, -95), "提灯留下的勘测灯标",
-		"灯还亮着。剩下的，交给雷暴。", "E  查看勘测灯标")
+		"灯还亮着。剩下的，交给雷暴。", "F  查看勘测灯标")
 	var spas := PICKUP_SCENE.instantiate() as Node3D
 	spas.name = "WickSPAS12"
 	spas.position = Vector3(-38, 1.82, 50.65)
@@ -329,7 +329,7 @@ func _build_prequel_lore() -> void:
 	_detail_box("WickIdentityTag", Vector3(-39.1, 1.68, 50.75), Vector3(0.32, 0.025, 0.2), metal)
 	_screen("WickText", "灯芯 / 遗物", Vector3(-37.5, 2.4, 50.9), 26)
 	_lore_node(&"WickMemento", Vector3(-37.5, 0.65, 51.45), "灯芯的遗物",
-		"先一步进入的灯芯已失联，只留下老式 SPAS-12 和几枚霰弹。它不是提灯的装备。", "E  查看灯芯遗物")
+		"先一步进入的灯芯已失联，只留下老式 SPAS-12 和几枚霰弹。它不是提灯的装备。", "F  查看灯芯遗物")
 
 
 func _lore_node(nm: StringName, pos: Vector3, title: String, body: String, prompt: String) -> void:

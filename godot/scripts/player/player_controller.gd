@@ -19,19 +19,23 @@ const KEY_CATEGORY_SHOTGUN: Key = KEY_4
 const KEY_CATEGORY_MACHINE_GUN: Key = KEY_5
 const KEY_CATEGORY_HEAVY: Key = KEY_6
 const KEY_NIGHT_VISION: Key = KEY_N ## N：夜视仪切换（§11.2 机主裁决：V→N，与昼夜演示场景键位一致）
-const KEY_MEDKIT: Key = KEY_F ## 网页版 F：使用药包
+const KEY_MEDKIT: Key = KEY_G ## G：使用药包（F 统一交互）
 const KEY_HELI: Key = KEY_H ## 网页版 H：呼叫直升机
 const KEY_JUMP: Key = KEY_SPACE ## 空格：跳跃（2026-10-18 机主立项）
 const KEY_SPRINT: Key = KEY_SHIFT ## 左 Shift+W：疾跑（2026-10-19 机主立项）
-const KEY_INTERACT: Key = KEY_E ## E：通用交互（2026-10-18 机主立项：开门等；拾取物不走此键，贴近自动捡拾）
+const KEY_INTERACT: Key = KEY_F ## F：统一交互（开门/叙事等；拾取物不走此键，贴近自动捡拾）
 const KEY_FIRE_MODE: Key = KEY_X ## X：射击模式循环 全自动→三发点射→半自动（2026-10-19 机主立项）
 const KEY_RELEASE_MOUSE: Key = KEY_ESCAPE ## Esc：释放鼠标（点击画面恢复捕获）
 const KEY_BIG_MAP: Key = KEY_M ## M：全屏实时战术地图
-const KEY_NANO_MODE: Key = KEY_Q ## Q：纳米护甲 护甲→力量→隐形 循环
+const KEY_NANO_MODE: Key = KEY_Q ## Q：护甲模式
+const KEY_STEALTH: Key = KEY_E ## E：隐形模式开关
 
 var _pitch: float = 0.0
 var _is_moving: bool = false
 var _jump_queued: bool = false ## 跳跃排队位（2026-10-19 修复：输入帧置位、物理帧消费，避免被重力清零）
+var _jump_charge_time: float = 0.0
+var _jump_power_queued: bool = false
+var _visual_nano_mode: StringName = &""
 var _speed_state: StringName = &"normal"
 var _still_broadcast_second: int = 0
 
@@ -253,6 +257,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event is InputEventKey:
 		var key_event := event as InputEventKey
+		if key_event.physical_keycode == KEY_JUMP and not key_event.pressed:
+			_release_jump()
+			return
 		if not key_event.pressed or key_event.echo:
 			return
 		match key_event.physical_keycode:
@@ -261,7 +268,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_BIG_MAP:
 				_toggle_big_map()
 			KEY_NANO_MODE:
-				_cycle_nano_mode()
+				_set_nano_mode(&"armor")
+			KEY_STEALTH:
+				_toggle_stealth()
 			KEY_PRONE:
 				_toggle_prone()
 			KEY_CATEGORY_PISTOL:
@@ -291,12 +300,21 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if GameState.nano_mode != &"stealth":
+		GameState.nano_mode = &"power" if Input.is_physical_key_pressed(KEY_SPRINT) or _jump_charge_time > 0.0 else &"armor"
+	if _jump_charge_time > 0.0 and Input.is_physical_key_pressed(KEY_JUMP):
+		_jump_charge_time += delta
+		if _jump_charge_time >= GameConfig.NANO_POWER_JUMP_HOLD_TIME and not _jump_queued:
+			_jump_queued = true
+			_jump_power_queued = true
+			_jump_charge_time = 0.0
 	# 重力（引擎全局设置，非手感参数）；跳跃排队位在落地帧消费（修复：原先输入回调
 	# 直接写 velocity.y，下一物理帧此处 is_on_floor 仍为 true 被清零，跳跃失效）。
 	if is_on_floor():
 		if _jump_queued:
 			_jump_queued = false
-			velocity.y = GameConfig.NANO_POWER_JUMP_VELOCITY if GameState.nano_mode == &"power" else GameConfig.JUMP_VELOCITY
+			velocity.y = GameConfig.NANO_POWER_JUMP_VELOCITY if _jump_power_queued else GameConfig.JUMP_VELOCITY
+			_jump_power_queued = false
 		else:
 			velocity.y = 0.0
 	else:
@@ -321,6 +339,7 @@ func _physics_process(delta: float) -> void:
 
 	# 移动输入边沿广播（G2 冻结新增信号；脚步循环音起停用，与速度档位语义不同）。
 	var is_moving := input_dir != Vector2.ZERO
+	_update_nano_energy(delta, is_moving)
 	if is_moving != _is_moving:
 		_is_moving = is_moving
 		Events.player_moving_changed.emit(is_moving)
@@ -376,15 +395,31 @@ func _update_armor_regen(delta: float) -> void:
 		Events.player_health_changed.emit(&"hp", GameState.hp, GameConfig.HEALTH_MAX)
 
 
-## 跳跃（空格）：趴下状态忽略；置排队位由物理帧落地消费（输入回调直接写 velocity.y
-## 会被下一物理帧重力清零，2026-10-19 修复）。
 func _try_jump() -> void:
-	if GameState.is_prone:
+	if GameState.is_prone or _jump_charge_time > 0.0:
 		return
-	_jump_queued = true
+	_jump_charge_time = 0.0001
+	_jump_power_queued = false
 
 
-## E 键通用交互：当前射线目标（_update_interact_target 每物理帧刷新）响应即调用。
+func _release_jump() -> void:
+	if _jump_charge_time > 0.0 and not _jump_queued:
+		_jump_queued = true
+		_jump_power_queued = _jump_charge_time >= GameConfig.NANO_POWER_JUMP_HOLD_TIME
+	_jump_charge_time = 0.0
+
+
+func _update_nano_energy(delta: float, moving: bool) -> void:
+	if GameState.nano_mode != &"stealth" or not moving:
+		return
+	GameState.armor = maxf(0.0, GameState.armor - GameConfig.NANO_STEALTH_DRAIN_PER_SEC * delta)
+	Events.armor_changed.emit(GameState.armor, GameConfig.ARMOR_MAX)
+	if GameState.armor <= 0.0:
+		_set_nano_mode(&"armor")
+		Events.message_posted.emit("护甲能量耗尽，隐形解除")
+
+
+## F 键通用交互：当前射线目标（_update_interact_target 每物理帧刷新）响应即调用。
 ## 交互对象契约：实现 interact() + interact_prompt()（见 scripts/levels/door.gd）。
 func _try_interact() -> void:
 	if _interact_target != null and is_instance_valid(_interact_target):
@@ -445,7 +480,8 @@ func _process(delta: float) -> void:
 		var t := clampf(_cam_lerp_elapsed / GameConfig.CAM_HEIGHT_LERP_TIME, 0.0, 1.0)
 		_camera.position.y = lerpf(_cam_height_from, _cam_height_target, t)
 
-	_weapon_mount.visible = GameState.nano_mode != &"stealth"
+	if _visual_nano_mode != GameState.nano_mode:
+		_apply_nano_visuals()
 	# 开镜插值（ADS_LERP_TIME）：挂载位移 + FOV + 准星覆盖层同步驱动。
 	var ads_target := 1.0 if GameState.is_aiming else 0.0
 	var weapon_changed := _last_ads_weapon != GameState.current_weapon
@@ -649,12 +685,23 @@ func _switch_weapon(weapon_id: StringName) -> void:
 	Events.weapon_switched.emit(weapon_id)
 
 
-func _cycle_nano_mode() -> void:
-	const ORDER: Array[StringName] = [&"armor", &"power", &"stealth"]
-	var index := ORDER.find(GameState.nano_mode)
-	GameState.nano_mode = ORDER[(index + 1) % ORDER.size()]
-	Events.nano_mode_changed.emit(GameState.nano_mode)
-	Events.message_posted.emit("纳米护甲：%s" % GameState.nano_mode)
+func _set_nano_mode(mode: StringName) -> void:
+	if mode == &"stealth" and GameState.armor <= 0.0:
+		Events.message_posted.emit("护甲能量不足，无法隐形")
+		return
+	GameState.nano_mode = mode
+	Events.nano_mode_changed.emit(mode)
+	Events.message_posted.emit("纳米护甲：%s" % mode)
+
+
+func _toggle_stealth() -> void:
+	_set_nano_mode(&"armor" if GameState.nano_mode == &"stealth" else &"stealth")
+
+
+func _apply_nano_visuals() -> void:
+	_visual_nano_mode = GameState.nano_mode
+	for mesh in _weapon_mount.find_children("*", "MeshInstance3D", true, false):
+		(mesh as MeshInstance3D).transparency = 0.82 if GameState.nano_mode == &"stealth" else 0.0
 
 
 ## X：步枪四态、手枪三态、DMR/SPAS 固定半自动、EM 霰弹枪半自动/全自动。
