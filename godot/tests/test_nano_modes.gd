@@ -98,6 +98,20 @@ func _run() -> void:
 	state.hp = 100.0
 	player._apply_damage(&"body", 100.0)
 	_assert(is_equal_approx(state.hp, 65.0), "armor mode reduces incoming damage")
+	var audio = (load("res://scripts/ui/audio_manager.gd") as GDScript).new()
+	root.add_child(audio)
+	var sound_children: int = audio.get_child_count()
+	var events = root.get_node("Events")
+	events.nano_mode_changed.emit(&"armor")
+	var armor_player := audio.get_child(audio.get_child_count() - 1) as AudioStreamPlayer
+	_assert(audio.get_child_count() == sound_children + 1 and armor_player.stream == audio._get_stream(&"nano_armor"), "armor mode plays its activation sound once")
+	events.nano_mode_changed.emit(&"stealth")
+	var stealth_player := audio.get_child(audio.get_child_count() - 1) as AudioStreamPlayer
+	_assert(audio.get_child_count() == sound_children + 2 and stealth_player.stream == audio._get_stream(&"nightvision"), "stealth mode plays its activation sound once")
+	events.nano_mode_changed.emit(&"power")
+	_assert(audio.get_child_count() == sound_children + 2, "power mode does not add an activation sound")
+	await create_timer(0.8).timeout
+	audio.queue_free()
 	player.queue_free()
 	hud.queue_free()
 	enemy.queue_free()

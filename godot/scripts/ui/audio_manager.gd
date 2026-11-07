@@ -188,6 +188,7 @@ func _enable_loop(stream: AudioStream) -> void:
 ## weapon_reloaded → reload ｜ hit_confirmed → hitmark
 ## medkit_used → medkit ｜ night_vision_toggled → nightvision
 ## heli_called → helicopter（loop 总线循环）｜ mission_completed / game_over → 停全部 loop
+## nano_mode_changed → armor 播 nano_armor；stealth 短播 nightvision；power 无触发音
 ## rpg_exploded → explosion ｜ player_moving_changed → footstep 循环起停（loop 总线；
 ##   结束态由 mission_completed / game_over 的 stop_all_loops 兜底，开地图暂停沿用同一通道）
 ## enemy_fired → &"rifle" 用 rifle；&"machine_gun" 复用 rifle 音源按 ENEMY_MG_PITCH 降调
@@ -214,6 +215,7 @@ func _connect_events() -> void:
 	Events.shotgun_ammo_picked.connect(_on_shotgun_ammo_picked)
 	Events.medkit_picked.connect(_on_medkit_picked)
 	Events.intel_picked.connect(_on_intel_picked)
+	Events.nano_mode_changed.connect(_on_nano_mode_changed)
 
 
 func _disconnect_events() -> void:
@@ -233,6 +235,14 @@ func _disconnect_events() -> void:
 	Events.shotgun_ammo_picked.disconnect(_on_shotgun_ammo_picked)
 	Events.medkit_picked.disconnect(_on_medkit_picked)
 	Events.intel_picked.disconnect(_on_intel_picked)
+	Events.nano_mode_changed.disconnect(_on_nano_mode_changed)
+
+
+func _on_nano_mode_changed(mode: StringName) -> void:
+	if mode == &"armor":
+		play_sfx(&"nano_armor")
+	elif mode == &"stealth":
+		play_sfx(&"nightvision", GameConfig.NV_SFX_CUT_TIME)
 
 
 ## 2026-10-22 修订：按 weapon_id 入参放音（EM-40G 榴档由步枪发出 weapon_fired(&"grenade")，
