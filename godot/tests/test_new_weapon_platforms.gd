@@ -71,6 +71,32 @@ func _magnum_lens_center(weapon: Node3D) -> Variant:
 	return null
 
 
+func _magnum_optic_occluded(weapon: Node3D, camera: Camera3D, lens_center: Vector3) -> bool:
+	var view_model := weapon.get_node("ViewModel") as Node3D
+	var model := weapon.get_node("ViewModel/EM57P") as Node3D
+	var from := camera.global_position
+	var direction := ((view_model.global_transform * lens_center) - from).normalized()
+	for node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := node as MeshInstance3D
+		for surface in mesh_instance.mesh.get_surface_count():
+			var material := mesh_instance.get_active_material(surface) as StandardMaterial3D
+			if material != null and material.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
+				continue
+			var arrays := mesh_instance.mesh.surface_get_arrays(surface)
+			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+			for index in range(0, indices.size(), 3):
+				var a := mesh_instance.global_transform * vertices[indices[index]]
+				var b := mesh_instance.global_transform * vertices[indices[index + 1]]
+				var c := mesh_instance.global_transform * vertices[indices[index + 2]]
+				var hit = Geometry3D.ray_intersects_triangle(from, direction, a, b, c)
+				if hit == null:
+					hit = Geometry3D.ray_intersects_triangle(from, direction, a, c, b)
+				if hit != null:
+					return true
+	return false
+
+
 func _run() -> void:
 	_state = root.get_node("GameState")
 	_state.reset()
@@ -162,17 +188,14 @@ func _run() -> void:
 	_assert(_player._ads_mount_targets[&"magnum"].is_equal_approx(Vector3(-magnum_center.x, -magnum_center.y, _player._mount_hip_pos.z)) and not _player._ads_mount_targets[&"magnum"].is_equal_approx(_player._ads_mount_targets[&"pistol"]), "Magnum uses its own optic center instead of the EM-57P calibration")
 	var lens_center: Variant = _magnum_lens_center(magnum)
 	_assert(lens_center != null and (lens_center as Vector3).distance_to((magnum.get_node("ViewModel/OpticAim") as Marker3D).position) < 0.01, "Magnum optic marker matches its actual transparent lens")
-	var rear_glow := false
 	var rear_glow_vertices := 0
 	for node in magnum.get_node("ViewModel/EM57P").find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := node as MeshInstance3D
 		for surface in mesh_instance.mesh.get_surface_count():
 			var material := mesh_instance.get_active_material(surface) as StandardMaterial3D
-			if material != null and material.emission_enabled and material.emission.b > 0.5 and material.emission_energy_multiplier > 0.0:
-				rear_glow = true
+			if material != null and material.emission_enabled and material.emission_energy_multiplier > 0.0:
 				rear_glow_vertices += (mesh_instance.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
-	_assert(rear_glow, "Magnum rear cyan panel retains its emissive glow")
-	_assert(rear_glow_vertices == 4, "Magnum rear glow uses one clean window without any light strip on the hand or grip")
+	_assert(rear_glow_vertices == 0, "Magnum has no added rear blue panel or light strip")
 	_press(KEY_2)
 	_player._set_aiming(true)
 	for frame in 20:
@@ -195,6 +218,7 @@ func _run() -> void:
 	if lens_center != null:
 		var lens_screen: Vector2 = _player._camera.unproject_position((magnum.get_node("ViewModel") as Node3D).global_transform * (lens_center as Vector3))
 		_assert(lens_screen.distance_to(Vector2(root.size) * 0.5) < 2.0, "Magnum ADS places the transparent lens and reticle at screen center")
+		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center), "Magnum upper optic has no opaque face along the camera sightline")
 	_state.magnum_mag = 4
 	magnum._start_reload()
 	_player._process(1.0 / 60.0)

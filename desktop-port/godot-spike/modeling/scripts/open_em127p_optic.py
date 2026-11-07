@@ -1,4 +1,4 @@
-"""Open the upper EM-127P optic and add clean rear emissive inlays."""
+"""Open the full upper EM-127P optic sightline without adding rear panels."""
 import bpy
 import bmesh
 import os
@@ -23,7 +23,7 @@ selected = []
 for poly in obj.data.polygons:
     center = poly.center
     ellipse = (center.x / 0.018) ** 2 + ((center.z - CENTER_Z) / 0.015) ** 2
-    if abs(center.y) < 0.06 and ellipse < 1.0:
+    if abs(center.y) < 0.6 and ellipse < 1.0:
         selected.append(poly.index)
 if len(selected) < 4:
     raise RuntimeError("too few upper optic covers: %d" % len(selected))
@@ -40,41 +40,23 @@ lens_bsdf.inputs["Roughness"].default_value = 0.12
 lens_index = len(obj.data.materials)
 obj.data.materials.append(lens_material)
 
-glow_material = bpy.data.materials.new("EM127P_Rear_Energy_Panel")
-glow_material.use_nodes = True
-glow_material.diffuse_color = (0.01, 0.3, 0.55, 1.0)
-glow_bsdf = glow_material.node_tree.nodes.get("Principled BSDF")
-glow_bsdf.inputs["Base Color"].default_value = (0.01, 0.3, 0.55, 1.0)
-glow_bsdf.inputs["Emission Color"].default_value = (0.0, 0.45, 0.8, 1.0)
-glow_bsdf.inputs["Emission Strength"].default_value = 0.8
-glow_bsdf.inputs["Roughness"].default_value = 0.28
-glow_index = len(obj.data.materials)
-obj.data.materials.append(glow_material)
-
 bm = bmesh.new()
 bm.from_mesh(obj.data)
 bm.faces.ensure_lookup_table()
 bmesh.ops.delete(bm, geom=[bm.faces[index] for index in selected], context="FACES")
-
-
-def add_rear_quad(x0, x1, z0, z1, y, material_index):
-    vertices = [
-        bm.verts.new((x0, y, z0)),
-        bm.verts.new((x1, y, z0)),
-        bm.verts.new((x1, y, z1)),
-        bm.verts.new((x0, y, z1)),
-    ]
-    face = bm.faces.new(vertices)
-    face.material_index = material_index
-
-
-add_rear_quad(-HALF_X, HALF_X, CENTER_Z - HALF_Z, CENTER_Z + HALF_Z, 0.0, lens_index)
-add_rear_quad(-0.027, 0.027, 0.12, 0.175, -0.448, glow_index)
+vertices = [
+    bm.verts.new((-HALF_X, 0.0, CENTER_Z - HALF_Z)),
+    bm.verts.new((HALF_X, 0.0, CENTER_Z - HALF_Z)),
+    bm.verts.new((HALF_X, 0.0, CENTER_Z + HALF_Z)),
+    bm.verts.new((-HALF_X, 0.0, CENTER_Z + HALF_Z)),
+]
+glass = bm.faces.new(vertices)
+glass.material_index = lens_index
 bm.to_mesh(obj.data)
 bm.free()
 obj.data.update()
 print("UPPER_OPTIC_COVERS_REMOVED", len(selected), flush=True)
-print("REAR_GLOW_VERTICES 4", flush=True)
+print("REAR_PANEL_VERTICES 0", flush=True)
 print("LENS_CENTER_VIEWMODEL", (0.03, 0.03 + 0.48 * CENTER_Z, 0.04), flush=True)
 
 bpy.ops.object.select_all(action="DESELECT")
