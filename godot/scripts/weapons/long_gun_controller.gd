@@ -108,7 +108,7 @@ func _align_native_arms() -> void:
 	var basis := _weapon_node.global_basis.orthonormalized() * Basis(Vector3(-1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, -1)) * weapon_bone_local.basis.orthonormalized().inverse()
 	var origin := _magazine.global_position - basis * mag_bone_local.origin
 	var placed := Transform3D(basis, origin) * chain.affine_inverse()
-	var arms_offset: Vector3 = GameConfig.DMR_ARMS_OFFSET if weapon_data.weapon_id in [&"dmr", &"spas12", &"em86s", &"em86d"] else GameConfig.SHOTGUN_ARMS_OFFSET
+	var arms_offset: Vector3 = GameConfig.DMR_ARMS_OFFSET if weapon_data.weapon_id in [&"dmr", &"spas12", &"em86s", &"em86d", &"em127g"] else GameConfig.SHOTGUN_ARMS_OFFSET
 	placed.origin += _weapon_node.global_basis * arms_offset
 	_arms_node.global_transform = placed
 	for node in _arms_node.find_children("*", "MeshInstance3D", true, false):
@@ -144,8 +144,8 @@ func _process(delta: float) -> void:
 
 func _apply_pose_rotation() -> void:
 	var w := 1.0 - _aim_weight
-	var yaw: float = GameConfig.DMR_HIP_POSE_YAW if weapon_data.weapon_id in [&"dmr", &"spas12", &"em86s", &"em86d"] else GameConfig.SHOTGUN_HIP_POSE_YAW
-	var pitch: float = GameConfig.DMR_HIP_POSE_PITCH if weapon_data.weapon_id in [&"dmr", &"spas12", &"em86s", &"em86d"] else GameConfig.SHOTGUN_HIP_POSE_PITCH
+	var yaw: float = GameConfig.DMR_HIP_POSE_YAW if weapon_data.weapon_id in [&"dmr", &"spas12", &"em86s", &"em86d", &"em127g"] else GameConfig.SHOTGUN_HIP_POSE_YAW
+	var pitch: float = GameConfig.DMR_HIP_POSE_PITCH if weapon_data.weapon_id in [&"dmr", &"spas12", &"em86s", &"em86d", &"em127g"] else GameConfig.SHOTGUN_HIP_POSE_PITCH
 	var q := Quaternion(Vector3.UP, yaw * w) * Quaternion(Vector3.RIGHT, pitch * w) * Quaternion(Vector3.BACK, _reload_counter)
 	_pose_extra = Transform3D(Basis(q), Vector3.ZERO)
 	if _arms_node != null:
@@ -163,13 +163,13 @@ func _pose_left_arm_mainstream(weight: float = 0.0) -> void:
 	if uparm < 0 or fore < 0 or ctrl < 0 or hand < 0 or _arm_upper_len <= 0.0 or _arm_fore_len <= 0.0:
 		return
 	var to_skel_from_weapon: Transform3D = _arms_skeleton.global_transform.affine_inverse() * _weapon_node.global_transform
-	var hip: Vector3 = GameConfig.DMR_SUPPORT_WRIST_HIP if weapon_data.weapon_id in [&"dmr", &"spas12", &"em86s", &"em86d"] else GameConfig.SHOTGUN_SUPPORT_WRIST_HIP
+	var hip: Vector3 = GameConfig.DMR_SUPPORT_WRIST_HIP if weapon_data.weapon_id in [&"dmr", &"spas12", &"em86s", &"em86d", &"em127g"] else GameConfig.SHOTGUN_SUPPORT_WRIST_HIP
 	var ads: Vector3 = GameConfig.DMR_SUPPORT_WRIST_ADS if weapon_data.weapon_id in [&"dmr", &"em86s", &"em86d"] else GameConfig.SHOTGUN_SUPPORT_WRIST_ADS
 	if weapon_data.weapon_id == &"spas12":
 		ads = GameConfig.SPAS12_SUPPORT_WRIST_ADS
 	var wrist_t := to_skel_from_weapon * hip.lerp(ads, weight)
 	var shoulder_t := wrist_t + to_skel_from_weapon.basis * (GameConfig.LONG_GUN_SHOULDER_DIRECTION.normalized() * (_arm_upper_len + _arm_fore_len) * 0.94)
-	var pole_offset: Vector3 = Vector3(0.08, -0.35, 0.22) if weapon_data.weapon_id in [&"dmr", &"spas12", &"em86s", &"em86d"] else GameConfig.SHOTGUN_ELBOW_POLE
+	var pole_offset: Vector3 = Vector3(0.08, -0.35, 0.22) if weapon_data.weapon_id in [&"dmr", &"spas12", &"em86s", &"em86d", &"em127g"] else GameConfig.SHOTGUN_ELBOW_POLE
 	var pole_t := wrist_t + to_skel_from_weapon.basis * pole_offset
 	var d := wrist_t - shoulder_t
 	var dist := clampf(d.length(), absf(_arm_upper_len - _arm_fore_len) + 0.001, _arm_upper_len + _arm_fore_len - 0.001)
@@ -319,7 +319,6 @@ func _fire() -> bool:
 	Events.ammo_changed.emit(weapon_id, GameState.get(weapon_id + "_mag"), GameState.get(_reserve_key))
 	Events.weapon_fired.emit(weapon_id)
 	Events.player_muzzle_flash.emit(weapon_id, _muzzle_position())
-	_apply_recoil()
 	var total_damage := 0.0
 	var any_headshot := false
 	var any_hit := false
@@ -355,6 +354,7 @@ func _fire() -> bool:
 	if any_hit:
 		Events.damage_dealt.emit(total_damage, any_headshot)
 		Events.hit_confirmed.emit(any_headshot)
+	_apply_recoil()
 	return true
 
 
@@ -375,7 +375,7 @@ func _cast_spread_ray(spread: float) -> Dictionary:
 
 
 func _spread_for_distance(distance: float) -> float:
-	if weapon_data.weapon_id == &"shotgun" and distance <= GameConfig.SHOTGUN_SPREAD_START:
+	if weapon_data.weapon_id in [&"shotgun", &"em12g2"] and distance <= GameConfig.SHOTGUN_SPREAD_START:
 		return 0.0
 	return _current_spread()
 

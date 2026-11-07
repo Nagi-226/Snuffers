@@ -34,7 +34,7 @@ func _run() -> void:
 	_events.damage_dealt.connect(_on_damage_dealt)
 	_events.hit_confirmed.connect(_on_hit_confirmed)
 	_state.reset()
-	_assert(_state.dmr_mag == 60 and _state.rifle_reserve == 600, "DMR reset ammunition")
+	_assert(_state.dmr_mag == 60 and _state.rifle_reserve == 1800, "DMR reset ammunition")
 	_assert(_state.shotgun_mag == 32 and _state.shotgun_reserve == 160, "shotgun reset ammunition")
 	_assert(_state.fire_modes[&"dmr"] == &"semi", "DMR factory mode is semi only")
 	_assert(_state.fire_modes[&"shotgun"] == &"semi", "shotgun factory mode is semi")

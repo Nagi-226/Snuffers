@@ -7,9 +7,9 @@ import os
 import sys
 
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
-if len(argv) != 3:
-    raise SystemExit("usage: open_em86b_optic.py <input.glb> <output.glb> <preview_dir>")
-SRC, DST, PREVIEW = map(os.path.abspath, argv)
+if len(argv) not in {3, 7}:
+    raise SystemExit("usage: open_em86b_optic.py <input.glb> <output.glb> <preview_dir> [center_y center_z half_length bore_radius]")
+SRC, DST, PREVIEW = map(os.path.abspath, argv[:3])
 os.makedirs(PREVIEW, exist_ok=True)
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -18,10 +18,10 @@ meshes = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
 if not meshes:
     raise RuntimeError("no mesh objects")
 
-CENTER_Y = 0.03
-CENTER_Z = 0.195
-HALF_LENGTH = 0.18
-BORE_RADIUS = 0.032
+CENTER_Y = float(argv[3]) if len(argv) == 7 else 0.03
+CENTER_Z = float(argv[4]) if len(argv) == 7 else 0.195
+HALF_LENGTH = float(argv[5]) if len(argv) == 7 else 0.18
+BORE_RADIUS = float(argv[6]) if len(argv) == 7 else 0.032
 removed = 0
 for obj in meshes:
     bm = bmesh.new()

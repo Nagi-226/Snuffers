@@ -273,6 +273,32 @@ const EM86D_RECOIL_VIEW_OFFSET: float = 0.15
 const EM86D_ADS_FOV: float = 35.0
 const EM86D_SOUND_PITCH: float = 0.72
 
+# ===== EM-127G「凿空」重型反器材高斯狙击枪（2026-11-07 机主裁决）=====
+const EM127G_DAMAGE_BODY: float = 450.0
+const EM127G_SEMI_FIRE_INTERVAL: float = 0.5
+const EM127G_MAG: int = 30
+const EM127G_RELOAD_TIME: float = 3.0
+const EM127G_RANGE: float = 320.0
+const EM127G_SPREAD_HIP: float = 0.0015
+const EM127G_SPREAD_PRONE: float = 0.0005
+const EM127G_SPREAD_AIM: float = 0.00003
+const EM127G_RECOIL_PITCH: float = 0.025
+const EM127G_RECOIL_VIEW_OFFSET: float = 0.24
+const EM127G_RECOIL_DECAY: float = 0.8
+const EM127G_RECOIL_RECOVER_RATE: float = 4.5
+const EM127G_RECOIL_VIEW_ROT: float = 2.5
+const EM127G_RECOIL_VIEW_Y_FACTOR: float = 0.035
+const EM127G_RECOIL_VIEW_Z_FACTOR: float = 0.07
+const EM127G_SCOPE_FOVS: Array[float] = [17.5, 8.75, 4.375] ## 16/32/64 倍
+const EM127G_SCOPE_ZOOMS: Array[int] = [16, 32, 64]
+
+# ===== EM-12G-2「霰·Ⅱ」有托前置供弹霰弹枪（2026-11-07 机主裁决）=====
+const EM12G2_FIRE_INTERVAL: float = 60.0 / 650.0 ## 全自动 650 RPM
+const EM12G2_SEMI_FIRE_INTERVAL: float = 0.25
+const EM12G2_MAG: int = 64
+const EM12G2_RELOAD_TIME: float = 2.8
+const EM12G2_SOUND_PITCH: float = 0.65
+
 # ===== EM-12G-1「霰·Ⅰ」无托电磁霰弹枪（2026-10-26 机主数值裁决）=====
 const AMMO_DMG_EC12_PELLET: float = 30.0 ## EC-12「砂」单丸身体伤害；一次击发 12 丸
 const SHOTGUN_DMG_HEAD_FACTOR: float = 1.5
@@ -479,12 +505,12 @@ const SFX_PITCH_JITTER: float = 0.1 ## 枪声音高抖动 ±10%（L392）
 const WEAPON_CATEGORIES: Array = [
 	{"number": 1, "name": "手枪", "weapons": [&"pistol", &"magnum"]},
 	{"number": 2, "name": "冲锋枪", "weapons": [&"smg"]},
-	{"number": 3, "name": "突击 / DMR", "weapons": [&"rifle", &"dmr", &"em86b", &"em86s", &"em86d"]},
-	{"number": 4, "name": "霰弹 / 狙击", "weapons": [&"shotgun", &"spas12"]},
+	{"number": 3, "name": "突击 / DMR", "weapons": [&"rifle", &"dmr", &"em86b", &"em86d"]},
+	{"number": 4, "name": "霰弹 / 狙击", "weapons": [&"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g"]},
 	{"number": 5, "name": "机枪", "weapons": [&"lmg"]},
 	{"number": 6, "name": "爆破重火力", "weapons": []},
 ]
-const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"magnum", &"smg", &"rifle", &"dmr", &"em86b", &"em86s", &"em86d", &"shotgun", &"spas12", &"lmg"]
+const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"magnum", &"smg", &"rifle", &"dmr", &"em86b", &"em86d", &"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g", &"lmg"]
 const WEAPON_SELECTOR_HOLD_TIME: float = 1.6
 
 # ===== UI 反馈动效（G2 冻结自 W5 脚本常量迁入）=====

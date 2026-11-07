@@ -292,6 +292,47 @@ func sync_from_config() -> void:
 			view_recoil_rot_factor = GameConfig.EM86_RECOIL_VIEW_ROT
 			view_recoil_y_factor = GameConfig.EM86_RECOIL_VIEW_Y_FACTOR
 			view_recoil_z_factor = GameConfig.EM86_RECOIL_VIEW_Z_FACTOR
+		&"em127g":
+			damage_body = GameConfig.EM127G_DAMAGE_BODY
+			headshot_factor = GameConfig.RIFLE_DMG_HEAD_FACTOR
+			dmg_vs_sniper = GameConfig.RIFLE_DMG_VS_SNIPER
+			fire_interval = GameConfig.EM127G_SEMI_FIRE_INTERVAL
+			semi_fire_interval = GameConfig.EM127G_SEMI_FIRE_INTERVAL
+			mag_size = GameConfig.EM127G_MAG
+			reserve_size = GameConfig.MAGNUM_RESERVE
+			reload_time = GameConfig.EM127G_RELOAD_TIME
+			hitscan_range = GameConfig.EM127G_RANGE
+			spread_hip = GameConfig.EM127G_SPREAD_HIP
+			spread_prone = GameConfig.EM127G_SPREAD_PRONE
+			spread_aim = GameConfig.EM127G_SPREAD_AIM
+			recoil_pitch = GameConfig.EM127G_RECOIL_PITCH
+			recoil_view_offset = GameConfig.EM127G_RECOIL_VIEW_OFFSET
+			recoil_decay = GameConfig.EM127G_RECOIL_DECAY
+			recoil_recover_rate = GameConfig.EM127G_RECOIL_RECOVER_RATE
+			view_recoil_rot_factor = GameConfig.EM127G_RECOIL_VIEW_ROT
+			view_recoil_y_factor = GameConfig.EM127G_RECOIL_VIEW_Y_FACTOR
+			view_recoil_z_factor = GameConfig.EM127G_RECOIL_VIEW_Z_FACTOR
+		&"em12g2":
+			damage_body = GameConfig.AMMO_DMG_EC12_PELLET
+			headshot_factor = GameConfig.SHOTGUN_DMG_HEAD_FACTOR
+			dmg_vs_sniper = GameConfig.SHOTGUN_DMG_VS_SNIPER
+			pellet_count = GameConfig.SHOTGUN_PELLET_COUNT
+			fire_interval = GameConfig.EM12G2_FIRE_INTERVAL
+			semi_fire_interval = GameConfig.EM12G2_SEMI_FIRE_INTERVAL
+			mag_size = GameConfig.EM12G2_MAG
+			reserve_size = GameConfig.SHOTGUN_RESERVE
+			reload_time = GameConfig.EM12G2_RELOAD_TIME
+			hitscan_range = GameConfig.SHOTGUN_RANGE
+			spread_hip = GameConfig.SHOTGUN_SPREAD_HIP
+			spread_prone = GameConfig.SHOTGUN_SPREAD_PRONE
+			spread_aim = GameConfig.SHOTGUN_SPREAD_AIM
+			recoil_pitch = GameConfig.SHOTGUN_RECOIL_PITCH
+			recoil_view_offset = GameConfig.SHOTGUN_RECOIL_VIEW_OFFSET
+			recoil_decay = GameConfig.SHOTGUN_RECOIL_DECAY
+			recoil_recover_rate = GameConfig.SHOTGUN_RECOIL_RECOVER_RATE
+			view_recoil_rot_factor = GameConfig.SHOTGUN_RECOIL_VIEW_ROT
+			view_recoil_y_factor = GameConfig.SHOTGUN_RECOIL_VIEW_Y_FACTOR
+			view_recoil_z_factor = GameConfig.SHOTGUN_RECOIL_VIEW_Z_FACTOR
 		&"shotgun":
 			damage_body = GameConfig.AMMO_DMG_EC12_PELLET
 			headshot_factor = GameConfig.SHOTGUN_DMG_HEAD_FACTOR
