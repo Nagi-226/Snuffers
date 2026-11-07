@@ -46,7 +46,7 @@ func _run() -> void:
 	_assert(player.KEY_INTERACT == KEY_F and player.KEY_MEDKIT == KEY_G, "interaction uses F and medkit uses G")
 	_assert(state.nano_mode == &"armor" and hud._awareness_state == &"green", "default armor mode and green awareness")
 	hud._process(0.0)
-	_assert(hud._nano_armor_overlay.visible, "armor mode shows corner hexagons")
+	_assert(hud._nano_armor_overlay.visible, "armor mode shows surrounding hexagons")
 	enemy.alerted = true
 	hud._process(0.1)
 	_assert(hud._awareness_state == &"yellow", "alerted enemy without sight turns awareness yellow")

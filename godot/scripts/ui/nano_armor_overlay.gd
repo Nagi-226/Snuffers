@@ -3,7 +3,7 @@ extends Control
 const HEX_RADIUS := 9.0
 const HEX_STEP_X := 15.5
 const HEX_STEP_Y := 13.5
-const CORNER_SIZE := Vector2(190, 150)
+const BORDER_WIDTH := 150.0
 
 
 func _ready() -> void:
@@ -11,16 +11,11 @@ func _ready() -> void:
 
 
 func _draw() -> void:
-	var origins := [
-		Vector2.ZERO,
-		Vector2(size.x - CORNER_SIZE.x, 0),
-		Vector2(0, size.y - CORNER_SIZE.y),
-		size - CORNER_SIZE,
-	]
-	for origin in origins:
-		for row in 11:
-			for column in 13:
-				var center: Vector2 = origin + Vector2(column * HEX_STEP_X + (row % 2) * HEX_STEP_X * 0.5, row * HEX_STEP_Y)
+	for row in int(ceil(size.y / HEX_STEP_Y)) + 1:
+		for column in int(ceil(size.x / HEX_STEP_X)) + 1:
+			var center := Vector2(column * HEX_STEP_X + (row % 2) * HEX_STEP_X * 0.5, row * HEX_STEP_Y)
+			if center.x <= BORDER_WIDTH or center.x >= size.x - BORDER_WIDTH \
+					or center.y <= BORDER_WIDTH or center.y >= size.y - BORDER_WIDTH:
 				_draw_hex(center)
 
 
@@ -29,4 +24,4 @@ func _draw_hex(center: Vector2) -> void:
 	for index in 7:
 		var angle := TAU * float(index) / 6.0
 		points.append(center + Vector2(cos(angle), sin(angle)) * HEX_RADIUS)
-	draw_polyline(points, Color(0.35, 0.85, 1.0, 0.2), 1.0, true)
+	draw_polyline(points, Color(0.55, 0.72, 0.76, 0.22), 1.0, true)
