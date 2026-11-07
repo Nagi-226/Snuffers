@@ -59,6 +59,7 @@
 | nano_armor.wav（装甲模式机械装甲＋轻护盾底音，1.2s 混合/淡变/响度统一） | Breviceps（机械启动）；Beussa（能量底音） | https://freesound.org/people/Breviceps/sounds/505670/ ；https://freesound.org/people/Beussa/sounds/659967/ | 均 CC0 | 2026-11-07 |
 | nano_stealth.wav（隐形模式短促力场展开音，淡变/响度统一） | unfa | https://freesound.org/people/unfa/sounds/584173/ | CC0 | 2026-11-07 |
 | railgun.wav（EM-127G 重炮击发，0–2.8s 裁剪/淡变/响度统一） | qubodup | https://freesound.org/people/qubodup/sounds/162260/ | CC0 | 2026-11-07 |
+| railgun_charged.wav（EM-127G 充能击发，重炮音叠加程序合成电磁瞬态） | qubodup；本项目合成部分 | https://freesound.org/people/qubodup/sounds/162260/ | CC0／项目自有合成部分 | 2026-11-07 |
 
 ---
 

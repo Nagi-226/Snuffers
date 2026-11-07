@@ -36,6 +36,35 @@ var _aim_weight: float = 0.0
 var _pose_pending: bool = false
 var _arm_upper_len: float = 0.0
 var _arm_fore_len: float = 0.0
+var _charge_elapsed: float = 0.0
+var _charge_fired: bool = false
+var _charged_shot: bool = false
+
+
+func _on_trigger_pressed() -> void:
+	super()
+	if weapon_data.weapon_id == &"em127g":
+		_charge_elapsed = 0.0
+		_charge_fired = false
+
+
+func _tick_weapon(delta: float) -> void:
+	super(delta)
+	if weapon_data.weapon_id != &"em127g":
+		return
+	if not _trigger_held or _is_reloading:
+		_charge_elapsed = 0.0
+		_charge_fired = false
+		return
+	if _charge_fired:
+		return
+	_charge_elapsed += delta
+	if _charge_elapsed < GameConfig.EM127G_CHARGE_TIME:
+		return
+	_charge_fired = true
+	_charged_shot = true
+	_try_fire()
+	_charged_shot = false
 
 
 func _ready() -> void:
@@ -318,7 +347,10 @@ func _fire() -> bool:
 	GameState.set(weapon_id + "_mag", int(GameState.get(weapon_id + "_mag")) - 1)
 	Events.ammo_changed.emit(weapon_id, GameState.get(weapon_id + "_mag"), GameState.get(_reserve_key))
 	Events.weapon_fired.emit(weapon_id)
+	if _charged_shot and weapon_id == &"em127g":
+		Events.weapon_charge_fired.emit(weapon_id)
 	Events.player_muzzle_flash.emit(weapon_id, _muzzle_position())
+	var shot_damage: float = GameConfig.EM127G_CHARGED_DAMAGE_BODY if _charged_shot and weapon_id == &"em127g" else weapon_data.damage_body
 	var total_damage := 0.0
 	var any_headshot := false
 	var any_hit := false
@@ -344,8 +376,8 @@ func _fire() -> bool:
 			Events.bullet_impacted.emit(hit.position, hit.normal, HitSolver.is_metal_surface(collider))
 			continue
 		var is_head := HitSolver.is_headshot(collider)
-		var damage: float = weapon_data.damage_body * (weapon_data.headshot_factor if is_head else 1.0)
-		if HitSolver.find_group_ancestor(collider, &"sniper") != null:
+		var damage: float = shot_damage * (weapon_data.headshot_factor if is_head else 1.0)
+		if not _charged_shot and HitSolver.find_group_ancestor(collider, &"sniper") != null:
 			damage = weapon_data.dmg_vs_sniper
 		target.take_damage(damage, is_head)
 		total_damage += damage

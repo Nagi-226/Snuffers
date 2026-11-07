@@ -138,7 +138,8 @@ func _run() -> void:
 	_press_reload(rifle)
 	_assert(rifle._is_reloading, "rifle automatic mode still reloads with R")
 	_assert(_player._ads_mount_targets[&"smg"].is_equal_approx(_player._ads_mount_targets[&"rifle"]) and _player._ads_mount_targets[&"lmg"].is_equal_approx(_player._ads_mount_targets[&"rifle"]), "SMG and LMG inherit the exact EM-68A optic center")
-	_assert(_player._ads_mount_targets[&"magnum"].is_equal_approx(_player._ads_mount_targets[&"pistol"]), "Magnum inherits the exact EM-57P optic center")
+	var magnum_center: Vector3 = _player._find_optic_center_in_mount(magnum, &"magnum")
+	_assert(_player._ads_mount_targets[&"magnum"].is_equal_approx(Vector3(-magnum_center.x, -magnum_center.y, _player._mount_hip_pos.z)) and not _player._ads_mount_targets[&"magnum"].is_equal_approx(_player._ads_mount_targets[&"pistol"]), "Magnum uses its own optic center instead of the EM-57P calibration")
 	_press(KEY_2)
 	_player._set_aiming(true)
 	for frame in 20:
@@ -157,7 +158,7 @@ func _run() -> void:
 		_player._process(1.0 / 60.0)
 	var pistol_arms := _player.get_node("Camera3D/WeaponMount/Pistol/ViewModel/ArmsEM57P") as Node3D
 	var magnum_arms := _player.get_node("Camera3D/WeaponMount/Magnum/ViewModel/ArmsEM57P") as Node3D
-	_assert(pistol_arms.is_visible_in_tree() and not magnum_arms.is_visible_in_tree(), "Magnum ADS displays only one set of arms")
+	_assert(not pistol_arms.is_visible_in_tree() and magnum_arms.is_visible_in_tree() and _player._scope_view_models[&"magnum"].visible, "Magnum ADS displays its own model with only one set of arms")
 	_state.magnum_mag = 4
 	magnum._start_reload()
 	_player._process(1.0 / 60.0)
