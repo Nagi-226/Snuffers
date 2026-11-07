@@ -59,5 +59,5 @@ func _draw() -> void:
 	draw_string(font, Vector2(128, 78), ammo_type, HORIZONTAL_ALIGNMENT_RIGHT, 120, 12, color)
 	if show_grenades:
 		draw_string(font, Vector2(0, 98), "榴弹", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, secondary)
-		draw_string(font, Vector2(42, 98), "EC-40P", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, color)
-		draw_string(font, Vector2(128, 98), str(grenade_stock), HORIZONTAL_ALIGNMENT_RIGHT, 120, 12, color)
+		draw_string(font, Vector2(70, 98), str(grenade_stock), HORIZONTAL_ALIGNMENT_LEFT, -1, 22, color)
+		draw_string(font, Vector2(128, 98), "EC-40P", HORIZONTAL_ALIGNMENT_RIGHT, 120, 12, color)
