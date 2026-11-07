@@ -159,10 +159,16 @@ func _has_player() -> bool:
 
 ## 节流视线检测：每 SIGHT_CHECK_INTERVAL 秒做一次真实射线，其余帧用缓存。
 func _update_sight(delta: float, target_pos: Vector3) -> bool:
+	if GameState.nano_mode == &"stealth":
+		_cached_can_see = false
+		alerted = false
+		return false
 	_sight_timer += delta
 	if _sight_timer >= SIGHT_CHECK_INTERVAL:
 		_cached_can_see = _check_line_of_sight(target_pos)
 		_sight_timer = 0.0
+	if _cached_can_see:
+		alerted = true
 	return _cached_can_see
 
 

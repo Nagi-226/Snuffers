@@ -12,6 +12,8 @@
 ## （颜色/字号/过渡时长/上飘像素）契约未含，集中在本文件头部。
 extends CanvasLayer
 
+const WeaponIcon = preload("res://scripts/ui/weapon_icon.gd")
+
 @export var district_mode: bool = false
 
 ## 准星恢复过渡时长 s（视觉表现常量）。
@@ -43,7 +45,7 @@ const DAMAGE_TEXT_COLOR_HEADSHOT: Color = Color(0.9, 0.55, 0.25)
 @onready var _body_bar: ProgressBar = %BodyBar
 @onready var _armor_bar: ProgressBar = %ArmorBar
 @onready var _kills_label: Label = %KillsLabel
-@onready var _ammo_label: Label = %AmmoLabel
+@onready var _weapon_ammo: Control = %WeaponAmmo
 @onready var _message_label: Label = %MessageLabel
 @onready var _heli_timer_label: Label = %HeliTimerLabel
 @onready var _intel_label: Label = %IntelLabel
@@ -54,6 +56,13 @@ const DAMAGE_TEXT_COLOR_HEADSHOT: Color = Color(0.9, 0.55, 0.25)
 @onready var _mission_title: Label = %MissionTitle
 @onready var _mission_key: Label = %MissionKey
 @onready var _mission_intel: Label = %MissionIntel
+@onready var _awareness_bar: HBoxContainer = %AwarenessBar
+@onready var _awareness_label: Label = %AwarenessLabel
+@onready var _nano_mode_label: Label = %NanoModeLabel
+@onready var _nano_armor_overlay: Control = %NanoArmorOverlay
+
+var _awareness: float = 0.0
+var _awareness_state: StringName = &"green"
 
 ## 任务栏文案色（视觉样式常量）：完成=绿 / 未完成=米白。
 const MISSION_DONE_COLOR := Color(0.55, 0.95, 0.55, 1.0)
@@ -63,6 +72,7 @@ const MISSION_TODO_COLOR := Color(0.88, 0.86, 0.8, 0.95)
 var _mission_sig := ""
 var _weapon_selector: PanelContainer
 var _selector_slots: Dictionary = {}
+var _selector_icons: Dictionary = {}
 var _selector_name: Label
 var _selector_members: VBoxContainer
 var _selector_time_left: float = 0.0
@@ -92,10 +102,13 @@ func _ready() -> void:
 	_refresh_all_from_state()
 	_refresh_mission(true)
 	_connect_events()
+	_set_awareness_segments(_awareness_state, Color(0.35, 0.9, 0.45))
 
 
 func _process(delta: float) -> void:
 	_refresh_mission(false)
+	_update_awareness(delta)
+	_nano_armor_overlay.visible = GameState.nano_mode == &"armor"
 	if _selector_time_left > 0.0:
 		_selector_time_left -= delta
 		if _selector_time_left <= 0.0:
@@ -116,7 +129,7 @@ func _build_weapon_selector() -> void:
 	_weapon_selector.visible = false
 	_weapon_selector.set_meta("category", 0)
 	_weapon_selector.add_theme_stylebox_override("panel", _selector_style(
-		Color(0.015, 0.025, 0.03, 0.88), Color(0.95, 0.72, 0.22, 0.5)))
+		Color(0, 0, 0, 0), Color(0, 0, 0, 0)))
 	add_child(_weapon_selector)
 	var margin := MarginContainer.new()
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -131,8 +144,8 @@ func _build_weapon_selector() -> void:
 	slots.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	slots.add_theme_constant_override("separation", 4)
 	rows.add_child(slots)
-	_selector_style_normal = _selector_style(Color(0.035, 0.065, 0.08, 0.78), Color(0.4, 0.75, 0.85, 0.25))
-	_selector_style_active = _selector_style(Color(0.24, 0.18, 0.045, 0.94), Color(1.0, 0.8, 0.22, 0.95))
+	_selector_style_normal = _selector_style(Color(0.01, 0.025, 0.035, 0.12), Color(0.4, 0.75, 0.85, 0.2))
+	_selector_style_active = _selector_style(Color(0.02, 0.08, 0.12, 0.22), Color(0.4, 0.9, 1.0, 0.9))
 	for category: Dictionary in GameConfig.WEAPON_CATEGORIES:
 		var slot := PanelContainer.new()
 		slot.custom_minimum_size.x = 122.0
@@ -145,8 +158,14 @@ func _build_weapon_selector() -> void:
 		column.add_theme_constant_override("separation", 0)
 		slot.add_child(column)
 		column.add_child(_selector_label(str(category.number), 16, Color(0.65, 0.9, 1.0)))
-		column.add_child(_selector_label(category.name, 12, Color(0.65, 0.8, 0.85)))
 		_selector_slots[category.number] = slot
+		_selector_icons[category.number] = []
+		for weapon_id: StringName in category.weapons:
+			var icon := WeaponIcon.new()
+			icon.weapon_id = weapon_id
+			icon.visible = false
+			column.add_child(icon)
+			_selector_icons[category.number].append(icon)
 	_selector_members = VBoxContainer.new()
 	_selector_members.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_selector_members.add_theme_constant_override("separation", 0)
@@ -179,8 +198,6 @@ func _show_weapon_selector(category_number: int) -> void:
 	_weapon_selector.set_meta("category", category_number)
 	_weapon_selector.visible = true
 	_selector_time_left = GameConfig.WEAPON_SELECTOR_HOLD_TIME
-	for child in _selector_members.get_children():
-		child.free()
 	var member_count := 0
 	for category: Dictionary in GameConfig.WEAPON_CATEGORIES:
 		var number: int = category.number
@@ -191,20 +208,14 @@ func _show_weapon_selector(category_number: int) -> void:
 		slot.modulate = Color.WHITE if unlocked else Color(1.0, 1.0, 1.0, 0.32)
 		slot.add_theme_stylebox_override("panel",
 			_selector_style_active if number == category_number else _selector_style_normal)
-		if number == category_number:
-			if GameState.current_weapon in category.weapons:
-				_selector_name.text = _weapon_display_name(GameState.current_weapon)
-			else:
-				_selector_name.text = category.name + (" · 预留" if category.weapons.is_empty() else " · 未领取")
-			for weapon_id: StringName in category.weapons:
-				if not GameState.weapon_unlocked.get(weapon_id, false):
-					continue
+		for icon in _selector_icons[number]:
+			icon.visible = number == category_number and GameState.weapon_unlocked.get(icon.weapon_id, false)
+			icon.selected = icon.weapon_id == GameState.current_weapon
+			if icon.visible:
 				member_count += 1
-				var color := Color(1.0, 0.84, 0.35) if weapon_id == GameState.current_weapon else Color(0.65, 0.85, 0.9)
-				_selector_members.add_child(_selector_label(_weapon_display_name(weapon_id), 14, color))
-	_selector_members.visible = member_count > 1
-	_selector_name.visible = member_count <= 1
-	_weapon_selector.offset_bottom = 132.0 + maxi(0, member_count - 1) * 22.0
+	_selector_members.visible = false
+	_selector_name.visible = false
+	_weapon_selector.offset_bottom = 132.0 + maxi(0, member_count - 1) * 58.0
 	_heli_timer_label.offset_top = _weapon_selector.offset_bottom + 10.0
 	_heli_timer_label.offset_bottom = _heli_timer_label.offset_top + 32.0
 
@@ -314,6 +325,7 @@ func _connect_events() -> void:
 	Events.heli_arrived.connect(_on_heli_arrived)
 	Events.mission_completed.connect(_on_mission_ended)
 	Events.game_over.connect(_on_game_over)
+	Events.nano_mode_changed.connect(_on_nano_mode_changed)
 
 
 func _disconnect_events() -> void:
@@ -337,6 +349,39 @@ func _disconnect_events() -> void:
 	Events.heli_arrived.disconnect(_on_heli_arrived)
 	Events.mission_completed.disconnect(_on_mission_ended)
 	Events.game_over.disconnect(_on_game_over)
+	Events.nano_mode_changed.disconnect(_on_nano_mode_changed)
+
+
+func _on_nano_mode_changed(mode: StringName) -> void:
+	var labels := {&"normal": "常规", &"armor": "装甲", &"stealth": "隐形"}
+	_nano_mode_label.text = "模式：%s" % labels.get(mode, "常规")
+
+
+func _update_awareness(delta: float) -> void:
+	var seen := false
+	var alerted := false
+	for enemy in get_tree().get_nodes_in_group(&"enemy"):
+		seen = seen or (GameState.nano_mode != &"stealth" and bool(enemy.get("_cached_can_see")))
+		alerted = alerted or bool(enemy.get("alerted"))
+	_awareness = clampf(_awareness + (GameConfig.NANO_AWARENESS_GAIN if seen else -GameConfig.NANO_AWARENESS_DECAY) * delta, 0.0, 1.0)
+	var next_state: StringName = &"red" if seen else (&"yellow" if alerted or _awareness > 0.35 else &"green")
+	if next_state == _awareness_state:
+		return
+	_awareness_state = next_state
+	var color := Color(0.95, 0.25, 0.2) if next_state == &"red" else (Color(0.95, 0.75, 0.2) if next_state == &"yellow" else Color(0.35, 0.9, 0.45))
+	_set_awareness_segments(next_state, color)
+	_awareness_label.add_theme_color_override("font_color", color)
+	_awareness_label.text = {"red": "敌人已发现你", "yellow": "敌人正在警觉", "green": "未察觉"}[next_state]
+
+
+func _set_awareness_segments(state: StringName, color: Color) -> void:
+	var active_count: int = {"green": 1, "yellow": 2, "red": 3}[state]
+	for index in _awareness_bar.get_child_count():
+		var segment := _awareness_bar.get_child(index) as ProgressBar
+		segment.value = 1.0 if index < active_count else 0.0
+		var fill := StyleBoxFlat.new()
+		fill.bg_color = color
+		segment.add_theme_stylebox_override("fill", fill)
 
 
 ## 生命值变化：刷新生命条 + 全量同步（part 恒为 &"hp"，2026-10-21 单一生命值制）。
@@ -409,28 +454,21 @@ func _on_fire_mode_changed(weapon_id: StringName, _mode: StringName) -> void:
 ## 模块总数制无备弹，余量直读 GameState.rifle_grenades。
 func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 	var mode: StringName = GameState.fire_modes.get(weapon_id, &"auto")
+	var mode_tag: String = {
+		&"auto": "全自动",
+		&"burst": "三点射",
+		&"semi": "半自动",
+	}.get(mode, "")
+	if weapon_id == &"spas12":
+		mode_tag = "泵动"
 	if weapon_id == &"rifle" and mode == &"grenade":
-		_ammo_label.text = "EM-68A [滚雷] EC-40P 破垒榴弹：%d" % GameState.rifle_grenades
-		return
-	var mode_tag := ""
-	match mode:
-		&"auto":
-			mode_tag = "[全自动]"
-		&"burst":
-			mode_tag = "[三点射]"
-		&"semi":
-			mode_tag = "[半自动]"
-	match weapon_id:
-		&"pistol":
-			_ammo_label.text = "EM-57P %s EC-57 无壳手枪弹：%d / %d" % [mode_tag, mag, reserve]
-		&"dmr":
-			_ammo_label.text = "EM-68D 穿杨 %s EC-68 无壳步枪弹：%d / %d" % [mode_tag, mag, reserve]
-		&"shotgun":
-			_ammo_label.text = "EM-12G-1 霰·Ⅰ %s EC-12 砂：%d / %d" % [mode_tag, mag, reserve]
-		&"spas12":
-			_ammo_label.text = "SPAS-12 [泵动] 12GA 霰弹：%d / %d" % [mag, reserve]
-		_:
-			_ammo_label.text = "EM-68A %s EC-68 无壳步枪弹：%d / %d" % [mode_tag, mag, reserve]
+		mag = GameState.rifle_grenades
+		reserve = 0
+		mode_tag = "滚雷"
+	_weapon_ammo.set("weapon_id", weapon_id)
+	_weapon_ammo.set("mag", mag)
+	_weapon_ammo.set("reserve", reserve)
+	_weapon_ammo.set("mode_tag", mode_tag)
 
 
 ## 腿部警告分级（2026-10-21 随三部位耐久制退役，函数移除）。

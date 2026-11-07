@@ -12,10 +12,13 @@ func _ready() -> void:
 	super()
 	enemy_kind = &"hulking_host"
 	health = GameConfig.HULKING_HOST_HP
+	$BodyMesh.rotation.y = GameConfig.HULKING_HOST_MODEL_YAW_OFFSET
 	var players := $BodyMesh.find_children("*", "AnimationPlayer", true, false)
 	if not players.is_empty():
 		_animation_player = players[0] as AnimationPlayer
 		_animation_player.animation_finished.connect(_on_animation_finished)
+		if ResourceLoader.exists("res://assets/models/enemies/hulking_mixamo_big_stride.tres"):
+			_animation_player.get_animation_library("").add_animation(&"walk", load("res://assets/models/enemies/hulking_mixamo_big_stride.tres"))
 		for clip_name in [&"idle", &"walk"]:
 			var clip := _animation_player.get_animation(clip_name)
 			if clip != null:
@@ -67,6 +70,7 @@ func _physics_process(delta: float) -> void:
 			velocity.x = 0.0
 			velocity.z = 0.0
 			if _state_timer <= 0.0:
+				Events.enemy_fired.emit(&"hulking_smash", global_position)
 				if dist <= GameConfig.HULKING_HOST_MELEE_RANGE and _smash_clear(player_pos):
 					_damage_player(GameConfig.HULKING_HOST_DAMAGE)
 				_attack_cooldown = GameConfig.HULKING_HOST_COOLDOWN
