@@ -41,11 +41,40 @@ var _charge_fired: bool = false
 var _charged_shot: bool = false
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	if weapon_data.weapon_id != &"em127g":
+		super(event)
+	elif event is InputEventMouseButton:
+		var button := event as InputEventMouseButton
+		if button.button_index == MOUSE_BUTTON_LEFT:
+			if button.pressed:
+				if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or not _is_current_weapon():
+					return
+				_trigger_held = true
+				_on_trigger_pressed()
+				return
+			if _trigger_held and not _charge_fired and _charge_elapsed < GameConfig.EM127G_CHARGE_TIME and _fire_cooldown <= 0.0 and _is_current_weapon():
+				_try_fire()
+			_trigger_held = false
+			_charge_elapsed = 0.0
+			_charge_fired = false
+			return
+	if not (event is InputEventKey):
+		return
+	var key := event as InputEventKey
+	if key.keycode != KEY_R or not key.pressed or key.echo:
+		return
+	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or not _is_current_weapon():
+		return
+	_start_reload()
+
+
 func _on_trigger_pressed() -> void:
-	super()
 	if weapon_data.weapon_id == &"em127g":
 		_charge_elapsed = 0.0
 		_charge_fired = false
+		return
+	super()
 
 
 func _tick_weapon(delta: float) -> void:
@@ -324,17 +353,6 @@ func _exit_tree() -> void:
 		Events.weapon_reloaded.disconnect(_on_weapon_reloaded)
 	super()
 
-
-func _unhandled_input(event: InputEvent) -> void:
-	super(event)
-	if not (event is InputEventKey):
-		return
-	var key := event as InputEventKey
-	if key.keycode != KEY_R or not key.pressed or key.echo:
-		return
-	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or not _is_current_weapon():
-		return
-	_start_reload()
 
 
 func _fire() -> bool:

@@ -275,7 +275,7 @@ const EM86D_SOUND_PITCH: float = 0.72
 
 # ===== EM-127G「凿空」重型反器材高斯狙击枪（2026-11-07 机主裁决）=====
 const EM127G_DAMAGE_BODY: float = 450.0
-const EM127G_CHARGE_TIME: float = 1.0 ## 持续按住左键 1 秒自动追加充能击发
+const EM127G_CHARGE_TIME: float = 1.0 ## 按住满 1 秒发射充能弹；不足 1 秒松开发射普通弹
 const EM127G_CHARGED_DAMAGE_BODY: float = 900.0
 const EM127G_SEMI_FIRE_INTERVAL: float = 0.5
 const EM127G_MAG: int = 30

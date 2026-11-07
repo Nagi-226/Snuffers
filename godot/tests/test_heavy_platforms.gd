@@ -100,16 +100,28 @@ func _run() -> void:
 	var charge_damage: Array[float] = []
 	var on_charge_damage = func(amount: float, _head: bool): charge_damage.append(amount)
 	game_events.damage_dealt.connect(on_charge_damage)
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.pressed = false
+	gauss._trigger_held = true
+	gauss._on_trigger_pressed()
+	_assert(charge_damage.is_empty() and _state.em127g_mag == 30, "EM-127G quick press waits for release instead of firing on the press edge")
+	gauss._tick_weapon(0.1)
+	gauss._unhandled_input(release)
+	_assert(charge_damage == [450.0] and _state.em127g_mag == 29, "EM-127G quick press and release fires only the 450-damage normal shot")
+	_state.em127g_mag = 30
+	gauss._fire_cooldown = 0.0
+	charge_damage.clear()
+	_player.get_node("Camera3D").look_at(target.global_position + Vector3(0, 1, 0))
 	gauss._trigger_held = true
 	gauss._on_trigger_pressed()
 	gauss._tick_weapon(0.5)
-	_assert(charge_damage == [450.0] and _state.em127g_mag == 29, "EM-127G tap keeps the immediate 450-damage shot without an early charge")
-	_player.get_node("Camera3D").look_at(target.global_position + Vector3(0, 1, 0))
+	_assert(charge_damage.is_empty() and _state.em127g_mag == 30, "EM-127G holding does not fire a normal shot before the charge threshold")
 	gauss._tick_weapon(0.51)
-	_assert(charge_damage == [450.0, 900.0] and _state.em127g_mag == 28, "EM-127G holding for one second fires an additional 900-damage charged shot (got %s, mag %d)" % [str(charge_damage), _state.em127g_mag])
+	_assert(charge_damage == [900.0] and _state.em127g_mag == 29, "EM-127G holding for one second fires only the 900-damage charged shot (got %s, mag %d)" % [str(charge_damage), _state.em127g_mag])
 	gauss._tick_weapon(0.5)
-	_assert(charge_damage.size() == 2 and _state.em127g_mag == 28, "EM-127G fires only one charged shot per trigger hold")
-	gauss._trigger_held = false
+	gauss._unhandled_input(release)
+	_assert(charge_damage.size() == 1 and _state.em127g_mag == 29, "EM-127G fires once per hold and does not fire a normal shot on release")
 	game_events.damage_dealt.disconnect(on_charge_damage)
 	_assert(game_events.has_signal(&"weapon_charge_fired"), "EM-127G has a dedicated charged-shot audio event")
 	_assert(ResourceLoader.exists("res://assets/audio/railgun_charged.wav"), "EM-127G charged shot has its own audio asset")
