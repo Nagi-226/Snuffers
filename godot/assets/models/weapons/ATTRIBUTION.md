@@ -67,5 +67,5 @@
 - **正式资产**: `em86s_viewmodel.glb`、`em86b_viewmodel.glb`、`em86d_viewmodel.glb`。
 - **来源**: 项目自有 EDAA 概念设定，AI 图生 3D 原始模型；无第三方网格或贴图，无额外署名要求。
 - **原始模型**: `desktop-port/godot-spike/modeling/em-weapons/em86s/em86s_hunyuan_v31_raw.glb`、`em86b/em86b_hunyuan_v31_retry_raw.glb`、`em86d/em86d_hunyuan_v31_retry_raw.glb`（原始工作区，不直接入库）。
-- **本地处理**: `prepare_generated_asset.py` 将三把源模的 Blender -X 枪口统一旋转 +90° 到 Blender -Y / Godot -Z；米制长度 1.05/0.95/1.08m、几何居中、贴图最长边 2048；三角面分别由 1500000/1499986/1499998 减至各 70000，导出游戏用 GLB。
+- **本地处理**: `prepare_generated_asset.py` 将三把源模的 Blender -X 枪口统一旋转 -90° 到 Blender +Y / Godot -Z；米制长度 1.05/0.95/1.08m、几何居中、贴图最长边 2048；三角面分别由 1500000/1499986/1499998 减至各 70000，导出游戏用 GLB。初版误按 +90° 导出导致枪托朝前，机主实机指认后已按正确映射重导出。
 - **生成日期**: 2026-11-07。
