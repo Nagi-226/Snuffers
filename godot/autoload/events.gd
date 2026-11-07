@@ -34,6 +34,8 @@ signal nano_mode_changed(mode: StringName)
 # ===== 武器 =====
 ## 开火。weapon_id: &"rifle" / &"pistol" / &"grenade"（2026-10-22 EM-40G 榴档由步枪发出 &"grenade"）。
 signal weapon_fired(weapon_id: StringName)
+## 高斯枪充能击发，在普通开火事件之外提供独立音效锚点。
+signal weapon_charge_fired(weapon_id: StringName)
 ## 射击模式切换（2026-10-19 机主立项：X 键循环；2026-10-22 步枪追加 &"grenade" 榴档，闭环 全自动→半自动→三发点射→滚雷）。
 ## mode: &"semi" / &"burst" / &"auto" / &"grenade"
 signal fire_mode_changed(weapon_id: StringName, mode: StringName)

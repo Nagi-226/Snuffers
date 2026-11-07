@@ -36,6 +36,64 @@ var _aim_weight: float = 0.0
 var _pose_pending: bool = false
 var _arm_upper_len: float = 0.0
 var _arm_fore_len: float = 0.0
+var _charge_elapsed: float = 0.0
+var _charge_fired: bool = false
+var _charged_shot: bool = false
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if weapon_data.weapon_id != &"em127g":
+		super(event)
+	elif event is InputEventMouseButton:
+		var button := event as InputEventMouseButton
+		if button.button_index == MOUSE_BUTTON_LEFT:
+			if button.pressed:
+				if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or not _is_current_weapon():
+					return
+				_trigger_held = true
+				_on_trigger_pressed()
+				return
+			if _trigger_held and not _charge_fired and _charge_elapsed < GameConfig.EM127G_CHARGE_TIME and _fire_cooldown <= 0.0 and _is_current_weapon():
+				_try_fire()
+			_trigger_held = false
+			_charge_elapsed = 0.0
+			_charge_fired = false
+			return
+	if not (event is InputEventKey):
+		return
+	var key := event as InputEventKey
+	if key.keycode != KEY_R or not key.pressed or key.echo:
+		return
+	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or not _is_current_weapon():
+		return
+	_start_reload()
+
+
+func _on_trigger_pressed() -> void:
+	if weapon_data.weapon_id == &"em127g":
+		_charge_elapsed = 0.0
+		_charge_fired = false
+		return
+	super()
+
+
+func _tick_weapon(delta: float) -> void:
+	super(delta)
+	if weapon_data.weapon_id != &"em127g":
+		return
+	if not _trigger_held or _is_reloading:
+		_charge_elapsed = 0.0
+		_charge_fired = false
+		return
+	if _charge_fired:
+		return
+	_charge_elapsed += delta
+	if _charge_elapsed < GameConfig.EM127G_CHARGE_TIME:
+		return
+	_charge_fired = true
+	_charged_shot = true
+	_try_fire()
+	_charged_shot = false
 
 
 func _ready() -> void:
@@ -296,17 +354,6 @@ func _exit_tree() -> void:
 	super()
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	super(event)
-	if not (event is InputEventKey):
-		return
-	var key := event as InputEventKey
-	if key.keycode != KEY_R or not key.pressed or key.echo:
-		return
-	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or not _is_current_weapon():
-		return
-	_start_reload()
-
 
 func _fire() -> bool:
 	if _is_reloading:
@@ -318,7 +365,10 @@ func _fire() -> bool:
 	GameState.set(weapon_id + "_mag", int(GameState.get(weapon_id + "_mag")) - 1)
 	Events.ammo_changed.emit(weapon_id, GameState.get(weapon_id + "_mag"), GameState.get(_reserve_key))
 	Events.weapon_fired.emit(weapon_id)
+	if _charged_shot and weapon_id == &"em127g":
+		Events.weapon_charge_fired.emit(weapon_id)
 	Events.player_muzzle_flash.emit(weapon_id, _muzzle_position())
+	var shot_damage: float = GameConfig.EM127G_CHARGED_DAMAGE_BODY if _charged_shot and weapon_id == &"em127g" else weapon_data.damage_body
 	var total_damage := 0.0
 	var any_headshot := false
 	var any_hit := false
@@ -344,8 +394,8 @@ func _fire() -> bool:
 			Events.bullet_impacted.emit(hit.position, hit.normal, HitSolver.is_metal_surface(collider))
 			continue
 		var is_head := HitSolver.is_headshot(collider)
-		var damage: float = weapon_data.damage_body * (weapon_data.headshot_factor if is_head else 1.0)
-		if HitSolver.find_group_ancestor(collider, &"sniper") != null:
+		var damage: float = shot_damage * (weapon_data.headshot_factor if is_head else 1.0)
+		if not _charged_shot and HitSolver.find_group_ancestor(collider, &"sniper") != null:
 			damage = weapon_data.dmg_vs_sniper
 		target.take_damage(damage, is_head)
 		total_damage += damage

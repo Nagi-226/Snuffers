@@ -96,7 +96,8 @@ func _current_fire_mode() -> StringName:
 	return GameState.fire_modes.get(weapon_data.weapon_id, &"auto") as StringName
 
 
-## 左键按下边沿：半自动/榴档击发一次；三发点射起 3 连发；全自动交由 tick 轮询。
+## 左键按下边沿：默认半自动/榴档击发一次；三发点射起 3 连发；全自动交由 tick 轮询。
+## EM-127G 由 LongGunController 改为按下计时、短时松开发普通弹、满 1 秒发充能弹。
 ## 榴档（&"grenade"，EM-40G 滚雷并入步枪第四档，2026-10-22）按半自动边沿语义击发——
 ## 「闸不合，榴不发」：榴档下打不出实弹（rifle_controller._fire 分流投射物）。
 func _on_trigger_pressed() -> void:

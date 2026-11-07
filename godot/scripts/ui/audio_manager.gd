@@ -185,6 +185,7 @@ func _enable_loop(stream: AudioStream) -> void:
 
 ## Events 接线表（G2 契约冻结终态，2026-07-21；2026-08-20 机主指令修订）：
 ## weapon_fired → 按 GameState.current_weapon 放 rifle/pistol/rocket（枪声带音高抖动）
+## weapon_charge_fired → EM-127G 充能击发叠加 railgun_charged
 ## weapon_reloaded → reload ｜ hit_confirmed → hitmark
 ## medkit_used → medkit ｜ night_vision_toggled → nightvision
 ## heli_called → helicopter（loop 总线循环）｜ mission_completed / game_over → 停全部 loop
@@ -198,6 +199,7 @@ func _enable_loop(stream: AudioStream) -> void:
 ## （信号 player_damaged/enemy_died 在 HUD/GameState 侧仍正常使用，仅音频不再消费）。
 func _connect_events() -> void:
 	Events.weapon_fired.connect(_on_weapon_fired)
+	Events.weapon_charge_fired.connect(_on_weapon_charge_fired)
 	Events.weapon_reloaded.connect(_on_weapon_reloaded)
 	Events.hit_confirmed.connect(_on_hit_confirmed)
 	Events.medkit_used.connect(_on_medkit_used)
@@ -220,6 +222,7 @@ func _connect_events() -> void:
 
 func _disconnect_events() -> void:
 	Events.weapon_fired.disconnect(_on_weapon_fired)
+	Events.weapon_charge_fired.disconnect(_on_weapon_charge_fired)
 	Events.weapon_reloaded.disconnect(_on_weapon_reloaded)
 	Events.hit_confirmed.disconnect(_on_hit_confirmed)
 	Events.medkit_used.disconnect(_on_medkit_used)
@@ -277,6 +280,11 @@ func _on_weapon_fired(weapon_id: StringName) -> void:
 			play_sfx_pitched(&"rifle", GameConfig.EM12G2_SOUND_PITCH)
 		&"grenade":
 			play_sfx(&"rocket") ## EM-40G 榴弹出膛复用 rocket 音源；爆炸音走 rpg_exploded→explosion
+
+
+func _on_weapon_charge_fired(weapon_id: StringName) -> void:
+	if weapon_id == &"em127g":
+		play_sfx(&"railgun_charged")
 
 
 func _on_weapon_reloaded(_reloaded_id: StringName) -> void:

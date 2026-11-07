@@ -51,6 +51,52 @@ func _model_bounds(model: Node3D) -> AABB:
 	return result
 
 
+func _magnum_lens_center(weapon: Node3D) -> Variant:
+	var view_model := weapon.get_node("ViewModel") as Node3D
+	var model := weapon.get_node("ViewModel/EM57P") as Node3D
+	for node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := node as MeshInstance3D
+		var local_transform := view_model.global_transform.affine_inverse() * mesh_instance.global_transform
+		for surface in mesh_instance.mesh.get_surface_count():
+			var material := mesh_instance.get_active_material(surface) as StandardMaterial3D
+			if material == null or material.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED or material.albedo_color.a > 0.35:
+				continue
+			var vertices: PackedVector3Array = mesh_instance.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
+			if vertices.is_empty():
+				continue
+			var bounds := AABB(local_transform * vertices[0], Vector3.ZERO)
+			for vertex in vertices:
+				bounds = bounds.expand(local_transform * vertex)
+			return bounds.get_center()
+	return null
+
+
+func _magnum_optic_occluded(weapon: Node3D, camera: Camera3D, lens_center: Vector3) -> bool:
+	var view_model := weapon.get_node("ViewModel") as Node3D
+	var model := weapon.get_node("ViewModel/EM57P") as Node3D
+	var from := camera.global_position
+	var direction := ((view_model.global_transform * lens_center) - from).normalized()
+	for node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := node as MeshInstance3D
+		for surface in mesh_instance.mesh.get_surface_count():
+			var material := mesh_instance.get_active_material(surface) as StandardMaterial3D
+			if material != null and material.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
+				continue
+			var arrays := mesh_instance.mesh.surface_get_arrays(surface)
+			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+			for index in range(0, indices.size(), 3):
+				var a := mesh_instance.global_transform * vertices[indices[index]]
+				var b := mesh_instance.global_transform * vertices[indices[index + 1]]
+				var c := mesh_instance.global_transform * vertices[indices[index + 2]]
+				var hit = Geometry3D.ray_intersects_triangle(from, direction, a, b, c)
+				if hit == null:
+					hit = Geometry3D.ray_intersects_triangle(from, direction, a, c, b)
+				if hit != null:
+					return true
+	return false
+
+
 func _run() -> void:
 	_state = root.get_node("GameState")
 	_state.reset()
@@ -138,7 +184,21 @@ func _run() -> void:
 	_press_reload(rifle)
 	_assert(rifle._is_reloading, "rifle automatic mode still reloads with R")
 	_assert(_player._ads_mount_targets[&"smg"].is_equal_approx(_player._ads_mount_targets[&"rifle"]) and _player._ads_mount_targets[&"lmg"].is_equal_approx(_player._ads_mount_targets[&"rifle"]), "SMG and LMG inherit the exact EM-68A optic center")
-	_assert(_player._ads_mount_targets[&"magnum"].is_equal_approx(_player._ads_mount_targets[&"pistol"]), "Magnum inherits the exact EM-57P optic center")
+	var magnum_center: Vector3 = _player._find_optic_center_in_mount(magnum, &"magnum")
+	_assert(_player._ads_mount_targets[&"magnum"].is_equal_approx(Vector3(-magnum_center.x, -magnum_center.y, _player._mount_hip_pos.z)) and not _player._ads_mount_targets[&"magnum"].is_equal_approx(_player._ads_mount_targets[&"pistol"]), "Magnum uses its own optic center instead of the EM-57P calibration")
+	var lens_center: Variant = _magnum_lens_center(magnum)
+	_assert(lens_center != null and (lens_center as Vector3).distance_to((magnum.get_node("ViewModel/OpticAim") as Marker3D).position) < 0.01, "Magnum optic marker matches its actual transparent lens")
+	var original_texture := false
+	var added_glow_vertices := 0
+	for node in magnum.get_node("ViewModel/EM57P").find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := node as MeshInstance3D
+		for surface in mesh_instance.mesh.get_surface_count():
+			var material := mesh_instance.get_active_material(surface) as StandardMaterial3D
+			if material != null:
+				original_texture = original_texture or material.albedo_texture != null
+				if material.emission_enabled and material.emission_energy_multiplier > 0.0:
+					added_glow_vertices += (mesh_instance.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
+	_assert(original_texture and added_glow_vertices == 0, "Magnum preserves its original textured model without added emissive panels")
 	_press(KEY_2)
 	_player._set_aiming(true)
 	for frame in 20:
@@ -157,7 +217,11 @@ func _run() -> void:
 		_player._process(1.0 / 60.0)
 	var pistol_arms := _player.get_node("Camera3D/WeaponMount/Pistol/ViewModel/ArmsEM57P") as Node3D
 	var magnum_arms := _player.get_node("Camera3D/WeaponMount/Magnum/ViewModel/ArmsEM57P") as Node3D
-	_assert(pistol_arms.is_visible_in_tree() and not magnum_arms.is_visible_in_tree(), "Magnum ADS displays only one set of arms")
+	_assert(not pistol_arms.is_visible_in_tree() and magnum_arms.is_visible_in_tree() and _player._scope_view_models[&"magnum"].visible, "Magnum ADS displays its own model with only one set of arms")
+	if lens_center != null:
+		var lens_screen: Vector2 = _player._camera.unproject_position((magnum.get_node("ViewModel") as Node3D).global_transform * (lens_center as Vector3))
+		_assert(lens_screen.distance_to(Vector2(root.size) * 0.5) < 2.0, "Magnum ADS places the transparent lens and reticle at screen center")
+		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center), "Magnum upper optic has no opaque face along the camera sightline")
 	_state.magnum_mag = 4
 	magnum._start_reload()
 	_player._process(1.0 / 60.0)

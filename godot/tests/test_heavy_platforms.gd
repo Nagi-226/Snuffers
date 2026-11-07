@@ -95,6 +95,36 @@ func _run() -> void:
 	_assert(not _player._dmr_tactical._range_text.contains("---") and not _player._dmr_tactical._targets.is_empty(), "EM-127G retains target tracking and ranging")
 	_player._cycle_fire_mode()
 	_assert(_state.fire_modes[&"em127g"] == &"semi", "EM-127G remains semi-auto")
+	target.health = 5000.0
+	_player.get_node("Camera3D").look_at(target.global_position + Vector3(0, 1, 0))
+	var charge_damage: Array[float] = []
+	var on_charge_damage = func(amount: float, _head: bool): charge_damage.append(amount)
+	game_events.damage_dealt.connect(on_charge_damage)
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.pressed = false
+	gauss._trigger_held = true
+	gauss._on_trigger_pressed()
+	_assert(charge_damage.is_empty() and _state.em127g_mag == 30, "EM-127G quick press waits for release instead of firing on the press edge")
+	gauss._tick_weapon(0.1)
+	gauss._unhandled_input(release)
+	_assert(charge_damage == [450.0] and _state.em127g_mag == 29, "EM-127G quick press and release fires only the 450-damage normal shot")
+	_state.em127g_mag = 30
+	gauss._fire_cooldown = 0.0
+	charge_damage.clear()
+	_player.get_node("Camera3D").look_at(target.global_position + Vector3(0, 1, 0))
+	gauss._trigger_held = true
+	gauss._on_trigger_pressed()
+	gauss._tick_weapon(0.5)
+	_assert(charge_damage.is_empty() and _state.em127g_mag == 30, "EM-127G holding does not fire a normal shot before the charge threshold")
+	gauss._tick_weapon(0.51)
+	_assert(charge_damage == [900.0] and _state.em127g_mag == 29, "EM-127G holding for one second fires only the 900-damage charged shot (got %s, mag %d)" % [str(charge_damage), _state.em127g_mag])
+	gauss._tick_weapon(0.5)
+	gauss._unhandled_input(release)
+	_assert(charge_damage.size() == 1 and _state.em127g_mag == 29, "EM-127G fires once per hold and does not fire a normal shot on release")
+	game_events.damage_dealt.disconnect(on_charge_damage)
+	_assert(game_events.has_signal(&"weapon_charge_fired"), "EM-127G has a dedicated charged-shot audio event")
+	_assert(ResourceLoader.exists("res://assets/audio/railgun_charged.wav"), "EM-127G charged shot has its own audio asset")
 
 	_player._set_aiming(false)
 	_player._switch_weapon(&"em12g2")
@@ -149,6 +179,9 @@ func _run() -> void:
 	events.weapon_fired.emit(&"em127g")
 	var rail_player := audio.get_child(audio.get_child_count() - 1) as AudioStreamPlayer
 	_assert(audio.get_child_count() == children_before + 1 and rail_player.stream == audio._get_stream(&"railgun") and rail_player.stream != audio._get_stream(&"rifle"), "EM-127G uses its own heavy railgun sound")
+	events.weapon_charge_fired.emit(&"em127g")
+	var charge_player := audio.get_child(audio.get_child_count() - 1) as AudioStreamPlayer
+	_assert(audio.get_child_count() == children_before + 2 and charge_player.stream == audio._get_stream(&"railgun_charged") and charge_player.stream != rail_player.stream, "EM-127G charged shot plays its dedicated electric discharge sound")
 	audio.queue_free()
 	var config = root.get_node("GameConfig")
 	var category_three: Array = config.WEAPON_CATEGORIES[2].weapons
