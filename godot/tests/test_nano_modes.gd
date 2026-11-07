@@ -177,12 +177,14 @@ func _run() -> void:
 	events.nano_mode_changed.emit(&"armor")
 	var armor_player := audio.get_child(audio.get_child_count() - 1) as AudioStreamPlayer
 	_assert(audio.get_child_count() == sound_children + 1 and armor_player.stream == audio._get_stream(&"nano_armor"), "armor mode plays its activation sound once")
+	_assert(armor_player.stream.get_length() > 3.0, "armor uses the new military machinery activation asset")
 	events.nano_mode_changed.emit(&"stealth")
 	var stealth_player := audio.get_child(audio.get_child_count() - 1) as AudioStreamPlayer
 	_assert(audio.get_child_count() == sound_children + 2 and stealth_player.stream == audio._get_stream(&"nano_stealth") and stealth_player.stream != audio._get_stream(&"nightvision"), "stealth mode plays its own activation sound once")
+	_assert(stealth_player.stream.get_length() > 1.5, "stealth uses the new forcefield activation asset")
 	events.nano_mode_changed.emit(&"normal")
 	_assert(audio.get_child_count() == sound_children + 2, "normal mode does not add an activation sound")
-	await create_timer(1.0).timeout
+	await create_timer(3.3).timeout
 	audio.queue_free()
 	player.queue_free()
 	hud.queue_free()
