@@ -126,11 +126,14 @@ func _run() -> void:
 	var optic_pair: Dictionary = _player._optic_meshes.get(&"em12g2", {})
 	_assert(not optic_pair.is_empty() and optic_pair.node.mesh == optic_pair.bored, "EM-12G-2 ADS uses its open optic model")
 	_assert(_player.get_node("Camera3D/WeaponMount/Rifle").visible and not shotgun.get_node("ViewModel/Arms").visible, "EM-12G-2 ADS uses the validated EM-68A view without duplicate arms")
+	var rifle_optic_pair: Dictionary = _player._optic_meshes.get(&"rifle", {})
+	_assert(not rifle_optic_pair.is_empty() and rifle_optic_pair.node.mesh == rifle_optic_pair.bored, "EM-12G-2 ADS opens the borrowed EM-68A optic")
 	_player._set_aiming(false)
 	for frame in 20:
 		_player._process(1.0 / 60.0)
 		shotgun._process(1.0 / 60.0)
 	_assert(not optic_pair.is_empty() and optic_pair.node.mesh == optic_pair.intact, "EM-12G-2 hip fire restores the intact optic model")
+	_assert(not rifle_optic_pair.is_empty() and rifle_optic_pair.node.mesh == rifle_optic_pair.intact, "EM-12G-2 hip fire restores the complete borrowed EM-68A optic")
 	for weapon_id in ids:
 		var model := _player.get_node("Camera3D/WeaponMount/" + weapon_id.to_pascal_case() + "/ViewModel/Weapon") as Node3D
 		var bounds := AABB()
@@ -148,6 +151,9 @@ func _run() -> void:
 	_assert(audio.get_child_count() == children_before + 1 and rail_player.stream == audio._get_stream(&"railgun") and rail_player.stream != audio._get_stream(&"rifle"), "EM-127G uses its own heavy railgun sound")
 	audio.queue_free()
 	var config = root.get_node("GameConfig")
+	var category_three: Array = config.WEAPON_CATEGORIES[2].weapons
+	var category_four: Array = config.WEAPON_CATEGORIES[3].weapons
+	_assert(&"em86s" not in category_three and &"em127g" not in category_three and &"em86s" in category_four and &"em127g" in category_four, "EM-86S and EM-127G belong exclusively to weapon category 4")
 	_assert(config.MAGNUM_DAMAGE_BODY == 150.0 and config.SHOTGUN_FIRE_INTERVAL == 0.12 and config.EM86B_DAMAGE_BODY == 120.0 and config.EM86S_DAMAGE_BODY == 240.0, "existing weapon values remain unchanged")
 	scene.queue_free()
 	await process_frame

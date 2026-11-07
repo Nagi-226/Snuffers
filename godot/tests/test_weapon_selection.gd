@@ -67,7 +67,7 @@ func _run() -> void:
 	_assert(hud._weapon_ammo.ammo_type == "EC-12", "EM shotgun displays EC-12 ammunition")
 	_press(KEY_4)
 	_assert(state.current_weapon == &"spas12", "number 4 repeats into SPAS-12")
-	_assert(hud._selector_icons[4].size() == 2 and hud._selector_icons[4].all(func(icon): return icon.visible), "shotgun category shows both line-art icons")
+	_assert(hud._selector_icons[4].size() == 5 and hud._selector_icons[4].filter(func(icon): return icon.visible).size() == 2 and hud._selector_icons[4].all(func(icon): return icon.visible == state.weapon_unlocked.get(icon.weapon_id, false)), "combined category shows only unlocked shotgun and sniper icons")
 	_assert(hud._selector_icons[3].all(func(icon): return not icon.visible), "other categories show only their number")
 	_assert(hud._weapon_ammo.weapon_id == &"spas12" and hud._weapon_ammo.mag == state.spas12_mag and hud._weapon_ammo.reserve == state.spas12_reserve, "ammo HUD follows weapon, magazine and reserve")
 	_assert(hud._weapon_ammo.ammo_type == "12GA", "SPAS-12 displays its real 12GA ammunition")

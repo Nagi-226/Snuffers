@@ -505,12 +505,12 @@ const SFX_PITCH_JITTER: float = 0.1 ## 枪声音高抖动 ±10%（L392）
 const WEAPON_CATEGORIES: Array = [
 	{"number": 1, "name": "手枪", "weapons": [&"pistol", &"magnum"]},
 	{"number": 2, "name": "冲锋枪", "weapons": [&"smg"]},
-	{"number": 3, "name": "突击 / DMR", "weapons": [&"rifle", &"dmr", &"em86b", &"em86s", &"em86d", &"em127g"]},
-	{"number": 4, "name": "霰弹 / 狙击", "weapons": [&"shotgun", &"spas12", &"em12g2"]},
+	{"number": 3, "name": "突击 / DMR", "weapons": [&"rifle", &"dmr", &"em86b", &"em86d"]},
+	{"number": 4, "name": "霰弹 / 狙击", "weapons": [&"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g"]},
 	{"number": 5, "name": "机枪", "weapons": [&"lmg"]},
 	{"number": 6, "name": "爆破重火力", "weapons": []},
 ]
-const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"magnum", &"smg", &"rifle", &"dmr", &"em86b", &"em86s", &"em86d", &"em127g", &"shotgun", &"spas12", &"em12g2", &"lmg"]
+const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"magnum", &"smg", &"rifle", &"dmr", &"em86b", &"em86d", &"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g", &"lmg"]
 const WEAPON_SELECTOR_HOLD_TIME: float = 1.6
 
 # ===== UI 反馈动效（G2 冻结自 W5 脚本常量迁入）=====
