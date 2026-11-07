@@ -34,6 +34,7 @@
 
 | nano_armor.wav | 装甲模式启动（机械装甲＋轻护盾能量底音，替换先前 3.2s 机器启动候选） | Freesound | Robot / Mech movement；EnergyShield.mp3（仅 22% 音量底音） | Breviceps；Beussa | https://freesound.org/people/Breviceps/sounds/505670/ （预览 https://cdn.freesound.org/previews/505/505670_9159316-hq.mp3 ）；https://freesound.org/people/Beussa/sounds/659967/ | 均 CC0（可商用、可修改） | 2026-11-07（混合为 1.2s，淡入淡出、-18 LUFS、44.1kHz 立体声） |
 | nano_stealth.wav | 隐形模式启动（短促力场展开，替换原 0.85s 合成占位；与夜视仪完全独立） | Freesound | Landing Forcefield | unfa | https://freesound.org/people/unfa/sounds/584173/ （官方预览 https://cdn.freesound.org/previews/584/584173_1038806-hq.mp3 ） | CC0（可商用、可修改） | 2026-11-07（淡入淡出、-18 LUFS 响度统一、44.1kHz 立体声） |
+| railgun.wav | EM-127G 重型反器材高斯步枪重炮击发（独立音源，突出冲击力） | Freesound | Railgun - Extremely LOUD Cannon | qubodup | https://freesound.org/people/qubodup/sounds/162260/ （官方预览 https://cdn.freesound.org/previews/162/162260_71257-hq.mp3 ） | CC0（可商用、可修改） | 2026-11-07（截取 0–2.8s、淡入淡出、-16 LUFS、44.1kHz 立体声） |
 
 ---
 

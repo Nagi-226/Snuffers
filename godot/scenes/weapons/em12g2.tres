@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+
+[resource]
+script = ExtResource("1_data")
+weapon_id = &"em12g2"
+kind = 0
+damage_body = 30.0
+headshot_factor = 1.5
+dmg_vs_sniper = 999.0
+fire_interval = 0.0923077
+burst_fire_interval = 0.0923077
+semi_fire_interval = 0.25
+mag_size = 64
+reserve_size = 160
+reload_time = 2.8
+hitscan_range = 50.0
+pellet_count = 12
+spread_hip = 0.055
+spread_prone = 0.04
+spread_aim = 0.035
+recoil_pitch = 0.012
+recoil_view_offset = 0.14
+recoil_decay = 0.8
+recoil_recover_rate = 5.0
+view_recoil_rot_factor = 2.5
+view_recoil_y_factor = 0.03
+view_recoil_z_factor = 0.06

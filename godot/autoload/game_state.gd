@@ -30,6 +30,8 @@ var em86s_mag: int = 0 ## EM-86S 惊蛰弹匣
 var em86b_mag: int = 0 ## EM-86B 裂空弹匣
 var em86d_mag: int = 0 ## EM-86D 贯日弹匣
 var em86_reserve: int = 0 ## EM-86S/B/D 共用 EC-86 备弹
+var em127g_mag: int = 0 ## EM-127G 凿空投用 EC-127 与 magnum_reserve 共用
+var em12g2_mag: int = 0 ## EM-12G-2 霰·Ⅱ弹鼓与 shotgun_reserve 共用 EC-12
 ## EM-40G「滚雷」榴弹余量（2026-10-22 冻结新增：并入步枪第四射击档，模块 6 发弹匣
 ## =雷池，总数制无换弹；旧 rpg_ammo 随 RPG 武器退役移除）
 var rifle_grenades: int = 0
@@ -101,6 +103,8 @@ func reset() -> void:
 	em86b_mag = GameConfig.EM86_MAG
 	em86d_mag = GameConfig.EM86_MAG
 	em86_reserve = GameConfig.EM86_RESERVE
+	em127g_mag = GameConfig.EM127G_MAG
+	em12g2_mag = GameConfig.EM12G2_MAG
 	rifle_grenades = GameConfig.GRENADE_AMMO
 	medkits = 0
 	kills = 0
@@ -108,8 +112,8 @@ func reset() -> void:
 	intel_total = 0
 	mission_points = {}
 	current_weapon = &"rifle"
-	weapon_unlocked = {&"rifle": true, &"pistol": true, &"dmr": false, &"shotgun": false, &"spas12": false, &"smg": false, &"lmg": false, &"magnum": false, &"em86s": false, &"em86b": false, &"em86d": false}
-	fire_modes = {&"rifle": &"auto", &"pistol": &"semi", &"dmr": &"semi", &"shotgun": &"semi", &"spas12": &"semi", &"smg": &"auto", &"lmg": &"auto", &"magnum": &"semi", &"em86s": &"semi", &"em86b": &"burst", &"em86d": &"semi"}
+	weapon_unlocked = {&"rifle": true, &"pistol": true, &"dmr": false, &"shotgun": false, &"spas12": false, &"smg": false, &"lmg": false, &"magnum": false, &"em86s": false, &"em86b": false, &"em86d": false, &"em127g": false, &"em12g2": false}
+	fire_modes = {&"rifle": &"auto", &"pistol": &"semi", &"dmr": &"semi", &"shotgun": &"semi", &"spas12": &"semi", &"smg": &"auto", &"lmg": &"auto", &"magnum": &"semi", &"em86s": &"semi", &"em86b": &"burst", &"em86d": &"semi", &"em127g": &"semi", &"em12g2": &"auto"}
 	is_prone = false
 	is_aiming = false
 	nano_mode = &"normal"

@@ -87,6 +87,8 @@ func _run() -> void:
 	_assert(config.EM86S_DAMAGE_BODY == 240.0 and config.EM86B_DAMAGE_BODY == 120.0 and config.EM86D_DAMAGE_BODY == 180.0, "EM-86S/B/D owner-specified damage")
 	_assert(is_equal_approx(config.EM86B_BURST_FIRE_INTERVAL, 60.0 / 900.0) and is_equal_approx(config.EM86B_FIRE_INTERVAL, 60.0 / 650.0), "EM-86B burst 900 RPM and auto 650 RPM")
 	_assert(config.EM86S_SCOPE_FOVS == [35.0, 17.5, 8.75] and config.EM86D_ADS_FOV == 35.0, "EM-86S 8/16/32x and EM-86D 8x scope FOVs")
+	_assert(config.EM127G_DAMAGE_BODY == 450.0 and config.EM127G_MAG == 30 and config.EM127G_SCOPE_FOVS == [17.5, 8.75, 4.375], "EM-127G 450 damage, 30 rounds and 16/32/64x scope")
+	_assert(config.EM12G2_MAG == 64 and is_equal_approx(config.EM12G2_FIRE_INTERVAL, 60.0 / 650.0), "EM-12G-2 64-round drum and 650 RPM")
 	_assert(config.SHOTGUN_MAG == 32 and config.SHOTGUN_PELLET_COUNT == 12, "EM-12G-1 32 rounds and twelve pellets")
 	_assert(config.SHOTGUN_FIRE_INTERVAL == 0.12 and config.SHOTGUN_RANGE == 50.0, "EM-12G-1 500 RPM and 50m")
 	_assert(config.SHOTGUN_SPREAD_START == 15.0, "EM-12G-1 spread starts beyond 15m")
