@@ -52,30 +52,23 @@ func _model_bounds(model: Node3D) -> AABB:
 
 
 func _magnum_lens_center(weapon: Node3D) -> Variant:
-	var view_model := weapon.get_node("ViewModel") as Node3D
 	var model := weapon.get_node("ViewModel/EM57P") as Node3D
 	for node in model.find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := node as MeshInstance3D
-		var local_transform := view_model.global_transform.affine_inverse() * mesh_instance.global_transform
 		for surface in mesh_instance.mesh.get_surface_count():
 			var material := mesh_instance.get_active_material(surface) as StandardMaterial3D
 			if material == null or material.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED or material.albedo_color.a > 0.35:
 				continue
-			var vertices: PackedVector3Array = mesh_instance.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
-			if vertices.is_empty():
-				continue
-			var bounds := AABB(local_transform * vertices[0], Vector3.ZERO)
-			for vertex in vertices:
-				bounds = bounds.expand(local_transform * vertex)
-			return bounds.get_center()
+			if not (mesh_instance.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX] as PackedVector3Array).is_empty():
+				return (weapon.get_node("ViewModel/OpticAim") as Marker3D).position
 	return null
 
 
-func _magnum_optic_occluded(weapon: Node3D, camera: Camera3D, lens_center: Vector3) -> bool:
+func _magnum_optic_occluded(weapon: Node3D, camera: Camera3D, lens_center: Vector3, sample_offset := Vector3.ZERO) -> bool:
 	var view_model := weapon.get_node("ViewModel") as Node3D
 	var model := weapon.get_node("ViewModel/EM57P") as Node3D
 	var from := camera.global_position
-	var direction := ((view_model.global_transform * lens_center) - from).normalized()
+	var direction := ((view_model.global_transform * (lens_center + sample_offset)) - from).normalized()
 	for node in model.find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := node as MeshInstance3D
 		for surface in mesh_instance.mesh.get_surface_count():
@@ -222,6 +215,9 @@ func _run() -> void:
 		var lens_screen: Vector2 = _player._camera.unproject_position((magnum.get_node("ViewModel") as Node3D).global_transform * (lens_center as Vector3))
 		_assert(lens_screen.distance_to(Vector2(root.size) * 0.5) < 2.0, "Magnum ADS places the transparent lens and reticle at screen center")
 		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center), "Magnum upper optic has no opaque face along the camera sightline")
+		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center, Vector3(0, -0.018, 0)), "Magnum lower V-shaped optic region has no opaque face")
+		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center, Vector3(0.006, -0.008, 0)), "Magnum right lower optic region has no opaque face")
+		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center, Vector3(-0.006, -0.008, 0)), "Magnum left lower optic region has no opaque face")
 	_state.magnum_mag = 4
 	magnum._start_reload()
 	_player._process(1.0 / 60.0)
@@ -240,6 +236,12 @@ func _run() -> void:
 		var model := _player.get_node("Camera3D/WeaponMount/" + entry[0] + "/ViewModel/" + entry[1]) as Node3D
 		var bounds := _model_bounds(model)
 		_assert(bounds.size.z > bounds.size.x, entry[0] + " model long axis points forward instead of sideways")
+	var magnum_triangles := 0
+	for node in magnum.get_node("ViewModel/EM57P").find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := node as MeshInstance3D
+		for surface in mesh_instance.mesh.get_surface_count():
+			magnum_triangles += (mesh_instance.mesh.surface_get_arrays(surface)[Mesh.ARRAY_INDEX] as PackedInt32Array).size() / 3
+	_assert(magnum_triangles == 40000, "Magnum preserves all 40000 original triangles while making the optic transparent")
 	var config = root.get_node("GameConfig")
 	_assert(config.RIFLE_MAG == 60 and config.PISTOL_MAG == 30 and config.DMR_MAG == 60 and config.SHOTGUN_MAG == 32 and config.SPAS12_MAG == 8, "existing weapon values remain unchanged")
 	await create_timer(2.1).timeout

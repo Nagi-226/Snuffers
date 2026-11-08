@@ -32,6 +32,8 @@ func _run() -> void:
 	_scene = (load("res://scenes/levels/weapons_range.tscn") as PackedScene).instantiate() as Node3D
 	root.add_child(_scene)
 	current_scene = _scene
+	var day_night = _scene.get_node("GreyboxArena/DayNightController")
+	day_night.set_mode(day_night.Mode.DAY)
 	for frame in 30:
 		await process_frame
 	DirAccess.make_dir_recursive_absolute("tmp_shots/new_weapons")

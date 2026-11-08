@@ -1,6 +1,5 @@
-"""Open only the full upper EM-127P optic sightline, leaving the rear model unchanged."""
+"""Make only EM-127P optic-covering faces transparent, preserving all geometry."""
 import bpy
-import bmesh
 import os
 import sys
 
@@ -17,14 +16,13 @@ if len(meshes) != 1:
 obj = meshes[0]
 
 CENTER_Z = 0.27
-HALF_X = 0.015
-HALF_Z = 0.012
 selected = []
 for poly in obj.data.polygons:
     center = poly.center
-    ellipse = (center.x / 0.018) ** 2 + ((center.z - CENTER_Z) / 0.015) ** 2
-    if abs(center.y) < 0.6 and ellipse < 1.0:
-        selected.append(poly.index)
+    ellipse = (center.x / 0.03) ** 2 + ((center.z - CENTER_Z) / 0.04) ** 2
+    lower_v_channel = abs(center.x) < 0.03 and 0.20 < center.z < CENTER_Z
+    if abs(center.y) < 0.6 and (ellipse < 1.0 or lower_v_channel):
+        selected.append(poly)
 if len(selected) < 4:
     raise RuntimeError("too few upper optic covers: %d" % len(selected))
 
@@ -39,23 +37,10 @@ lens_bsdf.inputs["Metallic"].default_value = 0.0
 lens_bsdf.inputs["Roughness"].default_value = 0.12
 lens_index = len(obj.data.materials)
 obj.data.materials.append(lens_material)
-
-bm = bmesh.new()
-bm.from_mesh(obj.data)
-bm.faces.ensure_lookup_table()
-bmesh.ops.delete(bm, geom=[bm.faces[index] for index in selected], context="FACES")
-vertices = [
-    bm.verts.new((-HALF_X, 0.0, CENTER_Z - HALF_Z)),
-    bm.verts.new((HALF_X, 0.0, CENTER_Z - HALF_Z)),
-    bm.verts.new((HALF_X, 0.0, CENTER_Z + HALF_Z)),
-    bm.verts.new((-HALF_X, 0.0, CENTER_Z + HALF_Z)),
-]
-glass = bm.faces.new(vertices)
-glass.material_index = lens_index
-bm.to_mesh(obj.data)
-bm.free()
-obj.data.update()
-print("UPPER_OPTIC_COVERS_REMOVED", len(selected), flush=True)
+for poly in selected:
+    poly.material_index = lens_index
+print("UPPER_OPTIC_FACES_MADE_TRANSPARENT", len(selected), flush=True)
+print("OPTIC_FACES_DELETED 0", flush=True)
 print("REAR_GEOMETRY_AND_MATERIAL_CHANGES 0", flush=True)
 print("LENS_CENTER_VIEWMODEL", (0.03, 0.03 + 0.48 * CENTER_Z, 0.04), flush=True)
 
