@@ -1,0 +1,30 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/grenade_launcher_controller.gd" id="1_controller"]
+[ext_resource type="Resource" path="res://scenes/weapons/em40t1.tres" id="2_data"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/em40t1_viewmodel.glb" id="3_model"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/arms_rifle_native.glb" id="4_arms"]
+
+[node name="Em40t1" type="Node3D"]
+script = ExtResource("1_controller")
+weapon_data = ExtResource("2_data")
+mag_state_property = &"em40t1_mag"
+reserve_state_property = &"rifle_grenades"
+grenade_enabled = false
+
+[node name="ViewModel" type="Node3D" parent="."]
+
+[node name="EM68A" parent="ViewModel" instance=ExtResource("3_model")]
+position = Vector3(0.02, -0.035, 0.12)
+
+[node name="em68a_magazine" type="Marker3D" parent="ViewModel/EM68A"]
+position = Vector3(0, -0.16, 0.12)
+
+[node name="OpticAim" type="Marker3D" parent="ViewModel"]
+position = Vector3(0.02, 0.20, 0.03)
+
+[node name="Muzzle" type="Marker3D" parent="ViewModel/EM68A"]
+position = Vector3(0, 0.02, -0.50)
+
+[node name="ArmsEM68A" parent="ViewModel" instance=ExtResource("4_arms")]
+position = Vector3(0.02, -0.035, 0.12)

@@ -68,6 +68,7 @@ var _big_map: Control = null
 var _scope_view_models: Dictionary = {}
 @onready var _dmr_view_model: Node3D = $Camera3D/WeaponMount/DMR/ViewModel
 @onready var _shotgun_controller: Node = $Camera3D/WeaponMount/Shotgun
+@onready var _em57s2_controller: Node = $Camera3D/WeaponMount/Em57s2
 ## 瞄具双网格切换（2026-10-20 机主立项）：常规视角用完整瞄具（外观完好），
 ## 开镜过半把 optic 网格换成独立开孔版（透视镜筒），收镜过半换回。
 ## 开孔版由 extract_optic_bored.py / open_generated_optic.py 从完整 GLB 提取，几何同源、坐标系一致，直接换 mesh 即可。
@@ -84,6 +85,7 @@ var _armor_regen_wait: float = 0.0
 @onready var _collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var _camera: Camera3D = $Camera3D
 @onready var _camera_hip_z: float = _camera.position.z
+@onready var _camera_hip_near: float = _camera.near
 
 
 func _ready() -> void:
@@ -144,6 +146,7 @@ func _ready() -> void:
 	_big_map.visible = false
 	reticle_layer.add_child(_big_map)
 	_calibrate_ads()
+	_ads_mount_targets[&"em57s2"].z = GameConfig.EM57S2_ADS_MOUNT_Z
 	_ads_mount_targets[&"smg"] = _ads_mount_targets[&"rifle"]
 	_ads_mount_targets[&"lmg"] = _ads_mount_targets[&"rifle"]
 	_ads_mount_targets[&"em12g2"] = _ads_mount_targets[&"rifle"]
@@ -194,6 +197,40 @@ func _load_optic_meshes() -> void:
 				}
 				break
 			intact_root.free()
+	var em57s2_root := _weapon_mount.get_node_or_null("Em57s2") as Node3D
+	if em57s2_root != null:
+		var current_mesh: MeshInstance3D = null
+		for node in em57s2_root.find_children("*", "MeshInstance3D", true, false):
+			current_mesh = node as MeshInstance3D
+			break
+		var intact_scene: PackedScene = load("res://assets/models/weapons/em57s2_viewmodel.glb")
+		if current_mesh != null and intact_scene != null:
+			var intact_root := intact_scene.instantiate()
+			for node in intact_root.find_children("*", "MeshInstance3D", true, false):
+				_optic_meshes[&"em57s2"] = {
+					"node": current_mesh,
+					"intact": (node as MeshInstance3D).mesh,
+					"bored": current_mesh.mesh,
+				}
+				break
+			intact_root.free()
+	var em86m_root := _weapon_mount.get_node_or_null("Em86m") as Node3D
+	if em86m_root != null:
+		var current_mesh: MeshInstance3D = null
+		for node in em86m_root.find_children("*", "MeshInstance3D", true, false):
+			current_mesh = node as MeshInstance3D
+			break
+		var intact_scene: PackedScene = load("res://assets/models/weapons/em86m_viewmodel.glb")
+		if current_mesh != null and intact_scene != null:
+			var intact_root := intact_scene.instantiate()
+			for node in intact_root.find_children("*", "MeshInstance3D", true, false):
+				_optic_meshes[&"em86m"] = {
+					"node": current_mesh,
+					"intact": (node as MeshInstance3D).mesh,
+					"bored": current_mesh.mesh,
+				}
+				break
+			intact_root.free()
 	var em12g2_root := _weapon_mount.get_node_or_null("Em12g2") as Node3D
 	if em12g2_root != null:
 		var current_mesh: MeshInstance3D = null
@@ -229,10 +266,13 @@ func _calibrate_ads() -> void:
 		&"em86s": GameConfig.EM86S_SCOPE_FOVS[0],
 		&"em86b": GameConfig.EM86B_ADS_FOV,
 		&"em86d": GameConfig.EM86D_ADS_FOV,
+		&"em86m": GameConfig.EM86M_ADS_FOV,
+		&"em57s2": GameConfig.EM57S2_ADS_FOV,
+		&"em40t1": GameConfig.EM40T1_ADS_FOV,
 		&"em127g": GameConfig.EM127G_SCOPE_FOVS[0],
 		&"em12g2": GameConfig.SHOTGUN_ADS_FOV,
 	}
-	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"], [&"spas12", "Spas12"], [&"smg", "SMG"], [&"lmg", "LMG"], [&"magnum", "Magnum"], [&"em86s", "Em86s"], [&"em86b", "Em86b"], [&"em86d", "Em86d"], [&"em127g", "Em127g"], [&"em12g2", "Em12g2"]]:
+	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"], [&"spas12", "Spas12"], [&"smg", "SMG"], [&"em57s2", "Em57s2"], [&"lmg", "LMG"], [&"magnum", "Magnum"], [&"em86s", "Em86s"], [&"em86b", "Em86b"], [&"em86d", "Em86d"], [&"em86m", "Em86m"], [&"em40t1", "Em40t1"], [&"em127g", "Em127g"], [&"em12g2", "Em12g2"]]:
 		var weapon_root := _weapon_mount.get_node_or_null(pair[1]) as Node3D
 		var fallback := Vector3(0.0, _mount_hip_pos.y, _mount_hip_pos.z)
 		if weapon_root == null:
@@ -552,7 +592,9 @@ func _process(delta: float) -> void:
 	if _visual_nano_mode != GameState.nano_mode:
 		_apply_nano_visuals()
 	# 开镜插值（ADS_LERP_TIME）：挂载位移 + FOV + 准星覆盖层同步驱动。
-	var ads_target := 1.0 if GameState.is_aiming else 0.0
+	# EM-57S-2 换弹暂退视觉开镜；保持右键输入，结束后自动回到前方瞄具。
+	var lowering_for_reload := GameState.current_weapon == &"em57s2" and bool(_em57s2_controller.get("_is_reloading"))
+	var ads_target := 1.0 if GameState.is_aiming and not lowering_for_reload else 0.0
 	var weapon_changed := _last_ads_weapon != GameState.current_weapon
 	if not is_equal_approx(_ads_weight, ads_target) or weapon_changed or GameState.current_weapon in [&"shotgun", &"em86s", &"em127g"]:
 		_last_ads_weapon = GameState.current_weapon
@@ -568,10 +610,15 @@ func _process(delta: float) -> void:
 		_camera.fov = lerpf(GameConfig.FOV_BASE, fov_target, _ads_weight)
 		var camera_forward: float = GameConfig.SHOTGUN_ADS_CAMERA_FORWARD if GameState.current_weapon == &"shotgun" else 0.0
 		_camera.position.z = _camera_hip_z - camera_forward * _ads_weight
+	# EM-57S-2 前方眼位：近平面截口移出画面下缘，收镜和切枪恢复原近平面。
+	var near_weight := _ads_weight if GameState.current_weapon == &"em57s2" else 0.0
+	_camera.near = lerpf(_camera_hip_near, GameConfig.EM57S2_ADS_NEAR, near_weight)
 	# 准星覆盖层：权重过 60% 才显形（过渡中段不闪半吊子准星）；榴档沿用步枪全息准星
 	# （直射档平直弹道，全息环直瞄即可）。
 	if _ads_reticle != null:
-		var mode: StringName = &"shotgun" if GameState.current_weapon == &"em12g2" else GameState.current_weapon
+		var mode := GameState.current_weapon
+		if GameState.current_weapon == &"em12g2":
+			mode = &"shotgun"
 		if _ads_reticle.mode != mode or not is_equal_approx(_ads_reticle.weight, _ads_weight):
 			_ads_reticle.mode = mode
 			_ads_reticle.weight = _ads_weight
@@ -584,7 +631,8 @@ func _process(delta: float) -> void:
 		_weapon_mount.get_node("Rifle").visible = _ads_weight >= 0.75
 	if GameState.current_weapon == &"em12g2":
 		_weapon_mount.get_node("Em12g2/ViewModel/Arms").visible = _ads_weight < 0.75
-	var full_scope := GameState.current_weapon in [&"dmr", &"em86s", &"em86d", &"em127g"] and _ads_weight > 0.6
+	var grenade_scope := GameState.current_weapon == &"em40t1"
+	var full_scope := GameState.current_weapon in [&"dmr", &"em86s", &"em86d", &"em127g", &"em40t1"] and _ads_weight > 0.6
 	if _dmr_scope != null:
 		_dmr_scope.visible = full_scope
 		_dmr_tactical.visible = full_scope
@@ -597,11 +645,17 @@ func _process(delta: float) -> void:
 				_weapon_mount.get_node("Em86d/ViewModel").visible = not full_scope
 			&"em127g":
 				_weapon_mount.get_node("Em127g/ViewModel").visible = not full_scope
+			&"em40t1":
+				_weapon_mount.get_node("Em40t1/ViewModel").visible = not full_scope
 		var viewport_size := get_viewport().get_visible_rect().size
 		_dmr_scope_material.set_shader_parameter("aspect", viewport_size.x / viewport_size.y)
 		_dmr_scope_material.set_shader_parameter("weight", clampf((_ads_weight - 0.6) / 0.4, 0.0, 1.0))
-		_dmr_scope_material.set_shader_parameter("center_style", 1.0 if GameState.current_weapon in [&"em86s", &"em127g"] else 0.0)
+		_dmr_scope_material.set_shader_parameter("center_style", 2.0 if grenade_scope else (1.0 if GameState.current_weapon in [&"em86s", &"em127g"] else 0.0))
 		_dmr_tactical.set("zoom_text", "%dX" % _scope_zooms()[_em86s_zoom_index] if GameState.current_weapon in [&"em86s", &"em127g"] else "")
+		_dmr_tactical.set("reticle_mode", &"grenade" if grenade_scope else &"hitscan")
+		_dmr_tactical.set("range_limit", GameConfig.GRENADE_MAX_RANGE if grenade_scope else GameConfig.DMR_RANGE)
+		_dmr_tactical.set("projectile_speed", GameConfig.GRENADE_PROJECTILE_SPEED)
+		_dmr_tactical.set("projectile_gravity", GameConfig.GRENADE_GRAVITY)
 		_ads_reticle.visible = not full_scope
 	# 瞄具双网格切换：当前武器且开镜过半用开孔版，其余情况回完整版。
 	# 切换点取过渡中点（0.5），此时镜筒正在归中途中，换网格肉眼不可察。
@@ -818,15 +872,17 @@ func _apply_nano_visuals() -> void:
 		(mesh as MeshInstance3D).transparency = 0.82 if GameState.nano_mode == &"stealth" else 0.0
 
 
-## X：步枪/SMG/EM-86B 加榴档，其他自动武器三档，精确步枪/SPAS/重手枪固定半自动。
+## X：各武器只循环机主配置的射击模式；EM-86M 无点射，EM-40T-1 固定半自动。
 func _cycle_fire_mode() -> void:
 	var w := GameState.current_weapon
-	if w in [&"dmr", &"spas12", &"magnum", &"em86s", &"em86d", &"em127g"]:
+	if w in [&"dmr", &"spas12", &"magnum", &"em86s", &"em86d", &"em127g", &"em40t1"]:
 		return
 	const ORDER_RIFLE: Array[StringName] = [&"auto", &"semi", &"burst", &"grenade"]
 	const ORDER_PISTOL: Array[StringName] = [&"auto", &"burst", &"semi"]
 	const ORDER_SHOTGUN: Array[StringName] = [&"semi", &"auto"]
 	const ORDER_EM86B: Array[StringName] = [&"burst", &"semi", &"auto", &"grenade"]
+	const ORDER_EM57S2: Array[StringName] = [&"auto", &"semi", &"burst"]
+	const ORDER_AUTO_SEMI: Array[StringName] = [&"auto", &"semi"]
 	var order: Array[StringName] = ORDER_PISTOL
 	if w in [&"rifle", &"smg"]:
 		order = ORDER_RIFLE
@@ -834,6 +890,10 @@ func _cycle_fire_mode() -> void:
 		order = ORDER_SHOTGUN
 	elif w == &"em86b":
 		order = ORDER_EM86B
+	elif w == &"em57s2":
+		order = ORDER_EM57S2
+	elif w == &"em86m":
+		order = ORDER_AUTO_SEMI
 	var cur: StringName = GameState.fire_modes.get(w, &"auto")
 	GameState.fire_modes[w] = order[(order.find(cur) + 1) % order.size()]
 	Events.fire_mode_changed.emit(w, GameState.fire_modes[w])
@@ -906,6 +966,21 @@ class AdsReticle extends Control:
 					draw_line(center + dir * 28.0, center + dir * maxf(size.x, size.y), color, 1.2, true)
 				draw_arc(center, 18.0, 0.0, TAU, 64, color, 1.6, true)
 				draw_circle(center, 2.2, color)
+			&"em86m":
+				var tick_inner: float = size.y * GameConfig.EM86M_RETICLE_TICK_INNER_RATIO
+				var tick_outer: float = size.y * GameConfig.EM86M_RETICLE_TICK_OUTER_RATIO
+				var ring_radius: float = size.y * GameConfig.EM86M_RETICLE_RING_RADIUS_RATIO
+				var dot_radius: float = size.y * GameConfig.EM86M_RETICLE_DOT_RADIUS_RATIO
+				var line_width: float = size.y * GameConfig.EM86M_RETICLE_LINE_WIDTH_RATIO
+				for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
+					draw_line(center + dir * tick_inner, center + dir * tick_outer, color, line_width, true)
+				draw_arc(center, ring_radius, 0.0, TAU, 64, color, line_width, true)
+				draw_circle(center, dot_radius, color)
+			&"em57s2":
+				draw_arc(center, 10.0, 0.0, TAU, 64, color, 1.4, true)
+				draw_circle(center, 1.3, color)
+				for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
+					draw_line(center + dir * 12.0, center + dir * 15.0, color, 1.4, true)
 			&"em86b":
 				# 镜筒内局部准星：短十字不穿入空心圆，中央保留瞄点。
 				for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:

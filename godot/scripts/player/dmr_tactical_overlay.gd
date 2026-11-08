@@ -5,6 +5,10 @@ var excluded_rids: Array[RID] = []
 var _range_distance := INF
 var _range_text := "RNG --- M"
 var zoom_text := ""
+var reticle_mode: StringName = &"hitscan"
+var range_limit: float = GameConfig.DMR_RANGE
+var projectile_speed: float = GameConfig.GRENADE_PROJECTILE_SPEED
+var projectile_gravity: float = GameConfig.GRENADE_GRAVITY
 var _targets: Array[Dictionary] = []
 var _primary_target: Node3D = null
 var _target_age: Dictionary = {}
@@ -29,14 +33,14 @@ func _refresh_range() -> void:
 	if camera == null:
 		return
 	var from := camera.global_position
-	var to := from - camera.global_basis.z * GameConfig.DMR_RANGE
+	var to := from - camera.global_basis.z * range_limit
 	var query := PhysicsRayQueryParameters3D.create(from, to)
 	query.exclude = excluded_rids
 	query.collide_with_areas = true
 	var hit := camera.get_world_3d().direct_space_state.intersect_ray(query)
 	if hit.is_empty():
 		_range_distance = INF
-		_range_text = "RNG >%d M" % int(GameConfig.DMR_RANGE)
+		_range_text = "RNG >%d M" % int(range_limit)
 		return
 	_range_distance = from.distance_to(hit.position)
 	_range_text = "RNG %.1f M" % _range_distance
@@ -60,7 +64,7 @@ func _refresh_targets() -> void:
 		if collision == null:
 			continue
 		var center := collision.global_position
-		if camera.is_position_behind(center) or camera.global_position.distance_to(center) > GameConfig.DMR_RANGE:
+		if camera.is_position_behind(center) or camera.global_position.distance_to(center) > range_limit:
 			continue
 		var screen_center := camera.unproject_position(center)
 		if screen_center.distance_to(size * 0.5) > _scope_radius():
@@ -160,19 +164,38 @@ func _draw() -> void:
 		if primary:
 			draw_string(font, entry.rect.position + Vector2(0, -7), "TRACK", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, color)
 	var tick_color := Color(0.4, 0.95, 1.0, 0.85)
-	for mil in GameConfig.DMR_SCOPE_MIL_STEPS:
-		var offset := _mil_to_pixels(float(mil))
-		var down := center + Vector2(0, offset)
-		draw_line(down - Vector2(4, 0), down + Vector2(4, 0), tick_color, 1.2, true)
-		draw_string(font, down + Vector2(9, 4), str(mil), HORIZONTAL_ALIGNMENT_LEFT, -1, 12, tick_color)
-		for sign_value in [-1.0, 1.0]:
-			var side := center + Vector2(offset * sign_value, 0)
-			draw_line(side - Vector2(0, 4), side + Vector2(0, 4), tick_color, 1.2, true)
-			draw_string(font, side + Vector2(-4, -8), str(mil), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, tick_color)
-	draw_string(font, center + Vector2(-12, _scope_radius() * 0.43), "MIL", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, tick_color)
+	if reticle_mode == &"grenade":
+		_draw_grenade_ballistics(center, font, tick_color)
+	else:
+		for mil in GameConfig.DMR_SCOPE_MIL_STEPS:
+			var offset := _mil_to_pixels(float(mil))
+			var down := center + Vector2(0, offset)
+			draw_line(down - Vector2(4, 0), down + Vector2(4, 0), tick_color, 1.2, true)
+			draw_string(font, down + Vector2(9, 4), str(mil), HORIZONTAL_ALIGNMENT_LEFT, -1, 12, tick_color)
+			for sign_value in [-1.0, 1.0]:
+				var side := center + Vector2(offset * sign_value, 0)
+				draw_line(side - Vector2(0, 4), side + Vector2(0, 4), tick_color, 1.2, true)
+				draw_string(font, side + Vector2(-4, -8), str(mil), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, tick_color)
+		draw_string(font, center + Vector2(-12, _scope_radius() * 0.43), "MIL", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, tick_color)
 	draw_string(font, center + Vector2(_scope_radius() * 0.38, _scope_radius() * 0.72), _range_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, tick_color)
 	if zoom_text != "":
 		draw_string(font, center + Vector2(-_scope_radius() * 0.72, _scope_radius() * 0.72), zoom_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, tick_color)
+
+
+func _draw_grenade_ballistics(center: Vector2, font: Font, color: Color) -> void:
+	var pixels_per_radian := size.y / (2.0 * tan(deg_to_rad(camera.fov) * 0.5))
+	for index in GameConfig.EM40T1_SCOPE_HOLDOVER_METERS.size():
+		var distance: int = GameConfig.EM40T1_SCOPE_HOLDOVER_METERS[index]
+		var flight_time := float(distance) / projectile_speed
+		var drop := 0.5 * projectile_gravity * flight_time * flight_time
+		var offset := pixels_per_radian * atan2(drop, float(distance))
+		var down := center + Vector2(0, offset)
+		var half_width := 8.0 + float(distance) * 0.08
+		var wing := 5.0 + float(distance) * 0.025
+		draw_polyline(PackedVector2Array([down + Vector2(-half_width, -wing), down, down + Vector2(half_width, -wing)]), color, 1.4, true)
+		var label_x := half_width + 7.0 if index % 2 == 0 else -half_width - 48.0
+		draw_string(font, down + Vector2(label_x, 4), "%d M" % distance, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, color)
+	draw_string(font, center + Vector2(-34, _scope_radius() * 0.43), "HOLD", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, color)
 
 
 func _draw_target_frame(rect: Rect2, color: Color, primary: bool) -> void:

@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/rpg_projectile.tscn" id="2_projectile"]
+
+[resource]
+script = ExtResource("1_data")
+weapon_id = &"em40t1"
+kind = 0
+damage_body = 750.0
+headshot_factor = 1.0
+dmg_vs_sniper = 750.0
+fire_interval = 0.8
+burst_fire_interval = 0.8
+semi_fire_interval = 0.8
+mag_size = 20
+reserve_size = 200
+reload_time = 2.8
+hitscan_range = 200.0
+pellet_count = 1
+spread_hip = 0.0
+spread_prone = 0.0
+spread_aim = 0.0
+recoil_pitch = 0.012
+recoil_view_offset = 0.22
+recoil_decay = 0.82
+recoil_recover_rate = 6.0
+view_recoil_rot_factor = 2.25
+view_recoil_y_factor = 0.025
+view_recoil_z_factor = 0.05
+projectile_scene = ExtResource("2_projectile")
+projectile_speed = 90.0
+projectile_gravity = 2.0
+projectile_max_range = 200.0
+projectile_explode_below_y = -10.0
+explode_radius = 15.0
+explode_kill_radius = 10.0
+explode_kill_damage = 750.0
+explode_falloff_factor = 0.5
+explode_damage = 750.0
+bunker_radius_bonus = 5.0
+self_damage = false
+grenade_fire_interval = 0.8

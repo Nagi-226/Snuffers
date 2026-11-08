@@ -82,7 +82,7 @@ const MEDKIT_MAX_CARRY: int = 5 ## 携带上限（L2305）
 const BATTERY_PICKUP_ROUNDS: int = 60 ## 电池组补充步枪备弹数
 const PISTOL_AMMO_PICKUP_ROUNDS: int = 60 ## 手枪弹匣组补充手枪备弹数（2026-10-19 机主立项）
 const RIFLE_RESERVE_MAX: int = 1800 ## EC-68 备弹携带上限（与初始备弹一致）
-const PISTOL_RESERVE_MAX: int = 600 ## 手枪备弹携带上限（同口径：600）
+const PISTOL_RESERVE_MAX: int = 3000 ## EC-57 共享备弹携带上限（2026-11-08 机主裁决）
 const PICKUP_TRIGGER_RADIUS: float = 0.7 ## 拾取触发半径（贴近即拾，无需按键）
 const PICKUP_BOB_AMP: float = 0.05 ## 浮动振幅 m
 const PICKUP_BOB_HZ: float = 1.2 ## 浮动频率 Hz
@@ -129,7 +129,7 @@ const PISTOL_DMG_VS_SNIPER: float = 999.0 ## 对狙击手固定伤害（沿用�
 const PISTOL_FIRE_INTERVAL: float = 0.06 ## 全自动/三发点射射速 s/发 = 1000 RPM（2026-10-19 机主裁决）
 const PISTOL_SEMI_FIRE_INTERVAL: float = 0.15 ## 半自动最小击发间隔 s（≈400 RPM 上限，机主口径：半自动不变）
 const PISTOL_MAG: int = 30 ## 弹匣（EDAA 设定：30 发制式弹匣）
-const PISTOL_RESERVE: int = 600 ## 备弹（2026-10-19 机主裁决：30/600，原 120）
+const PISTOL_RESERVE: int = 3000 ## EC-57 共享备弹（2026-11-08 机主裁决：3000 发）
 const PISTOL_RELOAD_TIME: float = 1.6 ## 换弹 s（无托手枪快于步枪）
 const PISTOL_RANGE: float = 80.0 ## 射程上限 u
 const PISTOL_SPREAD_HIP: float = 0.006 ## 腰射散布（略劣于步枪）
@@ -230,9 +230,9 @@ const DMR_ARMS_OFFSET := Vector3(0, -0.02, 0.07)
 const DMR_SUPPORT_WRIST_HIP := Vector3(-0.05, -0.045, -0.14)
 const DMR_SUPPORT_WRIST_ADS := Vector3(-0.05, -0.10, -0.13)
 
-# ===== EM-86 系列（2026-11-07 机主裁决：共享 EC-86，45 发弹匣）=====
+# ===== EM-86 系列（共享 EC-86；S/B/D 45 发弹匣，M 500 发弹箱）=====
 const EM86_MAG: int = 45
-const EM86_RESERVE: int = 900 ## 靶场用途 20 个满弹匣；机主未指定备弹量
+const EM86_RESERVE: int = 4500 ## EM-86S/B/D/M共享EC-86备弹；2026-11-08机主裁决
 const EM86_RELOAD_TIME: float = 2.4
 const EM86_RECOIL_DECAY: float = 0.82
 const EM86_RECOIL_RECOVER_RATE: float = 6.0
@@ -272,6 +272,53 @@ const EM86D_RECOIL_PITCH: float = 0.009
 const EM86D_RECOIL_VIEW_OFFSET: float = 0.15
 const EM86D_ADS_FOV: float = 35.0
 const EM86D_SOUND_PITCH: float = 0.72
+
+# ===== EM-57S-2「雹·Ⅱ」无托顶置供弹冲锋枪（2026-11-08 机主裁决）=====
+const EM57S2_DAMAGE_BODY: float = 45.0
+const EM57S2_FIRE_INTERVAL: float = 0.05 ## 全自动/半自动/三发点射均为 1200 RPM
+const EM57S2_SEMI_FIRE_INTERVAL: float = 0.05
+const EM57S2_BURST_FIRE_INTERVAL: float = 0.05
+const EM57S2_MAG: int = 200 ## 2026-11-08 机主裁决
+const EM57S2_RELOAD_TIME: float = 2.0
+const EM57S2_RANGE: float = 100.0
+const EM57S2_SPREAD_HIP: float = 0.0045
+const EM57S2_SPREAD_PRONE: float = 0.0022
+const EM57S2_SPREAD_AIM: float = 0.0007
+const EM57S2_RECOIL_PITCH: float = 0.0022
+const EM57S2_RECOIL_VIEW_OFFSET: float = 0.055
+const EM57S2_ADS_FOV: float = 60.0
+const EM57S2_ADS_MOUNT_Z: float = -0.15 ## 眼位到前方小瞄具约30cm，弹匣尾盖退至相机后方
+const EM57S2_ADS_NEAR: float = 0.005 ## 仅该枪开镜：让枪壳近平面截口落至画面下缘之外
+const EM57S2_SOUND_PITCH: float = 1.18
+
+# ===== EM-86M 中口径通用机枪（与 EM-86S/B/D 共用 EC-86）=====
+const EM86M_DAMAGE_BODY: float = 180.0
+const EM86M_FIRE_INTERVAL: float = 0.075 ## 全自动/半自动均为 800 RPM，无三发点射
+const EM86M_SEMI_FIRE_INTERVAL: float = 0.075
+const EM86M_MAG: int = 500
+const EM86M_RELOAD_TIME: float = 3.2
+const EM86M_RANGE: float = 220.0
+const EM86M_SPREAD_HIP: float = 0.0035
+const EM86M_SPREAD_PRONE: float = 0.0015
+const EM86M_SPREAD_AIM: float = 0.0003
+const EM86M_RECOIL_PITCH: float = 0.006
+const EM86M_RECOIL_VIEW_OFFSET: float = 0.12
+const EM86M_ADS_FOV: float = 60.0
+## 镜内准星随视口高度缩放，1080高时刻度15→22px，保留通光区边缘余量。
+const EM86M_RETICLE_TICK_INNER_RATIO: float = 15.0 / 1080.0
+const EM86M_RETICLE_TICK_OUTER_RATIO: float = 22.0 / 1080.0
+const EM86M_RETICLE_RING_RADIUS_RATIO: float = 10.0 / 1080.0
+const EM86M_RETICLE_DOT_RADIUS_RATIO: float = 1.8 / 1080.0
+const EM86M_RETICLE_LINE_WIDTH_RATIO: float = 1.4 / 1080.0
+const EM86M_SOUND_PITCH: float = 0.7
+
+# ===== EM-40T-1 半自动榴弹发射器（与下挂模块共用 EC-40 雷池）=====
+const EM40T1_MAG: int = 20
+const EM40T1_RELOAD_TIME: float = 2.8
+const EM40T1_ADS_FOV: float = 35.0
+const EM40T1_RECOIL_PITCH: float = 0.012
+const EM40T1_RECOIL_VIEW_OFFSET: float = 0.22
+const EM40T1_SCOPE_HOLDOVER_METERS: Array[int] = [50, 100, 150, 200] ## 按共享初速/重力实时换算下坠角
 
 # ===== EM-127G「凿空」重型反器材高斯狙击枪（2026-11-07 机主裁决）=====
 const EM127G_DAMAGE_BODY: float = 450.0
@@ -373,7 +420,7 @@ const SPAS12_RIGHT_ELBOW_ADS := Vector3(0.22, -0.32, 0.18)
 # 设定出处（E系列电磁轻武器-概念图谱）：直射档=EC-40P「破垒」全功率平直弹道；
 # 模块自带 6 发弹匣即雷池（换匣即换电）；「闸不合，榴不发」=榴档与实弹击发互斥；
 # 投射物场景复用 rpg_projectile.tscn（抛物线/爆炸/碉堡结算链路原样接管）。
-const GRENADE_AMMO: int = 30 ## 榴弹总数（2026-10-22 机主裁决 6→30：雷池总数制，无备弹/换弹概念）
+const GRENADE_AMMO: int = 200 ## EC-40 共享雷池（下挂直接消耗；EM-40T-1 作为 20 发弹匣的共享备弹）
 const GRENADE_FIRE_INTERVAL: float = 0.8 ## 榴弹击发间隔 s（合闸-复位节奏，半自动边沿触发）
 const GRENADE_PROJECTILE_SPEED: float = 90.0 ## 直射档初速 u/s（全功率平直弹道）
 const GRENADE_GRAVITY: float = 2.0 ## 直射档微下坠（远小于旧火箭 9.8，弹道平直）
@@ -506,13 +553,13 @@ const SFX_PITCH_JITTER: float = 0.1 ## 枪声音高抖动 ±10%（L392）
 # ===== 武器选择分类（2026-10-29 机主裁决：Half-Life 数字类别 + 同键循环 + 滚轮）=====
 const WEAPON_CATEGORIES: Array = [
 	{"number": 1, "name": "手枪", "weapons": [&"pistol", &"magnum"]},
-	{"number": 2, "name": "冲锋枪", "weapons": [&"smg"]},
+	{"number": 2, "name": "冲锋枪", "weapons": [&"smg", &"em57s2"]},
 	{"number": 3, "name": "突击 / DMR", "weapons": [&"rifle", &"dmr", &"em86b", &"em86d"]},
 	{"number": 4, "name": "霰弹 / 狙击", "weapons": [&"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g"]},
-	{"number": 5, "name": "机枪", "weapons": [&"lmg"]},
-	{"number": 6, "name": "爆破重火力", "weapons": []},
+	{"number": 5, "name": "机枪", "weapons": [&"lmg", &"em86m"]},
+	{"number": 6, "name": "爆破重火力", "weapons": [&"em40t1"]},
 ]
-const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"magnum", &"smg", &"rifle", &"dmr", &"em86b", &"em86d", &"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g", &"lmg"]
+const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"magnum", &"smg", &"em57s2", &"rifle", &"dmr", &"em86b", &"em86d", &"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g", &"lmg", &"em86m", &"em40t1"]
 const WEAPON_SELECTOR_HOLD_TIME: float = 1.6
 
 # ===== UI 反馈动效（G2 冻结自 W5 脚本常量迁入）=====

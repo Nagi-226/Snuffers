@@ -48,14 +48,14 @@ func _run() -> void:
 	_player = scene.get_node("Player") as CharacterBody3D
 	await process_frame
 	_assert(_state.em86s_mag == 45 and _state.em86b_mag == 45 and _state.em86d_mag == 45, "all EM-86 magazines initialize to 45")
-	_assert(_state.em86_reserve == 900, "shared EC-86 reserve initializes to 900")
+	_assert(_state.em86_reserve == 4500, "shared EC-86 reserve initializes to 4500")
 	_assert(_state.fire_modes[&"em86b"] == &"burst" and _state.fire_modes[&"em86s"] == &"semi" and _state.fire_modes[&"em86d"] == &"semi", "EM-86B starts in burst and both precision rifles are semi-auto")
 
 	var expected_damage := {&"em86s": 240.0, &"em86b": 120.0, &"em86d": 180.0}
 	for weapon_id in ids:
 		var data = load("res://scenes/weapons/%s.tres" % weapon_id)
 		data.sync_from_config()
-		_assert(is_equal_approx(data.damage_body, expected_damage[weapon_id]) and data.mag_size == 45 and data.reserve_size == 900, "%s has its specified damage, magazine and EC-86 reserve" % weapon_id)
+		_assert(is_equal_approx(data.damage_body, expected_damage[weapon_id]) and data.mag_size == 45 and data.reserve_size == 4500, "%s has its specified damage, magazine and EC-86 reserve" % weapon_id)
 		_player._switch_weapon(weapon_id)
 		_assert(_state.current_weapon == weapon_id, "%s is selectable in the range" % weapon_id)
 		var node_name := weapon_id.to_pascal_case()
