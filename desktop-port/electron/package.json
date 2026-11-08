@@ -1,7 +1,7 @@
 {
-  "name": "ruins-breakout-desktop",
+  "name": "snuffers-desktop",
   "version": "1.0.0",
-  "description": "废墟突围 - Windows 桌面端（Electron 打包）",
+  "description": "熄烛者 - Windows 桌面端（Electron 打包）",
   "author": "Nagi_Games",
   "private": true,
   "main": "main.js",
@@ -16,8 +16,8 @@
     "electron-builder": "^25.1.8"
   },
   "build": {
-    "appId": "com.nagigames.ruinsbreakout",
-    "productName": "废墟突围",
+    "appId": "com.nagigames.snuffers",
+    "productName": "熄烛者",
     "compression": "normal",
     "copyright": "Copyright © Nagi_Games",
     "files": [
@@ -43,7 +43,7 @@
       "icon": "build/icon.ico"
     },
     "portable": {
-      "artifactName": "废墟突围-${version}-portable.exe"
+      "artifactName": "熄烛者-${version}-portable.exe"
     },
     "nsis": {
       "oneClick": false,
@@ -51,8 +51,8 @@
       "perMachine": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "废墟突围",
-      "artifactName": "废墟突围-${version}-setup.exe"
+      "shortcutName": "熄烛者",
+      "artifactName": "熄烛者-${version}-setup.exe"
     }
   }
 }

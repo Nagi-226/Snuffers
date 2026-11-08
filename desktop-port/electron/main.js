@@ -1,5 +1,5 @@
 /**
- * 废墟突围 - Electron 主进程
+ * 熄烛者 - Electron 主进程
  *
  * 设计要点：
  * 1. 加载 desktop-port/electron/app/index.html（由 build.ps1 从项目根目录复制，
@@ -20,7 +20,7 @@ function createWindow() {
     height: 720,
     minWidth: 800,
     minHeight: 450,
-    title: '废墟突围',
+    title: '熄烛者',
     autoHideMenuBar: true,
     backgroundColor: '#000000',
     webPreferences: {

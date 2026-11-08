@@ -1,4 +1,4 @@
-# 废墟突围 — Windows 桌面端（.exe）移植计划
+# 熄烛者 — Windows 桌面端（.exe）移植计划
 
 ## 背景事实（已核实）
 - 游戏本体：`index.html`（3501 行）+ `js/three.min.js` (r128) + `js/cannon.min.js` (0.6.2) + `css/tailwind.css` + `img/title-bg.jpg`，全离线

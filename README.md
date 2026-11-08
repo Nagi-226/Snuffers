@@ -1,6 +1,6 @@
-# 《熄烛者》Snuffers（原 Ruins Breakout / 废墟突围）
+# 《熄烛者》Snuffers
 
-> **更名通告（2026-08-19）**：项目已更名为《熄烛者》（Snuffers），定位为 EDAA 原创设定的衍生 FPS（熄烛者特遣队题材）。本 README 下部为 Web/Electron 旧线历史文档，其中「废墟突围」「Ruins-Breakout」字样为历史名称，不再逐一回改。
+> **更名通告（2026-08-19）**：项目已更名为《熄烛者》（Snuffers），定位为 EDAA 原创设定的衍生 FPS（熄烛者特遣队题材）。本 README 下部为 Web/Electron 旧线历史文档，已统一使用《熄烛者》与 Snuffers 名称。
 
 HTML5 单页 3D 战术射击游戏，全离线运行。支持**移动端触屏**与 **Windows 桌面端（.exe）**两种形态。
 
@@ -15,7 +15,7 @@ HTML5 单页 3D 战术射击游戏，全离线运行。支持**移动端触屏**
 ## 项目结构
 
 ```
-Ruins-Breakout/
+Snuffers/
 ├── index.html            # 主游戏文件 (单页应用，全部逻辑内联)
 ├── css/
 │   └── tailwind.css      # Tailwind CSS 样式库
@@ -44,14 +44,14 @@ Ruins-Breakout/
 
 #### Python 3
 ```bash
-cd Ruins-Breakout
+cd Snuffers
 python -m http.server 8080
 ```
 然后访问 `http://localhost:8080`
 
 #### Node.js (若已安装)
 ```bash
-cd Ruins-Breakout
+cd Snuffers
 node preview-server.js
 ```
 或使用 `npx serve`
@@ -119,8 +119,8 @@ node preview-server.js
 
 | 产物 | 说明 |
 |------|------|
-| `废墟突围-x.x.x-portable.exe` | 绿色便携版，双击即玩，无需安装 |
-| `废墟突围-x.x.x-setup.exe` | NSIS 安装包（可选安装目录、桌面/开始菜单快捷方式） |
+| `熄烛者-x.x.x-portable.exe` | 绿色便携版，双击即玩，无需安装 |
+| `熄烛者-x.x.x-setup.exe` | NSIS 安装包（可选安装目录、桌面/开始菜单快捷方式） |
 
 > 预期产物体积 150–250 MB（含 Electron 运行时）。
 > 首次构建需联网下载 Electron 依赖；构建完成后产物完全离线运行。

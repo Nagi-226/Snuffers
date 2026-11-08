@@ -1,4 +1,4 @@
-# 废墟突围 — Windows 桌面端（.exe）移植总方案
+# 熄烛者 — Windows 桌面端（.exe）移植总方案
 
 > 整合自三份专项报告：`01-input-adaptation.md`（键鼠适配）、`02-packaging.md`（桌面打包）、`03-godot-assessment.md`（Godot 评估）
 
@@ -44,8 +44,8 @@ electron/
 ```
 
 构建方式：右键 `build.ps1` → 使用 PowerShell 运行，产出：
-- `dist/废墟突围 x.x.x.exe`（portable 绿色版，双击即玩）
-- `dist/废墟突围 Setup x.x.x.exe`（NSIS 安装包）
+- `dist/熄烛者 x.x.x.exe`（portable 绿色版，双击即玩）
+- `dist/熄烛者 Setup x.x.x.exe`（NSIS 安装包）
 
 ## 交付物清单
 
