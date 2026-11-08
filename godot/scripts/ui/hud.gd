@@ -231,9 +231,9 @@ func _category_for_weapon(weapon_id: StringName) -> int:
 func _weapon_display_name(weapon_id: StringName) -> String:
 	match weapon_id:
 		&"pistol":
-			return "EM-57P 手枪"
+			return "EM-57P 掣"
 		&"rifle":
-			return "EM-68A 突击步枪"
+			return "EM-68A 霹雳"
 		&"dmr":
 			return "EM-68D 穿杨 · DMR"
 		&"shotgun":
@@ -255,13 +255,13 @@ func _weapon_display_name(weapon_id: StringName) -> String:
 		&"em86d":
 			return "EM-86D 贯日"
 		&"em86m":
-			return "EM-86M 通用机枪"
+			return "EM-86M 奔雷"
 		&"em127g":
 			return "EM-127G 凿空"
 		&"em12g2":
 			return "EM-12G-2 霰·Ⅱ"
 		&"em40t1":
-			return "EM-40T-1 榴弹发射器"
+			return "EM-40T-1 揭盖"
 	return "未获取"
 
 
