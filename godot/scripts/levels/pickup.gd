@@ -78,6 +78,8 @@ func _on_body_entered(body: Node3D) -> void:
 			GameState.pistol_reserve = mini(GameState.pistol_reserve + GameConfig.PISTOL_AMMO_PICKUP_ROUNDS,
 				GameConfig.PISTOL_RESERVE_MAX)
 			Events.ammo_changed.emit(&"pistol", GameState.pistol_mag, GameState.pistol_reserve)
+			Events.ammo_changed.emit(&"smg", GameState.smg_mag, GameState.pistol_reserve)
+			Events.ammo_changed.emit(&"em57s2", GameState.em57s2_mag, GameState.pistol_reserve)
 			Events.pistol_ammo_picked.emit(GameState.pistol_reserve)
 			Events.message_posted.emit("EM-57P 弹匣组  手枪备弹 +%d" % GameConfig.PISTOL_AMMO_PICKUP_ROUNDS)
 		&"shotgun_ammo":

@@ -28,6 +28,9 @@ func _run() -> void:
 		_player.get_node("Camera3D").rotation = Vector3.ZERO
 		await create_timer(0.25).timeout
 		await _shot(weapon_id + "_hip")
+		_player._camera.rotation.x = deg_to_rad(-20.0)
+		await _shot(weapon_id + "_hip_down")
+		_player._camera.rotation.x = 0.0
 		_player._set_aiming(true)
 		await create_timer(0.3).timeout
 		_player.get_node("Camera3D").look_at(target.global_position + Vector3(0, 1, 0))

@@ -117,7 +117,7 @@ func _run() -> void:
 	print("EM57S2_ADS_RELOAD_CUTS ", reload_cuts)
 	_assert(reload_cuts == 0, "ADS reload keeps the gun outside visible near-plane cuts")
 	await create_timer(0.8).timeout
-	_assert(not smg._is_reloading and _player._ads_weight > 0.99 and root.get_node("GameState").em57s2_mag == 150, "reload completes normally and held right mouse returns to the forward optic")
+	_assert(not smg._is_reloading and _player._ads_weight > 0.99 and root.get_node("GameState").em57s2_mag == 200, "reload completes normally and held right mouse returns to the forward optic")
 	_player._set_aiming(false)
 	_settle(smg)
 	_assert(mesh_node.mesh == hip_mesh, "hip restores the exact original mesh")

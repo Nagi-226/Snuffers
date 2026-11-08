@@ -99,7 +99,7 @@ func _run() -> void:
 	_player = scene.get_node("Player") as CharacterBody3D
 	await process_frame
 	_assert(_state.smg_mag == 100 and _state.lmg_mag == 600 and _state.magnum_mag == 15, "new magazine sizes are 100, 600 and 15")
-	_assert(_state.pistol_reserve == 600 and _state.rifle_reserve == 1800 and _state.magnum_reserve == 1500, "shared reserves and EC-127 reserve initialize correctly")
+	_assert(_state.pistol_reserve == 3000 and _state.rifle_reserve == 1800 and _state.magnum_reserve == 1500, "shared reserves and EC-127 reserve initialize correctly")
 	var smg_data = load("res://scenes/weapons/smg.tres")
 	smg_data.sync_from_config()
 	_assert(is_equal_approx(smg_data.damage_body, 45.0) and is_equal_approx(smg_data.fire_interval, 0.06), "SMG deals 45 damage at 1000 RPM")

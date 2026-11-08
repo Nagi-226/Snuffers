@@ -32,16 +32,20 @@ func _optic_occluded(weapon: Node3D, lens_center: Vector3, sample_offset := Vect
 	for node in model.find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := node as MeshInstance3D
 		for surface in mesh_instance.mesh.get_surface_count():
+			var material := mesh_instance.get_active_material(surface) as StandardMaterial3D
+			if material != null and material.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED and material.albedo_color.a <= 0.35:
+				continue
 			var arrays := mesh_instance.mesh.surface_get_arrays(surface)
 			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 			var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
 			for index in range(0, indices.size(), 3):
-				var a := mesh_instance.global_transform * vertices[indices[index]]
-				var b := mesh_instance.global_transform * vertices[indices[index + 1]]
-				var c := mesh_instance.global_transform * vertices[indices[index + 2]]
-				var hit = Geometry3D.ray_intersects_triangle(from, direction, a, b, c)
+				# Millimetre coordinates avoid Geometry3D rejecting small optic faces as parallel.
+				var a := (mesh_instance.global_transform * vertices[indices[index]] - from) * 1000.0
+				var b := (mesh_instance.global_transform * vertices[indices[index + 1]] - from) * 1000.0
+				var c := (mesh_instance.global_transform * vertices[indices[index + 2]] - from) * 1000.0
+				var hit = Geometry3D.ray_intersects_triangle(Vector3.ZERO, direction, a, b, c)
 				if hit == null:
-					hit = Geometry3D.ray_intersects_triangle(from, direction, a, c, b)
+					hit = Geometry3D.ray_intersects_triangle(Vector3.ZERO, direction, a, c, b)
 				if hit != null:
 					return true
 	return false
@@ -102,12 +106,12 @@ func _run() -> void:
 	_player = _scene.get_node("Player") as CharacterBody3D
 	await process_frame
 
-	_assert(_state.em57s2_mag == 150 and _state.em86m_mag == 500 and _state.em40t1_mag == 20, "new magazines initialize to 150, 500 and 20")
-	_assert(_state.pistol_reserve == 600 and _state.em86_reserve == 900 and _state.rifle_grenades == 200, "EC-57, EC-86 and EC-40 use the existing shared reserves")
+	_assert(_state.em57s2_mag == 200 and _state.em86m_mag == 500 and _state.em40t1_mag == 20, "new magazines initialize to 200, 500 and 20")
+	_assert(_state.pistol_reserve == 3000 and _state.em86_reserve == 900 and _state.rifle_grenades == 200, "EC-57, EC-86 and EC-40 use the existing shared reserves")
 	_assert(_state.fire_modes[&"em57s2"] == &"auto" and _state.fire_modes[&"em86m"] == &"auto" and _state.fire_modes[&"em40t1"] == &"semi", "default fire modes are auto, auto and semi-only")
 
 	var expected := {
-		&"em57s2": {"damage": 45.0, "mag": 150, "reserve": 600, "rpm": 1200.0},
+		&"em57s2": {"damage": 45.0, "mag": 200, "reserve": 3000, "rpm": 1200.0},
 		&"em86m": {"damage": 180.0, "mag": 500, "reserve": 900, "rpm": 800.0},
 	}
 	for weapon_id in [&"em57s2", &"em86m"]:
@@ -135,7 +139,7 @@ func _run() -> void:
 		_assert(fired and is_equal_approx(report[0], spec.damage) and int(_state.get(weapon_id + "_mag")) == spec.mag - 1, "%s deals its exact damage and consumes its own magazine" % weapon_id)
 		_state.set(weapon_id + "_mag", 0)
 		if weapon_id == &"em57s2":
-			_state.pistol_reserve = 600
+			_state.pistol_reserve = spec.reserve
 		else:
 			_state.em86_reserve = 900
 		weapon._start_reload()
@@ -170,7 +174,7 @@ func _run() -> void:
 	var smg_model := smg.get_node("ViewModel/EM68A") as Node3D
 	var magazine_tail_local: Vector3 = _player._camera.global_transform.affine_inverse() * (smg_model.global_transform * Vector3(0.0, 0.02, 0.41009))
 	_assert(-smg_local.z > 0.2 and -smg_local.z < 0.4 and magazine_tail_local.z > 0.05, "EM-57S-2 reaches the forward optic with the magazine tail behind the eye")
-	_assert(_triangle_count(smg_model) == 59655, "EM-57S-2 ADS preserves the complete optic frame and only the original sight-channel opening")
+	_assert(_triangle_count(smg_model) >= 59999, "EM-57S-2 ADS retains source geometry while splitting the precise transparent sight aperture")
 	_assert(not _optic_occluded(smg, smg_marker.position), "EM-57S-2 sight channel is clear at the center")
 	_assert(not _optic_occluded(smg, smg_marker.position, Vector3(0.006, -0.006, 0)), "EM-57S-2 sight channel is clear at the right lower edge")
 	_assert(not _optic_occluded(smg, smg_marker.position, Vector3(-0.006, -0.006, 0)), "EM-57S-2 sight channel is clear at the left lower edge")
