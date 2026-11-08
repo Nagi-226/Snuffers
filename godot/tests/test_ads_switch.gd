@@ -48,7 +48,7 @@ func _run() -> void:
 	_assert(shotgun._aim_weight > 0.99, "shotgun support-arm IK reaches its ADS pose")
 	var optic_aim := shotgun.get_node("ViewModel/Weapon/OpticAim") as Marker3D
 	var optic_in_camera: Vector3 = player._camera.global_transform.affine_inverse() * optic_aim.global_position
-	_assert(Vector2(optic_in_camera.x, optic_in_camera.y).length() < 0.001, "shotgun optic remains centered after support-arm IK")
+	_assert(absf(optic_in_camera.x - GameConfig.SHOTGUN_ADS_OFFSET_X) < 0.001 and absf(optic_in_camera.y) < 0.001, "shotgun optic marker includes the physical sight opening's horizontal correction")
 	_assert(shotgun._weapon_node.transform.is_equal_approx(shotgun._pose_extra * shotgun._weapon_home), "shotgun arms cannot displace the weapon outside reload")
 	player._switch_weapon(&"dmr")
 	player._set_aiming(false)
@@ -75,6 +75,7 @@ func _run() -> void:
 	_assert(absf(player._ads_weight - shotgun._aim_weight) < 0.001, "shotgun pose and camera mount share the same ADS timing")
 	optic_in_camera = player._camera.global_transform.affine_inverse() * optic_aim.global_position
 	var expected_optic: Vector2 = Vector2(hip_optic.x, hip_optic.y) * (1.0 - shotgun._aim_weight)
+	expected_optic.x += GameConfig.SHOTGUN_ADS_OFFSET_X * shotgun._aim_weight
 	_assert(Vector2(optic_in_camera.x, optic_in_camera.y).distance_to(expected_optic) < 0.002, "shotgun optic follows the compensated hip-to-ADS trajectory")
 	var frozen_weight: float = shotgun._aim_weight
 	state.shotgun_mag = 0

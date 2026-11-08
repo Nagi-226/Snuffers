@@ -9,6 +9,10 @@ var weapon_id: StringName = &"rifle":
 			_icon.set("weapon_id", value)
 			_icon.queue_redraw()
 		queue_redraw()
+var weapon_name: String = "":
+	set(value):
+		weapon_name = value
+		queue_redraw()
 var mag: int = 0:
 	set(value):
 		mag = value
@@ -50,6 +54,8 @@ func _draw() -> void:
 	var font := get_theme_default_font()
 	var color := Color(0.38, 0.86, 1.0, 0.95)
 	var secondary := Color(0.38, 0.86, 1.0, 0.68)
+	if weapon_name != "":
+		draw_string(font, Vector2(70, -6), weapon_name, HORIZONTAL_ALIGNMENT_RIGHT, 178, 12, secondary)
 	draw_string(font, Vector2(0, 40), str(mag), HORIZONTAL_ALIGNMENT_LEFT, -1, 34, color)
 	draw_string(font, Vector2(70, 32), str(reserve), HORIZONTAL_ALIGNMENT_LEFT, -1, 22, secondary)
 	draw_string(font, Vector2(1, 60), "弹药", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, secondary)

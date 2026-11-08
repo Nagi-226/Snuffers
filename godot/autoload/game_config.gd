@@ -160,6 +160,7 @@ const SMG_RECOIL_VIEW_ROT: float = 2.0
 const SMG_RECOIL_VIEW_Y_FACTOR: float = 0.02
 const SMG_RECOIL_VIEW_Z_FACTOR: float = 0.04
 const SMG_ADS_FOV: float = 60.0
+const SMG_ARMS_OFFSET := Vector3(0, -0.033, -0.097) ## EM-57S-1右掌贴合实模扳机握把，原生完整右臂/手指姿态不变
 const SMG_SOUND_PITCH: float = 1.1
 
 # ===== EM-68L「殷雷」班用机枪（与 EM-68A/D 共用 EC-68 备弹池）=====
@@ -381,6 +382,7 @@ const SHOTGUN_SUPPORT_WRIST_ADS := Vector3(-0.04, -0.08, -0.10)
 const SHOTGUN_ELBOW_POLE := Vector3(-0.18, -0.45, 0.12) ## 开镜支撑肘向左下收拢，避免前臂横挡镜头
 const SHOTGUN_RIGHT_ELBOW_POLE := Vector3(0.12, -0.25, -0.45) ## 右握枪肘向前下方收拢，保留原生右手握点
 const SHOTGUN_ADS_CAMERA_FORWARD: float = 0.04 ## 玩家视角向瞄具前移4cm；枪挂载不再向远处推，视觉上枪相应后收
+const SHOTGUN_ADS_OFFSET_X: float = 0.003 ## 仅开镜向右补偿3mm，修正OpticAim相对实际镜孔的水平偏差
 
 # ===== SPAS-12 传统泵动霰弹枪（独立 12GA 弹药，不与 EC-12 混用）=====
 const SPAS12_DAMAGE_BODY: float = 20.0

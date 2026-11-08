@@ -529,6 +529,7 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 	if weapon_id in [&"rifle", &"smg", &"em86b"] and mode == &"grenade":
 		mode_tag = "滚雷"
 	_weapon_ammo.set("weapon_id", weapon_id)
+	_weapon_ammo.set("weapon_name", _weapon_display_name(weapon_id))
 	_weapon_ammo.set("mag", mag)
 	_weapon_ammo.set("reserve", reserve)
 	_weapon_ammo.set("mode_tag", mode_tag)

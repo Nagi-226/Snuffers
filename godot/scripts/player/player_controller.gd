@@ -673,7 +673,7 @@ func _shotgun_mount_for_weight(weight: float) -> Vector3:
 	var current_q := Quaternion(Vector3.UP, GameConfig.SHOTGUN_HIP_POSE_YAW * (1.0 - weight)) \
 		* Quaternion(Vector3.RIGHT, GameConfig.SHOTGUN_HIP_POSE_PITCH * (1.0 - weight))
 	var hip_center := _mount_hip_pos + hip_q * _shotgun_optic_center
-	var desired_center := hip_center.lerp(Vector3(0.0, 0.0, hip_center.z), weight)
+	var desired_center := hip_center.lerp(Vector3(GameConfig.SHOTGUN_ADS_OFFSET_X, 0.0, hip_center.z), weight)
 	var rotated_center := current_q * _shotgun_optic_center
 	return Vector3(desired_center.x - rotated_center.x, desired_center.y - rotated_center.y, _mount_hip_pos.z)
 
