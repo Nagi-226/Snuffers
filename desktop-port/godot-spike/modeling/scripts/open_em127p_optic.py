@@ -22,8 +22,8 @@ HALF_Z = 0.012
 selected = []
 for poly in obj.data.polygons:
     center = poly.center
-    ellipse = (center.x / 0.018) ** 2 + ((center.z - CENTER_Z) / 0.04) ** 2
-    lower_v_channel = abs(center.x) < 0.018 and 0.20 < center.z < CENTER_Z
+    ellipse = (center.x / 0.03) ** 2 + ((center.z - CENTER_Z) / 0.04) ** 2
+    lower_v_channel = abs(center.x) < 0.03 and 0.20 < center.z < CENTER_Z
     if abs(center.y) < 0.6 and (ellipse < 1.0 or lower_v_channel):
         selected.append(poly.index)
 if len(selected) < 4:

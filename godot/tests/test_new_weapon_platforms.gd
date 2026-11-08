@@ -223,6 +223,8 @@ func _run() -> void:
 		_assert(lens_screen.distance_to(Vector2(root.size) * 0.5) < 2.0, "Magnum ADS places the transparent lens and reticle at screen center")
 		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center), "Magnum upper optic has no opaque face along the camera sightline")
 		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center, Vector3(0, -0.018, 0)), "Magnum lower V-shaped optic region has no opaque face")
+		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center, Vector3(0.006, -0.008, 0)), "Magnum right lower optic region has no opaque face")
+		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center, Vector3(-0.006, -0.008, 0)), "Magnum left lower optic region has no opaque face")
 	_state.magnum_mag = 4
 	magnum._start_reload()
 	_player._process(1.0 / 60.0)
