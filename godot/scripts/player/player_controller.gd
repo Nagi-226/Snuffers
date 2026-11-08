@@ -144,6 +144,7 @@ func _ready() -> void:
 	_big_map.visible = false
 	reticle_layer.add_child(_big_map)
 	_calibrate_ads()
+	_ads_mount_targets[&"em57s2"].z = GameConfig.EM57S2_ADS_MOUNT_Z
 	_ads_mount_targets[&"smg"] = _ads_mount_targets[&"rifle"]
 	_ads_mount_targets[&"lmg"] = _ads_mount_targets[&"rifle"]
 	_ads_mount_targets[&"em12g2"] = _ads_mount_targets[&"rifle"]
@@ -964,10 +965,10 @@ class AdsReticle extends Control:
 				draw_arc(center, 14.0, 0.0, TAU, 64, color, 1.6, true)
 				draw_circle(center, 2.2, color)
 			&"em57s2":
-				draw_arc(center, 16.0, 0.0, TAU, 64, color, 1.6, true)
-				draw_circle(center, 1.8, color)
+				draw_arc(center, 10.0, 0.0, TAU, 64, color, 1.4, true)
+				draw_circle(center, 1.3, color)
 				for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
-					draw_line(center + dir * 19.0, center + dir * 23.0, color, 1.6, true)
+					draw_line(center + dir * 12.0, center + dir * 15.0, color, 1.4, true)
 			&"em86b":
 				# 镜筒内局部准星：短十字不穿入空心圆，中央保留瞄点。
 				for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:

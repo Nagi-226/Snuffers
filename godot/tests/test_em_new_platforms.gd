@@ -54,7 +54,19 @@ func _scope_protrusion_vertices(model: Node3D) -> int:
 		for surface in mesh_instance.mesh.get_surface_count():
 			var vertices: PackedVector3Array = mesh_instance.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
 			for vertex in vertices:
-				if vertex.y > 0.15 and vertex.z > -0.08 and absf(vertex.x) < 0.055:
+				if vertex.y > 0.15 and vertex.z > 0.0 and absf(vertex.x) < 0.055:
+					count += 1
+	return count
+
+
+func _scope_rear_cap_vertices(model: Node3D) -> int:
+	var count := 0
+	for node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := node as MeshInstance3D
+		for surface in mesh_instance.mesh.get_surface_count():
+			var vertices: PackedVector3Array = mesh_instance.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
+			for vertex in vertices:
+				if absf(vertex.y - 0.19) < 0.03 and vertex.z > -0.081 and vertex.z < -0.075 and absf(vertex.x) < 0.03:
 					count += 1
 	return count
 
@@ -189,6 +201,7 @@ func _run() -> void:
 	_player._switch_weapon(&"em40t1")
 	var launcher = _player.get_node("Camera3D/WeaponMount/Em40t1")
 	_assert(_scope_protrusion_vertices(launcher.get_node("ViewModel/EM68A")) == 0, "EM-40T-1 scope has no rear protruding structure")
+	_assert(_scope_rear_cap_vertices(launcher.get_node("ViewModel/EM68A")) > 20, "EM-40T-1 scope has the SMG magazine-style rear cap")
 	var children_before := _scene.get_child_count()
 	var grenade_fired: bool = launcher._fire()
 	_assert(grenade_fired and _state.em40t1_mag == 19 and _state.rifle_grenades == 200 and _scene.get_child_count() == children_before + 1, "EM-40T-1 fires one projectile from its magazine without draining the shared reserve")
