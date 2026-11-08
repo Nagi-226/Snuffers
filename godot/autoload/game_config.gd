@@ -373,7 +373,7 @@ const SPAS12_RIGHT_ELBOW_ADS := Vector3(0.22, -0.32, 0.18)
 # 设定出处（E系列电磁轻武器-概念图谱）：直射档=EC-40P「破垒」全功率平直弹道；
 # 模块自带 6 发弹匣即雷池（换匣即换电）；「闸不合，榴不发」=榴档与实弹击发互斥；
 # 投射物场景复用 rpg_projectile.tscn（抛物线/爆炸/碉堡结算链路原样接管）。
-const GRENADE_AMMO: int = 30 ## 榴弹总数（2026-10-22 机主裁决 6→30：雷池总数制，无备弹/换弹概念）
+const GRENADE_AMMO: int = 200 ## 榴弹总数（2026-11-08 机主裁决 30→200：雷池总数制，无备弹/换弹概念）
 const GRENADE_FIRE_INTERVAL: float = 0.8 ## 榴弹击发间隔 s（合闸-复位节奏，半自动边沿触发）
 const GRENADE_PROJECTILE_SPEED: float = 90.0 ## 直射档初速 u/s（全功率平直弹道）
 const GRENADE_GRAVITY: float = 2.0 ## 直射档微下坠（远小于旧火箭 9.8，弹道平直）
