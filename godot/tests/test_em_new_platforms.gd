@@ -71,6 +71,15 @@ func _scope_protrusion_vertices(model: Node3D) -> int:
 	return count
 
 
+func _triangle_count(model: Node3D) -> int:
+	var count := 0
+	for node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh := (node as MeshInstance3D).mesh
+		for surface in mesh.get_surface_count():
+			count += mesh.surface_get_arrays(surface)[Mesh.ARRAY_INDEX].size() / 3
+	return count
+
+
 func _run() -> void:
 	var ids: Array[StringName] = [&"em57s2", &"em86m", &"em40t1"]
 	var missing := false
@@ -160,7 +169,8 @@ func _run() -> void:
 	_assert(Vector2(smg_local.x, smg_local.y).length() < 0.001, "EM-57S-2 physical optic is centered on the camera axis")
 	var smg_model := smg.get_node("ViewModel/EM68A") as Node3D
 	var magazine_tail_local: Vector3 = _player._camera.global_transform.affine_inverse() * (smg_model.global_transform * Vector3(0.0, 0.02, 0.41009))
-	_assert(smg_local.z < -0.1 and magazine_tail_local.z > 0.05, "EM-57S-2 keeps the real optic ahead and the magazine tail behind the camera")
+	_assert(-smg_local.z > 0.2 and -smg_local.z < 0.4 and magazine_tail_local.z > 0.05, "EM-57S-2 reaches the forward optic with the magazine tail behind the eye")
+	_assert(_triangle_count(smg_model) == 59655, "EM-57S-2 ADS preserves the complete optic frame and only the original sight-channel opening")
 	_assert(not _optic_occluded(smg, smg_marker.position), "EM-57S-2 sight channel is clear at the center")
 	_assert(not _optic_occluded(smg, smg_marker.position, Vector3(0.006, -0.006, 0)), "EM-57S-2 sight channel is clear at the right lower edge")
 	_assert(not _optic_occluded(smg, smg_marker.position, Vector3(-0.006, -0.006, 0)), "EM-57S-2 sight channel is clear at the left lower edge")

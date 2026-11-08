@@ -68,6 +68,7 @@ var _big_map: Control = null
 var _scope_view_models: Dictionary = {}
 @onready var _dmr_view_model: Node3D = $Camera3D/WeaponMount/DMR/ViewModel
 @onready var _shotgun_controller: Node = $Camera3D/WeaponMount/Shotgun
+@onready var _em57s2_controller: Node = $Camera3D/WeaponMount/Em57s2
 ## 瞄具双网格切换（2026-10-20 机主立项）：常规视角用完整瞄具（外观完好），
 ## 开镜过半把 optic 网格换成独立开孔版（透视镜筒），收镜过半换回。
 ## 开孔版由 extract_optic_bored.py / open_generated_optic.py 从完整 GLB 提取，几何同源、坐标系一致，直接换 mesh 即可。
@@ -84,6 +85,7 @@ var _armor_regen_wait: float = 0.0
 @onready var _collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var _camera: Camera3D = $Camera3D
 @onready var _camera_hip_z: float = _camera.position.z
+@onready var _camera_hip_near: float = _camera.near
 
 
 func _ready() -> void:
@@ -590,7 +592,9 @@ func _process(delta: float) -> void:
 	if _visual_nano_mode != GameState.nano_mode:
 		_apply_nano_visuals()
 	# 开镜插值（ADS_LERP_TIME）：挂载位移 + FOV + 准星覆盖层同步驱动。
-	var ads_target := 1.0 if GameState.is_aiming else 0.0
+	# EM-57S-2 换弹暂退视觉开镜；保持右键输入，结束后自动回到前方瞄具。
+	var lowering_for_reload := GameState.current_weapon == &"em57s2" and bool(_em57s2_controller.get("_is_reloading"))
+	var ads_target := 1.0 if GameState.is_aiming and not lowering_for_reload else 0.0
 	var weapon_changed := _last_ads_weapon != GameState.current_weapon
 	if not is_equal_approx(_ads_weight, ads_target) or weapon_changed or GameState.current_weapon in [&"shotgun", &"em86s", &"em127g"]:
 		_last_ads_weapon = GameState.current_weapon
@@ -606,6 +610,9 @@ func _process(delta: float) -> void:
 		_camera.fov = lerpf(GameConfig.FOV_BASE, fov_target, _ads_weight)
 		var camera_forward: float = GameConfig.SHOTGUN_ADS_CAMERA_FORWARD if GameState.current_weapon == &"shotgun" else 0.0
 		_camera.position.z = _camera_hip_z - camera_forward * _ads_weight
+	# EM-57S-2 前方眼位：近平面截口移出画面下缘，收镜和切枪恢复原近平面。
+	var near_weight := _ads_weight if GameState.current_weapon == &"em57s2" else 0.0
+	_camera.near = lerpf(_camera_hip_near, GameConfig.EM57S2_ADS_NEAR, near_weight)
 	# 准星覆盖层：权重过 60% 才显形（过渡中段不闪半吊子准星）；榴档沿用步枪全息准星
 	# （直射档平直弹道，全息环直瞄即可）。
 	if _ads_reticle != null:
