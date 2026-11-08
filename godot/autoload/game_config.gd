@@ -287,7 +287,7 @@ const EM57S2_SPREAD_AIM: float = 0.0007
 const EM57S2_RECOIL_PITCH: float = 0.0022
 const EM57S2_RECOIL_VIEW_OFFSET: float = 0.055
 const EM57S2_ADS_FOV: float = 60.0
-const EM57S2_ADS_MOUNT_Z: float = -0.80 ## 视线落在前方小瞄具，避免顶置弹匣尾盖占据镜内视野
+const EM57S2_ADS_MOUNT_Z: float = -0.15 ## 真实小瞄具在相机前方；顶置弹匣尾盖整体退到相机后方
 const EM57S2_SOUND_PITCH: float = 1.18
 
 # ===== EM-86M 中口径通用机枪（与 EM-86S/B/D 共用 EC-86）=====

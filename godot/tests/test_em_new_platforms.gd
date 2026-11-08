@@ -47,6 +47,18 @@ func _optic_occluded(weapon: Node3D, lens_center: Vector3, sample_offset := Vect
 	return false
 
 
+func _transferred_tail_surface_count(model: Node3D) -> int:
+	var count := 0
+	for node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := node as MeshInstance3D
+		for surface in mesh_instance.mesh.get_surface_count():
+			var vertices: PackedVector3Array = mesh_instance.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
+			for vertex in vertices:
+				if absf(vertex.x) < 0.06 and vertex.y > 0.13 and vertex.y < 0.25 and vertex.z > -0.081 and vertex.z < 0.081:
+					count += 1
+	return count
+
+
 func _scope_protrusion_vertices(model: Node3D) -> int:
 	var count := 0
 	for node in model.find_children("*", "MeshInstance3D", true, false):
@@ -55,18 +67,6 @@ func _scope_protrusion_vertices(model: Node3D) -> int:
 			var vertices: PackedVector3Array = mesh_instance.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
 			for vertex in vertices:
 				if vertex.y > 0.15 and vertex.z > 0.0 and absf(vertex.x) < 0.055:
-					count += 1
-	return count
-
-
-func _scope_rear_cap_vertices(model: Node3D) -> int:
-	var count := 0
-	for node in model.find_children("*", "MeshInstance3D", true, false):
-		var mesh_instance := node as MeshInstance3D
-		for surface in mesh_instance.mesh.get_surface_count():
-			var vertices: PackedVector3Array = mesh_instance.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
-			for vertex in vertices:
-				if absf(vertex.y - 0.19) < 0.03 and vertex.z > -0.081 and vertex.z < -0.075 and absf(vertex.x) < 0.03:
 					count += 1
 	return count
 
@@ -158,6 +158,9 @@ func _run() -> void:
 	var smg_marker = smg.get_node("ViewModel/OpticAim") as Marker3D
 	var smg_local: Vector3 = _player._camera.global_transform.affine_inverse() * smg_marker.global_position
 	_assert(Vector2(smg_local.x, smg_local.y).length() < 0.001, "EM-57S-2 physical optic is centered on the camera axis")
+	var smg_model := smg.get_node("ViewModel/EM68A") as Node3D
+	var magazine_tail_local: Vector3 = _player._camera.global_transform.affine_inverse() * (smg_model.global_transform * Vector3(0.0, 0.02, 0.41009))
+	_assert(smg_local.z < -0.1 and magazine_tail_local.z > 0.05, "EM-57S-2 keeps the real optic ahead and the magazine tail behind the camera")
 	_assert(not _optic_occluded(smg, smg_marker.position), "EM-57S-2 sight channel is clear at the center")
 	_assert(not _optic_occluded(smg, smg_marker.position, Vector3(0.006, -0.006, 0)), "EM-57S-2 sight channel is clear at the right lower edge")
 	_assert(not _optic_occluded(smg, smg_marker.position, Vector3(-0.006, -0.006, 0)), "EM-57S-2 sight channel is clear at the left lower edge")
@@ -200,8 +203,9 @@ func _run() -> void:
 	_assert(is_equal_approx(launcher_data.explode_radius, config.GRENADE_EXPLODE_RADIUS) and is_equal_approx(launcher_data.explode_kill_radius, config.GRENADE_EXPLODE_KILL_RADIUS) and is_equal_approx(launcher_data.explode_kill_damage, config.GRENADE_EXPLODE_KILL_DAMAGE) and is_equal_approx(launcher_data.explode_damage, config.GRENADE_EXPLODE_DAMAGE) and is_equal_approx(launcher_data.explode_falloff_factor, config.GRENADE_EXPLODE_FALLOFF_FACTOR), "EM-40T-1 uses the exact underbarrel explosion radius and damage")
 	_player._switch_weapon(&"em40t1")
 	var launcher = _player.get_node("Camera3D/WeaponMount/Em40t1")
-	_assert(_scope_protrusion_vertices(launcher.get_node("ViewModel/EM68A")) == 0, "EM-40T-1 scope has no rear protruding structure")
-	_assert(_scope_rear_cap_vertices(launcher.get_node("ViewModel/EM68A")) > 20, "EM-40T-1 scope has the SMG magazine-style rear cap")
+	var launcher_model := launcher.get_node("ViewModel/EM68A") as Node3D
+	_assert(_scope_protrusion_vertices(launcher_model) == 0, "EM-40T-1 scope has no rear protruding structure")
+	_assert(_transferred_tail_surface_count(launcher_model) > 100, "EM-40T-1 contains the original transferred SMG tail surface")
 	var children_before := _scene.get_child_count()
 	var grenade_fired: bool = launcher._fire()
 	_assert(grenade_fired and _state.em40t1_mag == 19 and _state.rifle_grenades == 200 and _scene.get_child_count() == children_before + 1, "EM-40T-1 fires one projectile from its magazine without draining the shared reserve")
