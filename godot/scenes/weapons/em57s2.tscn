@@ -21,7 +21,7 @@ position = Vector3(0.02, -0.035, 0.12)
 position = Vector3(0, -0.12, 0.08)
 
 [node name="OpticAim" type="Marker3D" parent="ViewModel"]
-position = Vector3(0.02, 0.13, -0.08)
+position = Vector3(0.02, 0.13, -0.157)
 
 [node name="Muzzle" type="Marker3D" parent="ViewModel/EM68A"]
 position = Vector3(0, 0.015, -0.41)

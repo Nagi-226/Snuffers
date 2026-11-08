@@ -211,6 +211,23 @@ func _load_optic_meshes() -> void:
 				}
 				break
 			intact_root.free()
+	var em86m_root := _weapon_mount.get_node_or_null("Em86m") as Node3D
+	if em86m_root != null:
+		var current_mesh: MeshInstance3D = null
+		for node in em86m_root.find_children("*", "MeshInstance3D", true, false):
+			current_mesh = node as MeshInstance3D
+			break
+		var intact_scene: PackedScene = load("res://assets/models/weapons/em86m_viewmodel.glb")
+		if current_mesh != null and intact_scene != null:
+			var intact_root := intact_scene.instantiate()
+			for node in intact_root.find_children("*", "MeshInstance3D", true, false):
+				_optic_meshes[&"em86m"] = {
+					"node": current_mesh,
+					"intact": (node as MeshInstance3D).mesh,
+					"bored": current_mesh.mesh,
+				}
+				break
+			intact_root.free()
 	var em12g2_root := _weapon_mount.get_node_or_null("Em12g2") as Node3D
 	if em12g2_root != null:
 		var current_mesh: MeshInstance3D = null
@@ -594,10 +611,6 @@ func _process(delta: float) -> void:
 		var mode := GameState.current_weapon
 		if GameState.current_weapon == &"em12g2":
 			mode = &"shotgun"
-		elif GameState.current_weapon == &"em57s2":
-			mode = &"smg"
-		elif GameState.current_weapon == &"em86m":
-			mode = &"em86b"
 		if _ads_reticle.mode != mode or not is_equal_approx(_ads_reticle.weight, _ads_weight):
 			_ads_reticle.mode = mode
 			_ads_reticle.weight = _ads_weight
@@ -945,6 +958,16 @@ class AdsReticle extends Control:
 					draw_line(center + dir * 28.0, center + dir * maxf(size.x, size.y), color, 1.2, true)
 				draw_arc(center, 18.0, 0.0, TAU, 64, color, 1.6, true)
 				draw_circle(center, 2.2, color)
+			&"em86m":
+				for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
+					draw_line(center + dir * 20.0, center + dir * 32.0, color, 1.2, true)
+				draw_arc(center, 14.0, 0.0, TAU, 64, color, 1.6, true)
+				draw_circle(center, 2.2, color)
+			&"em57s2":
+				draw_arc(center, 16.0, 0.0, TAU, 64, color, 1.6, true)
+				draw_circle(center, 1.8, color)
+				for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
+					draw_line(center + dir * 19.0, center + dir * 23.0, color, 1.6, true)
 			&"em86b":
 				# 镜筒内局部准星：短十字不穿入空心圆，中央保留瞄点。
 				for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
