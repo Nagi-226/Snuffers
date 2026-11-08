@@ -22,7 +22,7 @@ https://github.com/Nagi-226/Snuffers
 
 ## 授权协议
 
-当前仓库未包含统一的 `LICENSE` 文件，因此此处暂标为“待项目所有者确认”。如果计划按 MIT 协议发布，需要先在仓库根目录添加 MIT `LICENSE`，再将平台字段填写为 `MIT`。
+MIT。仓库根目录已添加 MIT `LICENSE`，平台授权协议可直接填写 `MIT`。
 
 ## 实机截图（均为当前版本实机渲染，JPG，单张小于 1MB）
 
