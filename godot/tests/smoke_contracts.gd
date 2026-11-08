@@ -83,7 +83,7 @@ func _run() -> void:
 	_assert(config.DMR_DAMAGE_BODY == 90.0, "EM-68D owner-specified 90 damage; EC-68 rifle remains 75")
 	_assert(config.DMR_MAG == 60 and config.DMR_SEMI_FIRE_INTERVAL == 0.22, "EM-68D 60-round semi configuration")
 	_assert(config.DMR_ADS_FOV == 35.0 and config.DMR_RANGE == 180.0, "EM-68D ADS and range")
-	_assert(config.EM86_MAG == 45 and config.EM86_RESERVE == 900, "EM-86 shared 45-round magazines and EC-86 reserve")
+	_assert(config.EM86_MAG == 45 and config.EM86_RESERVE == 4500, "EM-86 shared 45-round magazines and EC-86 reserve")
 	_assert(config.EM86S_DAMAGE_BODY == 240.0 and config.EM86B_DAMAGE_BODY == 120.0 and config.EM86D_DAMAGE_BODY == 180.0, "EM-86S/B/D owner-specified damage")
 	_assert(is_equal_approx(config.EM86B_BURST_FIRE_INTERVAL, 60.0 / 900.0) and is_equal_approx(config.EM86B_FIRE_INTERVAL, 60.0 / 650.0), "EM-86B burst 900 RPM and auto 650 RPM")
 	_assert(config.EM86S_SCOPE_FOVS == [35.0, 17.5, 8.75] and config.EM86D_ADS_FOV == 35.0, "EM-86S 8/16/32x and EM-86D 8x scope FOVs")

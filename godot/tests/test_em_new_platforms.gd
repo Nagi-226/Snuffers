@@ -107,12 +107,12 @@ func _run() -> void:
 	await process_frame
 
 	_assert(_state.em57s2_mag == 200 and _state.em86m_mag == 500 and _state.em40t1_mag == 20, "new magazines initialize to 200, 500 and 20")
-	_assert(_state.pistol_reserve == 3000 and _state.em86_reserve == 900 and _state.rifle_grenades == 200, "EC-57, EC-86 and EC-40 use the existing shared reserves")
+	_assert(_state.pistol_reserve == 3000 and _state.em86_reserve == 4500 and _state.rifle_grenades == 200, "EC-57, EC-86 and EC-40 use the existing shared reserves")
 	_assert(_state.fire_modes[&"em57s2"] == &"auto" and _state.fire_modes[&"em86m"] == &"auto" and _state.fire_modes[&"em40t1"] == &"semi", "default fire modes are auto, auto and semi-only")
 
 	var expected := {
 		&"em57s2": {"damage": 45.0, "mag": 200, "reserve": 3000, "rpm": 1200.0},
-		&"em86m": {"damage": 180.0, "mag": 500, "reserve": 900, "rpm": 800.0},
+		&"em86m": {"damage": 180.0, "mag": 500, "reserve": 4500, "rpm": 800.0},
 	}
 	for weapon_id in [&"em57s2", &"em86m"]:
 		var spec: Dictionary = expected[weapon_id]
@@ -141,7 +141,7 @@ func _run() -> void:
 		if weapon_id == &"em57s2":
 			_state.pistol_reserve = spec.reserve
 		else:
-			_state.em86_reserve = 900
+			_state.em86_reserve = spec.reserve
 		weapon._start_reload()
 		_assert(weapon._is_reloading, "%s starts its real timed reload" % weapon_id)
 		await create_timer(data.reload_time + 0.1).timeout

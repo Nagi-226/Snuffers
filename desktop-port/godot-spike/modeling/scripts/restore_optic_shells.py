@@ -85,7 +85,7 @@ def triangle_area(triangle):
 
 def restore_optic(model, source, output):
     center_y, radius, depth = {"em57s2": (0.165, 0.016, (-0.34, -0.20)),
-                               "em86m": (0.180, 0.018, (-0.23, 0.17))}[model]
+                               "em86m": (0.180, 0.0235, (-0.23, 0.17))}[model]
     document, binary = read_glb(source)
     planes = [((math.cos(index * math.tau / 16), math.sin(index * math.tau / 16), 0.0),
                radius + center_y * math.sin(index * math.tau / 16)) for index in range(16)]

@@ -967,10 +967,15 @@ class AdsReticle extends Control:
 				draw_arc(center, 18.0, 0.0, TAU, 64, color, 1.6, true)
 				draw_circle(center, 2.2, color)
 			&"em86m":
+				var tick_inner: float = size.y * GameConfig.EM86M_RETICLE_TICK_INNER_RATIO
+				var tick_outer: float = size.y * GameConfig.EM86M_RETICLE_TICK_OUTER_RATIO
+				var ring_radius: float = size.y * GameConfig.EM86M_RETICLE_RING_RADIUS_RATIO
+				var dot_radius: float = size.y * GameConfig.EM86M_RETICLE_DOT_RADIUS_RATIO
+				var line_width: float = size.y * GameConfig.EM86M_RETICLE_LINE_WIDTH_RATIO
 				for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
-					draw_line(center + dir * 20.0, center + dir * 32.0, color, 1.2, true)
-				draw_arc(center, 14.0, 0.0, TAU, 64, color, 1.6, true)
-				draw_circle(center, 2.2, color)
+					draw_line(center + dir * tick_inner, center + dir * tick_outer, color, line_width, true)
+				draw_arc(center, ring_radius, 0.0, TAU, 64, color, line_width, true)
+				draw_circle(center, dot_radius, color)
 			&"em57s2":
 				draw_arc(center, 10.0, 0.0, TAU, 64, color, 1.4, true)
 				draw_circle(center, 1.3, color)

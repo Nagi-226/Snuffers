@@ -232,7 +232,7 @@ const DMR_SUPPORT_WRIST_ADS := Vector3(-0.05, -0.10, -0.13)
 
 # ===== EM-86 系列（共享 EC-86；S/B/D 45 发弹匣，M 500 发弹箱）=====
 const EM86_MAG: int = 45
-const EM86_RESERVE: int = 900 ## 靶场用途 20 个满弹匣；机主未指定备弹量
+const EM86_RESERVE: int = 4500 ## EM-86S/B/D/M共享EC-86备弹；2026-11-08机主裁决
 const EM86_RELOAD_TIME: float = 2.4
 const EM86_RECOIL_DECAY: float = 0.82
 const EM86_RECOIL_RECOVER_RATE: float = 6.0
@@ -304,6 +304,12 @@ const EM86M_SPREAD_AIM: float = 0.0003
 const EM86M_RECOIL_PITCH: float = 0.006
 const EM86M_RECOIL_VIEW_OFFSET: float = 0.12
 const EM86M_ADS_FOV: float = 60.0
+## 镜内准星随视口高度缩放，1080高时刻度15→22px，保留通光区边缘余量。
+const EM86M_RETICLE_TICK_INNER_RATIO: float = 15.0 / 1080.0
+const EM86M_RETICLE_TICK_OUTER_RATIO: float = 22.0 / 1080.0
+const EM86M_RETICLE_RING_RADIUS_RATIO: float = 10.0 / 1080.0
+const EM86M_RETICLE_DOT_RADIUS_RATIO: float = 1.8 / 1080.0
+const EM86M_RETICLE_LINE_WIDTH_RATIO: float = 1.4 / 1080.0
 const EM86M_SOUND_PITCH: float = 0.7
 
 # ===== EM-40T-1 半自动榴弹发射器（与下挂模块共用 EC-40 雷池）=====
