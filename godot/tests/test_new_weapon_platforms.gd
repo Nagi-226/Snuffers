@@ -71,11 +71,11 @@ func _magnum_lens_center(weapon: Node3D) -> Variant:
 	return null
 
 
-func _magnum_optic_occluded(weapon: Node3D, camera: Camera3D, lens_center: Vector3) -> bool:
+func _magnum_optic_occluded(weapon: Node3D, camera: Camera3D, lens_center: Vector3, sample_offset := Vector3.ZERO) -> bool:
 	var view_model := weapon.get_node("ViewModel") as Node3D
 	var model := weapon.get_node("ViewModel/EM57P") as Node3D
 	var from := camera.global_position
-	var direction := ((view_model.global_transform * lens_center) - from).normalized()
+	var direction := ((view_model.global_transform * (lens_center + sample_offset)) - from).normalized()
 	for node in model.find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := node as MeshInstance3D
 		for surface in mesh_instance.mesh.get_surface_count():
@@ -222,6 +222,7 @@ func _run() -> void:
 		var lens_screen: Vector2 = _player._camera.unproject_position((magnum.get_node("ViewModel") as Node3D).global_transform * (lens_center as Vector3))
 		_assert(lens_screen.distance_to(Vector2(root.size) * 0.5) < 2.0, "Magnum ADS places the transparent lens and reticle at screen center")
 		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center), "Magnum upper optic has no opaque face along the camera sightline")
+		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center, Vector3(0, -0.018, 0)), "Magnum lower V-shaped optic region has no opaque face")
 	_state.magnum_mag = 4
 	magnum._start_reload()
 	_player._process(1.0 / 60.0)
