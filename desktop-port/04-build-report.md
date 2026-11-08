@@ -1,4 +1,4 @@
-# 废墟突围 · Windows 桌面端打包链路验证报告（04-build-report）
+# 熄烛者 · Windows 桌面端打包链路验证报告（04-build-report）
 
 > 角色：构建验证工程师 ｜ 验证时间：2026-07-14（UTC+8）｜ 分支：`dev_win`
 > 目标：验证 `desktop-port/electron/` 的 Electron 打包链路在本机可用，产出 portable（必须）/ nsis（可选）Windows 产物。
@@ -11,8 +11,8 @@
 |----|------|
 | **打包链路是否打通** | ✅ **打通**。electron-builder 可成功产出 portable 与 nsis 两种 Windows 产物 |
 | npm install | ✅ 成功（第 2 次尝试，切 npmmirror 镜像后） |
-| portable 构建 | ✅ 成功 → `dist/废墟突围-1.0.0-portable.exe`（71.04 MiB） |
-| nsis 构建（可选） | ✅ 成功 → `dist/废墟突围-1.0.0-setup.exe`（78.30 MiB）+ `.blockmap` |
+| portable 构建 | ✅ 成功 → `dist/熄烛者-1.0.0-portable.exe`（71.04 MiB） |
+| nsis 构建（可选） | ✅ 成功 → `dist/熄烛者-1.0.0-setup.exe`（78.30 MiB）+ `.blockmap` |
 | `build.ps1` 一键脚本 | ⚠️ **按原样无法在 PowerShell 5.1 直接运行**，发现 2 处脚本缺陷（见第五节），但其内部逻辑已逐项验证可用 |
 | 游戏图标 icon.ico | ⏳ 缺失，构建按预期回退 Electron 默认图标（仅警告，不阻塞） |
 
@@ -62,7 +62,7 @@
 npm run build:portable   # = electron-builder --win portable
 ```
 - electron 33.4.11 从 npmmirror 拉取：`115 MB / 12.65s`
-- 打包 → `dist\win-unpacked\废墟突围.exe` → 封装 portable
+- 打包 → `dist\win-unpacked\熄烛者.exe` → 封装 portable
 - 提示 `default Electron icon is used (reason=application icon is not set)`：缺 icon.ico，按预期回退默认图标，**未失败**
 - 无签名证书：`no signing info identified, signing is skipped`（正常，未配置代码签名）
 - 退出码 0
@@ -83,9 +83,9 @@ npm run build:nsis       # = electron-builder --win nsis
 
 | 文件 | 大小（字节） | 大小（约） | 说明 |
 |------|-------------|-----------|------|
-| `dist/废墟突围-1.0.0-portable.exe` | 74,496,001 | 71.04 MiB（74.5 MB） | 免安装绿色版，双击即玩 |
-| `dist/废墟突围-1.0.0-setup.exe` | 82,106,970 | 78.30 MiB（82.1 MB） | NSIS 安装包（可选安装目录、桌面/开始菜单快捷方式） |
-| `dist/废墟突围-1.0.0-setup.exe.blockmap` | 86,101 | 84 KiB | 增量更新用块映射 |
+| `dist/熄烛者-1.0.0-portable.exe` | 74,496,001 | 71.04 MiB（74.5 MB） | 免安装绿色版，双击即玩 |
+| `dist/熄烛者-1.0.0-setup.exe` | 82,106,970 | 78.30 MiB（82.1 MB） | NSIS 安装包（可选安装目录、桌面/开始菜单快捷方式） |
+| `dist/熄烛者-1.0.0-setup.exe.blockmap` | 86,101 | 84 KiB | 增量更新用块映射 |
 | `dist/win-unpacked/` | — | — | 未打包的应用目录（含 electron 运行时 + 游戏资源） |
 
 **产物有效性校验**
@@ -163,5 +163,5 @@ npm run build            # 两者都构建
 2. **补图标** `build/icon.ico`（非阻塞）。
 3. **`package-lock.json`**：本次 `npm install` 新生成于 `desktop-port/electron/package-lock.json`（未被 `.gitignore` 忽略）。建议入库以锁定依赖版本、保证可复现构建；是否 add 由主控统一决定。
 4. **代码签名**：当前产物未签名（`signing is skipped`），Windows SmartScreen 可能提示。正式发布如需消除告警，需配置代码签名证书（`win.certificateFile` / `CSC_LINK`）。
-5. **运行时冒烟**：本报告验证"能构建出有效 .exe"，未做 GUI 实际启动试玩（无显示环境）。建议后续在带桌面的机器上双击 `废墟突围-1.0.0-portable.exe` 做一次启动+键鼠冒烟测试。
+5. **运行时冒烟**：本报告验证"能构建出有效 .exe"，未做 GUI 实际启动试玩（无显示环境）。建议后续在带桌面的机器上双击 `熄烛者-1.0.0-portable.exe` 做一次启动+键鼠冒烟测试。
 6. `node_modules/`、`dist/`、`app/` 均已确认被 `.gitignore` 命中（`git check-ignore` 通过），本次未对仓库做任何 add/commit。

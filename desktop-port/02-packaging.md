@@ -66,7 +66,7 @@ desktop-port/electron/
 
 ```powershell
 $env:PATH = "C:\Users\FJL03\AppData\Local\Programs\kimi-desktop\resources\resources\runtime;$env:PATH"
-cd "E:\Github Project\Nagi_Games\Ruins-Breakout\desktop-port\electron"
+cd "E:\Github Project\Nagi_Games\Snuffers\desktop-port\electron"
 # 手动复制 app/ 后：
 npm.cmd install
 npm.cmd run start          # 开发预览：直接开窗运行，不打包
@@ -78,8 +78,8 @@ npm.cmd run build:nsis     # 只打安装包
 
 | 文件 | 类型 | 预期体积 |
 |---|---|---|
-| `废墟突围-1.0.0-portable.exe` | 绿色单文件，双击即玩 | ~150–250 MB |
-| `废墟突围-1.0.0-setup.exe` | NSIS 安装包（可选安装目录、桌面快捷方式） | ~150–250 MB |
+| `熄烛者-1.0.0-portable.exe` | 绿色单文件，双击即玩 | ~150–250 MB |
+| `熄烛者-1.0.0-setup.exe` | NSIS 安装包（可选安装目录、桌面快捷方式） | ~150–250 MB |
 | `win-unpacked/` | 未压缩目录（构建中间产物，可删） | ~250 MB |
 
 > 体积构成：Chromium + Electron 运行时约 120–200 MB 是大头且不可裁剪；
@@ -106,8 +106,8 @@ npm.cmd run build:nsis     # 只打安装包
 - **外链兜底**：`setWindowOpenHandler` 拦截 `window.open`，http(s) 交系统浏览器，
   其余拒绝（游戏本身无外链，纯防御）。
 
-`package.json` 构建配置要点：`appId: com.nagigames.ruinsbreakout`、
-`productName: 废墟突围`、win target 同时含 `portable` 与 `nsis`（x64）、
+`package.json` 构建配置要点：`appId: com.nagigames.snuffers`、
+`productName: 熄烛者`、win target 同时含 `portable` 与 `nsis`（x64）、
 NSIS 非一键安装（可选目录、建桌面/开始菜单快捷方式）。
 
 ---
@@ -134,7 +134,7 @@ NSIS 非一键安装（可选目录、建桌面/开始菜单快捷方式）。
 
 ```json
 {
-  "applicationId": "com.nagigames.ruinsbreakout",
+  "applicationId": "com.nagigames.snuffers",
   "version": "1.0.0",
   "defaultMode": "window",
   "port": 0,
@@ -144,7 +144,7 @@ NSIS 非一键安装（可选目录、建桌面/开始菜单快捷方式）。
   "enableNativeAPI": true,
   "modes": {
     "window": {
-      "title": "废墟突围",
+      "title": "熄烛者",
       "width": 1280,
       "height": 720,
       "minWidth": 800,
@@ -158,7 +158,7 @@ NSIS 非一键安装（可选目录、建桌面/开始菜单快捷方式）。
     }
   },
   "cli": {
-    "binaryName": "废墟突围",
+    "binaryName": "熄烛者",
     "distributionPath": "/dist",
     "resourcesPath": "/resources"
   }

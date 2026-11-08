@@ -1,6 +1,6 @@
 # 音效资源授权清单（LICENSES）
 
-项目：废墟突围（Ruins-Breakout）· dev_win 分支
+项目：熄烛者（Snuffers）· dev_win 分支
 整理日期：2026-07-14（UTC+8）
 整理人：音效资源猎手（子代理）
 
