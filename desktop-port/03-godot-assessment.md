@@ -1,6 +1,6 @@
 # 03 · Godot 4.6.2 重写可行性评估报告
 
-> 评估对象：`E:\Github Project\Nagi_Games\Ruins-Breakout\index.html`（3502 行，Three.js r128 + Cannon.js 0.6.2 单页 3D 射击游戏）
+> 评估对象：`E:\Github Project\Nagi_Games\Snuffers\index.html`（3502 行，Three.js r128 + Cannon.js 0.6.2 单页 3D 射击游戏）
 > 评估环境：本机 Godot `4.6.2.stable.official.71f334935`（已用 `--headless --version` 实测确认），位于 `D:\Godot_v4.6.2-stable_win64.exe\Godot_v4.6.2-stable_win64.exe`
 > 结论性质：本报告**不修改任何游戏源文件**，仅产出设计与估算。
 
@@ -158,7 +158,7 @@ Three.js r128 的 `MeshStandardMaterial` + 单平行光阴影 + "改背景色+�
    ```bash
    "D:\Godot_v4.6.2-stable_win64.exe\Godot_v4.6.2-stable_win64.exe" \
      --headless --path "<项目目录>" \
-     --export-release "Windows Desktop" "<输出路径>\RuinsBreakout.exe"
+     --export-release "Windows Desktop" "<输出路径>\Snuffers.exe"
    ```
    - 前提：第 2 步已生成 `export_presets.cfg`，且导出模板已安装。
 

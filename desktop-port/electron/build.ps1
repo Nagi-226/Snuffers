@@ -1,5 +1,5 @@
 ﻿<#
-  废墟突围 - Electron 一键构建脚本
+  熄烛者 - Electron 一键构建脚本
   用法：右键“使用 PowerShell 运行”，或执行：
     powershell -ExecutionPolicy Bypass -File build.ps1
 
