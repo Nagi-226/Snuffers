@@ -242,6 +242,8 @@ func _weapon_display_name(weapon_id: StringName) -> String:
 			return "SPAS-12 · 12GA"
 		&"smg":
 			return "EM-57S-1 雹·Ⅰ"
+		&"em57s2":
+			return "EM-57S-2 雹·Ⅱ"
 		&"lmg":
 			return "EM-68L 殷雷"
 		&"magnum":
@@ -252,10 +254,14 @@ func _weapon_display_name(weapon_id: StringName) -> String:
 			return "EM-86B 裂空"
 		&"em86d":
 			return "EM-86D 贯日"
+		&"em86m":
+			return "EM-86M 通用机枪"
 		&"em127g":
 			return "EM-127G 凿空"
 		&"em12g2":
 			return "EM-12G-2 霰·Ⅱ"
+		&"em40t1":
+			return "EM-40T-1 榴弹发射器"
 	return "未获取"
 
 
@@ -461,13 +467,15 @@ func _refresh_ammo() -> void:
 			_set_ammo_text(&"pistol", GameState.pistol_mag, GameState.pistol_reserve)
 		&"smg":
 			_set_ammo_text(&"smg", GameState.smg_mag, GameState.pistol_reserve)
+		&"em57s2":
+			_set_ammo_text(&"em57s2", GameState.em57s2_mag, GameState.pistol_reserve)
 		&"lmg":
 			_set_ammo_text(&"lmg", GameState.lmg_mag, GameState.rifle_reserve)
 		&"magnum":
 			_set_ammo_text(&"magnum", GameState.magnum_mag, GameState.magnum_reserve)
 		&"dmr":
 			_set_ammo_text(&"dmr", GameState.dmr_mag, GameState.rifle_reserve)
-		&"em86s", &"em86b", &"em86d":
+		&"em86s", &"em86b", &"em86d", &"em86m":
 			_set_ammo_text(GameState.current_weapon, GameState.get(GameState.current_weapon + "_mag"), GameState.em86_reserve)
 		&"em127g":
 			_set_ammo_text(&"em127g", GameState.em127g_mag, GameState.magnum_reserve)
@@ -477,6 +485,8 @@ func _refresh_ammo() -> void:
 			_set_ammo_text(&"shotgun", GameState.shotgun_mag, GameState.shotgun_reserve)
 		&"spas12":
 			_set_ammo_text(&"spas12", GameState.spas12_mag, GameState.spas12_reserve)
+		&"em40t1":
+			_set_ammo_text(&"em40t1", GameState.em40t1_mag, GameState.rifle_grenades)
 		_:
 			_set_ammo_text(&"rifle", GameState.rifle_mag, GameState.rifle_reserve)
 
@@ -501,6 +511,7 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 	var ammo_type: String = {
 		&"pistol": "EC-57",
 		&"smg": "EC-57",
+		&"em57s2": "EC-57",
 		&"rifle": "EC-68",
 		&"lmg": "EC-68",
 		&"magnum": "EC-127",
@@ -508,6 +519,8 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 		&"em86s": "EC-86",
 		&"em86b": "EC-86",
 		&"em86d": "EC-86",
+		&"em86m": "EC-86",
+		&"em40t1": "EC-40",
 		&"em127g": "EC-127",
 		&"em12g2": "EC-12",
 		&"shotgun": "EC-12",

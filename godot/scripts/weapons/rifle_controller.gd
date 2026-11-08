@@ -15,6 +15,7 @@
 ## R 键监听在本脚本 _unhandled_input（门控与基类左键开火同款），
 ## 本脚本监听 Events.weapon_reload_started/reloaded 做状态封锁与弹药结算；
 ## 弹尽自动换弹（网页版 L2954）与 R 键手动换弹共用 _start_reload，两条路径信号序列一致。
+class_name RifleController
 extends WeaponController
 
 @export var mag_state_property: StringName = &"rifle_mag"

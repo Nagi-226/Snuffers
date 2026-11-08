@@ -77,3 +77,12 @@
 - **原始模型**: `desktop-port/godot-spike/modeling/em-weapons/em127g/em127g_hunyuan_v31_raw.glb`、`em12g2/em12g2_hunyuan_v31_raw.glb`（原始工作区，不直接入库）。
 - **本地处理**: `prepare_generated_asset.py` 按各自枪口实测分别旋转 -90°（EM-127G）与 +90°（EM-12G-2）到 Godot -Z；长度 1.15/0.90m、几何居中、贴图最长边 2048；三角面分别由 1499222/1499648 减至各 70000。
 - **生成日期**: 2026-11-07。
+
+
+## EM-57S-2「雹·Ⅱ」/ EM-86M / EM-40T-1（2026-11-08 入库）
+
+- **正式资产**: `em57s2_viewmodel.glb`、`em86m_viewmodel.glb`、`em40t1_viewmodel.glb`。
+- **来源**: 机主提供的项目自有 EDAA 概念参考图，腾讯混元 3D V3.1 单图生成；无第三方网格或贴图，无额外署名要求。
+- **原始模型**: `desktop-port/godot-spike/modeling/em-weapons/em57s2/em57s2_hunyuan_v31_raw.glb`、`em86m/em86m_hunyuan_v31_raw.glb`、`em40t1/em40t1_hunyuan_v31_raw.glb`（原始工作区，不直接入库）。
+- **本地处理**: `prepare_generated_asset.py` 按实测 +X 枪口统一旋转 +90° 到 Blender +Y / Godot -Z；长度分别为 0.82/1.10/1.00m、几何居中、贴图最长边 2048；三角面分别由 1500000/1499846/1499676 减至 59999/70000/70000，导出游戏用 GLB。EM-57S-2 另以 `open_em57s2_optic.py` 生成 ADS 专用 `em57s2_viewmodel_ads.glb`，仅将镜轴遮挡面改为淡蓝透明材质，完整保留 59999 三角面，常规视角仍使用原完整模型。
+- **生成日期**: 2026-11-08。
