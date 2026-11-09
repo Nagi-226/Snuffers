@@ -1,0 +1,26 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/em120r_controller.gd" id="1_controller"]
+[ext_resource type="Resource" path="res://scenes/weapons/em120r.tres" id="2_data"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/em120r_viewmodel.glb" id="3_model"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/arms_rifle_native.glb" id="4_arms"]
+
+[node name="Em120r" type="Node3D"]
+script = ExtResource("1_controller")
+weapon_data = ExtResource("2_data")
+
+[node name="ViewModel" type="Node3D" parent="."]
+
+[node name="Weapon" parent="ViewModel" instance=ExtResource("3_model")]
+position = Vector3(0, 0.18, 0.38)
+
+[node name="Muzzle" type="Marker3D" parent="ViewModel/Weapon"]
+position = Vector3(0, 0, -0.6)
+
+[node name="LaserOrigin" type="Marker3D" parent="ViewModel/Weapon"]
+position = Vector3(0.08, 0.08, -0.48)
+
+[node name="OpticAim" type="Marker3D" parent="ViewModel/Weapon"]
+position = Vector3(0, 0.20, 0.03)
+
+[node name="Arms" parent="ViewModel" instance=ExtResource("4_arms")]

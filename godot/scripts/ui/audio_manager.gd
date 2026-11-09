@@ -268,6 +268,10 @@ func _on_weapon_fired(weapon_id: StringName) -> void:
 			play_sfx_pitched(&"pistol", GameConfig.EM57S2_SOUND_PITCH)
 		&"em86m":
 			play_sfx_pitched(&"rifle", GameConfig.EM86M_SOUND_PITCH)
+		&"em127m":
+			play_sfx_pitched(&"rifle", GameConfig.EM127M_SOUND_PITCH)
+		&"em120r":
+			play_sfx_pitched(&"rocket", GameConfig.EM120R_SOUND_PITCH)
 		&"em40t1":
 			play_sfx(&"rocket")
 		&"lmg":

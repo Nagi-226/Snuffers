@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_controller"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/rifle.tscn" id="2_rifle"]
@@ -19,6 +19,8 @@
 [ext_resource type="PackedScene" path="res://scenes/weapons/em57s2.tscn" id="18_em57s2"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/em86m.tscn" id="19_em86m"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/em40t1.tscn" id="20_em40t1"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/em127m.tscn" id="21_em127m"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/em120r.tscn" id="22_em120r"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -71,6 +73,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.27, -0.62)
 
 [node name="Em40t1" parent="Camera3D/WeaponMount" instance=ExtResource("20_em40t1")]
 
+[node name="Em127m" parent="Camera3D/WeaponMount" instance=ExtResource("21_em127m")]
+
+[node name="Em120r" parent="Camera3D/WeaponMount" instance=ExtResource("22_em120r")]
+
 [node name="PlayerCombatFx" type="Node3D" parent="."]
 script = ExtResource("5_fx")
 
@@ -93,3 +99,5 @@ script = ExtResource("6_explosion_fx")
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Em57s2" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Em86m" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Em40t1" to="." method="_on_weapon_recoil_kick"]
+[connection signal="recoil_kick" from="Camera3D/WeaponMount/Em127m" to="." method="_on_weapon_recoil_kick"]
+[connection signal="recoil_kick" from="Camera3D/WeaponMount/Em120r" to="." method="_on_weapon_recoil_kick"]

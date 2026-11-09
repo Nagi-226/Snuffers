@@ -64,6 +64,9 @@ var _ads_reticle: AdsReticle = null
 var _dmr_scope: ColorRect = null
 var _dmr_scope_material: ShaderMaterial = null
 var _dmr_tactical: Control = null
+var _missile_scope: ColorRect = null
+var _missile_scope_material: ShaderMaterial = null
+var _missile_tactical: Control = null
 var _big_map: Control = null
 var _scope_view_models: Dictionary = {}
 @onready var _dmr_view_model: Node3D = $Camera3D/WeaponMount/DMR/ViewModel
@@ -142,6 +145,22 @@ func _ready() -> void:
 	_dmr_tactical.set("excluded_rids", [get_rid()])
 	_dmr_tactical.visible = false
 	reticle_layer.add_child(_dmr_tactical)
+	_missile_scope = ColorRect.new()
+	_missile_scope.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_missile_scope.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_missile_scope_material = ShaderMaterial.new()
+	_missile_scope_material.shader = load("res://scripts/player/missile_scope.gdshader") as Shader
+	_missile_scope.material = _missile_scope_material
+	_missile_scope.visible = false
+	reticle_layer.add_child(_missile_scope)
+	_missile_tactical = load("res://scripts/player/missile_tactical_overlay.gd").new() as Control
+	_missile_tactical.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_missile_tactical.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_missile_tactical.set("camera", _camera)
+	_missile_tactical.set("excluded_rids", [get_rid()])
+	_missile_tactical.set("range_limit", GameConfig.EM120R_MAX_RANGE)
+	_missile_tactical.visible = false
+	reticle_layer.add_child(_missile_tactical)
 	_big_map = load("res://scripts/player/big_map.gd").new() as Control
 	_big_map.visible = false
 	reticle_layer.add_child(_big_map)
@@ -270,9 +289,11 @@ func _calibrate_ads() -> void:
 		&"em57s2": GameConfig.EM57S2_ADS_FOV,
 		&"em40t1": GameConfig.EM40T1_ADS_FOV,
 		&"em127g": GameConfig.EM127G_SCOPE_FOVS[0],
+		&"em127m": GameConfig.EM127G_SCOPE_FOVS[0],
+		&"em120r": GameConfig.EM127G_SCOPE_FOVS[0],
 		&"em12g2": GameConfig.SHOTGUN_ADS_FOV,
 	}
-	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"], [&"spas12", "Spas12"], [&"smg", "SMG"], [&"em57s2", "Em57s2"], [&"lmg", "LMG"], [&"magnum", "Magnum"], [&"em86s", "Em86s"], [&"em86b", "Em86b"], [&"em86d", "Em86d"], [&"em86m", "Em86m"], [&"em40t1", "Em40t1"], [&"em127g", "Em127g"], [&"em12g2", "Em12g2"]]:
+	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"], [&"spas12", "Spas12"], [&"smg", "SMG"], [&"em57s2", "Em57s2"], [&"lmg", "LMG"], [&"magnum", "Magnum"], [&"em86s", "Em86s"], [&"em86b", "Em86b"], [&"em86d", "Em86d"], [&"em86m", "Em86m"], [&"em40t1", "Em40t1"], [&"em127g", "Em127g"], [&"em12g2", "Em12g2"], [&"em127m", "Em127m"], [&"em120r", "Em120r"]]:
 		var weapon_root := _weapon_mount.get_node_or_null(pair[1]) as Node3D
 		var fallback := Vector3(0.0, _mount_hip_pos.y, _mount_hip_pos.z)
 		if weapon_root == null:
@@ -342,7 +363,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			_set_aiming(button.pressed)
 		elif button.pressed and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED \
 				and button.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
-			if GameState.current_weapon in [&"em86s", &"em127g"] and GameState.is_aiming:
+			if GameState.current_weapon in [&"em86s", &"em127g", &"em127m", &"em120r"] and GameState.is_aiming:
 				_adjust_em86s_zoom(1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else -1)
 			else:
 				_cycle_unlocked_weapon(-1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else 1)
@@ -462,6 +483,7 @@ func _physics_process(delta: float) -> void:
 	GameState.player_yaw = rotation.y
 
 	_update_interact_target()
+	_update_ec120_aim()
 
 	_update_speed_state()
 	_update_still_time(delta)
@@ -558,6 +580,22 @@ func _update_interact_target() -> void:
 			_prompt_label.text = target.interact_prompt()
 
 
+## 长弓的激光指向与鼠标准星共用相机射线；武器/导弹只消费总线和状态契约。
+func _update_ec120_aim() -> void:
+	if GameState.current_weapon != &"em120r" or Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		return
+	var from := _camera.global_position
+	var to := from - _camera.global_basis.z * GameConfig.EM120R_MAX_RANGE
+	var query := PhysicsRayQueryParameters3D.create(from, to)
+	query.exclude = [get_rid()]
+	query.collide_with_areas = true
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	GameState.em120r_aim_origin = from
+	Events.ec120_aim_origin_changed.emit(from)
+	GameState.em120r_aim_point = to if hit.is_empty() else hit.position
+	Events.ec120_aim_changed.emit(GameState.em120r_aim_point)
+
+
 ## 自动上台阶：抬 STEP_MAX_HEIGHT → 前推 → 向下落回台阶面（三段 test_move，
 ## 任一段被挡即放弃，全程不穿透任何碰撞；落点必须高于原地面才认定为台阶）。
 func _try_step_up(wish: Vector3) -> void:
@@ -596,7 +634,7 @@ func _process(delta: float) -> void:
 	var lowering_for_reload := GameState.current_weapon == &"em57s2" and bool(_em57s2_controller.get("_is_reloading"))
 	var ads_target := 1.0 if GameState.is_aiming and not lowering_for_reload else 0.0
 	var weapon_changed := _last_ads_weapon != GameState.current_weapon
-	if not is_equal_approx(_ads_weight, ads_target) or weapon_changed or GameState.current_weapon in [&"shotgun", &"em86s", &"em127g"]:
+	if not is_equal_approx(_ads_weight, ads_target) or weapon_changed or GameState.current_weapon in [&"shotgun", &"em86s", &"em127g", &"em127m", &"em120r"]:
 		_last_ads_weapon = GameState.current_weapon
 		_ads_weight = move_toward(_ads_weight, ads_target, delta / GameConfig.ADS_LERP_TIME)
 		if GameState.current_weapon == &"shotgun":
@@ -605,7 +643,7 @@ func _process(delta: float) -> void:
 			_weapon_mount.position = _mount_hip_pos.lerp(
 				_ads_mount_targets.get(GameState.current_weapon, _mount_hip_pos), _ads_weight)
 		var fov_target: float = _ads_fov_targets.get(GameState.current_weapon, GameConfig.FOV_BASE)
-		if GameState.current_weapon in [&"em86s", &"em127g"]:
+		if GameState.current_weapon in [&"em86s", &"em127g", &"em127m", &"em120r"]:
 			fov_target = _scope_fovs()[_em86s_zoom_index]
 		_camera.fov = lerpf(GameConfig.FOV_BASE, fov_target, _ads_weight)
 		var camera_forward: float = GameConfig.SHOTGUN_ADS_CAMERA_FORWARD if GameState.current_weapon == &"shotgun" else 0.0
@@ -632,7 +670,8 @@ func _process(delta: float) -> void:
 	if GameState.current_weapon == &"em12g2":
 		_weapon_mount.get_node("Em12g2/ViewModel/Arms").visible = _ads_weight < 0.75
 	var grenade_scope := GameState.current_weapon == &"em40t1"
-	var full_scope := GameState.current_weapon in [&"dmr", &"em86s", &"em86d", &"em127g", &"em40t1"] and _ads_weight > 0.6
+	var full_scope := GameState.current_weapon in [&"dmr", &"em86s", &"em86d", &"em127g", &"em127m", &"em40t1"] and _ads_weight > 0.6
+	var missile_scope := GameState.current_weapon == &"em120r" and _ads_weight > 0.6
 	if _dmr_scope != null:
 		_dmr_scope.visible = full_scope
 		_dmr_tactical.visible = full_scope
@@ -645,18 +684,29 @@ func _process(delta: float) -> void:
 				_weapon_mount.get_node("Em86d/ViewModel").visible = not full_scope
 			&"em127g":
 				_weapon_mount.get_node("Em127g/ViewModel").visible = not full_scope
+			&"em127m":
+				_weapon_mount.get_node("Em127m/ViewModel").visible = not full_scope
 			&"em40t1":
 				_weapon_mount.get_node("Em40t1/ViewModel").visible = not full_scope
 		var viewport_size := get_viewport().get_visible_rect().size
 		_dmr_scope_material.set_shader_parameter("aspect", viewport_size.x / viewport_size.y)
 		_dmr_scope_material.set_shader_parameter("weight", clampf((_ads_weight - 0.6) / 0.4, 0.0, 1.0))
-		_dmr_scope_material.set_shader_parameter("center_style", 2.0 if grenade_scope else (1.0 if GameState.current_weapon in [&"em86s", &"em127g"] else 0.0))
-		_dmr_tactical.set("zoom_text", "%dX" % _scope_zooms()[_em86s_zoom_index] if GameState.current_weapon in [&"em86s", &"em127g"] else "")
+		_dmr_scope_material.set_shader_parameter("center_style", 2.0 if grenade_scope else (1.0 if GameState.current_weapon in [&"em86s", &"em127g", &"em127m"] else 0.0))
+		_dmr_tactical.set("zoom_text", "%dX" % _scope_zooms()[_em86s_zoom_index] if GameState.current_weapon in [&"em86s", &"em127g", &"em127m"] else "")
 		_dmr_tactical.set("reticle_mode", &"grenade" if grenade_scope else &"hitscan")
 		_dmr_tactical.set("range_limit", GameConfig.GRENADE_MAX_RANGE if grenade_scope else GameConfig.DMR_RANGE)
 		_dmr_tactical.set("projectile_speed", GameConfig.GRENADE_PROJECTILE_SPEED)
 		_dmr_tactical.set("projectile_gravity", GameConfig.GRENADE_GRAVITY)
-		_ads_reticle.visible = not full_scope
+		_ads_reticle.visible = not full_scope and not missile_scope
+	if _missile_scope != null:
+		_missile_scope.visible = missile_scope
+		_missile_tactical.visible = missile_scope
+		var viewport_size := get_viewport().get_visible_rect().size
+		_missile_scope_material.set_shader_parameter("aspect", viewport_size.x / viewport_size.y)
+		_missile_scope_material.set_shader_parameter("weight", clampf((_ads_weight - 0.6) / 0.4, 0.0, 1.0))
+		_missile_tactical.set("zoom_text", "%dX" % _scope_zooms()[_em86s_zoom_index])
+		if GameState.current_weapon == &"em120r":
+			_weapon_mount.get_node("Em120r/ViewModel").visible = not missile_scope
 	# 瞄具双网格切换：当前武器且开镜过半用开孔版，其余情况回完整版。
 	# 切换点取过渡中点（0.5），此时镜筒正在归中途中，换网格肉眼不可察。
 	for weapon_id: StringName in _optic_meshes:
@@ -761,18 +811,18 @@ func _toggle_big_map() -> void:
 func _set_aiming(aiming: bool) -> void:
 	if GameState.is_aiming == aiming:
 		return
-	if aiming and GameState.current_weapon in [&"em86s", &"em127g"]:
+	if aiming and GameState.current_weapon in [&"em86s", &"em127g", &"em127m", &"em120r"]:
 		_em86s_zoom_index = 0
 	GameState.is_aiming = aiming
 	Events.player_aim_changed.emit(aiming)
 
 
 func _scope_fovs() -> Array[float]:
-	return GameConfig.EM127G_SCOPE_FOVS if GameState.current_weapon == &"em127g" else GameConfig.EM86S_SCOPE_FOVS
+	return GameConfig.EM127G_SCOPE_FOVS if GameState.current_weapon in [&"em127g", &"em127m", &"em120r"] else GameConfig.EM86S_SCOPE_FOVS
 
 
 func _scope_zooms() -> Array[int]:
-	return GameConfig.EM127G_SCOPE_ZOOMS if GameState.current_weapon == &"em127g" else GameConfig.EM86S_SCOPE_ZOOMS
+	return GameConfig.EM127G_SCOPE_ZOOMS if GameState.current_weapon in [&"em127g", &"em127m", &"em120r"] else GameConfig.EM86S_SCOPE_ZOOMS
 
 
 func _adjust_em86s_zoom(direction: int) -> void:
@@ -846,6 +896,8 @@ func _switch_weapon(weapon_id: StringName) -> void:
 		return
 	GameState.current_weapon = weapon_id
 	Events.weapon_switched.emit(weapon_id)
+	if weapon_id == &"em120r":
+		_update_ec120_aim()
 
 
 func _set_nano_mode(mode: StringName) -> void:
@@ -875,6 +927,10 @@ func _apply_nano_visuals() -> void:
 ## X：各武器只循环机主配置的射击模式；EM-86M 无点射，EM-40T-1 固定半自动。
 func _cycle_fire_mode() -> void:
 	var w := GameState.current_weapon
+	if w == &"em120r":
+		GameState.em120r_guidance_mode = &"homing" if GameState.em120r_guidance_mode == &"laser" else &"laser"
+		Events.ec120_guidance_changed.emit(GameState.em120r_guidance_mode)
+		return
 	if w in [&"dmr", &"spas12", &"magnum", &"em86s", &"em86d", &"em127g", &"em40t1"]:
 		return
 	const ORDER_RIFLE: Array[StringName] = [&"auto", &"semi", &"burst", &"grenade"]
@@ -892,7 +948,7 @@ func _cycle_fire_mode() -> void:
 		order = ORDER_EM86B
 	elif w == &"em57s2":
 		order = ORDER_EM57S2
-	elif w == &"em86m":
+	elif w in [&"em86m", &"em127m"]:
 		order = ORDER_AUTO_SEMI
 	var cur: StringName = GameState.fire_modes.get(w, &"auto")
 	GameState.fire_modes[w] = order[(order.find(cur) + 1) % order.size()]

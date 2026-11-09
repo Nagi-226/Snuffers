@@ -342,6 +342,54 @@ const EM127G_RECOIL_VIEW_Z_FACTOR: float = 0.07
 const EM127G_SCOPE_FOVS: Array[float] = [17.5, 8.75, 4.375] ## 16/32/64 倍
 const EM127G_SCOPE_ZOOMS: Array[int] = [16, 32, 64]
 
+# ===== EM-127M 雷霆 / EM-120R 长弓（2026-11-09 机主批准）=====
+const EM127M_DAMAGE_BODY: float = 450.0
+const EM127M_MAG: int = 500
+const EM127M_FIRE_INTERVAL: float = 60.0 / 700.0
+const EM127M_SEMI_FIRE_INTERVAL: float = 60.0 / 700.0
+const EM127M_RELOAD_TIME: float = EM86M_RELOAD_TIME
+const EM127M_RANGE: float = EM127G_RANGE
+const EM127M_SPREAD_HIP: float = EM127G_SPREAD_HIP
+const EM127M_SPREAD_PRONE: float = EM127G_SPREAD_PRONE
+const EM127M_SPREAD_AIM: float = EM127G_SPREAD_AIM
+const EM127M_RECOIL_PITCH: float = EM86M_RECOIL_PITCH
+const EM127M_RECOIL_VIEW_OFFSET: float = EM86M_RECOIL_VIEW_OFFSET
+const EM127M_SOUND_PITCH: float = 0.5
+const EM120R_MAG: int = 10
+const EM120R_RESERVE: int = 0 ## 未指定额外备弹；独立 EC-120 不借用 EC-40
+const EM120R_FIRE_INTERVAL: float = 0.8
+const EM120R_RELOAD_TIME: float = 3.0
+const EM120R_DAMAGE_BODY: float = 1200.0
+const EM120R_EXPLODE_RADIUS: float = 35.0
+const EM120R_INNER_RADIUS: float = 20.0
+const EM120R_INNER_DAMAGE: float = 1200.0
+const EM120R_OUTER_DAMAGE: float = 800.0
+const EM120R_EJECT_SPEED: float = 12.0
+const EM120R_IGNITION_DISTANCE: float = 3.0
+const EM120R_PROJECTILE_SPEED: float = 80.0
+const EM120R_MAX_RANGE: float = 1500.0
+const EM120R_TURN_RATE: float = deg_to_rad(120.0)
+const EM120R_LOCK_TIME: float = 1.0
+const EM120R_MODEL_POSITION := Vector3(0, 0.18, 0.38)
+const EM120R_MODEL_ROTATION := Vector3.ZERO
+const EM120R_MUZZLE_POSITION := Vector3(0, 0, -0.6)
+const EM120R_RIGHT_GRIP := Vector3(0, -0.17, 0.04)
+const EM120R_SUPPORT_GRIP := Vector3(0, -0.10, -0.28)
+const EM120R_RIGHT_ELBOW := Vector3(0.17, -0.35, 0.35)
+const EM120R_LEFT_ELBOW := Vector3(-0.25, -0.4, 0.05)
+const EM120R_LASER_WIDTH: float = 0.012
+const EM120R_LASER_COLOR := Color(0.2, 0.85, 1.0)
+const EM120R_LASER_ENERGY: float = 2.0
+const EM120R_LASER_ORIGIN := Vector3(0.08, 0.08, -0.48)
+const EM120R_ENGINE_FLAME_LENGTH: float = 0.5
+const EM120R_ENGINE_FLAME_RADIUS: float = 0.055
+const EM120R_ENGINE_FLAME_COLOR := Color(0.45, 0.9, 1.0)
+const EM120R_ENGINE_LIGHT_ENERGY: float = 2.0
+const EM120R_ENGINE_LIGHT_RANGE: float = 2.0
+const EM120R_RECOIL_PITCH: float = 0.006
+const EM120R_RECOIL_VIEW_OFFSET: float = 0.08
+const EM120R_SOUND_PITCH: float = 0.7
+
 # ===== EM-12G-2「霰·Ⅱ」有托前置供弹霰弹枪（2026-11-07 机主裁决）=====
 const EM12G2_FIRE_INTERVAL: float = 60.0 / 650.0 ## 全自动 650 RPM
 const EM12G2_SEMI_FIRE_INTERVAL: float = 0.25
@@ -558,10 +606,10 @@ const WEAPON_CATEGORIES: Array = [
 	{"number": 2, "name": "冲锋枪", "weapons": [&"smg", &"em57s2"]},
 	{"number": 3, "name": "突击 / DMR", "weapons": [&"rifle", &"dmr", &"em86b", &"em86d"]},
 	{"number": 4, "name": "霰弹 / 狙击", "weapons": [&"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g"]},
-	{"number": 5, "name": "机枪", "weapons": [&"lmg", &"em86m"]},
-	{"number": 6, "name": "爆破重火力", "weapons": [&"em40t1"]},
+	{"number": 5, "name": "机枪", "weapons": [&"lmg", &"em86m", &"em127m"]},
+	{"number": 6, "name": "爆破重火力", "weapons": [&"em40t1", &"em120r"]},
 ]
-const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"magnum", &"smg", &"em57s2", &"rifle", &"dmr", &"em86b", &"em86d", &"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g", &"lmg", &"em86m", &"em40t1"]
+const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"magnum", &"smg", &"em57s2", &"rifle", &"dmr", &"em86b", &"em86d", &"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g", &"lmg", &"em86m", &"em127m", &"em40t1", &"em120r"]
 const WEAPON_SELECTOR_HOLD_TIME: float = 1.6
 
 # ===== UI 反馈动效（G2 冻结自 W5 脚本常量迁入）=====

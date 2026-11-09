@@ -258,6 +258,10 @@ func _weapon_display_name(weapon_id: StringName) -> String:
 			return "EM-86M 奔雷"
 		&"em127g":
 			return "EM-127G 凿空"
+		&"em127m":
+			return "EM-127M 雷霆"
+		&"em120r":
+			return "EM-120R 长弓"
 		&"em12g2":
 			return "EM-12G-2 霰·Ⅱ"
 		&"em40t1":
@@ -345,6 +349,7 @@ func _connect_events() -> void:
 	Events.weapon_switched.connect(_on_weapon_switched)
 	Events.weapon_category_selected.connect(_show_weapon_selector)
 	Events.fire_mode_changed.connect(_on_fire_mode_changed)
+	Events.ec120_guidance_changed.connect(_on_ec120_guidance_changed)
 	Events.message_posted.connect(_on_message_posted)
 	Events.kills_changed.connect(_refresh_kills)
 	Events.intel_picked.connect(_on_intel_picked)
@@ -369,6 +374,7 @@ func _disconnect_events() -> void:
 	Events.weapon_switched.disconnect(_on_weapon_switched)
 	Events.weapon_category_selected.disconnect(_show_weapon_selector)
 	Events.fire_mode_changed.disconnect(_on_fire_mode_changed)
+	Events.ec120_guidance_changed.disconnect(_on_ec120_guidance_changed)
 	Events.message_posted.disconnect(_on_message_posted)
 	Events.kills_changed.disconnect(_refresh_kills)
 	Events.intel_picked.disconnect(_on_intel_picked)
@@ -479,6 +485,10 @@ func _refresh_ammo() -> void:
 			_set_ammo_text(GameState.current_weapon, GameState.get(GameState.current_weapon + "_mag"), GameState.em86_reserve)
 		&"em127g":
 			_set_ammo_text(&"em127g", GameState.em127g_mag, GameState.magnum_reserve)
+		&"em127m":
+			_set_ammo_text(&"em127m", GameState.em127m_mag, GameState.magnum_reserve)
+		&"em120r":
+			_set_ammo_text(&"em120r", GameState.em120r_mag, GameState.em120r_reserve)
 		&"em12g2":
 			_set_ammo_text(&"em12g2", GameState.em12g2_mag, GameState.shotgun_reserve)
 		&"shotgun":
@@ -497,6 +507,11 @@ func _on_fire_mode_changed(weapon_id: StringName, _mode: StringName) -> void:
 		_refresh_ammo()
 
 
+func _on_ec120_guidance_changed(_mode: StringName) -> void:
+	if GameState.current_weapon == &"em120r":
+		_refresh_ammo()
+
+
 ## 弹药行：主弹显示武器弹匣/备弹；EM-68A 另起一行显示 EC-40P 榴弹总余量。
 ## 滚雷档只切换射击模式标签，不再用榴弹余量替换步枪主弹。
 func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
@@ -508,6 +523,8 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 	}.get(mode, "")
 	if weapon_id == &"spas12":
 		mode_tag = "泵动"
+	if weapon_id == &"em120r":
+		mode_tag = "半自动·激光" if GameState.em120r_guidance_mode == &"laser" else "半自动·追踪"
 	var ammo_type: String = {
 		&"pistol": "EC-57",
 		&"smg": "EC-57",
@@ -522,6 +539,8 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 		&"em86m": "EC-86",
 		&"em40t1": "EC-40",
 		&"em127g": "EC-127",
+		&"em127m": "EC-127",
+		&"em120r": "EC-120",
 		&"em12g2": "EC-12",
 		&"shotgun": "EC-12",
 		&"spas12": "12GA",

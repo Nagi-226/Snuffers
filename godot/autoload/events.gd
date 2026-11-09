@@ -39,6 +39,12 @@ signal weapon_charge_fired(weapon_id: StringName)
 ## 射击模式切换（2026-10-19 机主立项：X 键循环；2026-10-22 步枪追加 &"grenade" 榴档，闭环 全自动→半自动→三发点射→滚雷）。
 ## mode: &"semi" / &"burst" / &"auto" / &"grenade"
 signal fire_mode_changed(weapon_id: StringName, mode: StringName)
+## EC-120 指向、未发射目标锁与制导模式；每枚自主导弹保存自己的发射时目标。
+signal ec120_aim_changed(aim_point: Vector3)
+signal ec120_aim_origin_changed(origin: Vector3)
+signal ec120_lock_changed(target: Node3D)
+signal ec120_guidance_changed(mode: StringName)
+signal ec120_lock_consumed()
 ## 切枪完成。
 signal weapon_switched(weapon_id: StringName)
 ## 数字类别或滚轮请求显示武器选择栏。category 为主键盘 1..6。

@@ -25,6 +25,12 @@
 | `em127g.svg` | EM-127G | `em127g_viewmodel.glb` | 项目自有 EDAA 设定与生成模型；本项目轮廓处理 | 项目自有资产 | 2026-11-08 |
 | `em12g2.svg` | EM-12G-2 | `em12g2_viewmodel_intact.glb` | 项目自有 EDAA 设定与生成模型；本项目轮廓处理 | 项目自有资产 | 2026-11-08 |
 
+## 雷霆 / 长弓（2026-11-09）
+
+- `em127m.svg` / `em120r.svg`：分别由正式 `em127m_viewmodel.glb` / `em120r_viewmodel.glb` 的实际可见侧面轮廓生成，沿用项目青蓝线稿处理。
+- 作者/来源：机主腾讯混元3D生成的项目武器模型；https://3d.hunyuan.tencent.com/creation 。生成输出适用平台条款；原模型来源登记见 `assets/models/weapons/ATTRIBUTION.md`。本轮未引入第三方图标，未重新审核平台条款。
+- 日期：2026-11-09。
+
 ## SPAS-12 来源与署名
 
 - 名称：Franchi SPAS-12 (Low-poly)。

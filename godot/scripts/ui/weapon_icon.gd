@@ -16,6 +16,8 @@ const ICONS: Dictionary = {
 	&"em86b": preload("res://assets/ui/weapons/em86b.svg"),
 	&"em86d": preload("res://assets/ui/weapons/em86d.svg"),
 	&"em127g": preload("res://assets/ui/weapons/em127g.svg"),
+	&"em127m": preload("res://assets/ui/weapons/em127m.svg"),
+	&"em120r": preload("res://assets/ui/weapons/em120r.svg"),
 	&"em12g2": preload("res://assets/ui/weapons/em12g2.svg"),
 }
 
