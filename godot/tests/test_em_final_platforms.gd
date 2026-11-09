@@ -39,6 +39,10 @@ func _run() -> void:
 		return
 	_state = root.get_node("GameState")
 	_state.reset()
+	var ec120_data = load("res://scenes/weapons/em120r.tres")
+	_assert(ec120_data.reserve_size == 150, "Longbow data resource defaults to 150 EC-120 reserve missiles")
+	ec120_data.sync_from_config()
+	_assert(ec120_data.reserve_size == 150, "Longbow synchronized data uses 150 EC-120 reserve missiles")
 	root.size = Vector2i(1920, 1080)
 	_world = Node3D.new()
 	root.add_child(_world)
@@ -61,7 +65,7 @@ func _run() -> void:
 		quit(1)
 		return
 	_assert(_state.em127m_mag == 500 and _state.em120r_mag == 10, "new magazines initialize to 500 and 10")
-	_assert(_state.em120r_reserve == 0, "EC-120 has no unsolicited extra reserve")
+	_assert(_state.em120r_reserve == 150, "EC-120 reserve initializes to the approved 150 missiles")
 	_assert(_state.fire_modes[&"em127m"] == &"auto" and _state.fire_modes[&"em120r"] == &"semi", "Thunder starts auto and Longbow stays semi-auto")
 	var thunder = _player.get_node("Camera3D/WeaponMount/Em127m")
 	var launcher = _player.get_node("Camera3D/WeaponMount/Em120r")
@@ -80,6 +84,22 @@ func _run() -> void:
 		var ammo = hud._weapon_ammo
 		_assert(ammo.weapon_name.contains("雷霆" if id == &"em127m" else "长弓") and ammo.ammo_type == ("EC-127" if id == &"em127m" else "EC-120"), "%s HUD shows the requested weapon name and ammunition type" % id)
 		_assert(ammo.mag == (500 if id == &"em127m" else 10), "%s HUD shows its own magazine" % id)
+		if id == &"em120r":
+			_assert(ammo.reserve == 150, "Longbow HUD shows its separate 150-missile reserve")
+	_state.em120r_mag = 0
+	_player._switch_weapon(&"em120r")
+	launcher._start_reload()
+	await create_timer(launcher.weapon_data.reload_time + 0.1).timeout
+	_assert(_state.em120r_mag == 10 and _state.em120r_reserve == 140 and not launcher._is_reloading, "real timed Longbow reload transfers ten missiles from the reserve")
+	_assert(hud._weapon_ammo.mag == 10 and hud._weapon_ammo.reserve == 140, "Longbow reload immediately updates magazine and reserve in the HUD")
+	_state.em120r_mag = 0
+	_state.em120r_reserve = 7
+	launcher._on_weapon_reloaded(&"em120r")
+	_assert(_state.em120r_mag == 7 and _state.em120r_reserve == 0, "last partial Longbow reload transfers only the seven remaining missiles")
+	_assert(hud._weapon_ammo.mag == 7 and hud._weapon_ammo.reserve == 0, "partial Longbow reload updates the HUD without creating ammo")
+	_state.em120r_mag = 10
+	_state.em120r_reserve = 150
+	root.get_node("Events").ammo_changed.emit(&"em120r", 10, 150)
 	_player._switch_weapon(&"em127m")
 	_player._cycle_fire_mode()
 	_assert(_state.fire_modes[&"em127m"] == &"semi", "Thunder X selects semi-auto")
