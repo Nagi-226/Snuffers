@@ -760,3 +760,35 @@ const MINIMAP_PLAYER_COLOR := Color(0.45, 0.95, 1.0, 1.0) ## 玩家箭头（青�
 const MINIMAP_BORDER_COLOR := Color(0.4, 0.95, 1.0, 0.55) ## 圆环边框
 const MINIMAP_BG_COLOR := Color(0.02, 0.06, 0.09, 0.78) ## 底图未覆盖区域底色
 const MINIMAP_ENEMY_DOT_R: float = 3.0 ## 红点半径 px
+
+# ===== 第一关材质样板与主干道路灯（2026-11-09，dev1 试玩）=====
+const STREET_SAMPLE_Z_MIN: float = -25.0
+const STREET_SAMPLE_Z_MAX: float = 30.0
+const STREET_SAMPLE_SURFACE_OFFSET: float = 0.003 ## 覆面离原路面 3mm，碰撞仍走原几何
+const STREET_SAMPLE_PLASTER_TILE_M: float = 2.23 ## 扫描抹灰的实际采样宽度
+const STREET_SAMPLE_ASPHALT_TILE_M: float = 3.0
+const STREET_SAMPLE_METAL_TILE_M: float = 1.0
+const STREET_SAMPLE_NORMAL_SCALE: float = 1.0
+const STREET_SAMPLE_REFLECTION_SIZE := Vector3(20.0, 9.0, 55.0)
+const STREET_SAMPLE_REFLECTION_ORIGIN := Vector3(0.0, 3.0, 2.5)
+const STREET_LAMP_START_Z: float = 22.0
+const STREET_LAMP_SPACING_M: float = 24.0
+const STREET_LAMP_COUNT_PER_SIDE: int = 5
+const STREET_LAMP_X_M: float = 5.5
+const STREET_LAMP_HEIGHT_M: float = 5.2
+const STREET_LAMP_ARM_M: float = 1.0
+const STREET_LAMP_POLE_RADIUS_M: float = 0.055
+const STREET_LAMP_LIGHT_COLOR := Color(1.0, 0.77, 0.48)
+const STREET_LAMP_ENERGY: float = 4.0
+const STREET_LAMP_RANGE_M: float = 14.0
+const STREET_LAMP_ANGLE_DEG: float = 65.0
+const STREET_LAMP_FADE_BEGIN_M: float = 32.0
+const STREET_LAMP_FADE_LENGTH_M: float = 12.0
+const STREET_LAMP_SHADOW_FADE_M: float = 24.0
+
+# ===== 第一人称模型近墙保护（视觉深度压缩；武器根节点朝向/射程保持单位尺度）=====
+const VIEWMODEL_WALL_MARGIN: float = 0.02 ## 可见模型与场景实体保留 2cm 间距
+const VIEWMODEL_WALL_MIN_SCALE: float = 0.02
+const VIEWMODEL_WALL_RELEASE_TIME: float = 0.12 ## 接近即时收缩，退开 120ms 恢复
+const VIEWMODEL_WALL_SEARCH_STEPS: int = 8
+const VIEWMODEL_WALL_MIN_NEAR: float = 0.001

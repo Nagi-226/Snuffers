@@ -80,6 +80,20 @@ const OPTIC_BORED_GLB := {
 	&"shotgun": "res://assets/models/weapons/em12g1_optic_bored.glb",
 }
 var _optic_meshes: Dictionary = {}
+## 显示深度与射击方向分离：只压缩枪臂显示树，武器根节点 basis 始终保持原值。
+const ViewmodelDepthReset := preload("res://scripts/player/viewmodel_depth_reset.gd")
+const ViewmodelSkinBounds := preload("res://scripts/player/viewmodel_skin_bounds.gd")
+var _viewmodel_skin_bounds := ViewmodelSkinBounds.new()
+var _viewmodel_depth_scale: float = 1.0
+var _viewmodel_depth_applied: bool = false
+var _viewmodel_depth_hidden: bool = false
+var _viewmodel_depth_mount_home := Vector3.ZERO
+var _viewmodel_depth_mount_visible: bool = true
+var _viewmodel_depth_models: Array[Node3D] = []
+var _viewmodel_depth_meshes: Array[MeshInstance3D] = []
+var _viewmodel_depth_homes: Dictionary = {}
+var _viewmodel_depth_shape := BoxShape3D.new()
+var _viewmodel_depth_query := PhysicsShapeQueryParameters3D.new()
 ## 护甲回充脱战计时（受击清零，≥ARMOR_REGEN_DELAY 后按 ARMOR_REGEN_RATE 回充）
 var _armor_regen_wait: float = 0.0
 
@@ -172,6 +186,7 @@ func _ready() -> void:
 	for pair: Array in [[&"smg", "SMG/ViewModel/EM68A"], [&"lmg", "LMG/ViewModel/EM68A"], [&"magnum", "Magnum/ViewModel/EM57P"], [&"em12g2", "Em12g2/ViewModel/Weapon"]]:
 		_scope_view_models[pair[0]] = _weapon_mount.get_node_or_null(pair[1])
 	_load_optic_meshes()
+	_setup_viewmodel_depth()
 	# 承伤管线挂接（发射侧在 enemy_base._damage_player；结算收口在本类 _apply_damage）。
 	Events.player_damaged.connect(_apply_damage)
 
@@ -621,6 +636,8 @@ func _try_step_up(wish: Vector3) -> void:
 
 
 func _process(delta: float) -> void:
+	# 正常帧由早优先级子节点还原；保留手动调用 _process 的测试路径。
+	_restore_viewmodel_depth()
 	# 相机高度 CAM_HEIGHT_LERP_TIME 平滑过渡（趴下/起身）。
 	if not is_equal_approx(_camera.position.y, _cam_height_target):
 		_cam_lerp_elapsed += delta
@@ -716,6 +733,98 @@ func _process(delta: float) -> void:
 		var target_mesh: Mesh = pair.bored if want_bored else pair.intact
 		if pair.node.mesh != target_mesh:
 			pair.node.mesh = target_mesh
+	_apply_viewmodel_depth(delta)
+
+
+func _setup_viewmodel_depth() -> void:
+	for weapon in _weapon_mount.get_children():
+		var model := weapon.get_node_or_null("ViewModel") as Node3D
+		if model != null:
+			_viewmodel_depth_models.append(model)
+	for node in _weapon_mount.find_children("*", "MeshInstance3D", true, false):
+		# 制导光束跨越整个世界，不属于枪臂的实体显示体积。
+		if not String(node.name).to_lower().contains("laser"):
+			_viewmodel_depth_meshes.append(node as MeshInstance3D)
+	_viewmodel_depth_query.shape = _viewmodel_depth_shape
+	_viewmodel_depth_query.margin = GameConfig.VIEWMODEL_WALL_MARGIN
+	_viewmodel_depth_query.exclude = [get_rid()]
+	_viewmodel_depth_query.collide_with_areas = false
+	var reset := ViewmodelDepthReset.new()
+	reset.name = "ViewmodelDepthReset"
+	reset.process_priority = -1
+	add_child(reset)
+
+
+## 武器姿态 priority=0 更新前还原显示变换，避免换弹/后坐读取上帧压缩坐标。
+func _restore_viewmodel_depth() -> void:
+	if _viewmodel_depth_hidden:
+		_weapon_mount.visible = _viewmodel_depth_mount_visible
+		_viewmodel_depth_hidden = false
+	if not _viewmodel_depth_applied:
+		return
+	_weapon_mount.position = _viewmodel_depth_mount_home
+	for model in _viewmodel_depth_models:
+		var home: Dictionary = _viewmodel_depth_homes[model]
+		model.position = home.position
+		model.scale = home.scale
+	_viewmodel_depth_applied = false
+
+
+## 从眼位到完整枪臂的包围盒包含相机原点，缩小后的盒体严格嵌套。
+## 相比角点射线，实体查询也能拦截盒内的窄门框、柱子和墙角。
+func _apply_viewmodel_depth(delta: float) -> void:
+	var bounds := AABB(Vector3.ZERO, Vector3.ZERO)
+	var has_geometry := false
+	var camera_inverse := _camera.global_transform.affine_inverse()
+	for instance in _viewmodel_depth_meshes:
+		if not instance.is_visible_in_tree() or instance.mesh == null:
+			continue
+		has_geometry = true
+		var box: AABB = _viewmodel_skin_bounds.get_pose_bounds(instance)
+		var to_camera := camera_inverse * instance.global_transform
+		for corner in 8:
+			var point := box.position + box.size * Vector3(float(corner & 1), float((corner >> 1) & 1), float((corner >> 2) & 1))
+			bounds = bounds.expand(to_camera * point)
+	var target_scale := 1.0
+	if has_geometry and _viewmodel_box_overlaps(bounds, 1.0):
+		var clear_scale: float = GameConfig.VIEWMODEL_WALL_MIN_SCALE
+		if _viewmodel_box_overlaps(bounds, clear_scale):
+			# 连最小非零显示体积也无安全空间：不写零缩放或奇异 transform。
+			_viewmodel_depth_mount_visible = _weapon_mount.visible
+			_weapon_mount.visible = false
+			_viewmodel_depth_hidden = true
+			return
+		var blocked_scale := 1.0
+		for step in GameConfig.VIEWMODEL_WALL_SEARCH_STEPS:
+			var middle := (clear_scale + blocked_scale) * 0.5
+			if _viewmodel_box_overlaps(bounds, middle):
+				blocked_scale = middle
+			else:
+				clear_scale = middle
+		target_scale = clear_scale
+	# 接近时立即满足安全上限；退开时只从安全侧恢复，不在过渡帧穿墙。
+	_viewmodel_depth_scale = minf(target_scale, move_toward(_viewmodel_depth_scale, target_scale, delta / GameConfig.VIEWMODEL_WALL_RELEASE_TIME))
+	if is_equal_approx(_viewmodel_depth_scale, 1.0):
+		return
+	_viewmodel_depth_mount_home = _weapon_mount.position
+	_weapon_mount.position *= _viewmodel_depth_scale
+	for model in _viewmodel_depth_models:
+		_viewmodel_depth_homes[model] = {"position": model.position, "scale": model.scale}
+		model.position *= _viewmodel_depth_scale
+		model.scale *= _viewmodel_depth_scale
+	_viewmodel_depth_applied = true
+	# 眼位投影不变，近平面同比例收缩，避免枪臂在眼前被截断。
+	_camera.near = maxf(GameConfig.VIEWMODEL_WALL_MIN_NEAR, _camera.near * _viewmodel_depth_scale)
+	if GameState.current_weapon == &"em120r":
+		# 既有事件刷新光束，起点跟随压缩后的枪口，世界目标保持原位置。
+		Events.ec120_aim_changed.emit(GameState.em120r_aim_point)
+
+
+func _viewmodel_box_overlaps(bounds: AABB, depth_scale: float) -> bool:
+	_viewmodel_depth_shape.size = bounds.size * depth_scale
+	_viewmodel_depth_query.transform = Transform3D(_camera.global_basis, _camera.global_transform * (bounds.get_center() * depth_scale))
+	var hits := get_world_3d().direct_space_state.intersect_shape(_viewmodel_depth_query, 1)
+	return not hits.is_empty()
 
 
 func _shotgun_mount_for_weight(weight: float) -> Vector3:

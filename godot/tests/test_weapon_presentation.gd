@@ -17,8 +17,10 @@ func _assert(condition: bool, label: String) -> void:
 
 func _settle(player: Node, weapon: Node) -> void:
 	for frame in 24:
-		player._process(1.0 / 60.0)
+		# Match runtime order: reset display depth, update weapon pose, then project.
+		player._restore_viewmodel_depth()
 		weapon._process(1.0 / 60.0)
+		player._process(1.0 / 60.0)
 
 
 func _check_smg_grip(weapon: Node, label: String) -> void:
@@ -49,8 +51,10 @@ func _run() -> void:
 	var scene := (load("res://scenes/levels/weapons_range.tscn") as PackedScene).instantiate() as Node3D
 	root.add_child(scene)
 	current_scene = scene
-	await process_frame
 	var player = scene.get_node("Player")
+	# Direct pose tests must not receive native capture-warp mouse movement.
+	player.set_process_unhandled_input(false)
+	await process_frame
 	var hud = scene.get_node("HUD")
 	var ammo = hud._weapon_ammo
 	for category: Dictionary in root.get_node("GameConfig").WEAPON_CATEGORIES:

@@ -36,6 +36,8 @@ var _aim_weight: float = 0.0
 var _pose_pending: bool = false
 var _arm_upper_len: float = 0.0
 var _arm_fore_len: float = 0.0
+var _right_upper_bone: int = -1
+var _right_upper_hold_position := Vector3.ZERO
 var _charge_elapsed: float = 0.0
 var _charge_fired: bool = false
 var _charged_shot: bool = false
@@ -135,6 +137,10 @@ func _setup_arms() -> void:
 	_align_native_arms()
 	_arms_placed = _arms_node.transform
 	_measure_left_arm()
+	if weapon_data.weapon_id in [&"shotgun", &"spas12"]:
+		_right_upper_bone = _find_bone_by_prefix("UpArm_R")
+		if _right_upper_bone >= 0:
+			_right_upper_hold_position = _arms_skeleton.get_bone_pose_position(_right_upper_bone)
 	_pose_pending = true
 	_weapon_motion_start = _weapon_motion()
 	_mag_motion_start = _magazine_motion()
@@ -192,6 +198,9 @@ func _process(delta: float) -> void:
 	elif _is_reloading:
 		_reload_counter = lerpf(_reload_counter, _reload_cant_counter(), minf(delta * 10.0, 1.0))
 		_apply_pose_rotation()
+	if weapon_data.weapon_id == &"spas12":
+		# 子类每帧重解右腕；稳定 ADS 与逐壳换弹也须从同一 hold 姿态开始。
+		_pose_left_arm_mainstream(_aim_weight)
 	_weapon_node.transform = _pose_extra * _weapon_home * _weapon_motion_start.affine_inverse() * _weapon_motion()
 	if _mag_bone >= 0:
 		if _is_reloading and not _mag_lock:
@@ -213,6 +222,9 @@ func _apply_pose_rotation() -> void:
 
 
 func _pose_left_arm_mainstream(weight: float = 0.0) -> void:
+	# hold 只有右上臂旋转轨，seek 不会复位 IK 写入的肩部平移。
+	if _right_upper_bone >= 0:
+		_arms_skeleton.set_bone_pose_position(_right_upper_bone, _right_upper_hold_position)
 	_arms_animation.seek(0.0, true)
 	var uparm := _find_bone_by_prefix("UpArm_L")
 	var fore := _find_bone_by_prefix("Forearm_L")
@@ -261,6 +273,8 @@ func _pose_right_arm_shotgun(weight: float) -> void:
 	var hand := _find_bone_by_prefix("Hand_R")
 	if uparm < 0 or fore < 0 or ctrl < 0 or hand < 0:
 		return
+	if uparm == _right_upper_bone:
+		_arms_skeleton.set_bone_pose_position(uparm, _right_upper_hold_position)
 	var wrist_t := _arms_skeleton.get_bone_global_pose(hand).origin
 	var upper_len := _arms_skeleton.get_bone_global_pose(uparm).origin.distance_to(_arms_skeleton.get_bone_global_pose(fore).origin)
 	var fore_len := _arms_skeleton.get_bone_global_pose(fore).origin.distance_to(wrist_t)

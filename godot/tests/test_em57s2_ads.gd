@@ -19,8 +19,9 @@ func _assert(condition: bool, label: String) -> void:
 
 func _settle(weapon: Node) -> void:
 	for frame in 24:
-		_player._process(1.0 / 60.0)
+		_player._restore_viewmodel_depth()
 		weapon._process(1.0 / 60.0)
+		_player._process(1.0 / 60.0)
 
 
 func _cut_crosses_frame(a: Vector3, b: Vector3, half_width: float, half_height: float) -> bool:
@@ -74,6 +75,7 @@ func _run() -> void:
 	root.add_child(_scene)
 	current_scene = _scene
 	_player = _scene.get_node("Player") as CharacterBody3D
+	_player.set_process_unhandled_input(false)
 	await process_frame
 	_player._switch_weapon(&"em57s2")
 	var smg = _player.get_node("Camera3D/WeaponMount/Em57s2")
@@ -91,8 +93,9 @@ func _run() -> void:
 	_player._set_aiming(true)
 	var transition_cuts := 0
 	for frame in 24:
-		_player._process(1.0 / 60.0)
+		_player._restore_viewmodel_depth()
 		smg._process(1.0 / 60.0)
+		_player._process(1.0 / 60.0)
 		transition_cuts = maxi(transition_cuts, _visible_near_cuts(model))
 	_assert(transition_cuts == 0, "aiming transition keeps near-plane cuts outside the frame")
 	var optic_local: Vector3 = _player._camera.global_transform.affine_inverse() * marker.global_position
@@ -105,9 +108,10 @@ func _run() -> void:
 	smg._start_reload()
 	var reload_cuts := 0
 	for frame in 8:
+		_player._restore_viewmodel_depth()
 		smg._arms_animation.advance(1.0 / 60.0)
-		_player._process(1.0 / 60.0)
 		smg._process(1.0 / 60.0)
+		_player._process(1.0 / 60.0)
 		reload_cuts = maxi(reload_cuts, _visible_near_cuts(model))
 	for phase in 3:
 		await create_timer(0.45).timeout

@@ -16,3 +16,20 @@
 
 **生成管线**: `godot/tools/gen_pbr_materials.gd`（三平面世界空间 StandardMaterial3D .tres，
 程序化几何零 UV 依赖；尺度分档沿 P1 纪律：建筑面 2.5m/砖 1.0m）。
+
+## 第一关材质样板（2026-11-09）
+
+仅供 `StreetQualitySample` 使用，不替换全地图的既有材质。以下素材来自
+Poly Haven，CC0 1.0（https://polyhaven.com/license）；2K JPG，保留 Diffuse /
+Normal OpenGL / Roughness 三图。通过公开 files API 获取下载地址，下载后逐图核对
+清单 MD5；原下载清单保留在本地 `.kimi-tmp/street_sample/`。
+
+| 名称 | 作者 | 源 URL | 许可证 | 日期 | 入库路径 |
+|---|---|---|---|---|---|
+| Asphalt 02 | Rob Tuytel | https://polyhaven.com/a/asphalt_02 | CC0 1.0 | 2026-11-09 | `street_sample/asphalt_{color,normal,rough}.jpg` |
+| Plastered Wall 02 | Charlotte Baglioni | https://polyhaven.com/a/plastered_wall_02 | CC0 1.0 | 2026-11-09 | `street_sample/plaster_{color,normal,rough}.jpg` |
+| Green Metal Rust | Rob Tuytel | https://polyhaven.com/a/green_metal_rust | CC0 1.0 | 2026-11-09 | `street_sample/metal_{color,normal,rough}.jpg` |
+
+扫描宽度分别为 3m、2.23m、1m，三平面投影按米周期倒数设置 UV scale。
+金属门展示漆面与氧化锈层，使用非金属表面反射；不将整张漆锈图设为 metallic=1。
+路灯为本项目用 Godot 基础几何构建的原创模型（2026-11-09）。

@@ -326,14 +326,19 @@ func _near_wall_checks(launcher: Node3D) -> void:
 	_player._update_ec120_aim()
 	_assert(_state.em120r_aim_origin.is_equal_approx(camera.global_position), "guidance publishes the actual camera origin for launch clearance")
 	var explosions: Array[Vector3] = []
-	var record = func(at: Vector3): explosions.append(at)
+	var impact_times: Array[int] = []
+	var record = func(at: Vector3):
+		explosions.append(at)
+		impact_times.append(Time.get_ticks_msec())
 	var events = root.get_node("Events")
 	events.rpg_exploded.connect(record)
 	_state.em120r_mag = 10
 	launcher._fire_cooldown = 0.0
+	var fired_at := Time.get_ticks_msec()
 	var fired: bool = launcher._fire()
+	await _assert_near_wall_impact(launcher, fired, explosions, impact_times,
+		fired_at, camera.global_position, -camera.global_basis.z, "near-wall Longbow shot")
 	events.rpg_exploded.disconnect(record)
-	_assert(fired and explosions.size() == 1 and explosions[0].distance_to(camera.global_position) < 0.4, "wall 0.3m ahead of the player detonates the shot immediately instead of spawning it beyond cover")
 	wall.queue_free()
 	await process_frame
 	# A same-frame selection must publish the new camera pose before any firing.
@@ -349,13 +354,44 @@ func _near_wall_checks(launcher: Node3D) -> void:
 	await physics_frame
 	await physics_frame
 	explosions.clear()
+	impact_times.clear()
 	events.rpg_exploded.connect(record)
 	launcher._fire_cooldown = 0.0
 	_player._switch_weapon(&"em120r")
 	_assert(_state.em120r_aim_origin.is_equal_approx(new_camera_origin), "same-frame Longbow selection publishes the moved camera origin")
+	fired_at = Time.get_ticks_msec()
 	var first_shot: bool = launcher._fire()
+	await _assert_near_wall_impact(launcher, first_shot, explosions, impact_times,
+		fired_at, new_camera_origin, -camera.global_basis.z, "same-frame selected Longbow shot")
 	events.rpg_exploded.disconnect(record)
-	_assert(first_shot and explosions.size() == 1 and explosions[0].distance_to(new_camera_origin) < 0.4, "the first shot immediately after selecting Longbow cannot spawn beyond a nearby wall using stale guidance")
 	next_wall.queue_free()
 	await process_frame
 	_sections[&"near_wall"] = true
+
+
+func _assert_near_wall_impact(launcher: Node3D, fired: bool,
+		explosions: Array[Vector3], impact_times: Array[int], fired_at: int,
+		origin: Vector3, forward: Vector3, label: String) -> void:
+	# A protected visual muzzle may now be safely in front of the wall. Preserve
+	# real collision flight, rather than requiring clearance to explode synchronously.
+	var projectile: Variant = launcher.get("_laser_missile")
+	var spawn := Vector3.ZERO
+	var has_spawn := false
+	if is_instance_valid(projectile):
+		spawn = projectile.global_position
+		has_spawn = true
+	elif not explosions.is_empty():
+		spawn = explosions[0]
+		has_spawn = true
+	_assert(fired and has_spawn and (spawn - origin).dot(forward) <= 0.276,
+		label + " creates its real projectile on the player side of the wall")
+	while explosions.is_empty() and Time.get_ticks_msec() - fired_at < 200:
+		await physics_frame
+		await process_frame
+	_assert(fired and explosions.size() == 1, label + " produces exactly one real collision explosion")
+	if explosions.size() == 1:
+		_assert(impact_times.size() == 1 and impact_times[0] - fired_at <= 200,
+			label + " collides during the first 0.2 seconds of actual flight")
+		_assert(explosions[0].distance_to(origin) < 0.4
+			and absf((explosions[0] - origin).dot(forward) - 0.275) < 0.002,
+			label + " explodes at the nearby wall's front surface")
