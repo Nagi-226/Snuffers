@@ -48,6 +48,9 @@ func _physics_process(delta: float) -> void:
 	query.collide_with_areas = true
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
 	if not hit.is_empty():
+		var receiver := hit.collider as Node3D
+		if is_instance_valid(receiver):
+			Events.explosion_surface_impacted.emit(hit.position, hit.normal, receiver)
 		_explode(hit.position)
 		return
 

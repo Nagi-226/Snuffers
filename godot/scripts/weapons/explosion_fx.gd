@@ -1,16 +1,18 @@
 ## ExplosionFx — 榴弹爆炸特效（W2 火力蜂，2026-10-22 机主立项：替换灰盒占位橙球）
 ##
 ## 程序化多层组合（真实火光风格）：爆闪 OmniLight + 噪声火球（白炽→橙→暗红）
-## + 上升烟团 + 火花碎屑 + 地面冲击波环 + 地面焦痕贴花。
+## + 上升烟团 + 火花碎屑 + 地面冲击波环 + 命中表面焦痕贴花。
 ##
 ## 契约约束（AGENTS.md）：
 ## - 参数全部走 GameConfig.EXPLOSION_FX_*，脚本零硬编码数值（颜色常量沿用
 ##   player_combat_fx.gd 先例留在脚本内）；
-## - 只监听 Events 总线（rpg_exploded，G2 冻结信号），不引用任何业务节点；
+## - 只监听 Events 总线；真实焦痕接收者由 explosion_surface_impacted 显式传入；
 ## - 全部纹理运行时程序合成（FastNoiseLite 噪声 + 径向渐变），零第三方资产。
 ##
 ## 挂载约定：player.tscn 根节点下 ExplosionFx（Node3D），同 PlayerCombatFx。
 extends Node3D
+
+const HitSolver = preload("res://scripts/weapons/hit_solver.gd")
 
 const _WHITE := Color(1.0, 0.98, 0.92)
 const _ORANGE := Color(1.0, 0.45, 0.08)
@@ -19,6 +21,7 @@ const _DARK_RED := Color(0.4, 0.08, 0.02)
 var _instances: Array = [] ## [{root, light, fire_mat, fire_quads, smoke_mat, smoke_quads, smoke_offsets, smoke_scales, ring_mat, ring, sparks, t, active}]
 var _cursor: int = 0
 var _scorches: Array[Decal] = [] ## 焦痕池（FIFO，同弹坑机制）
+var _scorch_remaining: Dictionary = {} ## 真实命中起算，复用时重新计时
 
 var _fireball_texture: ImageTexture
 var _smoke_texture: ImageTexture
@@ -34,10 +37,18 @@ func _ready() -> void:
 	for i: int in GameConfig.EXPLOSION_FX_POOL:
 		_instances.append(_build_instance(i))
 	Events.rpg_exploded.connect(_on_rpg_exploded)
+	Events.explosion_surface_impacted.connect(_on_explosion_surface_impacted)
 
 
 func _exit_tree() -> void:
 	Events.rpg_exploded.disconnect(_on_rpg_exploded)
+	Events.explosion_surface_impacted.disconnect(_on_explosion_surface_impacted)
+	# 焦痕挂在接收体上，FX 拥有者离树也必须释放自己分配的池。
+	for scorch: Variant in _scorches:
+		if is_instance_valid(scorch) and not scorch.is_queued_for_deletion():
+			scorch.queue_free()
+	_scorches.clear()
+	_scorch_remaining.clear()
 
 
 # ===== 纹理程序合成 =====
@@ -261,18 +272,18 @@ func _on_rpg_exploded(pos: Vector3) -> void:
 		(inst["smoke_quads"][i] as MeshInstance3D).rotation_degrees.z = randf_range(0.0, 360.0)
 	inst["smoke_offsets"] = offsets
 	inst["smoke_scales"] = scales
-	# 冲击波环/焦痕只贴近地面的爆炸才有（rpg_exploded 冻结契约只传位置，地面假设 y≈0）
+	# 冲击波环保留原地面表现；焦痕只由真实表面碰撞事件生成。
 	var near_ground := pos.y <= GameConfig.EXPLOSION_FX_SCORCH_MAX_HEIGHT
 	(inst["ring"] as MeshInstance3D).visible = near_ground
 	if near_ground:
 		(inst["ring"] as MeshInstance3D).position.y = 0.06 - pos.y
-		_spawn_scorch(pos)
 	(inst["sparks"] as GPUParticles3D).restart()
 	inst["t"] = 0.0
 	inst["active"] = true
 
 
 func _process(delta: float) -> void:
+	_update_scorches(delta)
 	for inst: Dictionary in _instances:
 		if not inst["active"]:
 			continue
@@ -350,19 +361,65 @@ func _drive_ring(inst: Dictionary, t: float) -> void:
 	(inst["ring_mat"] as StandardMaterial3D).albedo_color = Color(1.0 - p, 1.0 - p, 1.0 - p, 1.0)
 
 
-## 焦痕贴花：FIFO 池（同弹坑机制），地面投影 y≈0 假设与冲击波环一致。
-func _spawn_scorch(pos: Vector3) -> void:
+func _on_explosion_surface_impacted(pos: Vector3, normal: Vector3, receiver: Node3D) -> void:
+	_spawn_scorch(pos, normal, receiver)
+
+
+func _update_scorches(delta: float) -> void:
+	for index in range(_scorches.size() - 1, -1, -1):
+		var scorch: Variant = _scorches[index]
+		if not is_instance_valid(scorch) or scorch.is_queued_for_deletion():
+			_scorch_remaining.erase(scorch)
+			_scorches.remove_at(index)
+			continue
+		var remaining := maxf(0.0, float(_scorch_remaining.get(scorch, 0.0)) - delta)
+		_scorch_remaining[scorch] = remaining
+		if remaining <= 0.0:
+			scorch.visible = false
+
+
+## 焦痕贴花：真实表面法线沿本地 -Y 投射，接收体绑定，FIFO 复用与计时回收。
+func _spawn_scorch(pos: Vector3, normal: Vector3, receiver: Node3D) -> void:
+	if not is_instance_valid(receiver) or receiver.is_queued_for_deletion() \
+			or not receiver.is_inside_tree() or normal.is_zero_approx():
+		return
+	normal = normal.normalized()
+	var surface := HitSolver.resolve_visual_surface(pos, normal, receiver)
+	if not surface.is_empty():
+		pos = surface.position
+		normal = surface.normal
+	_update_scorches(0.0)
 	var d: Decal
-	if _scorches.size() < GameConfig.EXPLOSION_FX_SCORCH_POOL:
+	var unused := -1
+	for index in _scorches.size():
+		if not _scorches[index].visible:
+			unused = index
+			break
+	if unused >= 0:
+		d = _scorches[unused]
+		_scorches.remove_at(unused)
+		_scorches.append(d)
+	elif _scorches.size() < GameConfig.EXPLOSION_FX_SCORCH_POOL:
 		d = Decal.new()
 		d.texture_albedo = _scorch_texture
-		d.size = Vector3(GameConfig.EXPLOSION_FX_SCORCH_SIZE, GameConfig.EXPLOSION_FX_SCORCH_SIZE, 0.08)
+		d.size = Vector3(GameConfig.EXPLOSION_FX_SCORCH_SIZE,
+			GameConfig.EXPLOSION_FX_SCORCH_DEPTH, GameConfig.EXPLOSION_FX_SCORCH_SIZE)
 		d.modulate = Color(1, 1, 1, 0.9)
-		add_child(d)
+		d.normal_fade = GameConfig.EXPLOSION_FX_SCORCH_NORMAL_FADE
+		d.upper_fade = 0.0
+		d.lower_fade = 0.0
 		_scorches.append(d)
 	else:
 		d = _scorches.pop_front()
 		_scorches.append(d)
-	var ground := Vector3(pos.x, 0.02, pos.z)
-	d.look_at_from_position(ground + Vector3.UP * 0.02, ground - Vector3.UP, Vector3.FORWARD)
-	d.rotate_object_local(Vector3.FORWARD, randf() * TAU)
+	if d.get_parent() == null:
+		receiver.add_child(d)
+	elif d.get_parent() != receiver:
+		d.reparent(receiver, false)
+	var up := Vector3.UP if absf(normal.dot(Vector3.UP)) < 0.98 else Vector3.FORWARD
+	var tangent := up.cross(normal).normalized()
+	d.global_transform = Transform3D(Basis(tangent, normal, tangent.cross(normal)),
+		pos + normal * GameConfig.EXPLOSION_FX_SCORCH_OFFSET)
+	d.rotate_object_local(Vector3.UP, randf() * TAU)
+	d.visible = true
+	_scorch_remaining[d] = GameConfig.EXPLOSION_FX_SCORCH_LIFETIME

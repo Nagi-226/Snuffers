@@ -37,20 +37,24 @@ func _run() -> void:
 	var lamps := sample.get_node_or_null("StreetLamps")
 	var light_nodes: Array[SpotLight3D] = []
 	if lamps != null:
-		_assert(lamps.get_child_count() == 10, "road contains five lamps on each side")
+		_assert(lamps.get_child_count() == 12, "road contains six lamps on each side after full-street extension")
 		for side in ["W", "E"]:
-			for index in 5:
+			var side_positions: Array[float] = []
+			for index in 6:
 				var lamp := lamps.get_node_or_null("Lamp_%s_%d" % [side, index]) as Node3D
 				_assert(lamp != null, "lamp exists: %s%d" % [side, index])
 				if lamp == null:
 					continue
-				var expected := Vector3(-5.5 if side == "W" else 5.5, lamp.position.y, 22.0 - index * 24.0)
+				var expected := Vector3(-5.5 if side == "W" else 5.5, lamp.position.y, 46.0 - index * 24.0)
+				side_positions.append(lamp.position.z)
 				_assert(lamp.position.distance_to(expected) < 0.001, "lamp %s%d follows 24m spacing outside the asphalt" % [side, index])
 				_assert(not lamp.find_children("*", "CollisionShape3D", true, false).is_empty(), "lamp %s%d has a physical pole" % [side, index])
 				var lights := lamp.find_children("*", "SpotLight3D", true, false)
 				_assert(lights.size() == 1, "lamp %s%d has one downward street light" % [side, index])
 				if lights.size() == 1:
 					light_nodes.append(lights[0] as SpotLight3D)
+			for previous_z in [22.0, -2.0, -26.0, -50.0, -74.0]:
+				_assert(side_positions.has(previous_z), "%s retains the previously accepted lamp at Z=%s" % [side, previous_z])
 	for path in ["SampleRoad", "SampleSidewalk_W", "SampleSidewalk_E"]:
 		var surface := sample.get_node_or_null(path)
 		_assert(surface != null, "sample surface exists: " + path)

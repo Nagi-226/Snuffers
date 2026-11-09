@@ -5,15 +5,18 @@
 ##
 ## 契约约束（AGENTS.md）：
 ## - 参数全部走 GameConfig.PLAYER_MUZZLE_* / BULLET_*，脚本零硬编码数值；
-## - 只监听 Events 总线（player_muzzle_flash / bullet_impacted），不引用任何业务节点；
+## - 只监听 Events 总线，弹孔接收者由 bullet_mark_requested 显式传入；
 ## - 弹坑贴花纹理运行时程序合成（径向焦痕），无第三方资产。
 ##
 ## 挂载约定：player.tscn 根节点下 PlayerCombatFx（Node3D）。
 extends Node3D
 
+const HitSolver = preload("res://scripts/weapons/hit_solver.gd")
+
 var _flashes: Array = [] ## [{light, quad, remaining}] 枪口焰池（4 个轮转）
 var _flash_cursor: int = 0
 var _decals: Array[Decal] = [] ## 弹坑池（FIFO）
+var _decal_remaining: Dictionary = {} ## 已命中实体上的贴花寿命；复用时重新计时
 var _decal_texture: ImageTexture
 var _sparks: Array[GPUParticles3D] = [] ## 火花池（8 个轮转）
 var _spark_cursor: int = 0
@@ -25,11 +28,19 @@ func _ready() -> void:
 	_build_spark_pool()
 	Events.player_muzzle_flash.connect(_on_muzzle_flash)
 	Events.bullet_impacted.connect(_on_bullet_impacted)
+	Events.bullet_mark_requested.connect(_on_bullet_mark_requested)
 
 
 func _exit_tree() -> void:
 	Events.player_muzzle_flash.disconnect(_on_muzzle_flash)
 	Events.bullet_impacted.disconnect(_on_bullet_impacted)
+	Events.bullet_mark_requested.disconnect(_on_bullet_mark_requested)
+	# 贴花挂在命中对象上，拥有者离树时仍须清掉自己分配的池。
+	for decal: Variant in _decals:
+		if is_instance_valid(decal) and not decal.is_queued_for_deletion():
+			decal.queue_free()
+	_decals.clear()
+	_decal_remaining.clear()
 
 
 func _process(delta: float) -> void:
@@ -39,6 +50,20 @@ func _process(delta: float) -> void:
 			if f["remaining"] <= 0.0:
 				(f["light"] as OmniLight3D).visible = false
 				(f["quad"] as MeshInstance3D).visible = false
+	_update_decals(delta)
+
+
+func _update_decals(delta: float) -> void:
+	for index in range(_decals.size() - 1, -1, -1):
+		var decal: Variant = _decals[index]
+		if not is_instance_valid(decal) or decal.is_queued_for_deletion():
+			_decal_remaining.erase(decal)
+			_decals.remove_at(index)
+			continue
+		var remaining: float = maxf(0.0, float(_decal_remaining.get(decal, 0.0)) - delta)
+		_decal_remaining[decal] = remaining
+		if remaining <= 0.0:
+			decal.visible = false
 
 
 # ===== 枪口焰（青蓝电磁焰，微弱口径）=====
@@ -119,29 +144,64 @@ func _build_decal_texture() -> void:
 
 
 func _on_bullet_impacted(pos: Vector3, normal: Vector3, metal: bool) -> void:
-	_spawn_decal(pos, normal)
 	if metal:
 		_spawn_sparks(pos, normal)
 
 
-func _spawn_decal(pos: Vector3, normal: Vector3) -> void:
+func _on_bullet_mark_requested(pos: Vector3, normal: Vector3, receiver: Node3D) -> void:
+	_spawn_decal(pos, normal, receiver)
+
+
+func _spawn_decal(pos: Vector3, normal: Vector3, receiver: Node3D = null) -> void:
+	if receiver != null and (not is_instance_valid(receiver) \
+			or receiver.is_queued_for_deletion() or not receiver.is_inside_tree()):
+		return
 	if normal.length() < 0.01:
 		normal = Vector3.UP
 	normal = normal.normalized()
+	if receiver != null:
+		var surface := HitSolver.resolve_visual_surface(pos, normal, receiver)
+		if not surface.is_empty():
+			pos = surface.position
+			normal = surface.normal
+	_update_decals(0.0)
 	var d: Decal
-	if _decals.size() < GameConfig.BULLET_DECAL_POOL:
+	var unused := -1
+	for index in _decals.size():
+		if not _decals[index].visible:
+			unused = index
+			break
+	if unused >= 0:
+		d = _decals[unused]
+		_decals.remove_at(unused)
+		_decals.append(d)
+	elif _decals.size() < GameConfig.BULLET_DECAL_POOL:
 		d = Decal.new()
 		d.texture_albedo = _decal_texture
-		d.size = Vector3(GameConfig.BULLET_DECAL_SIZE, GameConfig.BULLET_DECAL_SIZE, 0.06)
+		d.size = Vector3(GameConfig.BULLET_DECAL_SIZE, GameConfig.BULLET_DECAL_DEPTH, GameConfig.BULLET_DECAL_SIZE)
 		d.modulate = Color(1, 1, 1, 0.9)
-		add_child(d)
+		d.normal_fade = GameConfig.BULLET_DECAL_NORMAL_FADE
+		d.upper_fade = 0.0
+		d.lower_fade = 0.0
 		_decals.append(d)
 	else:
 		d = _decals.pop_front()  # FIFO：复用最旧弹坑
 		_decals.append(d)
+	var holder: Node3D = receiver if receiver != null else self
+	if d.get_parent() == null:
+		holder.add_child(d)
+	elif d.get_parent() != holder:
+		d.reparent(holder, false)
+	# 旧私有调用无接收者时也使用世界坐标，不继承玩家位移。
+	d.top_level = receiver == null
 	var up := Vector3.UP if absf(normal.dot(Vector3.UP)) < 0.98 else Vector3.FORWARD
-	d.look_at_from_position(pos + normal * 0.012, pos - normal, up)
-	d.rotate_object_local(Vector3.FORWARD, randf() * TAU)  # 随机滚转防重复感
+	var tangent := up.cross(normal).normalized()
+	# Godot Decal 沿局部 -Y 投射，X/Z 是纹理平面，不能用沿 -Z 的 look_at。
+	d.global_transform = Transform3D(Basis(tangent, normal, tangent.cross(normal)),
+		pos + normal * GameConfig.BULLET_DECAL_OFFSET)
+	d.rotate_object_local(Vector3.UP, randf() * TAU)  # 绕投射轴滚转，法线保持不变
+	d.visible = true
+	_decal_remaining[d] = GameConfig.BULLET_DECAL_LIFETIME
 
 
 # ===== 金属火花（GPUParticles3D one-shot 池）=====

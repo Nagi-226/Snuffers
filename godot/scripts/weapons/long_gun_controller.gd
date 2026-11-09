@@ -399,6 +399,7 @@ func _fire() -> bool:
 		var collider: Object = hit.collider
 		if HitSolver.find_group_ancestor(collider, &"bunker") != null:
 			Events.bullet_impacted.emit(hit.position, hit.normal, true)
+			Events.bullet_mark_requested.emit(hit.position, hit.normal, collider as Node3D)
 			if not ricochet_reported:
 				Events.ricochet_on_bunker.emit()
 				ricochet_reported = true
@@ -406,6 +407,7 @@ func _fire() -> bool:
 		var target := HitSolver.find_damageable(collider)
 		if target == null:
 			Events.bullet_impacted.emit(hit.position, hit.normal, HitSolver.is_metal_surface(collider))
+			Events.bullet_mark_requested.emit(hit.position, hit.normal, collider as Node3D)
 			continue
 		var is_head := HitSolver.is_headshot(collider)
 		var damage: float = shot_damage * (weapon_data.headshot_factor if is_head else 1.0)

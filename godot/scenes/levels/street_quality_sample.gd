@@ -1,5 +1,5 @@
 extends Node3D
-## 第一关出生段材质样板。仅覆面/替换材质；原路面、建筑与门锁碰撞保持原样。
+## 第一关材质样板与全街区覆面。仅替换显示材质；原路面、建筑与门锁碰撞保持原样。
 ## 与 StreetDayNightDriver 同属关卡域，沿用父关卡借用节点与延迟初始化模式。
 
 const Layout := preload("res://scripts/levels/street_layout_test.gd")
@@ -72,14 +72,22 @@ func _pbr_material(kind: String, tile_m: float) -> StandardMaterial3D:
 
 
 func _apply_wall_and_gate_materials(plaster: StandardMaterial3D, metal: StandardMaterial3D) -> void:
-	for node in _street.find_children("*", "MeshInstance3D", true, false):
+	var meshes := _street.find_children("*", "MeshInstance3D", true, false)
+	if GameConfig.STREET_SAMPLE_FULL_SCENE:
+		# 全街区只扩大原建筑/门体材质范围；远景和独立模型不参与墙面分类。
+		meshes.clear()
+		for path in ["Buildings", "SceneGate"]:
+			var scope := _street.get_node_or_null(path)
+			if scope != null:
+				meshes.append_array(scope.find_children("*", "MeshInstance3D", true, false))
+	for node in meshes:
 		var mesh := node as MeshInstance3D
 		if mesh.mesh == null or not _in_sample(mesh.global_position.z):
 			continue
 		var parent_name := String(mesh.get_parent().name)
 		if parent_name.begins_with("BGateLeaf_") or parent_name.begins_with("BGateBrace_") \
 				or parent_name.begins_with("BGatePost_") or parent_name.begins_with("BGateBeam_") \
-				or parent_name == "Gar_E3_Shutter":
+				or (parent_name.begins_with("Gar_") and parent_name.ends_with("_Shutter")):
 			mesh.material_override = metal
 			mesh.set_meta("quality_sample_surface", "metal")
 			continue
@@ -91,9 +99,10 @@ func _apply_wall_and_gate_materials(plaster: StandardMaterial3D, metal: Standard
 				and not parent_name.contains("_HR") \
 				and not parent_name.contains("LANDING") and not parent_name.contains("_S1") \
 				and not parent_name.contains("_S2")
-		structural_wall = structural_wall or (parent_name.begins_with("Gar_E3_") \
-				and (parent_name.contains("Wall") or parent_name.contains("Upper") \
-				or parent_name.contains("Lintel") or parent_name.contains("Jamb")))
+		structural_wall = structural_wall or (parent_name.begins_with("Gar_") \
+				and (parent_name.contains("_Wall") or parent_name.ends_with("_Upper") \
+				or parent_name.ends_with("_Lintel") or parent_name.ends_with("_RearLintel") \
+				or parent_name.ends_with("_JambN") or parent_name.ends_with("_JambS")))
 		for index in mesh.mesh.get_surface_count():
 			var source := mesh.get_active_material(index)
 			if source == null:
@@ -114,10 +123,32 @@ func _apply_wall_and_gate_materials(plaster: StandardMaterial3D, metal: Standard
 
 
 func _in_sample(z: float) -> bool:
-	return z >= GameConfig.STREET_SAMPLE_Z_MIN and z <= GameConfig.STREET_SAMPLE_Z_MAX
+	return GameConfig.STREET_SAMPLE_FULL_SCENE \
+		or (z >= GameConfig.STREET_SAMPLE_Z_MIN and z <= GameConfig.STREET_SAMPLE_Z_MAX)
 
 
 func _build_sample_ground(asphalt: StandardMaterial3D, concrete: StandardMaterial3D) -> void:
+	if GameConfig.STREET_SAMPLE_FULL_SCENE:
+		# 按 builder 已完成的顶面取尺寸，覆盖街道与铺装巷院；不重建碰撞。
+		for body in _street.get_node("Ground").get_children():
+			var part := String(body.name)
+			var road := part == "Asphalt" or part == "CrossAsphalt" or part == "SouthAsphalt"
+			var sidewalk := part.begins_with("Sidewalk_") or part.begins_with("CrossSidewalk_") \
+				or part.begins_with("SouthSidewalk_")
+			var paving := part.begins_with("Alley_")
+			if not road and not sidewalk and not paving:
+				continue
+			for node in body.get_children():
+				var source := node as MeshInstance3D
+				if source == null or not source.mesh is BoxMesh:
+					continue
+				var box := source.mesh as BoxMesh
+				var top := source.global_transform * Vector3(0, box.size.y * 0.5, 0)
+				top += _street.global_basis.y * GameConfig.STREET_SAMPLE_SURFACE_OFFSET
+				var surface_name := "SampleRoad" if part == "Asphalt" else "Sample" + part
+				_add_surface(surface_name, Vector2(box.size.x, box.size.z),
+					global_transform.affine_inverse() * top, asphalt if road else concrete, "road")
+		return
 	var length := GameConfig.STREET_SAMPLE_Z_MAX - GameConfig.STREET_SAMPLE_Z_MIN
 	var center_z := (GameConfig.STREET_SAMPLE_Z_MAX + GameConfig.STREET_SAMPLE_Z_MIN) * 0.5
 	var half_width: float = Layout.STREET["half_width"]

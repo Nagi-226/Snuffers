@@ -634,6 +634,10 @@ const PLAYER_MUZZLE_FLASH_ENERGY: float = 0.7 ## 枪口焰 OmniLight 能量（�
 const PLAYER_MUZZLE_FLASH_RANGE: float = 2.5 ## 枪口焰光照半径 m
 const BULLET_DECAL_SIZE: float = 0.14 ## 弹坑贴花投影尺寸 m
 const BULLET_DECAL_POOL: int = 64 ## 弹坑池上限（FIFO 复用最旧，防贴花无限累积）
+const BULLET_DECAL_LIFETIME: float = 60.0 ## 每次真实命中起算，复用重置；60秒后隐藏回收
+const BULLET_DECAL_DEPTH: float = 0.4 ## Decal本地Y投影厚度，覆盖简化车辆碰撞盒与真实表皮间距
+const BULLET_DECAL_OFFSET: float = 0.002 ## 沿命中法线的中心偏移 m
+const BULLET_DECAL_NORMAL_FADE: float = 0.5 ## 抑制背向/侧向表面的串投射
 const BULLET_SPARK_COUNT: int = 8 ## 金属命中火花粒子数（2026-10-22 机主裁决：颗数不减，体积大幅缩小）
 const BULLET_SPARK_LIFETIME: float = 0.18 ## 火花粒子寿命 s
 const BULLET_SPARK_VELOCITY_MIN: float = 0.8 ## 火花初速下限 m/s
@@ -667,7 +671,11 @@ const EXPLOSION_FX_RING_SIZE: float = 12.0 ## 地面冲击波环峰值直径 m
 const EXPLOSION_FX_RING_LIFETIME: float = 0.45 ## 冲击波环扩散时长 s
 const EXPLOSION_FX_SCORCH_SIZE: float = 6.0 ## 地面焦痕贴花直径 m
 const EXPLOSION_FX_SCORCH_POOL: int = 8 ## 焦痕池上限（FIFO 复用，同弹坑机制）
-const EXPLOSION_FX_SCORCH_MAX_HEIGHT: float = 2.5 ## 爆心低于此高度才留地面焦痕 m（空中/墙面爆炸不留）
+const EXPLOSION_FX_SCORCH_DEPTH: float = 0.4 ## 真实撞击表面本地Y投影厚度 m
+const EXPLOSION_FX_SCORCH_OFFSET: float = 0.002 ## 沿实际表面法线偏移 m
+const EXPLOSION_FX_SCORCH_LIFETIME: float = 60.0 ## 炸痕隐藏回收；复用重新计时
+const EXPLOSION_FX_SCORCH_NORMAL_FADE: float = 0.5
+const EXPLOSION_FX_SCORCH_MAX_HEIGHT: float = 2.5 ## 仅控制旧地面冲击波环；焦痕由真实表面事件决定
 
 # ===== 氛围：浓雾能见度定标（P2，文档10 §1-P2 散射/消光分离思想）=====
 # 定标法：先定目标能见度，再反推消光系数，而非直接手调 density
@@ -764,6 +772,7 @@ const MINIMAP_ENEMY_DOT_R: float = 3.0 ## 红点半径 px
 # ===== 第一关材质样板与主干道路灯（2026-11-09，dev1 试玩）=====
 const STREET_SAMPLE_Z_MIN: float = -25.0
 const STREET_SAMPLE_Z_MAX: float = 30.0
+const STREET_SAMPLE_FULL_SCENE: bool = true ## 完整第一关街区覆面；原Z范围保留作局部基线取证
 const STREET_SAMPLE_SURFACE_OFFSET: float = 0.003 ## 覆面离原路面 3mm，碰撞仍走原几何
 const STREET_SAMPLE_PLASTER_TILE_M: float = 2.23 ## 扫描抹灰的实际采样宽度
 const STREET_SAMPLE_ASPHALT_TILE_M: float = 3.0
@@ -771,9 +780,9 @@ const STREET_SAMPLE_METAL_TILE_M: float = 1.0
 const STREET_SAMPLE_NORMAL_SCALE: float = 1.0
 const STREET_SAMPLE_REFLECTION_SIZE := Vector3(20.0, 9.0, 55.0)
 const STREET_SAMPLE_REFLECTION_ORIGIN := Vector3(0.0, 3.0, 2.5)
-const STREET_LAMP_START_Z: float = 22.0
+const STREET_LAMP_START_Z: float = 46.0
 const STREET_LAMP_SPACING_M: float = 24.0
-const STREET_LAMP_COUNT_PER_SIDE: int = 5
+const STREET_LAMP_COUNT_PER_SIDE: int = 6
 const STREET_LAMP_X_M: float = 5.5
 const STREET_LAMP_HEIGHT_M: float = 5.2
 const STREET_LAMP_ARM_M: float = 1.0

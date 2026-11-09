@@ -15,6 +15,90 @@
 ##   小写匹配 GameConfig.BULLET_METAL_KEYWORDS（自行车/铁护栏/栏杆/篮架/卷帘门等）。
 extends RefCounted
 
+static var _visual_triangle_meshes: Dictionary = {} ## Mesh 资源 → BVH；不保存场景节点引用
+
+
+## 显示用表皮锚点：简化碰撞盒可在模型内，沿命中法线找最近真实三角面。
+## 接收者自身有网格时只查自身；无网格的单碰撞代理才查同容器模型。
+## 原语墙面保留物理命中；不修改弹道或伤害。
+static func resolve_visual_surface(pos: Vector3, normal: Vector3, receiver: Node3D) -> Dictionary:
+	if not is_instance_valid(receiver) or receiver.is_queued_for_deletion() \
+			or not receiver.is_inside_tree() or normal.is_zero_approx():
+		return {}
+	var meshes: Array[MeshInstance3D] = []
+	_append_visual_meshes(receiver, meshes)
+	var parent := receiver.get_parent()
+	var own_geometry := receiver is MeshInstance3D \
+		or not receiver.find_children("*", "MeshInstance3D", true, false).is_empty()
+	if not own_geometry and parent != null and parent != receiver.get_tree().root \
+			and parent != receiver.get_tree().current_scene:
+		var bodies := 0
+		for child in parent.get_children():
+			if child is CollisionObject3D:
+				bodies += 1
+		# 建筑集合等多接收体容器不能借用兄弟楼的立面；车辆代理仅有一个碰撞体。
+		if bodies == 1 and receiver is CollisionObject3D:
+			for sibling in parent.get_children():
+				if sibling == receiver:
+					continue
+				var path := sibling.scene_file_path.to_lower()
+				if sibling is MeshInstance3D or path.ends_with(".glb") or path.ends_with(".gltf"):
+					_append_visual_meshes(sibling, meshes)
+	if meshes.is_empty():
+		return {}
+	normal = normal.normalized()
+	var reach := 0.0
+	for instance in meshes:
+		var bounds: AABB = instance.global_transform * instance.get_aabb()
+		# 用候选模型包围盒计算外端，避免固定距离漏掉长车或扫入其他场景。
+		reach = maxf(reach, pos.distance_to(bounds.get_center()) + bounds.size.length())
+	if is_zero_approx(reach):
+		return {}
+	var endpoints := [pos + normal * reach, pos - normal * reach]
+	var nearest := INF
+	var result := {}
+	for instance in meshes:
+		var mesh := instance.mesh
+		if not _visual_triangle_meshes.has(mesh):
+			_visual_triangle_meshes[mesh] = mesh.generate_triangle_mesh()
+		var triangles := _visual_triangle_meshes[mesh] as TriangleMesh
+		if triangles == null or instance.global_basis.determinant() == 0.0:
+			continue
+		var inverse := instance.global_transform.affine_inverse()
+		var begin := inverse * pos
+		# 两侧各用一次 BVH 首命中，再按物理点距离选近面，避免开放房间借用对墙。
+		for endpoint: Vector3 in endpoints:
+			var end := inverse * endpoint
+			if begin == end:
+				continue
+			var hit := triangles.intersect_segment(begin, end)
+			if hit.is_empty():
+				continue
+			var point: Vector3 = instance.global_transform * hit.position
+			var distance := pos.distance_squared_to(point)
+			if distance >= nearest:
+				continue
+			# 法线用逆转置转换，兼容导入模型缩放；朝物理命中法线避免反向贴花。
+			var outward: Vector3 = (instance.global_basis.inverse().transposed() * hit.normal).normalized()
+			if outward.is_zero_approx():
+				continue
+			if outward.dot(normal) < 0.0:
+				outward = -outward
+			nearest = distance
+			result = {"position": point, "normal": outward}
+	return result
+
+
+static func _append_visual_meshes(from_node: Node, meshes: Array[MeshInstance3D]) -> void:
+	var candidates: Array[Node] = from_node.find_children("*", "MeshInstance3D", true, false)
+	if from_node is MeshInstance3D:
+		candidates.append(from_node)
+	for candidate in candidates:
+		var instance := candidate as MeshInstance3D
+		if instance.mesh is ArrayMesh and instance.is_visible_in_tree() \
+				and not instance.is_queued_for_deletion():
+			meshes.append(instance)
+
 
 ## 是否金属表面：祖先链任一节点名小写后含关键词列表任一项。
 static func is_metal_surface(collider: Object) -> bool:

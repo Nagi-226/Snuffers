@@ -131,6 +131,9 @@ func _fire() -> bool:
 	Events.player_muzzle_flash.emit(weapon_data.weapon_id, launch_position)
 	_apply_recoil()
 	if not hit.is_empty():
+		var receiver := hit.collider as Node3D
+		if is_instance_valid(receiver):
+			Events.explosion_surface_impacted.emit(hit.position, hit.normal, receiver)
 		projectile._explode(launch_position)
 	return true
 

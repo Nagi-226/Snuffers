@@ -59,12 +59,17 @@ signal ammo_changed(weapon_id: StringName, mag: int, reserve: int)
 signal player_muzzle_flash(weapon_id: StringName, position: Vector3)
 ## 玩家弹丸命中环境（非可伤害目标）。metal=true 时命中金属表面（溅火星口径）。
 signal bullet_impacted(position: Vector3, normal: Vector3, metal: bool)
+## 子弹弹孔请求：命中接收者来自物理查询，弹孔绑定其变换并在60秒后清理。
+## 保留 bullet_impacted 原签名供金属火花消费，不把命中实体引用写入运行时状态。
+signal bullet_mark_requested(position: Vector3, normal: Vector3, receiver: Node3D)
 ## 命中确认（准星放大 1.3× / 爆头 1.8× + hitmark 音效）。
 signal hit_confirmed(is_headshot: bool)
 ## 步枪打碉堡跳弹（提示「需用滚雷榴弹摧毁碉堡」）。
 signal ricochet_on_bunker()
 ## 榴弹爆炸（爆炸音效/特效锚点，G2 冻结新增）。信号名保留护 G2 冻结面，现由 EM-40G 榴弹爆炸发射（2026-10-22 旧 RPG 已退役并入步枪榴档）。
 signal rpg_exploded(position: Vector3)
+## 榴弹/导弹实际撞击表面时的炸痕，保留 rpg_exploded 音效/爆炸契约。
+signal explosion_surface_impacted(position: Vector3, normal: Vector3, receiver: Node3D)
 ## 对敌人造成伤害（HUD 伤害飘字用，G2 冻结新增）。与 hit_confirmed 互补；伤害投递仍走 take_damage 鸭子接口。
 signal damage_dealt(amount: float, is_headshot: bool)
 ## 碉堡被榴弹摧毁（碉堡机枪停火 / HUD 提示 / 任务判定共用，G2 冻结新增）。碉堡全图唯一，无需参数。

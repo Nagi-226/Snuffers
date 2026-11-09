@@ -205,6 +205,7 @@ func _fire() -> bool:
 	# 碉堡跳弹：提示需用火箭筒；碉体为金属，附带火星+弹痕。
 	if HitSolver.find_group_ancestor(collider, &"bunker") != null:
 		Events.bullet_impacted.emit(hit.position, hit.normal, true)
+		Events.bullet_mark_requested.emit(hit.position, hit.normal, collider as Node3D)
 		Events.ricochet_on_bunker.emit()
 		return true
 
@@ -212,6 +213,7 @@ func _fire() -> bool:
 	if target == null:
 		# 命中环境：弹坑贴花；金属表面加溅射火星。
 		Events.bullet_impacted.emit(hit.position, hit.normal, HitSolver.is_metal_surface(collider))
+		Events.bullet_mark_requested.emit(hit.position, hit.normal, collider as Node3D)
 		return true
 
 	var is_head := HitSolver.is_headshot(collider)

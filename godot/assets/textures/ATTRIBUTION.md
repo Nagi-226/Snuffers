@@ -19,7 +19,8 @@
 
 ## 第一关材质样板（2026-11-09）
 
-仅供 `StreetQualitySample` 使用，不替换全地图的既有材质。以下素材来自
+由 `StreetQualitySample` 使用：局部样板已由机主验收，2026-11-09追加授权
+应用于第一关完整街区的同类墙面、道路与金属门。以下素材来自
 Poly Haven，CC0 1.0（https://polyhaven.com/license）；2K JPG，保留 Diffuse /
 Normal OpenGL / Roughness 三图。通过公开 files API 获取下载地址，下载后逐图核对
 清单 MD5；原下载清单保留在本地 `.kimi-tmp/street_sample/`。
