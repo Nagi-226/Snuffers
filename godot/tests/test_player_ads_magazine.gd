@@ -15,6 +15,7 @@ func _run() -> void:
 	var state = root.get_node("GameState")
 	state.reset()
 	var player = (load("res://scenes/player/player.tscn") as PackedScene).instantiate()
+	var maximum_reload_duration := 0.0
 	root.add_child(player)
 	await process_frame
 	player.set_process(false)
@@ -63,6 +64,7 @@ func _run() -> void:
 		_assert(_duplicates(pair.node, gun, mag_faces) == 0, "%s hip body does not restore magazine faces into the gun" % weapon_id)
 		state.set(weapon_id + "_mag", 1)
 		weapon._start_reload()
+		maximum_reload_duration = maxf(maximum_reload_duration, weapon.weapon_data.reload_time)
 		weapon._arms_animation.seek(weapon.weapon_data.reload_time * 0.45, true)
 		weapon._process(1.0 / 60.0)
 		player._process(1.0 / 60.0)
@@ -70,7 +72,10 @@ func _run() -> void:
 		player._switch_weapon(&"rifle")
 		weapon._process(0.0)
 		_assert(not weapon._is_reloading and magazine.visible, "%s switching away cancels its actual visible reload" % weapon_id)
+	# Cancelled reload coroutine owners must survive until their timers return.
+	await create_timer(maximum_reload_duration + 0.1).timeout
 	player.queue_free()
+	await process_frame
 	await process_frame
 	print("PLAYER_ADS_MAGAZINE assertions=", _assertions, " failures=", _failures)
 	quit(1 if _failures > 0 else 0)

@@ -2,6 +2,7 @@ class_name LongGunController
 extends WeaponController
 
 const MagazineReloadMotion = preload("res://scripts/weapons/magazine_reload_motion.gd")
+const NativeLongGunArms = preload("res://scripts/player/native_long_gun_arms.gd")
 
 @export var weapon_node_path: NodePath = ^"ViewModel/Weapon"
 @export var magazine_node_path: NodePath = ^"ViewModel/Weapon/Magazine"
@@ -45,6 +46,7 @@ var _charge_elapsed: float = 0.0
 var _charge_fired: bool = false
 var _charged_shot: bool = false
 var _magazine_reload: RefCounted
+var _native_arms: RefCounted
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -128,7 +130,10 @@ func _setup_magazine_reload() -> void:
 	if profile.is_empty() or _arms_skeleton == null or _magazine == null:
 		return
 	_magazine_reload = MagazineReloadMotion.new()
-	_magazine_reload.setup(_arms_skeleton, _arms_node, _weapon_node, _magazine, profile)
+	if _native_arms != null:
+		_magazine_reload.setup_native(_arms_skeleton, _arms_node, _weapon_node, _magazine, profile, _native_arms)
+	else:
+		_magazine_reload.setup(_arms_skeleton, _arms_node, _weapon_node, _magazine, profile)
 
 
 func _setup_arms() -> void:
@@ -140,6 +145,17 @@ func _setup_arms() -> void:
 		return
 	_arms_animation = players[0] as AnimationPlayer
 	_arms_skeleton = skeletons[0] as Skeleton3D
+	if _arms_skeleton.get_bone_count() == 60:
+		_native_arms = NativeLongGunArms.new()
+		var profile: Dictionary = GameConfig.BLACK_LONG_GUN_PROFILES.get(weapon_data.weapon_id, {})
+		if not _native_arms.configure(_arms_node, _weapon_node, profile):
+			push_error("long gun: native black arms could not resolve their authored rig/profile")
+			_native_arms = null
+			return
+		_arms_animation = _native_arms.animation
+		_arms_placed = _arms_node.transform
+		_pose_pending = true
+		return
 	_prepare_native_reload(&"Armature|Arms_FPS_Anim_Reload_Fast")
 	_prepare_native_hold(&"Armature|Arms_FPS_Anim_Run")
 	_mag_bone = _arms_skeleton.find_bone("Pmag_061")
@@ -198,6 +214,9 @@ func _align_native_arms() -> void:
 
 func _process(delta: float) -> void:
 	super._process(delta)
+	if _native_arms != null:
+		_process_native_arms(delta)
+		return
 	if _arms_skeleton == null or _weapon_bone < 0:
 		return
 	if _is_reloading and _magazine_reload != null and _magazine_reload.active:
@@ -225,6 +244,25 @@ func _process(delta: float) -> void:
 			_govern_magazine_motion()
 		elif not _is_reloading:
 			_magazine.transform = _mag_home_transform * _mag_motion_start.affine_inverse() * _magazine_motion()
+
+
+func _process_native_arms(delta: float) -> void:
+	if _is_reloading and weapon_data.weapon_id != &"spas12" and _magazine_reload != null and _magazine_reload.active:
+		_arms_animation.advance(maxf(delta, 0.0))
+		_magazine_reload.update(_arms_animation.current_animation_position / weapon_data.reload_time)
+		return
+	var aim_target := 1.0 if GameState.is_aiming and _is_current_weapon() else 0.0
+	_aim_weight = move_toward(_aim_weight, aim_target, maxf(delta, 0.0) / GameConfig.ADS_LERP_TIME)
+	var dmr_pose := weapon_data.weapon_id in [&"dmr", &"spas12", &"em86s", &"em86d", &"em127g"]
+	var yaw: float = GameConfig.DMR_HIP_POSE_YAW if dmr_pose else GameConfig.SHOTGUN_HIP_POSE_YAW
+	var pitch: float = GameConfig.DMR_HIP_POSE_PITCH if dmr_pose else GameConfig.SHOTGUN_HIP_POSE_PITCH
+	_pose_extra = Transform3D(Basis(Quaternion(Vector3.UP, yaw * (1.0 - _aim_weight)) * Quaternion(Vector3.RIGHT, pitch * (1.0 - _aim_weight))), Vector3.ZERO)
+	_weapon_node.transform = _pose_extra * _weapon_home
+	var profile: Dictionary = GameConfig.BLACK_LONG_GUN_PROFILES[weapon_data.weapon_id]
+	_weapon_node.position.z -= float(profile.hip_depth) * (1.0 - _aim_weight)
+	_native_arms.pose_hold(_aim_weight)
+	_native_arms.update_bounds()
+	_pose_pending = false
 
 
 func _apply_pose_rotation() -> void:
@@ -319,6 +357,10 @@ func _pose_right_arm_shotgun(weight: float) -> void:
 
 
 func _find_bone_by_prefix(prefix: String) -> int:
+	if _native_arms != null:
+		var aliases := {"UpArm_R": "R_arm_026", "Forearm_R": "R_elbow_027", "Hand_R": "R_wrist_028", "UpArm_L": "L_arm_02", "Forearm_L": "L_elbow_03", "Hand_L": "L_wrist_04"}
+		if aliases.has(prefix):
+			return _arms_skeleton.find_bone(aliases[prefix])
 	for b in _arms_skeleton.get_bone_count():
 		if _arms_skeleton.get_bone_name(b).begins_with(prefix):
 			return b
@@ -495,6 +537,11 @@ func _on_reload_started(weapon_id: StringName) -> void:
 
 
 func _play_reload_anim() -> void:
+	if _native_arms != null:
+		_native_arms.begin_reload(weapon_data.reload_time)
+		if _magazine_reload != null:
+			_magazine_reload.begin()
+		return
 	_mag_lock = false
 	_mag_hidden = false
 	if _magazine != null:
@@ -521,6 +568,15 @@ func _on_weapon_switched(weapon_id: StringName) -> void:
 func _reset_reload_visuals() -> void:
 	if _magazine_reload != null:
 		_magazine_reload.reset()
+	if _native_arms != null:
+		_weapon_node.transform = _weapon_home
+		if _magazine != null:
+			_magazine.transform = _mag_home_transform
+			_magazine.visible = true
+		_native_arms.reset()
+		_reload_counter = 0.0
+		_pose_extra = Transform3D.IDENTITY
+		return
 	_reload_counter = 0.0
 	_pose_extra = Transform3D.IDENTITY
 	_mag_lock = false

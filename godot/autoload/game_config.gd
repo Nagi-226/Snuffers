@@ -255,6 +255,158 @@ const MAGAZINE_RELOAD_PROFILES: Dictionary = {
 const MAGAZINE_RELOAD_ELBOW_POLE := Vector3(0.08, -0.35, 0.22)
 const MAGAZINE_RELOAD_EXCHANGE_DISTANCE: float = 0.18 ## 旧匣离井后的交换段额外行程，m
 
+# 原生60骨黑臂：掌心接触点为枪局部米坐标，表面留2mm布料间隙。
+const BLACK_LONG_GUN_RIGHT_ELBOW_POLE := Vector3(0.08, -0.35, 0.22)
+const BLACK_LONG_GUN_LEFT_ELBOW_POLE := Vector3(-0.08, -0.35, 0.22)
+const BLACK_LONG_GUN_SHOULDER_REACH: float = 0.94
+const BLACK_LONG_GUN_PALM_WEIGHT: float = 0.65
+const BLACK_LONG_GUN_PROFILES: Dictionary = {
+	&"spas12": {
+		"right_grip": Vector3(0.065951, -0.143531, 0.187622),
+		"hip_depth": 0.0,
+		"support_grip_hip": Vector3(0.014655, -0.015053, -0.370225),
+		"support_grip_ads": Vector3(0.014655, -0.015053, -0.370225),
+		"support_rotation": Vector3(0, 0, PI / 2.0),
+		"reload_cant": Vector3(0, 0, 0.3),
+		"reload_lift": SPAS12_RELOAD_LIFT,
+	},
+	&"em120r": {
+		"right_grip": Vector3(0.019053, -0.208801, 0.133105),
+		"hip_depth": 0.0,
+		"support_grip_hip": Vector3(-0.06034, -0.065675, -0.278539),
+		"support_grip_ads": Vector3(-0.06034, -0.065675, -0.278539),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.15, -PI / 2.0, -0.18),
+		"reload_lift": Vector3(0.36, -0.20, -0.24),
+	},
+	&"rifle": {
+		"right_grip": Vector3(0.02879577, -0.09, 0.175),
+		"hip_depth": 0.32,
+		"support_grip_hip": Vector3(-0.02766985, -0.023918, -0.16968082),
+		"support_grip_ads": Vector3(-0.02766985, -0.023918, -0.16968082),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+	&"dmr": {
+		"right_grip": Vector3(0.02325584, -0.09, 0.25),
+		"hip_depth": 0.32,
+		"support_grip_hip": Vector3(-0.02272169, -0.03831264, -0.16319647),
+		"support_grip_ads": Vector3(-0.02272169, -0.03831264, -0.16319647),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+	&"shotgun": {
+		"right_grip": Vector3(0.02208694, -0.09, 0.15),
+		"hip_depth": 0.32,
+		"support_grip_hip": Vector3(-0.01707988, -0.02225382, -0.15895115),
+		"support_grip_ads": Vector3(-0.01707988, -0.02225382, -0.15895115),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+	&"smg": {
+		"right_grip": Vector3(0.02351493, -0.065, 0.13),
+		"hip_depth": 0.32,
+		"support_grip_hip": Vector3(-0.01459263, 0.00605233, -0.15236323),
+		"support_grip_ads": Vector3(-0.01459263, 0.00605233, -0.15236323),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+	&"lmg": {
+		"right_grip": Vector3(0.02005969, -0.09, 0.15),
+		"hip_depth": 0.32,
+		"support_grip_hip": Vector3(-0.06183238, -0.05336965, -0.15414836),
+		"support_grip_ads": Vector3(-0.06183238, -0.05336965, -0.15414836),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+	&"em57s2": {
+		"right_grip": Vector3(0.02146934, -0.065, 0.3),
+		"hip_depth": 0.32,
+		"support_grip_hip": Vector3(-0.03233485, -0.03223716, -0.17953514),
+		"support_grip_ads": Vector3(-0.03233485, -0.03223716, -0.17953514),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+	&"em86b": {
+		"right_grip": Vector3(0.02454021, -0.09, 0.2),
+		"hip_depth": 0.32,
+		"support_grip_hip": Vector3(-0.04121753, -0.03943384, -0.16922508),
+		"support_grip_ads": Vector3(-0.04121753, -0.03943384, -0.16922508),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+	&"em86d": {
+		"right_grip": Vector3(0.01914745, -0.065, 0.3),
+		"hip_depth": 0.32,
+		"support_grip_hip": Vector3(-0.02531621, -0.02250865, -0.13559248),
+		"support_grip_ads": Vector3(-0.02531621, -0.02250865, -0.13559248),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+	&"em86s": {
+		"right_grip": Vector3(0.02084804, -0.09, 0.3),
+		"hip_depth": 0.32,
+		"support_grip_hip": Vector3(-0.0263424, -0.03455873, -0.14105143),
+		"support_grip_ads": Vector3(-0.0263424, -0.03455873, -0.14105143),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+	&"em86m": {
+		"right_grip": Vector3(0.02378764, -0.09, 0.2),
+		"hip_depth": 0.32,
+		"support_grip_hip": Vector3(-0.05580504, -0.04708992, -0.17166756),
+		"support_grip_ads": Vector3(-0.05580504, -0.04708992, -0.17166756),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+	&"em12g2": {
+		"right_grip": Vector3(0.02247028, -0.09, 0.15),
+		"hip_depth": 0.32,
+		"support_grip_hip": Vector3(-0.02535065, -0.03460014, -0.14815541),
+		"support_grip_ads": Vector3(-0.02535065, -0.03460014, -0.14815541),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+	&"em127g": {
+		"right_grip": Vector3(0.01917667, -0.09, 0.3),
+		"hip_depth": 0.32,
+		"support_grip_hip": Vector3(-0.03591655, -0.03562932, -0.13826118),
+		"support_grip_ads": Vector3(-0.03591655, -0.03562932, -0.13826118),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+	&"em127m": {
+		"right_grip": Vector3(0.02397544, -0.09, 0.2),
+		"hip_depth": 0.32,
+		"support_grip_hip": Vector3(-0.04158144, -0.04646479, -0.16884027),
+		"support_grip_ads": Vector3(-0.04158144, -0.04646479, -0.16884027),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+	&"em40t1": {
+		"right_grip": Vector3(0.03194549, -0.115, 0.15),
+		"hip_depth": 0.32,
+		"support_grip_hip": Vector3(-0.03856448, -0.03090639, -0.18151964),
+		"support_grip_ads": Vector3(-0.03856448, -0.03090639, -0.18151964),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+}
+
 # 原生黑色手臂只整体等比摆位；节点姿态校准不改骨rest/蒙皮或骨pose缩放。
 const BLACK_PISTOL_PROFILES: Dictionary = {
 	&"pistol": {
@@ -262,6 +414,7 @@ const BLACK_PISTOL_PROFILES: Dictionary = {
 		"magazine_grip": Vector3(-0.069989, -0.064596, 0.083652),
 		"source_rotation": Vector3(0, PI, 0),
 		"root_scale": 1.0,
+		"lock_idle": true, ## 机主实机要求只保留射击和换弹动作，腰射与ADS待机均稳定。
 		"lock_ads_idle": false,
 		"reload_contact_phase": 0.20,
 		"reload_seat_phase": 0.84,
@@ -272,6 +425,7 @@ const BLACK_PISTOL_PROFILES: Dictionary = {
 		"magazine_grip": Vector3(-0.075189, -0.056939, 0),
 		"source_rotation": Vector3(0, PI, 0),
 		"root_scale": 1.0,
+		"lock_idle": true,
 		"lock_ads_idle": true, ## 原生idle中段枪身会遮住ADS中心，开镜待机固定标定首帧。
 		"reload_contact_phase": 0.20,
 		"reload_seat_phase": 0.84,
@@ -282,6 +436,7 @@ const BLACK_PISTOL_PROFILES: Dictionary = {
 		"magazine_grip": Vector3(-0.025, -0.065, 0.06),
 		"source_rotation": Vector3(0, PI, 0),
 		"root_scale": 1.0,
+		"lock_idle": false,
 		"lock_ads_idle": false,
 		"reload_contact_phase": 0.20,
 		"reload_seat_phase": 0.84,
@@ -537,7 +692,7 @@ const EM120R_PROJECTILE_SPEED: float = 80.0
 const EM120R_MAX_RANGE: float = 1500.0
 const EM120R_TURN_RATE: float = deg_to_rad(120.0)
 const EM120R_LOCK_TIME: float = 1.0
-const EM120R_MODEL_POSITION := Vector3(0, 0.18, 0.38)
+const EM120R_MODEL_POSITION := Vector3(0, 0.18, 0.06)
 const EM120R_MODEL_ROTATION := Vector3.ZERO
 const EM120R_MUZZLE_POSITION := Vector3(0, 0, -0.6)
 const EM120R_RIGHT_GRIP := Vector3(0, -0.17, 0.04)
@@ -626,6 +781,25 @@ const SPAS12_RECOIL_VIEW_Z_FACTOR: float = 0.06
 const SPAS12_SOUND_PITCH: float = 0.58
 const SPAS12_PUMP_TIME: float = 0.62
 const SPAS12_RELOAD_CANT: float = 0.3
+const SPAS12_MODEL_POSITION := Vector3(-0.04, -0.035, -0.20)
+const SPAS12_PUMP_DISTANCE: float = 0.09
+const SPAS12_SHELL_START := Vector3(-0.16, -0.18, 0.08)
+const SPAS12_SHELL_PORT := Vector3(0.05, -0.02, -0.06)
+const SPAS12_SHELL_HAND_OFFSET := Vector3(-0.015, 0, 0)
+const SPAS12_SHELL_RETRIEVE_PHASE: float = 0.18
+const SPAS12_SHELL_INSERT_PHASE: float = 0.78
+const SPAS12_RELOAD_LIFT := Vector3(0, 0.025, -0.02)
+const EM120R_REAR_BREECH := Vector3(0, 0, 0.587)
+const EM120R_REAR_START_NOSE := Vector3(0, 0.08, 0.65)
+const EM120R_REAR_MISSILE_GRIP := Vector3(-0.036765660, -0.013928436, 0.39881194)
+const EM120R_REAR_CLEARANCE: float = 0.04
+const EM120R_REAR_SHOW_PHASE: float = 0.08
+const EM120R_REAR_CONTACT_PHASE: float = 0.18
+const EM120R_REAR_ALIGN_PHASE: float = 0.42
+const EM120R_REAR_RELEASE_PHASE: float = 0.80
+const EM120R_REAR_SEAT_PHASE: float = 0.90
+const EM120R_REAR_HAND_CLEARANCE := Vector3(-0.14, -0.12, 0)
+const EM120R_REAR_SHOULDER_DIRECTION := Vector3(0, -1, 1)
 const SPAS12_ADS_FOV: float = 65.0
 const SPAS12_PICKUP_TRIGGER_OFFSET := Vector3(0, -1.0, 0.65) ## 枪留高层货架，触发区下探至玩家可接近处
 const SPAS12_SUPPORT_WRIST_ADS := Vector3(0.04, -0.08, -0.10)

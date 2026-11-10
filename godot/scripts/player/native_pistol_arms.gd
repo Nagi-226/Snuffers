@@ -135,7 +135,8 @@ func update(delta: float) -> void:
 	# shoulder adjustment before sampling, so correction cannot accumulate.
 	for bone: int in _bone_positions:
 		skeleton.set_bone_pose_position(bone, _bone_positions[bone])
-	if _clip == &"idle" and lock_idle_aim and bool(_profile.get("lock_ads_idle", false)):
+	var hold_idle := bool(_profile.get("lock_idle", false)) or (lock_idle_aim and bool(_profile.get("lock_ads_idle", false)))
+	if _clip == &"idle" and hold_idle:
 		animation.seek(0.0, true)
 	else:
 		animation.advance(maxf(0.0, delta) * _reload_speed)

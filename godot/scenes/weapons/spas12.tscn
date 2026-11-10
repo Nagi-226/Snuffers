@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/weapons/spas12_controller.gd" id="1_controller"]
 [ext_resource type="Resource" path="res://scenes/weapons/spas12.tres" id="2_data"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/spas12_viewmodel.glb" id="3_model"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/arms_rifle_native.glb" id="4_arms"]
+[ext_resource type="PackedScene" path="res://addons/community_weapons/black_pistol_arms.glb" id="4_arms"]
 
 [sub_resource type="CylinderMesh" id="ShellMesh"]
 top_radius = 0.009
@@ -24,7 +24,7 @@ magazine_node_path = NodePath("ViewModel/Weapon/MagazineAnchor")
 [node name="ViewModel" type="Node3D" parent="."]
 
 [node name="Weapon" type="Node3D" parent="ViewModel"]
-position = Vector3(-0.04, -0.035, 0.12)
+position = Vector3(-0.04, -0.035, -0.20)
 
 [node name="SpasModel" parent="ViewModel/Weapon" instance=ExtResource("3_model")]
 transform = Transform3D(0, 0, 0.0012, -0.0012, 0, 0, 0, -0.0012, 0, 0.05, -0.145, 0.15)

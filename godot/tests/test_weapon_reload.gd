@@ -71,7 +71,9 @@ func _check_weapon(weapon_id: StringName, scene_path: String, arms_path: NodePat
 	_assert(weapon._is_reloading, "%s enters reload state" % weapon_id)
 	_assert(player.current_animation == "reload", "%s starts native reload animation" % weapon_id)
 	if native != null:
-		_assert(absf(player.get_animation(&"reload").length / native._reload_speed - duration) < 0.001, "%s native reload action respects gameplay duration" % weapon_id)
+		var native_speed = native.get("_reload_speed")
+		var playback_speed: float = float(native_speed) if native_speed != null else 1.0
+		_assert(absf(player.get_animation(&"reload").length / playback_speed - duration) < 0.001, "%s native reload action respects gameplay duration" % weapon_id)
 		weapon._process(duration * 0.25)
 	else:
 		player.advance(duration * 0.25)

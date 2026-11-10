@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/weapons/long_gun_controller.gd" id="1_controller"]
 [ext_resource type="Resource" path="res://scenes/weapons/em127g.tres" id="2_data"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/em127g_viewmodel_reload.glb" id="3_model"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/arms_rifle_native.glb" id="4_arms"]
+[ext_resource type="PackedScene" path="res://addons/community_weapons/black_pistol_arms.glb" id="4_arms"]
 
 [node name="Em127g" type="Node3D"]
 script = ExtResource("1_controller")

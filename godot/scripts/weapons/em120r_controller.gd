@@ -1,6 +1,8 @@
 ## 长弓肩扛发射器：两种制导均为半自动；激光档同一时刻只允许一枚在飞。
 extends WeaponController
 
+const NativeLongGunArms = preload("res://scripts/player/native_long_gun_arms.gd")
+
 var _laser_missile: Node3D
 var _laser_mesh: MeshInstance3D
 var _laser_cylinder: CylinderMesh
@@ -10,11 +12,17 @@ var _arms_skeleton: Skeleton3D
 var _arms_animation: AnimationPlayer
 var _aim_origin := Vector3.ZERO
 var _has_aim_origin := false
+var _native_arms: RefCounted
+var _weapon_home := Transform3D.IDENTITY
+var _loading_home := Transform3D.IDENTITY
+var _missile_bounds := AABB()
 
 @onready var _weapon_node: Node3D = $ViewModel/Weapon
 @onready var _muzzle_node: Marker3D = $ViewModel/Weapon/Muzzle
 @onready var _laser_origin: Marker3D = $ViewModel/Weapon/LaserOrigin
 @onready var _arms_node: Node3D = $ViewModel/Arms
+@onready var _loading_missile: Node3D = $ViewModel/Weapon/LoadingMissile
+@onready var _rear_breech: Marker3D = $ViewModel/Weapon/RearBreech
 
 
 func _ready() -> void:
@@ -23,6 +31,21 @@ func _ready() -> void:
 	_weapon_node.rotation = GameConfig.EM120R_MODEL_ROTATION
 	_muzzle_node.position = GameConfig.EM120R_MUZZLE_POSITION
 	_laser_origin.position = GameConfig.EM120R_LASER_ORIGIN
+	_weapon_home = _weapon_node.transform
+	_rear_breech.position = GameConfig.EM120R_REAR_BREECH
+	_loading_home = _loading_missile.transform
+	_loading_missile.visible = false
+	var has_bounds := false
+	for node in _loading_missile.find_children("*", "MeshInstance3D", true, false):
+		var mesh := node as MeshInstance3D
+		if mesh.mesh == null:
+			continue
+		var to_missile := _loading_missile.global_transform.affine_inverse() * mesh.global_transform
+		var bounds: AABB = to_missile * mesh.get_aabb()
+		_missile_bounds = _missile_bounds.merge(bounds) if has_bounds else bounds
+		has_bounds = true
+	if not has_bounds or _missile_bounds.size.z <= 0.0:
+		push_error("EM-120R未能读取已登记EC-120导弹的真实长度")
 	_setup_shoulder_arms()
 	_build_laser()
 	Events.ec120_aim_changed.connect(_on_aim_changed)
@@ -61,7 +84,78 @@ func _tick_weapon(delta: float) -> void:
 
 func _process(delta: float) -> void:
 	super(delta)
+	if _native_arms != null:
+		if _is_reloading:
+			_arms_animation.advance(maxf(0.0, delta))
+			_update_rear_reload(_arms_animation.current_animation_position / weapon_data.reload_time)
+		else:
+			_native_arms.pose_hold(1.0 if GameState.is_aiming else 0.0)
+			_native_arms.update_bounds()
 	_update_laser()
+
+
+## 只摆位已登记的静态导弹；实际飞行与弹药迁移仍由原有流程负责。
+func _update_rear_reload(progress: float) -> void:
+	progress = clampf(progress, 0.0, 1.0)
+	var profile: Dictionary = _native_arms._profile
+	var contact: float = GameConfig.EM120R_REAR_CONTACT_PHASE
+	var release: float = GameConfig.EM120R_REAR_RELEASE_PHASE
+	var seat: float = GameConfig.EM120R_REAR_SEAT_PHASE
+	var weight := smoothstep(0.0, contact, progress) * (1.0 - smoothstep(seat, 1.0, progress))
+	# 大幅侧转只作用于筒身；先在原腰射坐标恢复袖根，避免Arms容器随枪转到画中央。
+	_weapon_node.transform = _weapon_home
+	_native_arms.pose_hold(0.0)
+	_weapon_node.transform = _weapon_home * Transform3D(
+		Basis.from_euler((profile.reload_cant as Vector3) * weight), (profile.reload_lift as Vector3) * weight)
+	_loading_missile.transform = _loading_home
+	# 源弹头为-Z；由真实AABB鼻端推至后膛，完整入筒时尾端恰好齐后口。
+	_loading_missile.position = _rear_reload_nose(progress) - Vector3(0, 0, _missile_bounds.position.z)
+	_loading_missile.visible = progress >= GameConfig.EM120R_REAR_SHOW_PHASE and progress < seat
+	_native_arms.pose_right_grip()
+	var support: Vector3 = profile.support_grip_hip
+	var hand: Vector3 = _loading_missile.position + GameConfig.EM120R_REAR_MISSILE_GRIP
+	if progress < contact:
+		hand = support.lerp(hand, smoothstep(0.0, contact, progress))
+	elif progress > release:
+		# 提前放开尾段；先退到筒外左下，再回前支撑，不跟导弹深入筒内。
+		var release_hand := _rear_reload_nose(release) - Vector3(0, 0, _missile_bounds.position.z) + GameConfig.EM120R_REAR_MISSILE_GRIP
+		var clear_hand: Vector3 = release_hand + GameConfig.EM120R_REAR_HAND_CLEARANCE
+		if progress < seat:
+			hand = release_hand.lerp(clear_hand, smoothstep(release, seat, progress))
+		else:
+			hand = clear_hand.lerp(support, smoothstep(seat, 1.0, progress))
+	var hand_world := _weapon_node.to_global(hand)
+	var hand_basis: Basis = _native_arms.support_basis_world()
+	# 尾段装填选择下后方肩锚，避免超臂展时沿旧肩方向重锚进屏。
+	# 实际掌面不是腕心；先按同一蒙皮掌面偏移反解目标腕，再平滑摆原上臂锚。
+	var upper_bone: int = _native_arms._uppers[1]
+	var wrist_bone: int = _native_arms._wrists[1]
+	var wrist_pose := _arms_skeleton.get_bone_global_pose(wrist_bone)
+	var palm_offset: Vector3 = wrist_pose.affine_inverse() * _native_arms._palm_position(1)
+	var wrist_basis := (_arms_skeleton.global_basis.inverse() * hand_basis).orthonormalized()
+	var wrist_target := _arms_skeleton.global_transform.affine_inverse() * hand_world - wrist_basis * palm_offset
+	var shoulder_direction := (_arms_skeleton.global_basis.inverse() * _view_model.global_basis
+		* GameConfig.EM120R_REAR_SHOULDER_DIRECTION).normalized()
+	var source_reach: float = (_native_arms._upper_lengths[1] + _native_arms._fore_lengths[1]) \
+		* GameConfig.BLACK_LONG_GUN_SHOULDER_REACH
+	var upper_pose := _arms_skeleton.get_bone_global_pose(upper_bone)
+	upper_pose.origin = upper_pose.origin.lerp(wrist_target + shoulder_direction * source_reach, weight)
+	_arms_skeleton.set_bone_global_pose(upper_bone, upper_pose)
+	_native_arms.pose_left_grip(hand_world, hand_basis)
+	# 尾段远抓点重解前臂后，掌面中的前臂混合权重也随之变动。
+	# 用第一次求解后的真实掌面再求一次，消除约3.2mm残差，不改源骨长/缩放。
+	_native_arms.pose_left_grip(hand_world, hand_basis)
+	_native_arms.update_bounds()
+
+
+func _rear_reload_nose(progress: float) -> Vector3:
+	var align: float = GameConfig.EM120R_REAR_ALIGN_PHASE
+	var aligned: Vector3 = _rear_breech.position + Vector3(0, 0, GameConfig.EM120R_REAR_CLEARANCE)
+	if progress <= align:
+		return GameConfig.EM120R_REAR_START_NOSE.lerp(aligned,
+			smoothstep(GameConfig.EM120R_REAR_CONTACT_PHASE, align, progress))
+	var seated: Vector3 = _rear_breech.position - Vector3(0, 0, _missile_bounds.size.z)
+	return aligned.lerp(seated, smoothstep(align, GameConfig.EM120R_REAR_SEAT_PHASE, progress))
 
 
 func _mag_value() -> int:
@@ -207,12 +301,16 @@ func _start_reload() -> void:
 func _on_reload_started(weapon_id: StringName) -> void:
 	if weapon_data.weapon_id == weapon_id:
 		_is_reloading = true
+		if _native_arms != null:
+			_native_arms.begin_reload(weapon_data.reload_time)
+			_update_rear_reload(0.0)
 
 
 func _on_weapon_reloaded(weapon_id: StringName) -> void:
 	if weapon_data.weapon_id != weapon_id:
 		return
 	_is_reloading = false
+	_reset_supply_visuals()
 	var take := mini(weapon_data.mag_size - _mag_value(), _reserve_value())
 	GameState.em120r_mag += take
 	GameState.em120r_reserve -= take
@@ -225,10 +323,29 @@ func _on_weapon_switched(weapon_id: StringName) -> void:
 	if weapon_data != null and weapon_id != weapon_data.weapon_id:
 		_reload_generation += 1
 		_is_reloading = false
+		_reset_supply_visuals()
+
+
+func _reset_supply_visuals() -> void:
+	_weapon_node.transform = _weapon_home
+	_loading_missile.transform = _loading_home
+	_loading_missile.visible = false
+	if _native_arms != null:
+		_native_arms.reset()
 
 
 ## 复用已登记手臂与两骨 IK，双手独立标定到筒身握点，筒体保持肩位。
 func _setup_shoulder_arms() -> void:
+	var profile: Dictionary = GameConfig.BLACK_LONG_GUN_PROFILES.get(&"em120r", {})
+	if not profile.is_empty():
+		_native_arms = NativeLongGunArms.new()
+		if not _native_arms.configure(_arms_node, _weapon_node, profile):
+			push_error("EM-120R 原生黑臂未能解析源骨架和后膛装填抓点")
+			_native_arms = null
+			return
+		_arms_skeleton = _native_arms.skeleton
+		_arms_animation = _native_arms.animation
+		return
 	var skeletons := _arms_node.find_children("*", "Skeleton3D", true, false)
 	var animations := _arms_node.find_children("*", "AnimationPlayer", true, false)
 	if skeletons.is_empty() or animations.is_empty():

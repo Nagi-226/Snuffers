@@ -22,6 +22,8 @@ var _control := -1
 var _upper_length := 0.0
 var _fore_length := 0.0
 var active := false
+var _native_arms: RefCounted
+var _native_profile: Dictionary
 
 
 func setup(skeleton: Skeleton3D, arms: Node3D, gun: Node3D, magazine: Node3D, profile: Dictionary) -> void:
@@ -30,13 +32,27 @@ func setup(skeleton: Skeleton3D, arms: Node3D, gun: Node3D, magazine: Node3D, pr
 	_gun = gun
 	_magazine = magazine
 	_profile = profile
+	_native_arms = null
+	_native_profile = {}
 	_upper = _find_bone("UpArm_L")
 	_fore = _find_bone("Forearm_L")
 	_hand = _find_bone("Hand_L")
 	_control = _find_bone("IK_Hand_Cntrl_L")
 
 
+func setup_native(skeleton: Skeleton3D, arms: Node3D, gun: Node3D, magazine: Node3D, profile: Dictionary, native_arms: RefCounted) -> void:
+	setup(skeleton, arms, gun, magazine, profile)
+	_native_arms = native_arms
+	_native_profile = native_arms._profile
+
+
 func begin() -> void:
+	if _native_arms != null:
+		_gun_home = _gun.transform
+		_arms_home = _arms.transform
+		_magazine_home = _magazine.transform
+		active = true
+		return
 	if _upper < 0 or _fore < 0 or _hand < 0 or _control < 0:
 		return
 	_positions.clear()
@@ -58,6 +74,9 @@ func begin() -> void:
 
 func update(progress: float) -> void:
 	if not active:
+		return
+	if _native_arms != null:
+		_update_native(progress)
 		return
 	_restore_pose()
 	_gun.transform = _gun_home
@@ -100,12 +119,50 @@ func update(progress: float) -> void:
 func reset() -> void:
 	if not active:
 		return
+	if _native_arms != null:
+		_gun.transform = _gun_home
+		_magazine.transform = _magazine_home
+		_magazine.visible = true
+		_native_arms.reset()
+		active = false
+		return
 	_restore_pose()
 	_gun.transform = _gun_home
 	_arms.transform = _arms_home
 	_magazine.transform = _magazine_home
 	_magazine.visible = true
 	active = false
+
+
+func _update_native(progress: float) -> void:
+	progress = clampf(progress, 0.0, 1.0)
+	var contact: float = _profile.contact_phase
+	var pull: float = _profile.pull_phase
+	var new_phase: float = _profile.new_phase
+	var seat: float = _profile.seat_phase
+	var gun_weight := _smooth(progress / contact) * (1.0 - _smooth((progress - seat) / (1.0 - seat)))
+	_gun.transform = _gun_home * Transform3D(Basis.from_euler((_native_profile.reload_cant as Vector3) * gun_weight), (_native_profile.reload_lift as Vector3) * gun_weight)
+	_native_arms.pose_hold(0.0)
+	var amount := 0.0
+	var exchange := 0.0
+	var visible_magazine := true
+	if progress > contact and progress < pull:
+		amount = _smooth((progress - contact) / (pull - contact))
+	elif progress >= pull and progress <= new_phase:
+		amount = 1.0
+		var exchange_progress := (progress - pull) / (new_phase - pull)
+		exchange = _smooth(1.0 - absf(exchange_progress * 2.0 - 1.0))
+		visible_magazine = exchange_progress < 1.0 / 3.0 or exchange_progress > 2.0 / 3.0
+	elif progress > new_phase and progress < seat:
+		amount = 1.0 - _smooth((progress - new_phase) / (seat - new_phase))
+	_magazine.transform = _magazine_home
+	_magazine.global_position += _gun.global_basis.orthonormalized() * (_profile.extraction_direction as Vector3).normalized() * (float(_profile.extraction_distance) * amount + GameConfig.MAGAZINE_RELOAD_EXCHANGE_DISTANCE * exchange)
+	_magazine.visible = visible_magazine
+	var support := _gun.global_transform * (_native_profile.support_grip_hip as Vector3)
+	var grasp := _magazine.global_position + _gun.global_basis.orthonormalized() * (_profile.grip_offset as Vector3)
+	var reach := _smooth(progress / contact) * (1.0 - _smooth((progress - seat) / (1.0 - seat)))
+	_native_arms.pose_left_grip(support.lerp(grasp, reach), _native_arms.support_basis_world())
+	_native_arms.update_bounds()
 
 
 func _restore_pose() -> void:

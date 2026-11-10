@@ -70,12 +70,11 @@ func _run() -> void:
 		weapon._is_reloading = false
 		weapon._reset_reload_visuals()
 		weapon._process(duration * 0.25)
-		var locks_ads_idle: bool = weapon._native_arms._profile.get("lock_ads_idle", false)
 		_assertions += 1
-		if not weapon._native_arms.lock_idle_aim or (animation.current_animation_position > 0.0) == locks_ads_idle:
+		if not weapon._native_arms.lock_idle_aim or animation.current_animation_position > 0.0:
 			_failures += 1
-			push_error("FAIL: %s current weapon ADS idle follows only its approved profile" % weapon_id)
-		# ADS约束不得删除腰射原生待机动作。
+			push_error("FAIL: %s current weapon ADS idle stays at its calibrated pose" % weapon_id)
+		# 机主本轮取消两枪腰射idle晃动，收镜后同样保持标定姿态。
 		player._set_aiming(false)
 		for frame in 30:
 			player._process(1.0 / 60.0)
@@ -86,23 +85,23 @@ func _run() -> void:
 		var home: Transform3D = weapon._weapon_home
 		var movement := current.origin.distance_to(home.origin) > 0.0001 or current.basis.orthonormalized().get_rotation_quaternion().angle_to(home.basis.orthonormalized().get_rotation_quaternion()) > 0.001
 		_assertions += 1
-		if not movement:
+		if movement:
 			_failures += 1
-			push_error("FAIL: %s hip fire preserves the native idle weapon motion" % weapon_id)
+			push_error("FAIL: %s hip idle remains at its calibrated gun pose" % weapon_id)
 		var hip_position := animation.current_animation_position
 		weapon._process(duration * 0.1)
 		_assertions += 1
-		if weapon._native_arms.lock_idle_aim or animation.current_animation_position <= hip_position:
+		if weapon._native_arms.lock_idle_aim or animation.current_animation_position != hip_position:
 			_failures += 1
-			push_error("FAIL: %s exiting ADS resumes native idle progression" % weapon_id)
+			push_error("FAIL: %s exiting ADS keeps native idle stable" % weapon_id)
 		player._switch_weapon(&"magnum" if weapon_id == &"pistol" else &"pistol")
 		player._set_aiming(true)
 		weapon._reset_reload_visuals()
 		weapon._process(duration * 0.25)
 		_assertions += 1
-		if weapon._native_arms.lock_idle_aim or animation.current_animation_position <= 0.0:
+		if weapon._native_arms.lock_idle_aim or animation.current_animation_position > 0.0:
 			_failures += 1
-			push_error("FAIL: %s inactive weapon ignores another weapon's ADS idle lock" % weapon_id)
+			push_error("FAIL: %s inactive weapon keeps its own idle stable without another weapon's ADS state" % weapon_id)
 	player.queue_free()
 	await process_frame
 	print("NATIVE_PISTOL_ADS_IDLE assertions=", _assertions, " failures=", _failures)

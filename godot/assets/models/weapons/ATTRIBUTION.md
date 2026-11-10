@@ -123,3 +123,11 @@
 - 源/衍生 SHA256、面数、真实弹匣边界与枢轴、方向和抓点见 `desktop-port/godot-spike/modeling/reload_magazines/prepared_magazines.json`。处理管线为 `modeling/scripts/prepare_reload_magazines.py` 与 `magazine_cut_regions.json`。
 - 既有 EM-68A / EM-68D / EM-12G-1 原本就有真实独立弹匣，沿用其原资源；SPAS-12 保留管式逐壳，EM-120R 沿用原装填机制。
 - 黑色手臂为独立 CC-BY 4.0 资源，完整上游及改作署名见 `godot/addons/community_weapons/ATTRIBUTION.md`；不改变本节雷械模型的项目自有来源。
+
+## EM-120R 后部导弹装填视觉（2026-11-10）
+
+- **名称**：LoadingMissile，复用已有 EC-120 导弹模型。
+- **作者/来源**：既有 `ec120_missile.glb` 的来源/作者/权属沿用本台账原登记；本项目/Codex仅实现后部装填动作，没有新增网格、贴图或下载原件。
+- **来源URL**：https://github.com/Nagi-226/Snuffers/blob/dev1/godot/scenes/weapons/em120r.tscn
+- **许可/权属**：沿用既有EM120R/EC120模型来源与平台条款。
+- **日期/用途**：2026-11-10，按机主最新指令移除侧面供弹模块，直接用既有导弹从后口装填；10发/3秒批量结算不变。真实后口、尾段抓点与运动参数集中于GameConfig/计划§7.2。

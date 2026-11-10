@@ -1,6 +1,9 @@
 extends SceneTree
 
+const HandSkin = preload("res://tests/hand_skin_probe.gd")
+
 var _failures := 0
+var _source_fore_length := 0.0
 
 
 func _init() -> void:
@@ -32,19 +35,28 @@ func _check_smg_grip(weapon: Node, label: String) -> void:
 		return
 	var to_weapon: Transform3D = weapon._weapon_node.global_transform.affine_inverse() * skeleton.global_transform
 	var hand_pose := skeleton.get_bone_global_pose(hand)
-	# Mean of 203 real palm vertices weighted to the native right Hand subtree.
-	var palm: Vector3 = to_weapon * hand_pose * Vector3(0.02502806, 0.06288825, -0.01081204)
+	var palm: Vector3 = weapon._weapon_node.to_local(HandSkin.palm_world(weapon._arms_node, skeleton, "R"))
 	# First ray hit on the native SMG's right trigger-grip surface.
 	var contact := Vector3(0.0215154, -0.065, 0.13)
 	_assert(palm.distance_to(contact) < 0.008, label + " right palm contacts the trigger grip within 8mm")
 	var fore_pose := skeleton.get_bone_global_pose(fore)
-	var wrist_end := fore_pose.origin + fore_pose.basis.y.normalized() * 0.29618249
-	_assert(wrist_end.distance_to(hand_pose.origin) < 0.001, label + " retains a closed native right wrist")
-	var finger_direction := (to_weapon.basis * hand_pose.basis.y).normalized()
+	_assert(absf(fore_pose.origin.distance_to(hand_pose.origin) - _source_fore_length) < 0.001, label + " retains the original black-arm forearm length and wrist seam")
+	var finger_direction := (palm - to_weapon * hand_pose.origin).normalized()
 	_assert(finger_direction.dot(Vector3.FORWARD) > 0.85, label + " keeps the native gripping finger orientation")
 
 
 func _run() -> void:
+	var source = (load("res://addons/community_weapons/black_pistol_arms.glb") as PackedScene).instantiate()
+	root.add_child(source)
+	await process_frame
+	var source_animation := source.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer
+	source_animation.play(&"idle")
+	source_animation.seek(0.0, true)
+	source_animation.pause()
+	var source_skeleton := source.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
+	_source_fore_length = source_skeleton.get_bone_global_pose(source_skeleton.find_bone("R_elbow_027")).origin.distance_to(source_skeleton.get_bone_global_pose(source_skeleton.find_bone("R_wrist_028")).origin)
+	source.queue_free()
+	await process_frame
 	root.size = Vector2i(1600, 900)
 	var state = root.get_node("GameState")
 	state.reset()
@@ -103,9 +115,9 @@ func _run() -> void:
 		var weapon = player.get_node("Camera3D/WeaponMount/" + pair[1])
 		_settle(player, weapon)
 		var skeleton: Skeleton3D = weapon._arms_skeleton
-		var hand: int = weapon._find_bone_by_prefix("Hand_R")
-		var wrist: Vector3 = weapon._weapon_node.global_transform.affine_inverse() * skeleton.global_transform * skeleton.get_bone_global_pose(hand).origin
-		_assert(wrist.distance_to(Vector3(0.057694, -0.074015, 0.352379)) < 0.001, "%s retains its original right-hand calibration" % pair[0])
+		var palm: Vector3 = weapon._weapon_node.to_local(HandSkin.palm_world(weapon._arms_node, skeleton, "R"))
+		var grip: Vector3 = root.get_node("GameConfig").BLACK_LONG_GUN_PROFILES[pair[0]].right_grip
+		_assert(palm.distance_to(grip) < 0.003, "%s native black palm contacts its measured trigger grip" % pair[0])
 	scene.queue_free()
 	await process_frame
 	print("WEAPON_PRESENTATION failures=", _failures)
