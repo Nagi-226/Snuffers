@@ -79,15 +79,15 @@ const MEDKIT_PICKUP_RADIUS: float = 3.0 ## 拾取半径（L849）
 const MEDKIT_MAX_CARRY: int = 5 ## 携带上限（L2305）
 
 # ===== 拾取（2026-10-07 机主裁决冻结：居民区室内补给 = 电池组/医疗注射/取证终端，无 RPG）=====
-const BATTERY_PICKUP_ROUNDS: int = 60 ## 电池组补充步枪备弹数
-const PISTOL_AMMO_PICKUP_ROUNDS: int = 60 ## 手枪弹匣组补充手枪备弹数（2026-10-19 机主立项）
+const BATTERY_PICKUP_ROUNDS: int = 300 ## EC-68 电池组单件补充数（2026-11-10 机主裁决）
+const PISTOL_AMMO_PICKUP_ROUNDS: int = 300 ## EC-57 弹匣组单件补充数（2026-11-10 机主裁决）
 const RIFLE_RESERVE_MAX: int = 1800 ## EC-68 备弹携带上限（与初始备弹一致）
 const PISTOL_RESERVE_MAX: int = 3000 ## EC-57 共享备弹携带上限（2026-11-08 机主裁决）
 const PICKUP_TRIGGER_RADIUS: float = 0.7 ## 拾取触发半径（贴近即拾，无需按键）
 const PICKUP_BOB_AMP: float = 0.05 ## 浮动振幅 m
 const PICKUP_BOB_HZ: float = 1.2 ## 浮动频率 Hz
 const PICKUP_SPIN_DEG: float = 45.0 ## 自转角速度 度/s
-const GRENADE_PICKUP_ROUNDS: int = 6 ## 榴弹补给件补充数（2026-10-25 机主立项；雷池总数制无上限）
+const GRENADE_PICKUP_ROUNDS: int = 20 ## EC-40 榴弹单件补充数（2026-11-10 机主裁决；雷池总数制无上限）
 
 # ===== 铁栅栏门门禁（2026-10-25 机主指令：门 B 通行前置=钥匙 + 取证终端；
 #       需求量 3 台=机主四轮裁决「拿到3个才完成」，全图恰 3 处须全部收集）=====

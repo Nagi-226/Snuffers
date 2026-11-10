@@ -70,6 +70,7 @@ func _on_body_entered(body: Node3D) -> void:
 				GameConfig.RIFLE_RESERVE_MAX)
 			Events.ammo_changed.emit(&"rifle", GameState.rifle_mag, GameState.rifle_reserve)
 			Events.ammo_changed.emit(&"dmr", GameState.dmr_mag, GameState.rifle_reserve)
+			Events.ammo_changed.emit(&"lmg", GameState.lmg_mag, GameState.rifle_reserve)
 			Events.battery_picked.emit(GameState.rifle_reserve)
 			Events.message_posted.emit("EC-68 电池组  步枪/DMR 共享备弹 +%d" % GameConfig.BATTERY_PICKUP_ROUNDS)
 		&"pistol_ammo":
@@ -118,6 +119,9 @@ func _on_body_entered(body: Node3D) -> void:
 			# 榴弹补给（雷池总数制无上限；ammo_changed 联动榴档弹药显示）
 			GameState.rifle_grenades += GameConfig.GRENADE_PICKUP_ROUNDS
 			Events.ammo_changed.emit(&"rifle", GameState.rifle_mag, GameState.rifle_reserve)
+			Events.ammo_changed.emit(&"smg", GameState.smg_mag, GameState.pistol_reserve)
+			Events.ammo_changed.emit(&"em86b", GameState.em86b_mag, GameState.em86_reserve)
+			Events.ammo_changed.emit(&"em40t1", GameState.em40t1_mag, GameState.rifle_grenades)
 			Events.message_posted.emit("EM-40G 滚雷榴弹 +%d（雷池 %d）"
 				% [GameConfig.GRENADE_PICKUP_ROUNDS, GameState.rifle_grenades])
 		_:

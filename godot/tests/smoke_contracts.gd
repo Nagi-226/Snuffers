@@ -186,7 +186,7 @@ func _run() -> void:
 	_assert(config.DAMAGE_ARC_SHOW_TIME == 1.0, "game_config.gd DAMAGE_ARC_SHOW_TIME == 1.0")
 
 	# -- 拾取契约（2026-10-07 冻结：居民区室内补给 = 电池组/医疗注射/取证终端，无 RPG）--
-	_assert(config.BATTERY_PICKUP_ROUNDS == 60, "game_config.gd BATTERY_PICKUP_ROUNDS == 60")
+	_assert(config.BATTERY_PICKUP_ROUNDS == 300, "game_config.gd BATTERY_PICKUP_ROUNDS == 300")
 	_assert(config.PICKUP_TRIGGER_RADIUS == 0.7, "game_config.gd PICKUP_TRIGGER_RADIUS == 0.7")
 	_assert(config.PICKUP_BOB_AMP == 0.05, "game_config.gd PICKUP_BOB_AMP == 0.05")
 	_assert(config.PICKUP_BOB_HZ == 1.2, "game_config.gd PICKUP_BOB_HZ == 1.2")

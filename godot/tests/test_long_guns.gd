@@ -181,7 +181,7 @@ func _check_pickups() -> void:
 	root.add_child(battery)
 	battery._on_body_entered(player)
 	await process_frame
-	_assert(_state.rifle_reserve == 560, "EC-68 pickup refills the shared rifle/DMR pool once")
+	_assert(_state.rifle_reserve == 800, "EC-68 pickup refills the shared rifle/DMR pool once")
 	var shells := (load("res://scenes/levels/pickup.tscn") as PackedScene).instantiate()
 	shells.kind = &"shotgun_ammo"
 	root.add_child(shells)
