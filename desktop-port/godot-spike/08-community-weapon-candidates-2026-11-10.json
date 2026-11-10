@@ -309,5 +309,51 @@
         "description": "This is a real-time, game-ready model of the iconic SureFire Scout tactical flashlight.\nThe asset was created as part of my hard-surface practice and optimized for use in modern game engines such as Unreal Engine 5 and Unity HDRP.\n\nThe high-poly was modeled and detailed in Blender, baked onto a clean low-poly mesh, and textured using a full PBR workflow (Substance Painter → Marmoset Toolbag).\nAll renders and the turntable here are displayed using Sketchfab’s real-time PBR renderer.\n\n• Technical Details\n\nTris count: 12,146\nTexture sets: 1× 4K\nMaps: Albedo, Roughness, Metallic, Normal (DirectX/OpenGL), Ambient Occlusion\nWorkflow: Metallic/Roughness\nLow Poly: Blender\nHigh Poly: Blender\nBake: Marmoset Toolbag\nTexture: Substance Painter\nEngine Test: Unreal Engine 5\n\n• Features\n\nClean and optimized topology\nHigh-quality normal map bake\nCustom brushed aluminium material\nRealistic micro-detail (knurling, roughness breakup, subtle wear)\nAccurate proportions based on real reference"
       }
     ]
+  },
+  "gen5_and_route_a_followup": {
+    "checked_on": "2026-11-10 Asia/Shanghai",
+    "route_a_approved": true,
+    "route_a_status": "awaiting authenticated official downloads; not assembled or imported",
+    "download_api_status": 401,
+    "download_api_detail": "Authentication credentials were not provided.",
+    "browser_blocker": "Chrome window binding failed three times, including after inventory refresh and session reset",
+    "raw_directory": "godot/raw_assets/community_weapons/",
+    "gen5": {
+      "uid": "0200c248eba14385ad2bee8d4dc4e586",
+      "name": "G17 Gen 5 Handgun + Olight - NSW Police Force",
+      "author": "8sianDude",
+      "author_username": "haoliu95",
+      "page": "https://sketchfab.com/3d-models/g17-gen-5-handgun-olight-nsw-police-force-0200c248eba14385ad2bee8d4dc4e586",
+      "api": "https://api.sketchfab.com/v3/models/0200c248eba14385ad2bee8d4dc4e586",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "downloadable": true,
+      "description": "G17 Gen 5 9mm Handgun fitted with steel OEM night sights and an Olight PL-2 Valkyrie flashlight. This is the same configuration used by the New South Wales Police Force (NSW Police Force or NSWPF) in Australia.\nIn 2024, NSW Police started replacing their ageing G22 Gen 3 and Gen 4 handguns in .40 cal for the G17 Gen 5 in 9mm, including the compact and sub-compact counterpart variants. Interestingly, the 17 round 9mm magazines are in FDE finish instead of black. This could be a way of distinguishing the old .40 cal magazines easily in the police armoury. NSW Police Officers also started to get issued with a flashlight for their sidearms as well. With the one reference image I found confirming it being a Chinese made Olight brand.\n\nProduction period: 1st Oct 2026 to 4th Oct 2026\n\n*You’re free to use this model in your personal projects or commercial products under CC Attribution License. The least I’m asking is to credit me for modelling this asset.*\n\nArtstation: https://www.artstation.com/artwork/lEGbba",
+      "animations": 0,
+      "pbr": "metalness",
+      "material_count": 5,
+      "detail_texture_count": 21,
+      "detail_vertex_count": 36684,
+      "archive_api": "https://api.sketchfab.com/v3/search?type=models&q=G17%20Gen%205%20Handgun&downloadable=true&count=24",
+      "glb": {
+        "textureCount": 13,
+        "size": 152000000,
+        "type": "glb",
+        "textureMaxResolution": 4096,
+        "faceCount": 73200,
+        "vertexCount": 56790
+      },
+      "downloaded": false,
+      "inspected_dimensions": null,
+      "inspected_parts": null,
+      "imported_in_godot": false,
+      "replacement_approved": false
+    }
   }
 }

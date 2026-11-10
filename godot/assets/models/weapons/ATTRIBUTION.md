@@ -4,7 +4,8 @@
 
 - **状态**：仅完成候选核验，无模型下载日期、正式GLB或游戏引用；不使用混元3D生成这两种武器。
 - **Glock 17 已获机主同意**：`G17 pistol`，作者MarkkuK；https://sketchfab.com/3d-models/g17-pistol-374ba78efdef4151acd626fb82f81369 。尚未下载或入库。
-- **SIG MPX 基础枪身候选**：`Sig Sauer MPX`，作者michalstk11；https://sketchfab.com/3d-models/sig-sauer-mpx-d6e0a8020a7b4a9a876787ec91290022 。机主追加全息镜/前握把/红外或手电要求，完整组合待选定；新整枪与独立配件候选见下方清单，不将未开放下载或无许可证模型入库。
+- **SIG MPX 路线A已批准**：`Sig Sauer MPX`，作者michalstk11；https://sketchfab.com/3d-models/sig-sauer-mpx-d6e0a8020a7b4a9a876787ec91290022 。组合Sambit_Raut的EXPS3、elitej1gaming的Foregrip、D_U的AN/PEQ15、mbvisuals1的M600DF；各自URL及CC-BY4.0证据见候选清单。尚未下载或装配。
+- **G17 Gen5战术灯候选**：`G17 Gen 5 Handgun + Olight - NSW Police Force`，作者8sianDude（@haoliu95）；https://sketchfab.com/3d-models/g17-gen-5-handgun-olight-nsw-police-force-0200c248eba14385ad2bee8d4dc4e586 。2026-11-10核验CC-BY4.0、可商用须署名，含Olight PL-2白光灯及夜光机械瞄具。机主询问适用性，未定为替换原G17；下载日期、原件哈希、正式输出和修改记录均待实际处理补齐。
 - **许可核验**：本日Sketchfab官方模型API标注CC-BY 4.0，可商用、须署名；格式GLB/glTF。正式接入仍需核对包内说明、上游来源、尺寸和动画部件，并补完整入库记录及游戏内署名。
 - **候选清单与证据**：`desktop-port/godot-spike/08-community-weapon-candidates-2026-11-10.md` 及同名JSON；包含面数/贴图、动画备选与未完成检查。
 
