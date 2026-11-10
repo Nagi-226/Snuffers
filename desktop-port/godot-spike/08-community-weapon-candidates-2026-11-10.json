@@ -135,5 +135,179 @@
       "inspected_parts": null,
       "downloaded": false
     }
-  ]
+  ],
+  "same_day_accessory_followup": {
+    "g17_decision": "User approved MarkkuK G17 pistol on 2026-11-10; not downloaded",
+    "mpx_requirement": "holographic sight + foregrip + infrared/weapon-light accessories",
+    "unassembled": true,
+    "runtime_changes": false,
+    "complete_models": [
+      {
+        "thumbnail": "https://media.sketchfab.com/models/d2866df6d1b54735bb7621ac2bbca64c/thumbnails/34505733bdc44718a90f338e94fb4d47/f65bcc4c7d1d4f028bc29e2a49907eec.jpeg",
+        "display_faces": 20702,
+        "downloaded": false,
+        "verified_limits": "Preview: holographic sight, angled foregrip, visible laser module; IR and white light unconfirmed",
+        "downloadable": false,
+        "page": "https://sketchfab.com/3d-models/low-poly-tactical-sig-mpx-d2866df6d1b54735bb7621ac2bbca64c",
+        "api": "https://api.sketchfab.com/v3/models/d2866df6d1b54735bb7621ac2bbca64c",
+        "author": "untoucheddev",
+        "glb": null,
+        "license": {},
+        "name": "Low Poly Tactical SIG MPX",
+        "uid": "d2866df6d1b54735bb7621ac2bbca64c",
+        "description": "The tactical version of my Low poly SIG MPX"
+      },
+      {
+        "thumbnail": "https://media.sketchfab.com/models/f1a48dc433354e018e569d5d695567ab/thumbnails/032aac466fbe46e49ae419183e27c848/38bc894be7f04d4788a07d5053d68cfc.jpeg",
+        "display_faces": 7206,
+        "downloaded": false,
+        "verified_limits": "Author confirms holographic sight, side laser and integral suppressor; foregrip not seen; IR and white light unconfirmed",
+        "downloadable": true,
+        "page": "https://sketchfab.com/3d-models/low-poly-mpxsd-f1a48dc433354e018e569d5d695567ab",
+        "api": "https://api.sketchfab.com/v3/models/f1a48dc433354e018e569d5d695567ab",
+        "author": "samanthacford",
+        "glb": {
+          "textureCount": 11,
+          "size": 638508,
+          "type": "glb",
+          "textureMaxResolution": 1024,
+          "faceCount": 7204,
+          "vertexCount": 11659
+        },
+        "license": {
+          "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+          "label": "CC Attribution",
+          "fullName": "Creative Commons Attribution",
+          "requirements": "Author must be credited. Commercial use is allowed.",
+          "url": "http://creativecommons.org/licenses/by/4.0/",
+          "slug": "by"
+        },
+        "name": "Low Poly MPXSD",
+        "uid": "f1a48dc433354e018e569d5d695567ab",
+        "description": "A customized variant of my MPX. This weapon features a side mounted laser, holographic sight and a integral suppressor."
+      }
+    ],
+    "attachments": [
+      {
+        "downloaded": false,
+        "downloadable": true,
+        "material_count": 2,
+        "page": "https://sketchfab.com/3d-models/eotech-hws-exps-3-04d1452515134866b8a97c3e7cb9a18e",
+        "pbr": "metalness",
+        "inspected_fit": null,
+        "api": "https://api.sketchfab.com/v3/models/04d1452515134866b8a97c3e7cb9a18e",
+        "author": "Sambit_Raut",
+        "glb": {
+          "textureCount": 4,
+          "size": 56566384,
+          "type": "glb",
+          "textureMaxResolution": 4096,
+          "faceCount": 6889,
+          "vertexCount": 6360
+        },
+        "license": {
+          "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+          "label": "CC Attribution",
+          "fullName": "Creative Commons Attribution",
+          "requirements": "Author must be credited. Commercial use is allowed.",
+          "url": "http://creativecommons.org/licenses/by/4.0/",
+          "slug": "by"
+        },
+        "role": "holographic sight",
+        "name": "EOTECH HWS EXPS 3",
+        "uid": "04d1452515134866b8a97c3e7cb9a18e",
+        "description": "I made a game ready asset. A weapon scope \"EOTECH HWS EXPS 3\" using 3ds max for low poly and UV unwrapping and high poly was made in blender. The main focus was on texturing to make it look realistic using substance painter & photoshop. At last to get that perfect realistic render I used marmoset toolbag 5.\n\nFor more renders: https://www.artstation.com/artwork/nJVWRO"
+      },
+      {
+        "downloaded": false,
+        "downloadable": true,
+        "material_count": 1,
+        "page": "https://sketchfab.com/3d-models/foregrip-52781078a99c4e55934dab26a998875f",
+        "pbr": "metalness",
+        "inspected_fit": null,
+        "api": "https://api.sketchfab.com/v3/models/52781078a99c4e55934dab26a998875f",
+        "author": "elitej1gaming",
+        "glb": {
+          "textureCount": 3,
+          "size": 63273460,
+          "type": "glb",
+          "textureMaxResolution": 4096,
+          "faceCount": 11924,
+          "vertexCount": 8148
+        },
+        "license": {
+          "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+          "label": "CC Attribution",
+          "fullName": "Creative Commons Attribution",
+          "requirements": "Author must be credited. Commercial use is allowed.",
+          "url": "http://creativecommons.org/licenses/by/4.0/",
+          "slug": "by"
+        },
+        "role": "foregrip",
+        "name": "Foregrip",
+        "uid": "52781078a99c4e55934dab26a998875f",
+        "description": "First Time adding something to sketchfab enjoy the model\n\nTextures made in substance and model is created in blender"
+      },
+      {
+        "downloaded": false,
+        "downloadable": true,
+        "material_count": 2,
+        "page": "https://sketchfab.com/3d-models/low-poly-anpeq-15-522f6a04c34946dbb168022187645c1a",
+        "pbr": null,
+        "inspected_fit": null,
+        "api": "https://api.sketchfab.com/v3/models/522f6a04c34946dbb168022187645c1a",
+        "author": "D_U",
+        "glb": {
+          "textureCount": 0,
+          "size": 321604,
+          "type": "glb",
+          "textureMaxResolution": 0,
+          "faceCount": 3552,
+          "vertexCount": 8629
+        },
+        "license": {
+          "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+          "label": "CC Attribution",
+          "fullName": "Creative Commons Attribution",
+          "requirements": "Author must be credited. Commercial use is allowed.",
+          "url": "http://creativecommons.org/licenses/by/4.0/",
+          "slug": "by"
+        },
+        "role": "IR module appearance",
+        "name": "low-poly AN/PEQ 15",
+        "uid": "522f6a04c34946dbb168022187645c1a",
+        "description": "AN/PEQ-15 **A**dvanced **T**arget **P**ointer, **I**lluminator, **A**iming **L**aser (**ATPIAL**) is manufactured by *L3Harris Technologies*.\nSpecifications:\n\nEmission sources: infrared laser, visible laser, infrared illuminator.\n\nRange: up to 600 m \n\nPower source: 1 CR123A battery.\n\nIt is used for target designation during day and night operations, compatible with night vision devices.\n\n120425: repaint"
+      },
+      {
+        "downloaded": false,
+        "downloadable": true,
+        "material_count": 6,
+        "page": "https://sketchfab.com/3d-models/surefire-m600df-game-ready-flashlight-c04c7a9b2f8346bd90c3938b0af8024a",
+        "pbr": "metalness",
+        "inspected_fit": null,
+        "api": "https://api.sketchfab.com/v3/models/c04c7a9b2f8346bd90c3938b0af8024a",
+        "author": "mbvisuals1",
+        "glb": {
+          "textureCount": 17,
+          "size": 17756248,
+          "type": "glb",
+          "textureMaxResolution": 2048,
+          "faceCount": 12146,
+          "vertexCount": 12185
+        },
+        "license": {
+          "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+          "label": "CC Attribution",
+          "fullName": "Creative Commons Attribution",
+          "requirements": "Author must be credited. Commercial use is allowed.",
+          "url": "http://creativecommons.org/licenses/by/4.0/",
+          "slug": "by"
+        },
+        "role": "white weapon light",
+        "name": "SureFire M600DF Game Ready Flashlight",
+        "uid": "c04c7a9b2f8346bd90c3938b0af8024a",
+        "description": "This is a real-time, game-ready model of the iconic SureFire Scout tactical flashlight.\nThe asset was created as part of my hard-surface practice and optimized for use in modern game engines such as Unreal Engine 5 and Unity HDRP.\n\nThe high-poly was modeled and detailed in Blender, baked onto a clean low-poly mesh, and textured using a full PBR workflow (Substance Painter → Marmoset Toolbag).\nAll renders and the turntable here are displayed using Sketchfab’s real-time PBR renderer.\n\n• Technical Details\n\nTris count: 12,146\nTexture sets: 1× 4K\nMaps: Albedo, Roughness, Metallic, Normal (DirectX/OpenGL), Ambient Occlusion\nWorkflow: Metallic/Roughness\nLow Poly: Blender\nHigh Poly: Blender\nBake: Marmoset Toolbag\nTexture: Substance Painter\nEngine Test: Unreal Engine 5\n\n• Features\n\nClean and optimized topology\nHigh-quality normal map bake\nCustom brushed aluminium material\nRealistic micro-detail (knurling, roughness breakup, subtle wear)\nAccurate proportions based on real reference"
+      }
+    ]
+  }
 }

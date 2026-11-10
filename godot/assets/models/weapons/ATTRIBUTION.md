@@ -3,8 +3,8 @@
 ## Glock 17 / SIG MPX 社区候选登记（2026-11-10，未入库）
 
 - **状态**：仅完成候选核验，无模型下载日期、正式GLB或游戏引用；不使用混元3D生成这两种武器。
-- **Glock 17 首选**：`G17 pistol`，作者MarkkuK；https://sketchfab.com/3d-models/g17-pistol-374ba78efdef4151acd626fb82f81369 。
-- **SIG MPX 首选**：`Sig Sauer MPX`，作者michalstk11；https://sketchfab.com/3d-models/sig-sauer-mpx-d6e0a8020a7b4a9a876787ec91290022 。
+- **Glock 17 已获机主同意**：`G17 pistol`，作者MarkkuK；https://sketchfab.com/3d-models/g17-pistol-374ba78efdef4151acd626fb82f81369 。尚未下载或入库。
+- **SIG MPX 基础枪身候选**：`Sig Sauer MPX`，作者michalstk11；https://sketchfab.com/3d-models/sig-sauer-mpx-d6e0a8020a7b4a9a876787ec91290022 。机主追加全息镜/前握把/红外或手电要求，完整组合待选定；新整枪与独立配件候选见下方清单，不将未开放下载或无许可证模型入库。
 - **许可核验**：本日Sketchfab官方模型API标注CC-BY 4.0，可商用、须署名；格式GLB/glTF。正式接入仍需核对包内说明、上游来源、尺寸和动画部件，并补完整入库记录及游戏内署名。
 - **候选清单与证据**：`desktop-port/godot-spike/08-community-weapon-candidates-2026-11-10.md` 及同名JSON；包含面数/贴图、动画备选与未完成检查。
 
