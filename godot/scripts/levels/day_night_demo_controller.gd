@@ -15,7 +15,7 @@ var _yaw: float = 0.0
 
 func _ready() -> void:
 	# 将 DayNightController 引用注入 NightVisionOverlay（限制白天不可用）。
-	if _nv_overlay.has_method("set") or "day_night_ref" in _nv_overlay:
+	if "day_night_ref" in _nv_overlay:
 		_nv_overlay.day_night_ref = _day_night
 	# 监听模式切换以刷新 UI。
 	_day_night.mode_changed.connect(_on_mode_changed)

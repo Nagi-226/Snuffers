@@ -6,7 +6,7 @@
 
 [node name="StreetTest" instance=ExtResource("Scene_street")]
 
-[node name="StreetDayNightDriver" type="Node" parent="."]
+[node name="StreetDayNightDriver" parent="."]
 script = ExtResource("Script_drv")
 
 [node name="NightVisionOverlay" type="CanvasLayer" parent="."]

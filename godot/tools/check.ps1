@@ -12,7 +12,7 @@
                                               member access in headless mode
       c) godot --headless --quit              main scene boot smoke
       d) godot -s res://tests/smoke_contracts.gd   contract assertions
-      e) godot --headless --quit <scene>      per-scene instantiation smoke
+      e) -s tests/scene_boot_smoke.gd -- <scene>   scene startup and cleanup smoke
       f) godot -s res://tests/smoke_scenes.gd scene node assertions
                                               (Sprint 2 scaffold; undelivered
                                               W2/W3 cases report SKIP)
@@ -32,6 +32,7 @@ $GodotExe = 'D:\Godot_v4.6.2-stable_win64.exe\Godot_v4.6.2-stable_win64.exe'
 # Resolve the godot/ project root from this script's location (tools/).
 $ScriptDir  = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectDir = Split-Path -Parent $ScriptDir
+$LogPath    = Join-Path $ProjectDir '.godot/l1_check.log'
 
 $failures = New-Object System.Collections.Generic.List[string]
 
@@ -64,12 +65,14 @@ function Invoke-Godot([string]$Label, [string[]]$CmdArgs) {
     $errTask = $proc.StandardError.ReadToEndAsync()
     $proc.WaitForExit()
     $code = $proc.ExitCode
-    $tail = (($outTask.Result + "`n" + $errTask.Result) -split "`r?`n" |
+    $fullOutput = $outTask.Result + "`n" + $errTask.Result
+    [System.IO.File]::AppendAllText($LogPath, ("`nLABEL: $Label exit=$code`n" + $fullOutput))
+    $tail = ($fullOutput -split "`r?`n" |
         Where-Object { $_ -ne '' } | Select-Object -Last 30) -join "`n"
     $proc.Dispose()
 
-    if ($code -ne 0) {
-        Add-Failure $Label ("exit=" + $code + "`n" + $tail)
+    if ($code -ne 0 -or $fullOutput -cmatch '(?m)^(ERROR:|SCRIPT ERROR:)') {
+        Add-Failure $Label ("exit=" + $code + "`n" + $tail + "`nlog: " + $LogPath)
         return $false
     }
     Write-Host "ok    $Label" -ForegroundColor Green
@@ -84,6 +87,9 @@ if (-not (Test-Path $GodotExe)) {
     Write-Host "L1 FAIL: Godot executable not found: $GodotExe" -ForegroundColor Red
     exit 1
 }
+[void][System.IO.Directory]::CreateDirectory((Split-Path -Parent $LogPath))
+[System.IO.File]::WriteAllText($LogPath, '')
+Write-Host "log    : $LogPath"
 
 # (a) refresh the import cache
 Invoke-Godot 'import cache refresh' @('--headless', '--path', $ProjectDir, '--import') | Out-Null
@@ -118,7 +124,7 @@ if (Test-Path $scenesDir) {
 Write-Host ("found {0} scene(s)" -f $scenes.Count)
 foreach ($sc in $scenes) {
     $resPath = 'res://' + $sc.FullName.Substring($ProjectDir.Length + 1).Replace('\', '/')
-    Invoke-Godot "scene smoke $resPath" @('--headless', '--path', $ProjectDir, '--quit', $resPath) | Out-Null
+    Invoke-Godot "scene smoke $resPath" @('--headless', '--path', $ProjectDir, '-s', 'res://tests/scene_boot_smoke.gd', '--', $resPath) | Out-Null
 }
 
 # (f) scene node assertions (Sprint 2 scaffold; W2/W3 placeholder cases SKIP
