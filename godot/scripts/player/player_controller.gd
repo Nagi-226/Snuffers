@@ -684,8 +684,10 @@ func _process(delta: float) -> void:
 			model.visible = GameState.current_weapon != weapon_id or _ads_weight < 0.75 or weapon_id == &"magnum"
 	if GameState.current_weapon in [&"smg", &"lmg", &"em12g2"]:
 		_weapon_mount.get_node("Rifle").visible = _ads_weight >= 0.75
-	if GameState.current_weapon == &"em12g2":
-		_weapon_mount.get_node("Em12g2/ViewModel/Arms").visible = _ads_weight < 0.75
+	for pair: Array in [[&"smg", "SMG"], [&"lmg", "LMG"], [&"em12g2", "Em12g2"]]:
+		var arms := _weapon_mount.get_node(pair[1]).get("_arms_node") as Node3D
+		if arms != null:
+			arms.visible = GameState.current_weapon != pair[0] or _ads_weight < 0.75
 	var grenade_scope := GameState.current_weapon == &"em40t1"
 	var full_scope := GameState.current_weapon in [&"dmr", &"em86s", &"em86d", &"em127g", &"em127m", &"em40t1"] and _ads_weight > 0.6
 	var missile_scope := GameState.current_weapon == &"em120r" and _ads_weight > 0.6

@@ -84,10 +84,15 @@ func _run() -> void:
 		maximum_pull = maxf(maximum_pull, pull)
 		exchanged = exchanged or not magazine.visible
 		var cant := gun_home.basis.get_rotation_quaternion().angle_to(gun.basis.get_rotation_quaternion())
-		var lift := gun.position.distance_to(gun_home.origin)
+		var native_profile: Dictionary = GameConfig.BLACK_LONG_GUN_PROFILES[&"rifle"]
+		var gun_weight := smoothstep(0.0, stages[0], progress) * (1.0 - smoothstep(stages[3], 1.0, progress))
+		var display_depth := Vector3(0, 0, -float(native_profile.reload_depth) * gun_weight)
+		var body_lift := gun.position - gun_home.origin - display_depth
+		var lift := body_lift.length()
 		maximum_cant = maxf(maximum_cant, cant)
 		maximum_lift = maxf(maximum_lift, lift)
 		_assert(gun.transform.is_finite() and cant <= deg_to_rad(30.0) and lift <= 0.15, "reload phase %.3f bounds the coordinated gun cant and lift" % progress)
+		_assert(body_lift.distance_to(gun_home.basis * (native_profile.reload_lift as Vector3) * gun_weight) < 0.001, "reload phase %.3f separately validates the declared parent-Z display depth" % progress)
 		var right_current := _hand_in_gun(gun, skeleton, right)
 		_assert(right_current.origin.distance_to(right_home.origin) < 0.001 and absf(right_current.basis.get_rotation_quaternion().dot(right_home.basis.get_rotation_quaternion())) > 0.9999, "reload phase %.3f keeps the right wrist position and rotation on the grip" % progress)
 		if progress >= stages[0] and progress <= stages[3]:

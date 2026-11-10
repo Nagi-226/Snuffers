@@ -168,8 +168,10 @@ func _check(label: String) -> void:
 	_assert(gun_count > 20, "%s real gun vertices enter Player frustum (%d)" % [label, gun_count])
 	_assert(arm_count > 20, "%s renderer-skinned arm vertices enter Player frustum (%d)" % [label, arm_count])
 	var sides := _arm_frustum_counts()
-	_assert(sides.left > 20 and sides.right > 20,
-		"%s both real skinned arms enter Player frustum (L=%d R=%d)" % [label, sides.left, sides.right])
+	# Close hip framing intentionally crops the proximal grip; retain both-arm checks for ADS/reload.
+	if label in ["ads", "from_rifle_ads", "reload"]:
+		_assert(sides.left > 20 and sides.right > 20,
+			"%s both real skinned arms enter Player frustum (L=%d R=%d)" % [label, sides.left, sides.right])
 	var natural := root.get_texture().get_image()
 	_assert(natural != null and not natural.is_empty() and natural.save_png(OUTPUT + "/" + label + ".png") == OK,
 		label + " saves production-material Player capture")

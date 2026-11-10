@@ -142,6 +142,8 @@ func _update_native(progress: float) -> void:
 	var seat: float = _profile.seat_phase
 	var gun_weight := _smooth(progress / contact) * (1.0 - _smooth((progress - seat) / (1.0 - seat)))
 	_gun.transform = _gun_home * Transform3D(Basis.from_euler((_native_profile.reload_cant as Vector3) * gun_weight), (_native_profile.reload_lift as Vector3) * gun_weight)
+	# 仅换弹按阶段沿 ViewModel 父坐标 -Z 前移，开始/收尾回到捕获的腰射或 ADS 枪位。
+	_gun.position.z -= float(_native_profile.get("reload_depth", 0.0)) * gun_weight
 	_native_arms.pose_hold(0.0)
 	var amount := 0.0
 	var exchange := 0.0

@@ -376,7 +376,9 @@ func _process_native_arms(delta: float) -> void:
 		_arms_animation.advance(maxf(delta, 0.0))
 		_magazine_reload.update(_arms_animation.current_animation_position / weapon_data.reload_time)
 		return
-	var aim_target := 1.0 if GameState.is_aiming and _is_current_weapon() else 0.0
+	# 三平台 ADS 借用 EM-68A 瞄具，视觉姿态随开镜收正；输入仍由当前武器门控。
+	var shared_ads := weapon_data.weapon_id == &"rifle" and GameState.current_weapon in [&"smg", &"lmg", &"em12g2"]
+	var aim_target := 1.0 if GameState.is_aiming and (_is_current_weapon() or shared_ads) else 0.0
 	_aim_weight = move_toward(_aim_weight, aim_target, maxf(delta, 0.0) / GameConfig.ADS_LERP_TIME)
 	_pose_extra = Transform3D(Basis(Quaternion(Vector3.UP, HIP_POSE_YAW * (1.0 - _aim_weight)) * Quaternion(Vector3.RIGHT, HIP_POSE_PITCH * (1.0 - _aim_weight))), Vector3.ZERO)
 	_weapon_node.transform = _pose_extra * _weapon_home

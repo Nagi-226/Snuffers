@@ -16,6 +16,7 @@ var _native_arms: RefCounted
 var _weapon_home := Transform3D.IDENTITY
 var _loading_home := Transform3D.IDENTITY
 var _missile_bounds := AABB()
+var _visual_aim_weight := 0.0
 
 @onready var _weapon_node: Node3D = $ViewModel/Weapon
 @onready var _muzzle_node: Marker3D = $ViewModel/Weapon/Muzzle
@@ -84,12 +85,17 @@ func _tick_weapon(delta: float) -> void:
 
 func _process(delta: float) -> void:
 	super(delta)
+	var aim_target := 1.0 if GameState.is_aiming and _is_current_weapon() else 0.0
+	_visual_aim_weight = move_toward(_visual_aim_weight, aim_target, maxf(delta, 0.0) / GameConfig.ADS_LERP_TIME)
 	if _native_arms != null:
 		if _is_reloading:
 			_arms_animation.advance(maxf(0.0, delta))
 			_update_rear_reload(_arms_animation.current_animation_position / weapon_data.reload_time)
 		else:
-			_native_arms.pose_hold(1.0 if GameState.is_aiming else 0.0)
+			var profile: Dictionary = _native_arms._profile
+			_weapon_node.transform = _weapon_home
+			_weapon_node.position.z += float(profile.hip_rearward) * (1.0 - _visual_aim_weight)
+			_native_arms.pose_hold(_visual_aim_weight)
 			_native_arms.update_bounds()
 	_update_laser()
 
@@ -102,11 +108,14 @@ func _update_rear_reload(progress: float) -> void:
 	var release: float = GameConfig.EM120R_REAR_RELEASE_PHASE
 	var seat: float = GameConfig.EM120R_REAR_SEAT_PHASE
 	var weight := smoothstep(0.0, contact, progress) * (1.0 - smoothstep(seat, 1.0, progress))
+	var hip_offset := Vector3(0, 0, float(profile.hip_rearward) * (1.0 - _visual_aim_weight) * (1.0 - weight))
 	# 大幅侧转只作用于筒身；先在原腰射坐标恢复袖根，避免Arms容器随枪转到画中央。
 	_weapon_node.transform = _weapon_home
+	_weapon_node.position += hip_offset
 	_native_arms.pose_hold(0.0)
 	_weapon_node.transform = _weapon_home * Transform3D(
 		Basis.from_euler((profile.reload_cant as Vector3) * weight), (profile.reload_lift as Vector3) * weight)
+	_weapon_node.position += hip_offset
 	_loading_missile.transform = _loading_home
 	# 源弹头为-Z；由真实AABB鼻端推至后膛，完整入筒时尾端恰好齐后口。
 	_loading_missile.position = _rear_reload_nose(progress) - Vector3(0, 0, _missile_bounds.position.z)

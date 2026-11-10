@@ -46,7 +46,10 @@ func _run() -> void:
 		await create_timer(weapon.weapon_data.reload_time * 0.36).timeout
 		state.current_weapon = &"pistol"
 		root.get_node("Events").weapon_switched.emit(&"pistol")
-		_assert(not weapon._is_reloading and gun.transform.is_equal_approx(home) and supply.transform.is_equal_approx(module_home) and not supply.visible, "Longbow switching cancels and hides the loading missile")
+		_assert(not weapon._is_reloading and gun.transform.is_equal_approx(weapon._weapon_home) and supply.transform.is_equal_approx(module_home) and not supply.visible, "Longbow switching cancels at the authored callback transform and hides the loading missile")
+		await process_frame
+		await process_frame
+		_assert(gun.transform.is_equal_approx(home), "Longbow returns to its close hip display on the following rendered frames")
 		await create_timer(weapon.weapon_data.reload_time).timeout
 		_assert(state.em120r_mag == 2 and state.em120r_reserve == 12, "Cancelled Longbow timer cannot transfer ammunition later")
 	weapon.queue_free()

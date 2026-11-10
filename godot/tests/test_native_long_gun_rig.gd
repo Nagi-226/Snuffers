@@ -45,16 +45,24 @@ func _run() -> void:
 		var maximum_angle := 0.0
 		var maximum_lift := 0.0
 		var finite := true
+		var presentation_valid := true
+		var profile: Dictionary = GameConfig.MAGAZINE_RELOAD_PROFILES[id]
+		var native_profile: Dictionary = GameConfig.BLACK_LONG_GUN_PROFILES[id]
 		for step in 61:
 			var progress := float(step) / 60.0
 			animation.seek(progress * weapon.weapon_data.reload_time, true)
 			weapon._process(0.0)
 			var angle := home.basis.get_rotation_quaternion().angle_to(gun.basis.get_rotation_quaternion())
 			maximum_angle = maxf(maximum_angle, angle)
-			maximum_lift = maxf(maximum_lift, gun.position.distance_to(home.origin))
+			var weight := smoothstep(0.0, float(profile.contact_phase), progress) * (1.0 - smoothstep(float(profile.seat_phase), 1.0, progress))
+			var display_depth := Vector3(0, 0, -float(native_profile.reload_depth) * weight)
+			var lift := gun.position - home.origin - display_depth
+			maximum_lift = maxf(maximum_lift, lift.length())
+			presentation_valid = presentation_valid and lift.distance_to(home.basis * (native_profile.reload_lift as Vector3) * weight) < 0.001
 			finite = finite and gun.transform.is_finite()
 		_assert(maximum_angle >= deg_to_rad(8.0) and maximum_lift >= 0.015, "%s reload coordinates visible gun cant and lift with the hands and supply part" % id)
 		_assert(finite and maximum_angle <= deg_to_rad(30.0) and maximum_lift <= 0.15, "%s reload keeps gun motion finite and bounded" % id)
+		_assert(presentation_valid, "%s reload separately follows its declared parent-Z presentation depth at all 61 phases" % id)
 		state.current_weapon = &"pistol"
 		root.get_node("Events").weapon_switched.emit(&"pistol")
 		_assert(not weapon._is_reloading and gun.transform.is_equal_approx(weapon._weapon_home), "%s switching cancels motion and restores the authored gun transform" % id)

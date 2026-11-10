@@ -67,9 +67,13 @@ func _run() -> void:
 			var counts := _skin_counts(weapon._arms_node, player._camera)
 			_assertions += 1
 			print("NATIVE_VISIBILITY ", id, " ", sample[0], " L=", counts.x, " R=", counts.y)
-			if counts.x <= 20 or counts.y <= 20:
+			# Hip follows the owner-approved stock/receiver framing; proximal arms may be off-screen.
+			var visible := counts.x > 20 and counts.y > 20
+			if float(sample[1]) < 0.0:
+				visible = _static_count(weapon._weapon_node, player._camera) > 20
+			if not visible:
 				_failures += 1
-				push_error("FAIL: %s %s both actual black-arm skins must enter the Player viewport" % [id, sample[0]])
+				push_error("FAIL: %s %s requires the real gun at hip, both actual black-arm skins during reload" % [id, sample[0]])
 			if id == &"em120r" and float(sample[1]) >= 0.0:
 				var missile := weapon.get_node("ViewModel/Weapon/LoadingMissile") as Node3D
 				var skeleton: Skeleton3D = weapon._arms_skeleton

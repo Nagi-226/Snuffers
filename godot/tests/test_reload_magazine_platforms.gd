@@ -111,6 +111,7 @@ func _check_weapon(weapon_id: StringName, profiles: Dictionary) -> void:
 	var bones_valid := true
 	var contact_valid := true
 	var grip_valid := true
+	var presentation_valid := true
 	for step in 61:
 		var progress := float(step) / 60.0
 		animation.seek(progress * duration, true)
@@ -120,7 +121,12 @@ func _check_weapon(weapon_id: StringName, profiles: Dictionary) -> void:
 		maximum_pull = maxf(maximum_pull, pull)
 		exchanged = exchanged or not magazine.visible
 		var cant := gun_home.basis.get_rotation_quaternion().angle_to(gun.basis.get_rotation_quaternion())
-		var lift := gun.position.distance_to(gun_home.origin)
+		var native_profile: Dictionary = GameConfig.BLACK_LONG_GUN_PROFILES[weapon_id]
+		var gun_weight := smoothstep(0.0, float(profile.contact_phase), progress) * (1.0 - smoothstep(float(profile.seat_phase), 1.0, progress))
+		var display_depth := Vector3(0, 0, -float(native_profile.reload_depth) * gun_weight)
+		var body_lift := gun.position - gun_home.origin - display_depth
+		var lift := body_lift.length()
+		presentation_valid = presentation_valid and body_lift.distance_to(gun_home.basis * (native_profile.reload_lift as Vector3) * gun_weight) < 0.001
 		maximum_cant = maxf(maximum_cant, cant)
 		maximum_lift = maxf(maximum_lift, lift)
 		poses_valid = poses_valid and gun.transform.is_finite() and cant <= deg_to_rad(30.0) and lift <= 0.15 and magazine.global_transform.is_finite()
@@ -135,6 +141,7 @@ func _check_weapon(weapon_id: StringName, profiles: Dictionary) -> void:
 		for bone in skeleton.get_bone_count():
 			bones_valid = bones_valid and skeleton.get_bone_rest(bone).is_equal_approx(rests[bone]) and skeleton.get_bone_pose_scale(bone).is_equal_approx(scales[bone]) and skeleton.get_bone_global_pose(bone).is_finite()
 	_assert(poses_valid and grip_valid and maximum_cant >= deg_to_rad(8.0) and maximum_lift >= 0.015, "%s translated/rotated parent coordinates bounded gun movement with the native right wrist on the grip" % weapon_id)
+	_assert(presentation_valid, "%s translated/rotated parent preserves the declared display-depth axis and phase within 1mm" % weapon_id)
 	_assert(contact_valid, "%s actual left palm contacts its real magazine within 3mm throughout pull and insertion" % weapon_id)
 	_assert(bones_valid, "%s preserves all bone rests/scales, both left-arm lengths and the wrist seam at 61 phases" % weapon_id)
 	_assert(maximum_pull >= float(profile.extraction_distance) * 0.95, "%s physically extracts its real magazine clear of the well" % weapon_id)

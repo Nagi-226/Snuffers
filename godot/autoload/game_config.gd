@@ -264,6 +264,7 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	&"spas12": {
 		"right_grip": Vector3(0.065951, -0.143531, 0.187622),
 		"hip_depth": 0.0,
+		"hip_rearward": 0.32, ## 常规腰射恢复枪托连接处取景；ADS/装填按阶段淡出。
 		"support_grip_hip": Vector3(0.014655, -0.015053, -0.370225),
 		"support_grip_ads": Vector3(0.014655, -0.015053, -0.370225),
 		"support_rotation": Vector3(0, 0, PI / 2.0),
@@ -273,6 +274,7 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	&"em120r": {
 		"right_grip": Vector3(0.019053, -0.208801, 0.133105),
 		"hip_depth": 0.0,
+		"hip_rearward": 0.32,
 		"support_grip_hip": Vector3(-0.06034, -0.065675, -0.278539),
 		"support_grip_ads": Vector3(-0.06034, -0.065675, -0.278539),
 		"support_rotation": Vector3.ZERO,
@@ -281,7 +283,8 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	},
 	&"rifle": {
 		"right_grip": Vector3(0.02879577, -0.09, 0.175),
-		"hip_depth": 0.32,
+		"hip_depth": 0.0,
+		"reload_depth": 0.32, ## 只在协同换弹中平滑前移，常规腰射保留原取景。
 		"support_grip_hip": Vector3(-0.02766985, -0.023918, -0.16968082),
 		"support_grip_ads": Vector3(-0.02766985, -0.023918, -0.16968082),
 		"support_rotation": Vector3.ZERO,
@@ -290,7 +293,8 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	},
 	&"dmr": {
 		"right_grip": Vector3(0.02325584, -0.09, 0.25),
-		"hip_depth": 0.32,
+		"hip_depth": 0.0,
+		"reload_depth": 0.32,
 		"support_grip_hip": Vector3(-0.02272169, -0.03831264, -0.16319647),
 		"support_grip_ads": Vector3(-0.02272169, -0.03831264, -0.16319647),
 		"support_rotation": Vector3.ZERO,
@@ -299,7 +303,8 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	},
 	&"shotgun": {
 		"right_grip": Vector3(0.02208694, -0.09, 0.15),
-		"hip_depth": 0.32,
+		"hip_depth": 0.0,
+		"reload_depth": 0.32,
 		"support_grip_hip": Vector3(-0.01707988, -0.02225382, -0.15895115),
 		"support_grip_ads": Vector3(-0.01707988, -0.02225382, -0.15895115),
 		"support_rotation": Vector3.ZERO,
@@ -308,7 +313,8 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	},
 	&"smg": {
 		"right_grip": Vector3(0.02351493, -0.065, 0.13),
-		"hip_depth": 0.32,
+		"hip_depth": 0.0,
+		"reload_depth": 0.32,
 		"support_grip_hip": Vector3(-0.01459263, 0.00605233, -0.15236323),
 		"support_grip_ads": Vector3(-0.01459263, 0.00605233, -0.15236323),
 		"support_rotation": Vector3.ZERO,
@@ -317,7 +323,8 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	},
 	&"lmg": {
 		"right_grip": Vector3(0.02005969, -0.09, 0.15),
-		"hip_depth": 0.32,
+		"hip_depth": 0.0,
+		"reload_depth": 0.32,
 		"support_grip_hip": Vector3(-0.06183238, -0.05336965, -0.15414836),
 		"support_grip_ads": Vector3(-0.06183238, -0.05336965, -0.15414836),
 		"support_rotation": Vector3.ZERO,
@@ -326,7 +333,8 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	},
 	&"em57s2": {
 		"right_grip": Vector3(0.02146934, -0.065, 0.3),
-		"hip_depth": 0.32,
+		"hip_depth": 0.0,
+		"reload_depth": 0.32,
 		"support_grip_hip": Vector3(-0.03233485, -0.03223716, -0.17953514),
 		"support_grip_ads": Vector3(-0.03233485, -0.03223716, -0.17953514),
 		"support_rotation": Vector3.ZERO,
@@ -335,7 +343,8 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	},
 	&"em86b": {
 		"right_grip": Vector3(0.02454021, -0.09, 0.2),
-		"hip_depth": 0.32,
+		"hip_depth": 0.0,
+		"reload_depth": 0.32,
 		"support_grip_hip": Vector3(-0.04121753, -0.03943384, -0.16922508),
 		"support_grip_ads": Vector3(-0.04121753, -0.03943384, -0.16922508),
 		"support_rotation": Vector3.ZERO,
@@ -344,7 +353,8 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	},
 	&"em86d": {
 		"right_grip": Vector3(0.01914745, -0.065, 0.3),
-		"hip_depth": 0.32,
+		"hip_depth": 0.0,
+		"reload_depth": 0.32,
 		"support_grip_hip": Vector3(-0.02531621, -0.02250865, -0.13559248),
 		"support_grip_ads": Vector3(-0.02531621, -0.02250865, -0.13559248),
 		"support_rotation": Vector3.ZERO,
@@ -353,7 +363,8 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	},
 	&"em86s": {
 		"right_grip": Vector3(0.02084804, -0.09, 0.3),
-		"hip_depth": 0.32,
+		"hip_depth": 0.0,
+		"reload_depth": 0.32,
 		"support_grip_hip": Vector3(-0.0263424, -0.03455873, -0.14105143),
 		"support_grip_ads": Vector3(-0.0263424, -0.03455873, -0.14105143),
 		"support_rotation": Vector3.ZERO,
@@ -362,7 +373,8 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	},
 	&"em86m": {
 		"right_grip": Vector3(0.02378764, -0.09, 0.2),
-		"hip_depth": 0.32,
+		"hip_depth": 0.0,
+		"reload_depth": 0.32,
 		"support_grip_hip": Vector3(-0.05580504, -0.04708992, -0.17166756),
 		"support_grip_ads": Vector3(-0.05580504, -0.04708992, -0.17166756),
 		"support_rotation": Vector3.ZERO,
@@ -371,7 +383,8 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	},
 	&"em12g2": {
 		"right_grip": Vector3(0.02247028, -0.09, 0.15),
-		"hip_depth": 0.32,
+		"hip_depth": 0.0,
+		"reload_depth": 0.32,
 		"support_grip_hip": Vector3(-0.02535065, -0.03460014, -0.14815541),
 		"support_grip_ads": Vector3(-0.02535065, -0.03460014, -0.14815541),
 		"support_rotation": Vector3.ZERO,
@@ -380,7 +393,8 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	},
 	&"em127g": {
 		"right_grip": Vector3(0.01917667, -0.09, 0.3),
-		"hip_depth": 0.32,
+		"hip_depth": 0.0,
+		"reload_depth": 0.32,
 		"support_grip_hip": Vector3(-0.03591655, -0.03562932, -0.13826118),
 		"support_grip_ads": Vector3(-0.03591655, -0.03562932, -0.13826118),
 		"support_rotation": Vector3.ZERO,
@@ -389,7 +403,8 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	},
 	&"em127m": {
 		"right_grip": Vector3(0.02397544, -0.09, 0.2),
-		"hip_depth": 0.32,
+		"hip_depth": 0.0,
+		"reload_depth": 0.32,
 		"support_grip_hip": Vector3(-0.04158144, -0.04646479, -0.16884027),
 		"support_grip_ads": Vector3(-0.04158144, -0.04646479, -0.16884027),
 		"support_rotation": Vector3.ZERO,
@@ -398,7 +413,8 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	},
 	&"em40t1": {
 		"right_grip": Vector3(0.03194549, -0.115, 0.15),
-		"hip_depth": 0.32,
+		"hip_depth": 0.0,
+		"reload_depth": 0.32,
 		"support_grip_hip": Vector3(-0.03856448, -0.03090639, -0.18151964),
 		"support_grip_ads": Vector3(-0.03856448, -0.03090639, -0.18151964),
 		"support_rotation": Vector3.ZERO,

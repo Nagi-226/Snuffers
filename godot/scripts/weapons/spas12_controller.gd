@@ -98,11 +98,13 @@ func _process(delta: float) -> void:
 func _pose_native_spas(pump_pull: float) -> void:
 	var profile: Dictionary = _native_arms._profile
 	var support: Vector3 = (profile.support_grip_hip as Vector3).lerp(profile.support_grip_ads as Vector3, _aim_weight)
+	var hip_offset := _pose_extra.basis * Vector3(0, 0, float(profile.hip_rearward) * (1.0 - _aim_weight))
 	if _is_reloading:
 		var progress := clampf(_reload_progress, 0.0, 1.0)
 		var lift := sin(progress * PI)
 		_weapon_node.transform = _pose_extra * _weapon_home * Transform3D(
 			Basis.from_euler((profile.reload_cant as Vector3) * lift), GameConfig.SPAS12_RELOAD_LIFT * lift)
+		_weapon_node.position += hip_offset * (1.0 - lift)
 		_arms_animation.seek(progress * weapon_data.reload_time, true)
 		_native_arms.pose_hold(_aim_weight)
 		var retrieve: float = GameConfig.SPAS12_SHELL_RETRIEVE_PHASE
@@ -118,6 +120,10 @@ func _pose_native_spas(pump_pull: float) -> void:
 			reach = 1.0 - smoothstep(insert, 1.0, progress)
 		_native_arms.pose_left_grip(_weapon_node.to_global(support.lerp(carry, reach)), _native_arms.support_basis_world())
 	else:
+		# 从保存姿态重建旧腰射取景，双掌在显示偏移后重新贴握点。
+		_weapon_node.transform = _pose_extra * _weapon_home
+		_weapon_node.position += hip_offset
+		_native_arms.pose_hold(_aim_weight)
 		_native_arms.pose_left_grip(_weapon_node.to_global(support + Vector3(0, 0, pump_pull)), _native_arms.support_basis_world())
 	_native_arms.update_bounds()
 
