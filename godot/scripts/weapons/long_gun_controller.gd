@@ -1,8 +1,11 @@
 class_name LongGunController
 extends WeaponController
 
+const MagazineReloadMotion = preload("res://scripts/weapons/magazine_reload_motion.gd")
+
 @export var weapon_node_path: NodePath = ^"ViewModel/Weapon"
 @export var magazine_node_path: NodePath = ^"ViewModel/Weapon/Magazine"
+@export var arms_alignment_node_path: NodePath
 @export var arms_node_path: NodePath = ^"ViewModel/Arms"
 @export var muzzle_node_path: NodePath = ^"ViewModel/Weapon/Muzzle"
 @export var reserve_state_property: StringName = &""
@@ -41,6 +44,7 @@ var _right_upper_hold_position := Vector3.ZERO
 var _charge_elapsed: float = 0.0
 var _charge_fired: bool = false
 var _charged_shot: bool = false
+var _magazine_reload: RefCounted
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -116,6 +120,15 @@ func _ready() -> void:
 	_setup_arms()
 	Events.weapon_reload_started.connect(_on_reload_started)
 	Events.weapon_reloaded.connect(_on_weapon_reloaded)
+	_setup_magazine_reload()
+
+
+func _setup_magazine_reload() -> void:
+	var profile: Dictionary = GameConfig.MAGAZINE_RELOAD_PROFILES.get(weapon_data.weapon_id, {})
+	if profile.is_empty() or _arms_skeleton == null or _magazine == null:
+		return
+	_magazine_reload = MagazineReloadMotion.new()
+	_magazine_reload.setup(_arms_skeleton, _arms_node, _weapon_node, _magazine, profile)
 
 
 func _setup_arms() -> void:
@@ -170,7 +183,9 @@ func _align_native_arms() -> void:
 	var weapon_bone_local := _arms_skeleton.get_bone_global_pose(_weapon_bone)
 	var mag_bone_local := _arms_skeleton.get_bone_global_pose(_mag_bone)
 	var basis := _weapon_node.global_basis.orthonormalized() * Basis(Vector3(-1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, -1)) * weapon_bone_local.basis.orthonormalized().inverse()
-	var origin := _magazine.global_position - basis * mag_bone_local.origin
+	var alignment := get_node_or_null(arms_alignment_node_path) as Node3D
+	var alignment_position := alignment.global_position if alignment != null else _magazine.global_position
+	var origin := alignment_position - basis * mag_bone_local.origin
 	var placed := Transform3D(basis, origin) * chain.affine_inverse()
 	var arms_offset: Vector3 = GameConfig.DMR_ARMS_OFFSET if weapon_data.weapon_id in [&"dmr", &"spas12", &"em86s", &"em86d", &"em127g"] else GameConfig.SHOTGUN_ARMS_OFFSET
 	placed.origin += _weapon_node.global_basis * arms_offset
@@ -184,6 +199,9 @@ func _align_native_arms() -> void:
 func _process(delta: float) -> void:
 	super._process(delta)
 	if _arms_skeleton == null or _weapon_bone < 0:
+		return
+	if _is_reloading and _magazine_reload != null and _magazine_reload.active:
+		_magazine_reload.update(_arms_animation.current_animation_position / weapon_data.reload_time)
 		return
 	if _pose_pending:
 		_pose_pending = false
@@ -482,6 +500,8 @@ func _play_reload_anim() -> void:
 	if _magazine != null:
 		_magazine.transform = _mag_home_transform
 		_magazine.visible = true
+	if _magazine_reload != null:
+		_magazine_reload.begin()
 	if _arms_skeleton != null:
 		_weapon_motion_start = _weapon_motion()
 		_mag_motion_start = _magazine_motion()
@@ -499,6 +519,8 @@ func _on_weapon_switched(weapon_id: StringName) -> void:
 
 
 func _reset_reload_visuals() -> void:
+	if _magazine_reload != null:
+		_magazine_reload.reset()
 	_reload_counter = 0.0
 	_pose_extra = Transform3D.IDENTITY
 	_mag_lock = false

@@ -3,12 +3,13 @@
 [ext_resource type="Script" path="res://scripts/weapons/pistol_controller.gd" id="1_pistol"]
 [ext_resource type="Resource" path="res://scenes/weapons/pistol.tres" id="2_data"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/em57p_viewmodel.glb" id="3_em57p"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/arms_pistol_native.glb" id="4_arms"]
+[ext_resource type="PackedScene" path="res://addons/community_weapons/black_pistol_arms.glb" id="4_arms"]
 
 ; 挂载约定：实例化到 player.tscn 的 Camera3D/WeaponMount 下（W1 已预留）。
 [node name="Pistol" type="Node3D"]
 script = ExtResource("1_pistol")
 weapon_data = ExtResource("2_data")
+native_arms_profile = &"pistol"
 
 ; EM-57P「掣」真枪视图模型（2026-10-19 上枪）
 ; GLB 验收口径（DSH 派单 15/17）：枪口 -Z、四子对象（body/magazine/optic/laser_module）、
@@ -21,8 +22,7 @@ weapon_data = ExtResource("2_data")
 [node name="EM57P" parent="ViewModel" instance=ExtResource("3_em57p")]
 transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, 0, 0.03, 0.04)
 
-; 第一人称手臂（2026-10-20 方案A重制：Sketchfab Rigged FPS Arms by RafaP/DJMaesen，
-; CC-BY 4.0，见 assets/models/weapons/ATTRIBUTION.md）：导出时按 EM57P 0.4 缩放后
-; 的挂载空间真实尺寸摆姿烘焙，因此 scale 必须为 1.0，仅复用 offset，不可再乘 0.4。
+; DJMaesen 黑色原生手臂与动作；GameConfig 握柄校准整体摆位，骨架保持原生尺寸。
+; CC-BY 4.0，见 addons/community_weapons/ATTRIBUTION.md。
 [node name="ArmsEM57P" parent="ViewModel" instance=ExtResource("4_arms")]
 position = Vector3(0, 0.03, 0.04)

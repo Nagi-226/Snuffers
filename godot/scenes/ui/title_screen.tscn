@@ -69,3 +69,80 @@ theme_override_font_sizes/font_size = 18
 text = "—— 按任意键开始作业 ——"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="CreditsButton" type="Button" parent="."]
+layout_mode = 1
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -72.0
+offset_right = -24.0
+offset_bottom = -40.0
+grow_horizontal = 0
+grow_vertical = 0
+focus_mode = 0
+theme_override_font_sizes/font_size = 16
+text = "资产署名"
+
+[node name="CreditsPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchor_left = 0.12
+anchor_top = 0.12
+anchor_right = 0.88
+anchor_bottom = 0.84
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="CreditsPanel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Heading" type="Label" parent="CreditsPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "社区武器与手臂 · 资产署名"
+horizontal_alignment = 1
+
+[node name="CreditsText" type="RichTextLabel" parent="CreditsPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 16
+text = "以下资源按 CC-BY 4.0 使用并改作：
+https://creativecommons.org/licenses/by/4.0/
+模型尺寸、贴图与配件装配已调整；原生手臂动画按动作分段。
+
+Sig Sauer MPX — michalstk11
+https://sketchfab.com/models/d6e0a8020a7b4a9a876787ec91290022
+
+EOTech HWS EXPS 3 — Sambit_Raut
+https://sketchfab.com/models/04d1452515134866b8a97c3e7cb9a18e
+
+Foregrip — elitej1gaming
+https://sketchfab.com/models/52781078a99c4e55934dab26a998875f
+
+AN/PEQ-15 — D_U
+https://sketchfab.com/models/522f6a04c34946dbb168022187645c1a
+
+SureFire M600DF — mbvisuals1
+https://sketchfab.com/models/c04c7a9b2f8346bd90c3938b0af8024a
+
+G17 Gen5 + Olight — 8sianDude
+https://sketchfab.com/models/0200c248eba14385ad2bee8d4dc4e586
+
+G17 Pistol - Animated — user77
+https://sketchfab.com/models/7723ab14e70446ef8e06a134984f287f
+
+手臂与动作原作 animated pistol — DJMaesen
+https://sketchfab.com/models/bd896167e7ca44f19597d3afe6a8d83f
+
+上游 G17 9mm pistol — 3dvachevsky
+https://sketchfab.com/models/b4136758508c486cadcd96c74d7882b8"
+selection_enabled = true
+
+[node name="CloseButton" type="Button" parent="CreditsPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "关闭 / Esc"

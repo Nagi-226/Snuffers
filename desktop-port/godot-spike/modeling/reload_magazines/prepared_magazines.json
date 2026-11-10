@@ -1,0 +1,610 @@
+[
+  {
+    "weapon": "smg",
+    "source": "godot/assets/models/weapons/em57s1_viewmodel.glb",
+    "variant": "viewmodel",
+    "source_sha256": "a12c41cba1cfda284434d53b3631b704fbb17a575689b2e8799eb02a726e9676",
+    "output": "godot/assets/models/weapons/em57s1_viewmodel_reload.glb",
+    "output_sha256": "3e0e11c6b985effe0a491939696228d8117c2b90f8cecda19efdb08467473063",
+    "source_faces": 60000,
+    "body_faces": 49848,
+    "magazine_faces": 10152,
+    "magazine_bounds_godot": [
+      [
+        -0.030710363760590553,
+        -0.23530295491218567,
+        -0.16369767487049103
+      ],
+      [
+        0.031713586300611496,
+        0.0474582202732563,
+        -0.024015599861741066
+      ]
+    ],
+    "magazine_pivot_godot": [
+      0.0005016112700104713,
+      0.0474582202732563,
+      -0.09385664016008377
+    ],
+    "extraction_direction": "down",
+    "extraction_distance": 0.317761175185442,
+    "grip_offset": [
+      -0.03621197503060102,
+      -0.14138058759272099,
+      0.0
+    ],
+    "retained_faces": 60000,
+    "original_unchanged": true,
+    "verified_vertices_uvs_normals_materials": true
+  },
+  {
+    "weapon": "lmg",
+    "source": "godot/assets/models/weapons/em68l_viewmodel.glb",
+    "variant": "viewmodel",
+    "source_sha256": "949487caf313b4696a023fcce35d18aeed4c8d8a0e61137c2cc6508f85b80571",
+    "output": "godot/assets/models/weapons/em68l_viewmodel_reload.glb",
+    "output_sha256": "604971a1e58a391d03cfea4a5e7637154cdfef1fd4497252da5dde19b771292d",
+    "source_faces": 70000,
+    "body_faces": 56748,
+    "magazine_faces": 13252,
+    "magazine_bounds_godot": [
+      [
+        -0.1304248869419098,
+        -0.18618492782115936,
+        -0.16016675531864166
+      ],
+      [
+        0.13051685690879822,
+        0.040582992136478424,
+        -0.024264642968773842
+      ]
+    ],
+    "magazine_pivot_godot": [
+      4.598498344421387e-05,
+      0.040582992136478424,
+      -0.09221570193767548
+    ],
+    "extraction_direction": "down",
+    "extraction_distance": 0.2617679199576378,
+    "grip_offset": [
+      -0.135470871925354,
+      -0.1133839599788189,
+      0.0
+    ],
+    "retained_faces": 70000,
+    "original_unchanged": true,
+    "verified_vertices_uvs_normals_materials": true
+  },
+  {
+    "weapon": "em57s2",
+    "source": "godot/assets/models/weapons/em57s2_viewmodel_ads.glb",
+    "variant": "viewmodel",
+    "source_sha256": "994ddf962803f5a25ec1c8b1088c770097e86b468551ab15cfdc9b414d9e16a2",
+    "output": "godot/assets/models/weapons/em57s2_viewmodel_ads_reload.glb",
+    "output_sha256": "93b57c3b31eb09ea0393aeb5f13f7165a220ce2219b0ec1904764b66a1d3d136",
+    "source_faces": 60883,
+    "body_faces": 46855,
+    "magazine_faces": 14028,
+    "magazine_bounds_godot": [
+      [
+        -0.03940519690513611,
+        0.048690225929021835,
+        -0.18084965646266937
+      ],
+      [
+        0.0393679216504097,
+        0.14403235912322998,
+        0.3282480537891388
+      ]
+    ],
+    "magazine_pivot_godot": [
+      -1.8637627363204956e-05,
+      0.048690225929021835,
+      0.07369919866323471
+    ],
+    "extraction_direction": "up",
+    "extraction_distance": 0.13034213319420815,
+    "grip_offset": [
+      -0.0443865592777729,
+      0.04767106659710407,
+      0.0
+    ],
+    "retained_faces": 60883,
+    "original_unchanged": true,
+    "verified_vertices_uvs_normals_materials": true
+  },
+  {
+    "weapon": "em57s2",
+    "source": "godot/assets/models/weapons/em57s2_viewmodel.glb",
+    "variant": "intact",
+    "source_sha256": "4a4e7720c671bb08e8ae583a64bdbf3313336d767b1dac4a03d36b659f108f06",
+    "output": "godot/assets/models/weapons/em57s2_viewmodel_reload.glb",
+    "output_sha256": "2721b21c8c98e579f89a8ef19ebc118c29476ac8e6d7df1bfe99d4c2037516e0",
+    "source_faces": 59999,
+    "body_faces": 45971,
+    "magazine_faces": 14028,
+    "magazine_bounds_godot": [
+      [
+        -0.03940519690513611,
+        0.048690225929021835,
+        -0.18084965646266937
+      ],
+      [
+        0.0393679216504097,
+        0.14403235912322998,
+        0.3282480537891388
+      ]
+    ],
+    "magazine_pivot_godot": [
+      -1.8637627363204956e-05,
+      0.048690225929021835,
+      0.07369919866323471
+    ],
+    "extraction_direction": "up",
+    "extraction_distance": 0.13034213319420815,
+    "grip_offset": [
+      -0.0443865592777729,
+      0.04767106659710407,
+      0.0
+    ],
+    "retained_faces": 59999,
+    "original_unchanged": true,
+    "verified_vertices_uvs_normals_materials": true
+  },
+  {
+    "weapon": "em86b",
+    "source": "godot/assets/models/weapons/em86b_viewmodel.glb",
+    "variant": "viewmodel",
+    "source_sha256": "8327f0137a5126210fd3f323a1588590b3304469c28b2a5d3d442890365ce721",
+    "output": "godot/assets/models/weapons/em86b_viewmodel_reload.glb",
+    "output_sha256": "281987efb4f8d7b3ab669bfcb2cdc743adad44328441e299c8924a17685f6722",
+    "source_faces": 66620,
+    "body_faces": 57478,
+    "magazine_faces": 9142,
+    "magazine_bounds_godot": [
+      [
+        -0.044222909957170486,
+        -0.2447909265756607,
+        -0.10318810492753983
+      ],
+      [
+        0.043778810650110245,
+        -0.0323602557182312,
+        0.07729221135377884
+      ]
+    ],
+    "magazine_pivot_godot": [
+      -0.00022204965353012085,
+      -0.0323602557182312,
+      -0.012947946786880493
+    ],
+    "extraction_direction": "down",
+    "extraction_distance": 0.2474306708574295,
+    "grip_offset": [
+      -0.04900086030364036,
+      -0.10621533542871475,
+      0.0
+    ],
+    "retained_faces": 66620,
+    "original_unchanged": true,
+    "verified_vertices_uvs_normals_materials": true
+  },
+  {
+    "weapon": "em86b",
+    "source": "godot/assets/models/weapons/em86b_viewmodel_intact.glb",
+    "variant": "intact",
+    "source_sha256": "57524887e71df2fd0ef8fab33392dc3165d74a3a28244cfcb07443b00f23ff35",
+    "output": "godot/assets/models/weapons/em86b_viewmodel_intact_reload.glb",
+    "output_sha256": "9c66a1cbfbf72292888182aba097045df025d07e7264b9951f61c41d36478dbe",
+    "source_faces": 70000,
+    "body_faces": 60858,
+    "magazine_faces": 9142,
+    "magazine_bounds_godot": [
+      [
+        -0.044222909957170486,
+        -0.2447909265756607,
+        -0.10318810492753983
+      ],
+      [
+        0.043778810650110245,
+        -0.0323602557182312,
+        0.07729221135377884
+      ]
+    ],
+    "magazine_pivot_godot": [
+      -0.00022204965353012085,
+      -0.0323602557182312,
+      -0.012947946786880493
+    ],
+    "extraction_direction": "down",
+    "extraction_distance": 0.2474306708574295,
+    "grip_offset": [
+      -0.04900086030364036,
+      -0.10621533542871475,
+      0.0
+    ],
+    "retained_faces": 70000,
+    "original_unchanged": true,
+    "verified_vertices_uvs_normals_materials": true
+  },
+  {
+    "weapon": "em86d",
+    "source": "godot/assets/models/weapons/em86d_viewmodel.glb",
+    "variant": "viewmodel",
+    "source_sha256": "c2f235570d9c2c15b5f7c8f3e8719e5f570cec74b1c089dba25bc702effb9f13",
+    "output": "godot/assets/models/weapons/em86d_viewmodel_reload.glb",
+    "output_sha256": "a35d43ca76e576a7290167c6a11d08951e11be2fb5352fb67423072b228bec7a",
+    "source_faces": 70000,
+    "body_faces": 64104,
+    "magazine_faces": 5896,
+    "magazine_bounds_godot": [
+      [
+        -0.036523353308439255,
+        -0.19253863394260406,
+        0.046172354370355606
+      ],
+      [
+        0.03652489557862282,
+        -0.010267183184623718,
+        0.17821869254112244
+      ]
+    ],
+    "magazine_pivot_godot": [
+      7.711350917816162e-07,
+      -0.010267183184623718,
+      0.11219552159309387
+    ],
+    "extraction_direction": "down",
+    "extraction_distance": 0.21727145075798035,
+    "grip_offset": [
+      -0.041524124443531034,
+      -0.09113572537899017,
+      0.0
+    ],
+    "retained_faces": 70000,
+    "original_unchanged": true,
+    "verified_vertices_uvs_normals_materials": true
+  },
+  {
+    "weapon": "em86s",
+    "source": "godot/assets/models/weapons/em86s_viewmodel.glb",
+    "variant": "viewmodel",
+    "source_sha256": "a07f246234e07c4570629b715aabfef8b5e9746d0c626c03d424764cb8f5ad48",
+    "output": "godot/assets/models/weapons/em86s_viewmodel_reload.glb",
+    "output_sha256": "88fd9bc4f3880ff3bf27ca159567fe7cdb9b07d7c0db51c10a47c1d7bfc8a131",
+    "source_faces": 70000,
+    "body_faces": 66977,
+    "magazine_faces": 3023,
+    "magazine_bounds_godot": [
+      [
+        -0.033261701464653015,
+        -0.17285344004631042,
+        0.055124491453170776
+      ],
+      [
+        0.03329917788505554,
+        -0.04236965999007225,
+        0.16977159678936005
+      ]
+    ],
+    "magazine_pivot_godot": [
+      1.8738210201263428e-05,
+      -0.04236965999007225,
+      0.11244804412126541
+    ],
+    "extraction_direction": "down",
+    "extraction_distance": 0.16548378005623818,
+    "grip_offset": [
+      -0.038280439674854276,
+      -0.06524189002811909,
+      0.0
+    ],
+    "retained_faces": 70000,
+    "original_unchanged": true,
+    "verified_vertices_uvs_normals_materials": true
+  },
+  {
+    "weapon": "em86m",
+    "source": "godot/assets/models/weapons/em86m_viewmodel_ads.glb",
+    "variant": "viewmodel",
+    "source_sha256": "ddf5674cfe1ed5eae7ec7d51b757e32de5f75116aee6e3a67f5d090ab99c0838",
+    "output": "godot/assets/models/weapons/em86m_viewmodel_ads_reload.glb",
+    "output_sha256": "1699029d76b448e12821f08410047856a9106c249042c5ed50e584c94cc2afeb",
+    "source_faces": 72318,
+    "body_faces": 63882,
+    "magazine_faces": 8436,
+    "magazine_bounds_godot": [
+      [
+        -0.11106191575527191,
+        -0.17854158580303192,
+        -0.09812464565038681
+      ],
+      [
+        0.14416487514972687,
+        -0.003271213499829173,
+        0.11340697854757309
+      ]
+    ],
+    "magazine_pivot_godot": [
+      0.016551479697227478,
+      -0.003271213499829173,
+      0.00764116644859314
+    ],
+    "extraction_direction": "down",
+    "extraction_distance": 0.21027037230320275,
+    "grip_offset": [
+      -0.1326133954524994,
+      -0.08763518615160137,
+      0.0
+    ],
+    "retained_faces": 72318,
+    "original_unchanged": true,
+    "verified_vertices_uvs_normals_materials": true
+  },
+  {
+    "weapon": "em86m",
+    "source": "godot/assets/models/weapons/em86m_viewmodel.glb",
+    "variant": "intact",
+    "source_sha256": "dd6c734b8f95e77fead07c9b786292ac4e6d033a6e361e570b2c4a4b923c3139",
+    "output": "godot/assets/models/weapons/em86m_viewmodel_reload.glb",
+    "output_sha256": "3c79da5bd5f0059644c9c274f29769f8bf99e741c5fd670de1bdffbc1c3ecfb4",
+    "source_faces": 70000,
+    "body_faces": 61564,
+    "magazine_faces": 8436,
+    "magazine_bounds_godot": [
+      [
+        -0.11106191575527191,
+        -0.17854158580303192,
+        -0.09812464565038681
+      ],
+      [
+        0.14416487514972687,
+        -0.003271213499829173,
+        0.11340697854757309
+      ]
+    ],
+    "magazine_pivot_godot": [
+      0.016551479697227478,
+      -0.003271213499829173,
+      0.00764116644859314
+    ],
+    "extraction_direction": "down",
+    "extraction_distance": 0.21027037230320275,
+    "grip_offset": [
+      -0.1326133954524994,
+      -0.08763518615160137,
+      0.0
+    ],
+    "retained_faces": 70000,
+    "original_unchanged": true,
+    "verified_vertices_uvs_normals_materials": true
+  },
+  {
+    "weapon": "em12g2",
+    "source": "godot/assets/models/weapons/em12g2_viewmodel.glb",
+    "variant": "viewmodel",
+    "source_sha256": "9319533ab649cf745cae24159d040d90e72936488d8583fbd85db0437cf6ac10",
+    "output": "godot/assets/models/weapons/em12g2_viewmodel_reload.glb",
+    "output_sha256": "1846a9d9b7b2481ae54461dde2ce4018bfc0c9be544c401e0600f09e5adadd44",
+    "source_faces": 69648,
+    "body_faces": 52699,
+    "magazine_faces": 16949,
+    "magazine_bounds_godot": [
+      [
+        -0.08178059011697769,
+        -0.18058179318904877,
+        -0.12573803961277008
+      ],
+      [
+        0.08172666281461716,
+        -0.02066699042916298,
+        0.02073046937584877
+      ]
+    ],
+    "magazine_pivot_godot": [
+      -2.6963651180267334e-05,
+      -0.02066699042916298,
+      -0.052503786981105804
+    ],
+    "extraction_direction": "down",
+    "extraction_distance": 0.1949148027598858,
+    "grip_offset": [
+      -0.08675362646579743,
+      -0.0799574013799429,
+      0.0
+    ],
+    "retained_faces": 69648,
+    "original_unchanged": true,
+    "verified_vertices_uvs_normals_materials": true
+  },
+  {
+    "weapon": "em12g2",
+    "source": "godot/assets/models/weapons/em12g2_viewmodel_intact.glb",
+    "variant": "intact",
+    "source_sha256": "bf87604909537ae486e7f2a2d505353ffb6d05ed66358a0b04631df6b47b6f14",
+    "output": "godot/assets/models/weapons/em12g2_viewmodel_intact_reload.glb",
+    "output_sha256": "0088f1b288410c0e2670e59b7415f969ff512a0fd2cc3eec3895a8bebed3290d",
+    "source_faces": 70000,
+    "body_faces": 53051,
+    "magazine_faces": 16949,
+    "magazine_bounds_godot": [
+      [
+        -0.08178059011697769,
+        -0.18058179318904877,
+        -0.12573803961277008
+      ],
+      [
+        0.08172666281461716,
+        -0.02066699042916298,
+        0.02073046937584877
+      ]
+    ],
+    "magazine_pivot_godot": [
+      -2.6963651180267334e-05,
+      -0.02066699042916298,
+      -0.052503786981105804
+    ],
+    "extraction_direction": "down",
+    "extraction_distance": 0.1949148027598858,
+    "grip_offset": [
+      -0.08675362646579743,
+      -0.0799574013799429,
+      0.0
+    ],
+    "retained_faces": 70000,
+    "original_unchanged": true,
+    "verified_vertices_uvs_normals_materials": true
+  },
+  {
+    "weapon": "em127g",
+    "source": "godot/assets/models/weapons/em127g_viewmodel.glb",
+    "variant": "viewmodel",
+    "source_sha256": "6b128d693f5b3e2907ac435c4e63e132c91e7fe9fa34b90bf56779f2ab29f3c7",
+    "output": "godot/assets/models/weapons/em127g_viewmodel_reload.glb",
+    "output_sha256": "47a90b628fdc25e056ac5b939f20148705a909c6a83823abe78ea40036775efa",
+    "source_faces": 70000,
+    "body_faces": 65271,
+    "magazine_faces": 4729,
+    "magazine_bounds_godot": [
+      [
+        -0.03671476989984512,
+        -0.18988730013370514,
+        0.013099822215735912
+      ],
+      [
+        0.03677315264940262,
+        -0.03564028441905975,
+        0.1612250804901123
+      ]
+    ],
+    "magazine_pivot_godot": [
+      2.919137477874756e-05,
+      -0.03564028441905975,
+      0.08716244995594025
+    ],
+    "extraction_direction": "down",
+    "extraction_distance": 0.1892470157146454,
+    "grip_offset": [
+      -0.04174396127462387,
+      -0.07712350785732269,
+      0.0
+    ],
+    "retained_faces": 70000,
+    "original_unchanged": true,
+    "verified_vertices_uvs_normals_materials": true
+  },
+  {
+    "weapon": "em127m",
+    "source": "godot/assets/models/weapons/em127m_viewmodel.glb",
+    "variant": "viewmodel",
+    "source_sha256": "09c83ea7089814d53f7ea4421b2dcf90143fc4e38926d1c1798f6380ec4c3224",
+    "output": "godot/assets/models/weapons/em127m_viewmodel_reload.glb",
+    "output_sha256": "68e9c96dac938f53d011deb6f7ac9daf9d9ba396eceb09878389f988313fa121",
+    "source_faces": 70000,
+    "body_faces": 59940,
+    "magazine_faces": 10060,
+    "magazine_bounds_godot": [
+      [
+        -0.09943708777427673,
+        -0.24589073657989502,
+        -0.20399612188339233
+      ],
+      [
+        0.09964020550251007,
+        -0.024477681145071983,
+        0.014448054134845734
+      ]
+    ],
+    "magazine_pivot_godot": [
+      0.0001015588641166687,
+      -0.024477681145071983,
+      -0.0947740375995636
+    ],
+    "extraction_direction": "down",
+    "extraction_distance": 0.25641305543482307,
+    "grip_offset": [
+      -0.1045386466383934,
+      -0.11070652771741152,
+      0.0
+    ],
+    "retained_faces": 70000,
+    "original_unchanged": true,
+    "verified_vertices_uvs_normals_materials": true
+  },
+  {
+    "weapon": "em40t1",
+    "source": "godot/assets/models/weapons/em40t1_viewmodel.glb",
+    "variant": "viewmodel",
+    "source_sha256": "40217189c6fad3c2be66af079c7ddd65085d056c1804d95421f714e51758cb21",
+    "output": "godot/assets/models/weapons/em40t1_viewmodel_reload.glb",
+    "output_sha256": "d7f457266e54f55352010c965483c28b752bf6b075f19ca6ff50f40a8b038a66",
+    "source_faces": 64791,
+    "body_faces": 60399,
+    "magazine_faces": 4392,
+    "magazine_bounds_godot": [
+      [
+        -0.04892129823565483,
+        -0.2361135482788086,
+        0.21535272896289825
+      ],
+      [
+        0.05484562739729881,
+        -0.03192887082695961,
+        0.3999877870082855
+      ]
+    ],
+    "magazine_pivot_godot": [
+      0.002962164580821991,
+      -0.03192887082695961,
+      0.3076702654361725
+    ],
+    "extraction_direction": "down",
+    "extraction_distance": 0.239184677451849,
+    "grip_offset": [
+      -0.05688346281647682,
+      -0.10209233872592449,
+      0.0
+    ],
+    "retained_faces": 64791,
+    "original_unchanged": true,
+    "verified_vertices_uvs_normals_materials": true
+  },
+  {
+    "weapon": "magnum",
+    "source": "godot/assets/models/weapons/em127p_viewmodel.glb",
+    "variant": "viewmodel",
+    "source_sha256": "ec0efdcca75d8aaffbba05d3255cf1e44aa17c578eea22de96528aab6af5e2e2",
+    "output": "godot/assets/models/weapons/em127p_viewmodel_reload.glb",
+    "output_sha256": "35ab6969072b1cd42fec4e5aeb386789e7b1beec767ab9edc613119e4b8397b1",
+    "source_faces": 40000,
+    "body_faces": 37728,
+    "magazine_faces": 2272,
+    "magazine_bounds_godot": [
+      [
+        -0.05512283369898796,
+        -0.10723143070936203,
+        -0.09789431095123291
+      ],
+      [
+        0.05358831211924553,
+        0.006646666210144758,
+        0.11914677917957306
+      ]
+    ],
+    "magazine_pivot_godot": [
+      -0.0007672607898712158,
+      0.006646666210144758,
+      0.010626234114170074
+    ],
+    "extraction_direction": "down",
+    "extraction_distance": 0.1488780969195068,
+    "grip_offset": [
+      -0.05935557290911674,
+      -0.056939048459753394,
+      0.0
+    ],
+    "retained_faces": 40000,
+    "original_unchanged": true,
+    "verified_vertices_uvs_normals_materials": true
+  }
+]

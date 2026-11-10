@@ -136,3 +136,8 @@
 
 - 用途：E5 车库后院扩容后的生活杂物（2026-10-25 机主三轮指令「增加更多杂物（从开源社区找一下对应素材）」）；`_prop_model` 运行态归一管线，PROPS 表 `junk_*` 类型驱动。
 - 下载方式：模型页内嵌 modelviewer 的 static.poly.pizza UUID 直链（页面不暴露下载 URL，需从页面 HTML 提取）。
+
+### 五-9 · 社区战术武器与黑色第一人称手臂（2026-11-10）
+
+- 完整名称、作者、原 URL、CC-BY 4.0 许可及改作说明见 [community_weapons/ATTRIBUTION.md](addons/community_weapons/ATTRIBUTION.md)。
+- 衍生资产：装配版 MPX、G17 Gen5 + Olight、DJMaesen 原生黑色手臂。游戏内标题页“资产署名”入口保留署名；Sketchfab 原始下载留在 Git 排除的 `raw_assets/`，不提交。

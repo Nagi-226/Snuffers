@@ -47,11 +47,15 @@ func _check_weapon(weapon_id: StringName, scene_path: String, arms_path: NodePat
 	var skeletons := weapon.get_node(arms_path).find_children("*", "Skeleton3D", true, false)
 	_assert(skeletons.size() == 1, "%s has one native skeleton" % weapon_id)
 	_assert(weapon._magazine != null, "%s has a detachable magazine" % weapon_id)
-	_assert(weapon._mag_bone >= 0 and weapon._weapon_bone >= 0, "%s resolves native weapon and magazine bones" % weapon_id)
+	var native = weapon.get("_native_arms")
+	if native != null:
+		_assert(weapon.get_node(arms_path).find_child("WeaponMotion", true, false) != null and weapon.get_node(arms_path).find_child("MagazineMotion", true, false) != null, "%s resolves native weapon and magazine motion nodes" % weapon_id)
+	else:
+		_assert(weapon._mag_bone >= 0 and weapon._weapon_bone >= 0, "%s resolves native weapon and magazine bones" % weapon_id)
 	var visible_arms := 0
 	for node in weapon.get_node(arms_path).find_children("*", "MeshInstance3D", true, false):
 		var mi := node as MeshInstance3D
-		if mi.visible and mi.mesh != null and mi.mesh.resource_name.contains("arms"):
+		if mi.visible and mi.mesh != null and (mi.mesh.resource_name.contains("arms") or (native != null and mi.skin != null)):
 			visible_arms += 1
 	_assert(visible_arms > 0, "%s keeps native arm meshes visible" % weapon_id)
 	_assert(player.has_animation(&"reload"), "%s has a reload clip" % weapon_id)
@@ -59,14 +63,19 @@ func _check_weapon(weapon_id: StringName, scene_path: String, arms_path: NodePat
 		weapon.queue_free()
 		await process_frame
 		return
-	_assert(absf(player.get_animation(&"reload").length - duration) < 0.001, "%s reload duration" % weapon_id)
+	if native == null:
+		_assert(absf(player.get_animation(&"reload").length - duration) < 0.001, "%s reload duration" % weapon_id)
 
 	weapon._start_reload()
 	weapon._start_reload()
 	_assert(weapon._is_reloading, "%s enters reload state" % weapon_id)
 	_assert(player.current_animation == "reload", "%s starts native reload animation" % weapon_id)
-	player.advance(duration * 0.25)
-	weapon._process(0.0)
+	if native != null:
+		_assert(absf(player.get_animation(&"reload").length / native._reload_speed - duration) < 0.001, "%s native reload action respects gameplay duration" % weapon_id)
+		weapon._process(duration * 0.25)
+	else:
+		player.advance(duration * 0.25)
+		weapon._process(0.0)
 	_assert(weapon._magazine.global_position.is_finite(), "%s magazine transform stays finite" % weapon_id)
 	await create_timer(duration + 0.1).timeout
 	_assert(_reload_counts[weapon_id] == 1, "%s emits reload completion exactly once" % weapon_id)

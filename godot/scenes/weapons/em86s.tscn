@@ -2,14 +2,15 @@
 
 [ext_resource type="Script" path="res://scripts/weapons/long_gun_controller.gd" id="1_controller"]
 [ext_resource type="Resource" path="res://scenes/weapons/em86s.tres" id="2_data"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/em86s_viewmodel.glb" id="3_model"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/em86s_viewmodel_reload.glb" id="3_model"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/arms_rifle_native.glb" id="4_arms"]
 
 [node name="Em86s" type="Node3D"]
 script = ExtResource("1_controller")
 weapon_data = ExtResource("2_data")
+magazine_node_path = NodePath("ViewModel/Weapon/ReloadViewmodel/DetachableMagazine")
+arms_alignment_node_path = NodePath("ViewModel/Weapon/Magazine")
 reserve_state_property = &"em86_reserve"
-magazine_node_path = NodePath("ViewModel/Weapon/Magazine")
 
 [node name="ViewModel" type="Node3D" parent="."]
 

@@ -122,6 +122,173 @@ const SCOPE_SHAKE_TIME: float = 0.2 ## 开镜击发抖动时长 s（L2960）
 const SCOPE_SHAKE_PIXELS: float = 6.0 ## 抖动幅度 ±px（L2962）
 const SCOPE_BREATH_PIXELS: float = 1.5 ## 呼吸摆动 ±px（L3225）
 
+# ===== 按真实弹匣位置换弹（2026-11-10，机主批准分步方案 A）=====
+# 方向和抓点按武器正交坐标，距离为实际米；阶段按原 reload_time 的比例。
+const MAGAZINE_RELOAD_PROFILES: Dictionary = {
+	&"rifle": {
+		"extraction_direction": Vector3.DOWN,
+		"extraction_distance": 0.20,
+		"grip_offset": Vector3(-0.028, -0.065, 0),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
+	&"dmr": {
+		"extraction_direction": Vector3.DOWN,
+		"extraction_distance": 0.193547,
+		"grip_offset": Vector3(-0.044993, -0.079274, 0),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
+	&"shotgun": {
+		"extraction_direction": Vector3.DOWN,
+		"extraction_distance": 0.153306,
+		"grip_offset": Vector3(-0.036268, -0.059153, 0),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
+	&"smg": {
+		"extraction_direction": Vector3.DOWN,
+		"extraction_distance": 0.317761,
+		"grip_offset": Vector3(-0.036212, -0.141381, 0),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
+	&"lmg": {
+		"extraction_direction": Vector3.DOWN,
+		"extraction_distance": 0.261768,
+		"grip_offset": Vector3(-0.135471, -0.113384, 0),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
+	&"em57s2": {
+		"extraction_direction": Vector3.UP,
+		"extraction_distance": 0.130342,
+		"grip_offset": Vector3(-0.044387, 0.047671, 0),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
+	&"em86b": {
+		"extraction_direction": Vector3.DOWN,
+		"extraction_distance": 0.247431,
+		"grip_offset": Vector3(-0.049001, -0.106215, 0),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
+	&"em86d": {
+		"extraction_direction": Vector3.DOWN,
+		"extraction_distance": 0.217271,
+		"grip_offset": Vector3(-0.041524, -0.091136, 0),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
+	&"em86s": {
+		"extraction_direction": Vector3.DOWN,
+		"extraction_distance": 0.165484,
+		"grip_offset": Vector3(-0.038280, -0.065242, 0),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
+	&"em86m": {
+		"extraction_direction": Vector3.DOWN,
+		"extraction_distance": 0.210270,
+		"grip_offset": Vector3(-0.132613, -0.087635, 0),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
+	&"em12g2": {
+		"extraction_direction": Vector3.DOWN,
+		"extraction_distance": 0.194915,
+		"grip_offset": Vector3(-0.086754, -0.079957, 0),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
+	&"em127g": {
+		"extraction_direction": Vector3.DOWN,
+		"extraction_distance": 0.189247,
+		"grip_offset": Vector3(-0.041744, -0.077124, 0),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
+	&"em127m": {
+		"extraction_direction": Vector3.DOWN,
+		"extraction_distance": 0.256413,
+		"grip_offset": Vector3(-0.104539, -0.110707, 0),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
+	&"em40t1": {
+		"extraction_direction": Vector3.DOWN,
+		"extraction_distance": 0.239185,
+		"grip_offset": Vector3(-0.056883, -0.102092, 0),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
+}
+const MAGAZINE_RELOAD_ELBOW_POLE := Vector3(0.08, -0.35, 0.22)
+const MAGAZINE_RELOAD_EXCHANGE_DISTANCE: float = 0.18 ## 旧匣离井后的交换段额外行程，m
+
+# 原生黑色手臂只整体等比摆位；节点姿态校准不改骨rest/蒙皮或骨pose缩放。
+const BLACK_PISTOL_PROFILES: Dictionary = {
+	&"pistol": {
+		"weapon_anchor": Vector3(-0.007154029, -0.064155, 0.353723),
+		"magazine_grip": Vector3(-0.069989, -0.064596, 0.083652),
+		"source_rotation": Vector3(0, PI, 0),
+		"root_scale": 1.0,
+		"lock_ads_idle": false,
+		"reload_contact_phase": 0.20,
+		"reload_seat_phase": 0.84,
+		"left_elbow_pole": Vector3(-0.1, -0.3, 0.15),
+	},
+	&"magnum": {
+		"weapon_anchor": Vector3(-0.006295202, -0.083208, 0.329047),
+		"magazine_grip": Vector3(-0.075189, -0.056939, 0),
+		"source_rotation": Vector3(0, PI, 0),
+		"root_scale": 1.0,
+		"lock_ads_idle": true, ## 原生idle中段枪身会遮住ADS中心，开镜待机固定标定首帧。
+		"reload_contact_phase": 0.20,
+		"reload_seat_phase": 0.84,
+		"left_elbow_pole": Vector3(-0.1, -0.3, 0.15),
+	},
+	&"gen5": {
+		"weapon_anchor": Vector3(0, -0.055, 0.06),
+		"magazine_grip": Vector3(-0.025, -0.065, 0.06),
+		"source_rotation": Vector3(0, PI, 0),
+		"root_scale": 1.0,
+		"lock_ads_idle": false,
+		"reload_contact_phase": 0.20,
+		"reload_seat_phase": 0.84,
+		"left_elbow_pole": Vector3(-0.1, -0.3, 0.15),
+	},
+}
+
 # ===== 手枪（EM-57P「掣」，2026-10-19 机主立项：EDAA 雷械设定落地，2 号键位；
 #       网页版无手枪，数值按设定文档+手感类比定标，G4 试玩复核）=====
 const PISTOL_DMG_HEAD_FACTOR: float = 2.0 ## 爆头倍率

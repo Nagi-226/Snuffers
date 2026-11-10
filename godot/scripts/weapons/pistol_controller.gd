@@ -13,6 +13,9 @@ extends WeaponController
 @export var reserve_state_property: StringName = &"pistol_reserve"
 @export var magazine_node_path: NodePath = ^"ViewModel/EM57P/em57p_magazine"
 @export var retime_reload: bool = true
+@export var native_arms_profile: StringName = &""
+
+const NativeArms = preload("res://scripts/player/native_pistol_arms.gd")
 
 ## 射击模式机制已上收基类（2026-10-19：半自动/三发点射/全自动三档，X 键切换）；
 ## 本子类只保留弹药结算、散布射线与换弹三件套。
@@ -30,6 +33,7 @@ var _mag_bone: int = -1
 var _weapon_bone: int = -1
 var _mag_motion_start: Transform3D = Transform3D.IDENTITY
 var _weapon_motion_start: Transform3D = Transform3D.IDENTITY
+var _native_arms = null
 
 
 func _mag_value() -> int:
@@ -53,6 +57,18 @@ func _ready() -> void:
 	if _magazine != null:
 		_mag_home_transform = _magazine.transform
 	_weapon_home = _weapon_node.transform
+	if native_arms_profile != &"":
+		var profile: Dictionary = GameConfig.BLACK_PISTOL_PROFILES.get(native_arms_profile, {})
+		_native_arms = NativeArms.new()
+		if not _native_arms.configure($ViewModel/ArmsEM57P, _weapon_node, _magazine, profile):
+			push_error("%s: native pistol arms setup failed" % weapon_data.weapon_id)
+			_native_arms = null
+		else:
+			_arms_animation = _native_arms.animation
+			_arms_skeleton = _native_arms.skeleton
+		Events.weapon_reload_started.connect(_on_reload_started)
+		Events.weapon_reloaded.connect(_on_weapon_reloaded)
+		return
 	var players := $ViewModel/ArmsEM57P.find_children("*", "AnimationPlayer", true, false)
 	if not players.is_empty():
 		_arms_animation = players[0] as AnimationPlayer
@@ -141,6 +157,10 @@ func _align_native_arms() -> void:
 
 func _process(delta: float) -> void:
 	super._process(delta)
+	if _native_arms != null:
+		_native_arms.lock_idle_aim = _is_current_weapon() and GameState.is_aiming
+		_native_arms.update(delta)
+		return
 	# 常态与换弹均由武器骨驱动枪身（idle 微摆与换弹动效同一套相对运动公式）。
 	if _arms_skeleton == null:
 		return
@@ -192,6 +212,8 @@ func _fire() -> bool:
 	_set_mag_value(_mag_value() - 1)
 	Events.ammo_changed.emit(weapon_data.weapon_id, _mag_value(), _reserve_value())
 	Events.weapon_fired.emit(weapon_data.weapon_id)
+	if _native_arms != null:
+		_native_arms.play_fire()
 	# 微弱青蓝枪口焰（与步枪同口径）。
 	Events.player_muzzle_flash.emit(weapon_data.weapon_id,
 		global_position + (-global_transform.basis.z) * GameConfig.PLAYER_MUZZLE_OFFSET)
@@ -273,6 +295,9 @@ func _on_reload_started(weapon_id: StringName) -> void:
 
 
 func _play_reload_anim() -> void:
+	if _native_arms != null:
+		_native_arms.play_reload(weapon_data.reload_time, _mag_value() == 0)
+		return
 	_set_sleeve_extenders_visible(false)
 	if _magazine != null:
 		_magazine.transform = _mag_home_transform
@@ -294,6 +319,9 @@ func _on_weapon_switched(weapon_id: StringName) -> void:
 
 
 func _reset_reload_visuals() -> void:
+	if _native_arms != null:
+		_native_arms.reset()
+		return
 	_weapon_node.transform = _weapon_home
 	if _magazine != null:
 		_magazine.transform = _mag_home_transform

@@ -17,6 +17,7 @@ var _started: bool = false
 @onready var _emblem: TextureRect = $Emblem
 @onready var _title_label: Label = $TitleLabel
 @onready var _prompt_label: Label = $PromptLabel
+@onready var _credits_panel: PanelContainer = $CreditsPanel
 
 
 func _ready() -> void:
@@ -27,6 +28,8 @@ func _ready() -> void:
 	_emblem.scale = Vector2.ONE * EMBLEM_ZOOM_FROM
 	_title_label.modulate.a = 0.0
 	_prompt_label.modulate.a = 0.0
+	$CreditsButton.pressed.connect(_on_credits_pressed)
+	$CreditsPanel/VBox/CloseButton.pressed.connect(_on_credits_closed)
 	_play_reveal()
 
 
@@ -50,8 +53,23 @@ func _play_reveal() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if _started:
 		return
+	if _credits_panel.visible:
+		if event is InputEventKey and (event as InputEventKey).pressed and (event as InputEventKey).keycode == KEY_ESCAPE:
+			_on_credits_closed()
+		get_viewport().set_input_as_handled()
+		return
 	var pressed_key := event is InputEventKey and (event as InputEventKey).pressed
 	var pressed_button := event is InputEventMouseButton and (event as InputEventMouseButton).pressed
 	if pressed_key or pressed_button:
 		_started = true
 		get_tree().change_scene_to_file(MAIN_SCENE_PATH)
+
+
+func _on_credits_pressed() -> void:
+	_credits_panel.show()
+	$CreditsPanel/VBox/CloseButton.grab_focus()
+
+
+func _on_credits_closed() -> void:
+	_credits_panel.hide()
+	$CreditsButton.release_focus()

@@ -2,12 +2,14 @@
 
 [ext_resource type="Script" path="res://scripts/weapons/em127m_controller.gd" id="1_controller"]
 [ext_resource type="Resource" path="res://scenes/weapons/em127m.tres" id="2_data"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/em127m_viewmodel.glb" id="3_model"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/em127m_viewmodel_reload.glb" id="3_model"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/arms_rifle_native.glb" id="4_arms"]
 
 [node name="Em127m" type="Node3D"]
 script = ExtResource("1_controller")
 weapon_data = ExtResource("2_data")
+magazine_node_path = NodePath("ViewModel/EM68A/ReloadViewmodel/DetachableMagazine")
+arms_alignment_node_path = NodePath("ViewModel/EM68A/em68a_magazine")
 mag_state_property = &"em127m_mag"
 reserve_state_property = &"magnum_reserve"
 grenade_enabled = false

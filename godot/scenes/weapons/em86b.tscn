@@ -2,12 +2,14 @@
 
 [ext_resource type="Script" path="res://scripts/weapons/rifle_controller.gd" id="1_controller"]
 [ext_resource type="Resource" path="res://scenes/weapons/em86b.tres" id="2_data"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/em86b_viewmodel.glb" id="3_model"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/em86b_viewmodel_reload.glb" id="3_model"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/arms_rifle_native.glb" id="4_arms"]
 
 [node name="Em86b" type="Node3D"]
 script = ExtResource("1_controller")
 weapon_data = ExtResource("2_data")
+magazine_node_path = NodePath("ViewModel/EM68A/ReloadViewmodel/DetachableMagazine")
+arms_alignment_node_path = NodePath("ViewModel/EM68A/em68a_magazine")
 mag_state_property = &"em86b_mag"
 reserve_state_property = &"em86_reserve"
 grenade_enabled = true

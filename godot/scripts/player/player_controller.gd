@@ -213,17 +213,17 @@ func _load_optic_meshes() -> void:
 				"bored": bored_mi.mesh,
 			}
 		bored_root.free()
-	# EM-86B 整枪双模型：常规恢复完整镜框，ADS 才使用当前已验收的开孔版。
+	# EM 整枪瞄具只切换 Body：镜框恢复时保持 DetachableMagazine 独立。
 	var em86b_root := _weapon_mount.get_node_or_null("Em86b") as Node3D
 	if em86b_root != null:
 		var current_mesh: MeshInstance3D = null
-		for node in em86b_root.find_children("*", "MeshInstance3D", true, false):
+		for node in em86b_root.find_children("Body", "MeshInstance3D", true, false):
 			current_mesh = node as MeshInstance3D
 			break
-		var intact_scene: PackedScene = load("res://assets/models/weapons/em86b_viewmodel_intact.glb")
+		var intact_scene: PackedScene = load("res://assets/models/weapons/em86b_viewmodel_intact_reload.glb")
 		if current_mesh != null and intact_scene != null:
 			var intact_root := intact_scene.instantiate()
-			for node in intact_root.find_children("*", "MeshInstance3D", true, false):
+			for node in intact_root.find_children("Body", "MeshInstance3D", true, false):
 				_optic_meshes[&"em86b"] = {
 					"node": current_mesh,
 					"intact": (node as MeshInstance3D).mesh,
@@ -234,13 +234,13 @@ func _load_optic_meshes() -> void:
 	var em57s2_root := _weapon_mount.get_node_or_null("Em57s2") as Node3D
 	if em57s2_root != null:
 		var current_mesh: MeshInstance3D = null
-		for node in em57s2_root.find_children("*", "MeshInstance3D", true, false):
+		for node in em57s2_root.find_children("Body", "MeshInstance3D", true, false):
 			current_mesh = node as MeshInstance3D
 			break
-		var intact_scene: PackedScene = load("res://assets/models/weapons/em57s2_viewmodel.glb")
+		var intact_scene: PackedScene = load("res://assets/models/weapons/em57s2_viewmodel_reload.glb")
 		if current_mesh != null and intact_scene != null:
 			var intact_root := intact_scene.instantiate()
-			for node in intact_root.find_children("*", "MeshInstance3D", true, false):
+			for node in intact_root.find_children("Body", "MeshInstance3D", true, false):
 				_optic_meshes[&"em57s2"] = {
 					"node": current_mesh,
 					"intact": (node as MeshInstance3D).mesh,
@@ -251,13 +251,13 @@ func _load_optic_meshes() -> void:
 	var em86m_root := _weapon_mount.get_node_or_null("Em86m") as Node3D
 	if em86m_root != null:
 		var current_mesh: MeshInstance3D = null
-		for node in em86m_root.find_children("*", "MeshInstance3D", true, false):
+		for node in em86m_root.find_children("Body", "MeshInstance3D", true, false):
 			current_mesh = node as MeshInstance3D
 			break
-		var intact_scene: PackedScene = load("res://assets/models/weapons/em86m_viewmodel.glb")
+		var intact_scene: PackedScene = load("res://assets/models/weapons/em86m_viewmodel_reload.glb")
 		if current_mesh != null and intact_scene != null:
 			var intact_root := intact_scene.instantiate()
-			for node in intact_root.find_children("*", "MeshInstance3D", true, false):
+			for node in intact_root.find_children("Body", "MeshInstance3D", true, false):
 				_optic_meshes[&"em86m"] = {
 					"node": current_mesh,
 					"intact": (node as MeshInstance3D).mesh,
@@ -268,13 +268,13 @@ func _load_optic_meshes() -> void:
 	var em12g2_root := _weapon_mount.get_node_or_null("Em12g2") as Node3D
 	if em12g2_root != null:
 		var current_mesh: MeshInstance3D = null
-		for node in em12g2_root.find_children("*", "MeshInstance3D", true, false):
+		for node in em12g2_root.find_children("Body", "MeshInstance3D", true, false):
 			current_mesh = node as MeshInstance3D
 			break
-		var intact_scene: PackedScene = load("res://assets/models/weapons/em12g2_viewmodel_intact.glb")
+		var intact_scene: PackedScene = load("res://assets/models/weapons/em12g2_viewmodel_intact_reload.glb")
 		if current_mesh != null and intact_scene != null:
 			var intact_root := intact_scene.instantiate()
-			for node in intact_root.find_children("*", "MeshInstance3D", true, false):
+			for node in intact_root.find_children("Body", "MeshInstance3D", true, false):
 				_optic_meshes[&"em12g2"] = {
 					"node": current_mesh,
 					"intact": (node as MeshInstance3D).mesh,

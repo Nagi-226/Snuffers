@@ -212,7 +212,17 @@ func _run() -> void:
 	var magnum_arms := _player.get_node("Camera3D/WeaponMount/Magnum/ViewModel/ArmsEM57P") as Node3D
 	_assert(not pistol_arms.is_visible_in_tree() and magnum_arms.is_visible_in_tree() and _player._scope_view_models[&"magnum"].visible, "Magnum ADS displays its own model with only one set of arms")
 	if lens_center != null:
+		# 本case此前同步击发过：真实推进后坐恢复，再让物理/绘制缓存采样同一帧。
+		var settle_deadline := Time.get_ticks_msec() + 3000
+		while (magnum._view_offset > 0.0 or magnum._camera_kick > 0.0001) and Time.get_ticks_msec() < settle_deadline:
+			await process_frame
+		await physics_frame
+		await process_frame
+		if DisplayServer.get_name() != "headless":
+			await RenderingServer.frame_post_draw
 		var lens_screen: Vector2 = _player._camera.unproject_position((magnum.get_node("ViewModel") as Node3D).global_transform * (lens_center as Vector3))
+		if lens_screen.distance_to(Vector2(root.size) * 0.5) >= 2.0:
+			print("MAGNUM_ADS_DIAGNOSTIC screen=", lens_screen, " window=", root.size, " viewport=", _player._camera.get_viewport().get_visible_rect(), " weight=", _player._ads_weight, " camera=", _player._camera.global_transform, " render_camera=", _player._camera.get_camera_transform(), " view_model=", magnum.get_node("ViewModel").transform, " recoil=", magnum._view_offset, " camera_kick=", magnum._camera_kick)
 		_assert(lens_screen.distance_to(Vector2(root.size) * 0.5) < 2.0, "Magnum ADS places the transparent lens and reticle at screen center")
 		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center), "Magnum upper optic has no opaque face along the camera sightline")
 		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center, Vector3(0, -0.018, 0)), "Magnum lower V-shaped optic region has no opaque face")

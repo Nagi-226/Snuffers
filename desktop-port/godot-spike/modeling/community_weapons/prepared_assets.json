@@ -1,0 +1,226 @@
+[
+  {
+    "output": "godot\\addons\\community_weapons\\mpx_tactical.glb",
+    "sha256": "70ddaf91893ec94b4aecef5cd03ab86eaadda1fdc98c06ee68aa45de7e85995f",
+    "bytes": 76294144,
+    "triangles": 65100,
+    "blender_bounds": [
+      [
+        -0.049051955342292786,
+        -0.32499998807907104,
+        -0.1844191551208496
+      ],
+      [
+        0.049051955342292786,
+        0.32499998807907104,
+        0.1844191551208496
+      ]
+    ],
+    "blender_dimensions": [
+      0.09810391068458557,
+      0.6499999761581421,
+      0.3688383102416992
+    ],
+    "groups": {
+      "Body": {
+        "min": [
+          -0.03939948230981827,
+          -0.32499998807907104,
+          -0.1844191551208496
+        ],
+        "max": [
+          0.012520400807261467,
+          0.32499998807907104,
+          0.1145501434803009
+        ]
+      },
+      "Foregrip": {
+        "min": [
+          -0.033305589109659195,
+          0.2267117202281952,
+          -0.07793451100587845
+        ],
+        "max": [
+          0.006426509469747543,
+          0.2632882595062256,
+          0.042065493762493134
+        ]
+      },
+      "HolographicSight": {
+        "min": [
+          -0.04345253109931946,
+          -0.03400001302361488,
+          0.10956549644470215
+        ],
+        "max": [
+          0.016573447734117508,
+          0.06399998813867569,
+          0.1844191551208496
+        ]
+      },
+      "InfraredModule": {
+        "min": [
+          -0.049051955342292786,
+          0.1249999850988388,
+          0.11106549203395844
+        ],
+        "max": [
+          0.022172875702381134,
+          0.2449999898672104,
+          0.1512516587972641
+        ]
+      },
+      "WeaponLight": {
+        "min": [
+          0.010068967938423157,
+          0.14149998128414154,
+          0.060282446444034576
+        ],
+        "max": [
+          0.049051955342292786,
+          0.2824999690055847,
+          0.09984855353832245
+        ]
+      }
+    },
+    "sources": [
+      {
+        "file": "sig_sauer_mpx.glb",
+        "author": "michalstk11",
+        "uid": "d6e0a8020a7b4a9a876787ec91290022",
+        "source": "https://sketchfab.com/models/d6e0a8020a7b4a9a876787ec91290022",
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "sha256": "74d31baf059f93fddba072a717bae7df69da82281a985e3f677fa4d2b9fd24b9"
+      },
+      {
+        "file": "eotech_hws_exps_3.glb",
+        "author": "Sambit_Raut",
+        "uid": "04d1452515134866b8a97c3e7cb9a18e",
+        "source": "https://sketchfab.com/models/04d1452515134866b8a97c3e7cb9a18e",
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "sha256": "dc51b89eb73298d0fa55b2c5499f982b60c233b83373f15b0bb6f4c7874d8bf6"
+      },
+      {
+        "file": "foregrip.glb",
+        "author": "elitej1gaming",
+        "uid": "52781078a99c4e55934dab26a998875f",
+        "source": "https://sketchfab.com/models/52781078a99c4e55934dab26a998875f",
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "sha256": "f3dc2c23a3359b785fabb8dea0b238ff27421d90617da4409f91eb8c68d1a959"
+      },
+      {
+        "file": "low-poly_anpeq_15.glb",
+        "author": "D_U",
+        "uid": "522f6a04c34946dbb168022187645c1a",
+        "source": "https://sketchfab.com/models/522f6a04c34946dbb168022187645c1a",
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "sha256": "c4ff660c077292a2f62eb8b3265c6da0cda0d20959d82e52cf23d04ac33313f3"
+      },
+      {
+        "file": "surefire_m600df_game_ready_flashlight.glb",
+        "author": "mbvisuals1",
+        "uid": "c04c7a9b2f8346bd90c3938b0af8024a",
+        "source": "https://sketchfab.com/models/c04c7a9b2f8346bd90c3938b0af8024a",
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "sha256": "de9e409f08818da76e581dd4431365b1c49ef416cbdf166fc9324c9df00d9d05"
+      }
+    ],
+    "modifications": "MPX working length .65m; four separately sourced accessories positioned on measured rails; source topology and UVs retained; the separate twelve-face EOTech lens uses transparent glass; foregrip moved forward 6cm following user review; textures reduced to 2K; muzzle Godot -Z; static asset only.",
+    "texture_max": 2048,
+    "removed_display_center": [
+      0.013439539819955826,
+      1.4901161193847656e-08,
+      0.03493450582027435
+    ]
+  },
+  {
+    "output": "godot\\addons\\community_weapons\\g17_gen5_olight.glb",
+    "sha256": "59d7ac839807c91cfe4e3c6c05a66cb095d6c072d024a3602ee62b6295751a5c",
+    "bytes": 49182960,
+    "triangles": 48780,
+    "blender_bounds": [
+      [
+        -0.016313938423991203,
+        -0.10000000149011612,
+        -0.06451677531003952
+      ],
+      [
+        0.016313953325152397,
+        0.10000000149011612,
+        0.06451677531003952
+      ]
+    ],
+    "blender_dimensions": [
+      0.0326278917491436,
+      0.20000000298023224,
+      0.12903355062007904
+    ],
+    "groups": {
+      "Frame": {
+        "min": [
+          -0.014672065153717995,
+          -0.10000000149011612,
+          -0.05696435272693634
+        ],
+        "max": [
+          0.015624120831489563,
+          0.08608917891979218,
+          0.05646903067827225
+        ]
+      },
+      "Magazine": {
+        "min": [
+          -0.009790215641260147,
+          -0.09138626605272293,
+          -0.06451677531003952
+        ],
+        "max": [
+          0.010742266662418842,
+          -0.023800913244485855,
+          0.04789099842309952
+        ]
+      },
+      "Slide": {
+        "min": [
+          -0.010899343527853489,
+          -0.0860716849565506,
+          0.029603809118270874
+        ],
+        "max": [
+          0.012370693497359753,
+          0.08813093602657318,
+          0.06451677531003952
+        ]
+      },
+      "WeaponLight": {
+        "min": [
+          -0.016313938423991203,
+          0.022363029420375824,
+          0.00020147860050201416
+        ],
+        "max": [
+          0.016313953325152397,
+          0.10000000149011612,
+          0.03052479773759842
+        ]
+      }
+    },
+    "sources": [
+      {
+        "file": "g17_gen_5_handgun__olight_-_nsw_police_force.glb",
+        "author": "8sianDude",
+        "uid": "0200c248eba14385ad2bee8d4dc4e586",
+        "source": "https://sketchfab.com/models/0200c248eba14385ad2bee8d4dc4e586",
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "sha256": "29bb4002e4fdab8cadd267509a966918899b195dc005af169ed89b8b29924549"
+      }
+    ],
+    "modifications": "Static Gen5 candidate, .20m working length; installed magazine and feeding round remain together, while the separate chamber cartridge follows the frame; excludes two displayed spare magazines; source faces and UVs retained; textures reduced to 2K; muzzle Godot -Z.",
+    "texture_max": 2048,
+    "removed_display_center": [
+      7.450580596923828e-09,
+      0.0,
+      0.0
+    ]
+  }
+]

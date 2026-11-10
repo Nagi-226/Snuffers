@@ -1,0 +1,48 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/black_pistol_preview.gd" id="1_preview"]
+[ext_resource type="PackedScene" path="res://addons/community_weapons/black_pistol_arms.glb" id="2_arms"]
+[ext_resource type="PackedScene" path="res://addons/community_weapons/g17_gen5_olight.glb" id="3_gun"]
+
+[sub_resource type="Environment" id="Environment_preview"]
+background_mode = 1
+background_color = Color(0.14, 0.17, 0.2, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.7, 0.78, 0.9, 1)
+ambient_light_energy = 0.75
+tonemap_mode = 2
+
+[sub_resource type="LabelSettings" id="LabelSettings_preview"]
+font_size = 24
+
+[node name="BlackPistolPreview" type="Node3D"]
+script = ExtResource("1_preview")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_preview")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-35, -35, 0)
+light_energy = 2.0
+
+[node name="FillLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-15, 145, 0)
+light_energy = 0.9
+
+[node name="Camera3D" type="Camera3D" parent="."]
+current = true
+fov = 65.0
+near = 0.01
+
+[node name="Arms" parent="." instance=ExtResource("2_arms")]
+
+[node name="G17Gen5Olight" parent="." instance=ExtResource("3_gun")]
+position = Vector3(0.06, -0.18, -0.48)
+
+[node name="Controls" type="Label" parent="."]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 960.0
+offset_bottom = 70.0
+text = "Gen5 native arms | 1 Fire  2 Reload  3 Empty reload  4 Hide  5 Ready  6 Idle"
+label_settings = SubResource("LabelSettings_preview")

@@ -1,0 +1,40 @@
+{
+  "source": "godot\\raw_assets\\community_weapons\\g17_pistol_-_animated.glb",
+  "sha256": "6d31ea854d6734df2fbf02dc4b73538077a121c8587501b8a113fd0d6544e4f7",
+  "output": "godot\\addons\\community_weapons\\black_pistol_arms.glb",
+  "output_sha256": "809dc792f5f08986f349f7ef4b3fb9061c559754fc2fa3597c64f035b4f279a8",
+  "joint_count": 60,
+  "source_fps": 30,
+  "clip_frame_ranges": {
+    "fire": [
+      0,
+      11
+    ],
+    "reload": [
+      12,
+      82
+    ],
+    "fire_last": [
+      83,
+      94
+    ],
+    "reload_empty": [
+      95,
+      175
+    ],
+    "hide": [
+      176,
+      187
+    ],
+    "ready": [
+      187,
+      233
+    ],
+    "idle": [
+      234,
+      264
+    ]
+  },
+  "rest_transforms_preserved": true,
+  "skin_joints_preserved": true
+}

@@ -115,3 +115,11 @@
 - **下载日期**: 2026-11-09。原件 `C:/Users/FJL03/Downloads/3db60707308f6ce53c8f550f8fba6af5.glb` 保留且不提交；SHA256 `30cc76b2950950b6ddbc719ca2f04f058ca1d15d119495cb6379fd38307303a6`。
 - **本地处理**: 复用 `prepare_generated_asset.py`，1,500,000 面减至16,000，内嵌贴图最长边2048；工作长度0.80m，实际0.800898m。Blender实测+X弹头旋转90°至+Y，导出为Godot -Z；前/后/侧视图确认弹头与尾喷口朝向。
 - **正式SHA256**: `5cd73209d975ad5992bf169bd900398292d762874887f051034d6b2c0deab9f2`。无外部源贴图或动画依赖；尾焰在运行时生成，冷推出阶段不显示尾焰。
+
+## 雷械真实弹匣拆件（2026-11-10）
+
+- 衍生资源以 `_reload.glb` 命名：EM-57S-1、EM-68L、EM-57S-2 ADS、EM-86B/D/S/M ADS、EM-12G-2、EM-127G/M、EM-40T-1、EM-127P；均由本目录对应项目自有原模型加工，不引入新的第三方网格或贴图。
+- 处理：按实际弹匣位置，将原网格的每个面分配到枪身或 `DetachableMagazine`，保留原面、UV、材质和法线；原始游戏资源不改写。EM-57S-2 依据 `modeling/em-weapons/em127p/reference/weapon_naming.md` 的顶置横匣设定向上拔匣，其余依各枪底部结构定位。
+- 源/衍生 SHA256、面数、真实弹匣边界与枢轴、方向和抓点见 `desktop-port/godot-spike/modeling/reload_magazines/prepared_magazines.json`。处理管线为 `modeling/scripts/prepare_reload_magazines.py` 与 `magazine_cut_regions.json`。
+- 既有 EM-68A / EM-68D / EM-12G-1 原本就有真实独立弹匣，沿用其原资源；SPAS-12 保留管式逐壳，EM-120R 沿用原装填机制。
+- 黑色手臂为独立 CC-BY 4.0 资源，完整上游及改作署名见 `godot/addons/community_weapons/ATTRIBUTION.md`；不改变本节雷械模型的项目自有来源。
