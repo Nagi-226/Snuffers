@@ -31,5 +31,11 @@ func _run() -> void:
 	scene.queue_free()
 	await process_frame
 	await process_frame
+	# The dummy driver runs independently: two logic frames can miss its next mix.
+	# Let one measured mix period pass, then retire playback references on the main thread.
+	var mix_period := AudioServer.get_time_since_last_mix() + AudioServer.get_time_to_next_mix()
+	await create_timer(maxf(mix_period, 1.0 / Engine.max_fps)).timeout
+	await process_frame
+	await process_frame
 	print("SCENE_BOOT_COMPLETED ", arguments[0])
 	quit(0)
