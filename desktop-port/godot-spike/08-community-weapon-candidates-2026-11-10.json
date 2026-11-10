@@ -1,0 +1,139 @@
+{
+  "checked_on": "2026-11-10 Asia/Shanghai",
+  "source": "Sketchfab public v3 search and model API",
+  "status": "candidate metadata only, no asset downloads or Godot imports",
+  "models": [
+    {
+      "uid": "374ba78efdef4151acd626fb82f81369",
+      "name": "G17 pistol",
+      "author": "MarkkuK",
+      "author_profile": "https://sketchfab.com/MarkkuK",
+      "page": "https://sketchfab.com/3d-models/g17-pistol-374ba78efdef4151acd626fb82f81369",
+      "api": "https://api.sketchfab.com/v3/models/374ba78efdef4151acd626fb82f81369",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "downloadable": true,
+      "description": "weapon modelling",
+      "animations": 0,
+      "pbr": "metalness",
+      "material_count": 1,
+      "glb": {
+        "textureCount": 3,
+        "size": 39605984,
+        "type": "glb",
+        "textureMaxResolution": 4096,
+        "faceCount": 24839,
+        "vertexCount": 19192
+      },
+      "published": "2020-07-30T12:32:12.231565",
+      "inspected_dimensions": null,
+      "inspected_parts": null,
+      "downloaded": false
+    },
+    {
+      "uid": "d6e0a8020a7b4a9a876787ec91290022",
+      "name": "Sig Sauer MPX",
+      "author": "michalstk11",
+      "author_profile": "https://sketchfab.com/michalstk11",
+      "page": "https://sketchfab.com/3d-models/sig-sauer-mpx-d6e0a8020a7b4a9a876787ec91290022",
+      "api": "https://api.sketchfab.com/v3/models/d6e0a8020a7b4a9a876787ec91290022",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "downloadable": true,
+      "description": "Game ready AAA 3D model\n30k faces on low poly\nHigh poly baking\nBlender + Substance Painter\n2 x 4k materials",
+      "animations": 0,
+      "pbr": "metalness",
+      "material_count": 2,
+      "glb": {
+        "textureCount": 6,
+        "size": 69824076,
+        "type": "glb",
+        "textureMaxResolution": 4096,
+        "faceCount": 30589,
+        "vertexCount": 28396
+      },
+      "published": "2025-05-15T21:01:00.418456",
+      "inspected_dimensions": null,
+      "inspected_parts": null,
+      "downloaded": false
+    },
+    {
+      "uid": "7723ab14e70446ef8e06a134984f287f",
+      "name": "G17 Pistol - Animated",
+      "author": "user77",
+      "author_profile": "https://sketchfab.com/user77",
+      "page": "https://sketchfab.com/3d-models/g17-pistol-animated-7723ab14e70446ef8e06a134984f287f",
+      "api": "https://api.sketchfab.com/v3/models/7723ab14e70446ef8e06a134984f287f",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "downloadable": true,
+      "description": "Arms and Animations from DJMaesen:\nhttps://sketchfab.com/3d-models/animated-pistol-bd896167e7ca44f19597d3afe6a8d83f\n\nWeapon Model from 3dvachevsky:\nhttps://sketchfab.com/3d-models/g17-9mm-pistol-b4136758508c486cadcd96c74d7882b8",
+      "animations": 1,
+      "pbr": "metalness",
+      "material_count": 9,
+      "glb": {
+        "textureCount": 27,
+        "size": 128479200,
+        "type": "glb",
+        "textureMaxResolution": 4096,
+        "faceCount": 60167,
+        "vertexCount": 44132
+      },
+      "published": "2024-01-18T22:11:22.268631",
+      "inspected_dimensions": null,
+      "inspected_parts": null,
+      "downloaded": false
+    },
+    {
+      "uid": "ac70a5fcfff348168d6f3ea2919522c7",
+      "name": "Low-Poly Sig MPX",
+      "author": "TastyTony",
+      "author_profile": "https://sketchfab.com/TastyTony",
+      "page": "https://sketchfab.com/3d-models/low-poly-sig-mpx-ac70a5fcfff348168d6f3ea2919522c7",
+      "api": "https://api.sketchfab.com/v3/models/ac70a5fcfff348168d6f3ea2919522c7",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "downloadable": true,
+      "description": "",
+      "animations": 0,
+      "pbr": null,
+      "material_count": 11,
+      "glb": {
+        "textureCount": 0,
+        "size": 1500616,
+        "type": "glb",
+        "textureMaxResolution": 0,
+        "faceCount": 11145,
+        "vertexCount": 28042
+      },
+      "published": "2019-06-30T18:43:34.689767",
+      "inspected_dimensions": null,
+      "inspected_parts": null,
+      "downloaded": false
+    }
+  ]
+}
