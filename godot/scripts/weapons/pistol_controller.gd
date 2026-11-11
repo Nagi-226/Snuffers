@@ -159,6 +159,8 @@ func _process(delta: float) -> void:
 	super._process(delta)
 	if _native_arms != null:
 		_native_arms.lock_idle_aim = _is_current_weapon() and GameState.is_aiming
+		if weapon_data.weapon_id == &"pistol" and _current_fire_mode() == &"auto" and _native_arms._clip == &"fire":
+			_native_arms.play_idle()
 		_native_arms.update(delta)
 		return
 	# 常态与换弹均由武器骨驱动枪身（idle 微摆与换弹动效同一套相对运动公式）。
@@ -213,7 +215,11 @@ func _fire() -> bool:
 	Events.ammo_changed.emit(weapon_data.weapon_id, _mag_value(), _reserve_value())
 	Events.weapon_fired.emit(weapon_data.weapon_id)
 	if _native_arms != null:
-		_native_arms.play_fire()
+		if weapon_data.weapon_id == &"pistol" and _current_fire_mode() == &"auto":
+			if _native_arms._clip == &"fire":
+				_native_arms.play_idle()
+		else:
+			_native_arms.play_fire()
 	# 微弱青蓝枪口焰（与步枪同口径）。
 	Events.player_muzzle_flash.emit(weapon_data.weapon_id,
 		global_position + (-global_transform.basis.z) * GameConfig.PLAYER_MUZZLE_OFFSET)

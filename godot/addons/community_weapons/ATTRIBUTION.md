@@ -20,6 +20,7 @@
 - `g17_gen5_olight.glb`：枪身工作长度 0.20m，保留 Frame、Slide、已装 Magazine 和 Olight；衍生版本不包含源包旁边摆放的两只备用弹匣。原装满弹匣网格内单独摆放的膛内展示弹按完整原面分到 Frame，避免换弹时随弹匣漂浮；供弹匣顶端子弹仍随弹匣。保留原拓扑及 UV，贴图最长边缩至 2K。
 - `black_pistol_arms.glb`：由 G17 Pistol - Animated 提取黑色手臂，保留原生 60 关节及蒙皮绑定；按 DJMaesen 的帧段拆分射击、换弹、空仓换弹、收枪、举枪和待机。衍生黑布手套调整暗色系数、金属度与粗糙度，去除造成金属反光的 MR 绑定，保留原 Albedo、Normal、AO 贴图及蒙皮数据。源枪渲染件不用于替代本项目枪模，原枪动作节点仍供姿态适配使用。具体处理和校验记录见 `desktop-port/godot-spike/modeling/community_weapons/`。
 - 游戏内“资产署名”入口提供以上来源及许可证。本文件及衍生 GLB 内嵌来源信息一并保留。
+- `mpx_reticle_red.png`（2026-11-11）：从已登记的 Sambit_Raut EOTech HWS EXPS 3 准星纹理（`mpx_tactical.glb` 的 Image9 / `crosshair`）提取透明红色改作，沿用 CC-BY 4.0 及上表作者/URL；本项目 Codex 处理。保留2048×2048尺寸与UV，RGB设为红色，alpha为 `max(0,r-max(g,b))`，去掉原RGB(188,188,188)不透明灰底并保留原红色点/环及抗锯齿覆盖。源GLB与贴图保持。源GLB SHA256 `70ddaf91893ec94b4aecef5cd03ab86eaadda1fdc98c06ee68aa45de7e85995f`，衍生PNG SHA256 `ec45604c7e703b48534524ef366b902b391df8f0166fa9ea2973f060ce1f9589`；离线步骤与报告位于 `.kimi-tmp/nov11_g17_mpx/derive_mpx_reticle.py`、`mpx_reticle_derivation.json`，游戏运行时只加载派生PNG。
 
 ## 原件保管与重建
 

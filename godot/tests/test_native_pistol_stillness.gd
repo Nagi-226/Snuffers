@@ -16,6 +16,7 @@ func _run() -> void:
 		quit(1))
 	var state = root.get_node("GameState")
 	state.reset()
+	state.fire_modes[&"pistol"] = &"semi"
 	state.weapon_unlocked[&"pistol"] = true
 	state.weapon_unlocked[&"magnum"] = true
 	var player = (load("res://scenes/player/player.tscn") as PackedScene).instantiate()

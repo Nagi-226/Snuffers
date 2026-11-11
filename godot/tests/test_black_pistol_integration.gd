@@ -29,6 +29,7 @@ func _check_weapon(weapon_id: StringName) -> void:
 	var state = root.get_node("GameState")
 	state.reset()
 	state.current_weapon = weapon_id
+	state.fire_modes[weapon_id] = &"semi"
 	var mount := Node3D.new()
 	mount.transform = Transform3D(Basis.from_euler(Vector3(0.1, 0.7, -0.1)), Vector3(210, 8, -170))
 	root.add_child(mount)

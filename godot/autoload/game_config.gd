@@ -1226,6 +1226,8 @@ const MPX_RECOIL_VIEW_Y_FACTOR: float = 0.02
 const MPX_RECOIL_VIEW_Z_FACTOR: float = 0.04
 const MPX_ADS_FOV: float = 65.0
 const MPX_SOUND_PITCH: float = 1.0
+const MPX_RETICLE_COLOR: Color = Color(1, 0, 0, 1)
+const MPX_RETICLE_EMISSION_ENERGY: float = 2.0
 
 # ===== 第一人称模型近墙保护（视觉深度压缩；武器根节点朝向/射程保持单位尺度）=====
 const VIEWMODEL_WALL_MARGIN: float = 0.02 ## 可见模型与场景实体保留 2cm 间距

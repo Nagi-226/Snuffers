@@ -301,6 +301,8 @@ G17支撑手沿源两手握法包住右手，左右掌自然高度差43.54mm；�
 
 MPX的EXPS3按 [EOTECH官方手册](https://cdn.shopify.com/s/files/1/0698/3044/3191/files/EOTECH_HWS_Manual_EXPS3_XE1974_RevC.pdf?v=1754447701) 第10/12页装法校正：电池前右、NV/亮度按钮后左。仅 `HolographicSight` 实例组绕自身中心 `(-0.01343954,0.14699233,-0.01499999)` 旋转Y轴180°，原GLB不改；实际镜片重标 `OpticAim=(-0.06261628,0.24183671,0.24524984)`。镜内沿源红色crosshair纹理，关闭MPX的额外HUD青环，原生红准星中心投影误差0.4404px。
 
+同日第二轮试玩反馈：MPX源红准星图是带不透明灰底的RGB图；使用同尺寸/UV的 `addons/community_weapons/mpx_reticle_red.png` 透明派生图，仅覆盖MPX实际crosshair实例材质为Alpha透明、无光照与发光。`MPX_RETICLE_COLOR=(1,0,0,1)`、`MPX_RETICLE_EMISSION_ENERGY=2.0`，参数集中GameConfig；源GLB、镜片与瞄具方向保持。EM-57P全自动使用已有基类ViewModel及相机后坐，取消每发重启原生半自动抬枪剪辑；半自动/点射及G17/Magnum保留源单发动作，射速/伤害/供弹参数保持。
+
 G17/MPX HUD图标按既有完整实模Blender Freestyle流程重新提取，分别143/165条路径，共用120×58视区与三档线宽/亮度，显示于HUD和选枪栏；来源及衍生处理登记 `assets/ui/weapons/ATTRIBUTION.md`。
 
 验收：真实输入与实际命中、共享备弹守恒、部分/空仓换弹和切枪取消、HUD、场景替换及重启、源骨rest与真实蒙皮、实际瞄具通光、真实弹匣动作；相关回归与完整串行L1通过。技术验证不替代机主人类试玩和L4导出/性能门禁。
