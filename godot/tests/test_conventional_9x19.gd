@@ -49,7 +49,7 @@ func _run() -> void:
 		_finish()
 		return
 	_assert(_state.g17_mag == 17 and _state.mpx_mag == 30, "restart initializes the standard 17/30-round magazines")
-	_assert(_state.ammo_9x19_reserve == 150, "restart initializes one shared 150-round 9x19 reserve")
+	_assert(_state.ammo_9x19_reserve == 510, "restart initializes one shared 510-round 9x19 reserve")
 	_assert(not _state.weapon_unlocked[&"g17"] and not _state.weapon_unlocked[&"mpx"], "campaign restart keeps the additional weapons locked")
 	_assert(_state.fire_modes[&"g17"] == &"semi" and _state.fire_modes[&"mpx"] == &"auto", "restart selects the approved firing modes")
 	_scene = (load("res://scenes/levels/weapons_range.tscn") as PackedScene).instantiate() as Node3D
@@ -146,7 +146,7 @@ func _on_weapon_reloaded(id: StringName) -> void:
 func _check_selection() -> void:
 	_player._switch_weapon(&"g17")
 	_assert(_state.current_weapon == &"g17" and _weapon(&"g17").visible and not _weapon(&"mpx").visible, "G17 switching shows only the selected conventional weapon")
-	_assert(_hud._weapon_ammo.weapon_id == &"g17" and _hud._weapon_ammo.mag == 17 and _hud._weapon_ammo.reserve == 150, "G17 HUD uses its own magazine and the shared reserve")
+	_assert(_hud._weapon_ammo.weapon_id == &"g17" and _hud._weapon_ammo.mag == 17 and _hud._weapon_ammo.reserve == 510, "G17 HUD uses its own magazine and the shared reserve")
 	_assert("9" in _hud._weapon_ammo.ammo_type and "19" in _hud._weapon_ammo.ammo_type and not _hud._weapon_ammo.show_grenades, "G17 HUD identifies 9x19 ammunition without grenade stock")
 	_press_key(KEY_X)
 	_assert(_state.fire_modes[&"g17"] == &"semi", "G17 remains semi automatic when X is pressed")
@@ -156,7 +156,7 @@ func _check_selection() -> void:
 		_press_key(KEY_X)
 		modes.append(_state.fire_modes[&"mpx"])
 	_assert(modes.has(&"auto") and modes.has(&"burst") and modes.has(&"semi") and not modes.has(&"grenade"), "MPX X cycles precisely auto, burst and semi")
-	_assert(_hud._weapon_ammo.weapon_id == &"mpx" and _hud._weapon_ammo.mag == 30 and _hud._weapon_ammo.reserve == 150, "MPX HUD uses its own magazine and the same 9x19 reserve")
+	_assert(_hud._weapon_ammo.weapon_id == &"mpx" and _hud._weapon_ammo.mag == 30 and _hud._weapon_ammo.reserve == 510, "MPX HUD uses its own magazine and the same 9x19 reserve")
 	_assert("9" in _hud._weapon_ammo.ammo_type and "19" in _hud._weapon_ammo.ammo_type and not _hud._weapon_ammo.show_grenades, "MPX HUD identifies conventional ammunition without grenade stock")
 	_player._cycle_unlocked_weapon(1)
 	var visited: Array[StringName] = [_state.current_weapon]
@@ -399,7 +399,7 @@ func _check_scene_persistence() -> void:
 	_player._switch_weapon(&"mpx")
 	_assert(_hud._weapon_ammo.mag == 11 and _hud._weapon_ammo.reserve == 43 and "点射" in _hud._weapon_ammo.mode_tag, "the replacement scene HUD restores retained MPX ammunition and firing mode")
 	_state.reset()
-	_assert(_state.g17_mag == 17 and _state.mpx_mag == 30 and _state.ammo_9x19_reserve == 150, "explicit new-game restart restores the approved conventional loadout")
+	_assert(_state.g17_mag == 17 and _state.mpx_mag == 30 and _state.ammo_9x19_reserve == 510, "explicit new-game restart restores the approved conventional loadout")
 	_assert(not _state.weapon_unlocked[&"g17"] and not _state.weapon_unlocked[&"mpx"], "explicit new-game restart restores campaign lock state")
 
 

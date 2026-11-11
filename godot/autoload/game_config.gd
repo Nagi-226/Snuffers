@@ -442,10 +442,11 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 	},
 }
 
-# 原生黑色手臂只整体等比摆位；节点姿态校准不改骨rest/蒙皮或骨pose缩放。
+# 原生黑色手臂整体等比摆位，G17食指局部旋转校准；不改骨rest/蒙皮或骨pose缩放。
 const BLACK_PISTOL_PROFILES: Dictionary = {
 	&"g17": {
-		"weapon_anchor": Vector3(0, -0.055, 0.06),
+		"weapon_anchor": Vector3(-0.004, 0.0019, 0.065),
+		"trigger_finger_curl": -0.2,
 		"magazine_grip": Vector3(-0.025, -0.065, 0.06),
 		"source_rotation": Vector3(0, PI, 0),
 		"root_scale": 1.0,
@@ -1185,7 +1186,7 @@ const STREET_LAMP_SHADOW_FADE_M: float = 24.0
 # ===== 9x19传统武器（2026-11-11机主批准A；MPX额外三发点射由机主指定）=====
 # 容量/MPX循环射速按公开规格；半自动输入上限、备弹、换弹、散布、后坐和射线预算为游戏近似。
 const AMMO_DMG_9X19: float = 30.0
-const AMMO_9X19_RESERVE: int = 150
+const AMMO_9X19_RESERVE: int = 510
 const G17_DMG_HEAD_FACTOR: float = 2.0
 const G17_DMG_VS_SNIPER: float = 30.0
 const G17_MAG: int = 17

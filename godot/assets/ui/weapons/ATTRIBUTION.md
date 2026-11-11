@@ -44,7 +44,8 @@ SPAS-12 线稿来源是第一人称 Saucy 模型，与货架展示用的 LowPoly
 
 ## 9×19 社区武器图标（2026-11-11）
 
-- `g17.svg`：Glock 17 Gen5 + Olight 的简化侧面示意线稿；外形参考已入库 `addons/community_weapons/g17_gen5_olight.glb`，原作者 8sianDude，来源 https://sketchfab.com/3d-models/g17-gen-5-handgun-olight-nsw-police-force-0200c248eba14385ad2bee8d4dc4e586 。
-- `mpx.svg`：SIG MPX 战术配件版的简化侧面示意线稿；外形参考已入库 `addons/community_weapons/mpx_tactical.glb`，本体原作者 michalstk11，来源 https://sketchfab.com/3d-models/sig-sauer-mpx-d6e0a8020a7b4a9a876787ec91290022 。配件作者为 Sambit_Raut（EXPS3）、elitej1gaming（前握把）、D_U（AN/PEQ15）、mbvisuals1（M600DF）；各自完整 URL 见 `addons/community_weapons/ATTRIBUTION.md`。
-- 图标绘制：本项目 Codex，2026-11-11；人工绘制 SVG 轮廓和主要结构，采用同一青蓝线稿样式与 `120×58` 视区，未复制源贴图或源网格，也未复用雷械图标。此两图不是前文 Blender Freestyle 提取流程的产物。
-- 源模型及配件许可证：[CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)；本项目此两张衍生示意图同按 CC-BY 4.0 提供。游戏内标题页“资产署名”已列以上原作者、来源与许可。
+- `g17.svg`：由已入库完整 `addons/community_weapons/g17_gen5_olight.glb` 正交侧视提取的 Glock 17 Gen5 + Olight 轮廓与可见结构线，包含原装弹匣和 Olight；原作者 8sianDude，来源 https://sketchfab.com/3d-models/g17-gen-5-handgun-olight-nsw-police-force-0200c248eba14385ad2bee8d4dc4e586 。
+- `mpx.svg`：由已入库完整 `addons/community_weapons/mpx_tactical.glb` 正交侧视提取的 SIG MPX 战术配件轮廓与可见结构线，包含原枪、弹匣及四组配件；本体原作者 michalstk11，来源 https://sketchfab.com/3d-models/sig-sauer-mpx-d6e0a8020a7b4a9a876787ec91290022 。配件作者为 Sambit_Raut（EXPS3）、elitej1gaming（前握把）、D_U（AN/PEQ15）、mbvisuals1（M600DF）；各自完整 URL 见 `addons/community_weapons/ATTRIBUTION.md`。
+- G17 图标处理：本项目 Codex，2026-11-11；复用前文 Blender Freestyle 流程，从完整实模的 `1440×696` 正交渲染提取可见线链与透明轮廓，保留 143 条轮廓、结构和细节路径；枪口朝右，使用同一青蓝色、三档线宽/亮度与 `120×58` 视区。没有复制原贴图、修改原 GLB 或引入游戏运行时依赖。离线生成与检查入口：`.kimi-tmp/nov11_conventional_icons/build_icons.py`；原处理流程：`.kimi-tmp/weapon_icons_v2/`。
+- MPX 图标处理：本项目 Codex，2026-11-11；使用同一完整实模 Freestyle 流程，保留 165 条轮廓、结构和细节路径，枪口朝右、三档线宽/亮度与共用视区均同既有图标。离线读取 `scenes/weapons/mpx.tscn` 的 `HolographicSight` 实例覆盖变换，只对该配件组应用实机相同转向；其他配件及原 GLB 不修改。实际模型、线稿和 `120×58` 对照图留在 `.kimi-tmp/nov11_conventional_icons/samples.png`。
+- 源模型及配件许可证：[CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)；本项目此两张衍生线稿同按 CC-BY 4.0 提供。游戏内标题页“资产署名”已列以上原作者、来源与许可。

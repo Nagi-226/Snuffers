@@ -19,9 +19,15 @@ grenade_enabled = false
 [node name="EM68A" parent="ViewModel" instance=ExtResource("3_model")]
 position = Vector3(-0.05, 0.08, 0.25)
 
+; EXPS3 电池仓朝枪口、操作按钮朝射手；仅绕配件自身几何中心旋转。
+[node name="HolographicSight" parent="ViewModel/EM68A/MpxTactical" index="2"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -0.02687908, 0, -0.02999998)
+
 [node name="ArmsEM68A" parent="ViewModel" instance=ExtResource("4_arms")]
 position = Vector3(-0.05, 0.08, 0.25)
 
-; EotechOpticalGlass 真实镜窗 AABB 中心，按 ADS 回正的源坐标标定。
+; 转向后 EotechOpticalGlass 真实镜窗 AABB 中心，加现有模型容器偏移。
 [node name="OpticAim" type="Marker3D" parent="ViewModel"]
-position = Vector3(-0.0642628, 0.24183672, 0.22475017)
+position = Vector3(-0.06261628, 0.24183671, 0.24524984)
+
+[editable path="ViewModel/EM68A"]

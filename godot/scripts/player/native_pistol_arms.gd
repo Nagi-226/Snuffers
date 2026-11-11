@@ -36,6 +36,8 @@ var _left_wrist := -1
 var _left_upper_length := 0.0
 var _left_fore_length := 0.0
 var _bone_positions: Dictionary = {}
+var _trigger_finger := -1
+var _trigger_finger_pose := Quaternion.IDENTITY
 
 
 func configure(arms: Node3D, weapon: Node3D, magazine: Node3D, profile: Dictionary) -> bool:
@@ -89,6 +91,12 @@ func configure(arms: Node3D, weapon: Node3D, magazine: Node3D, profile: Dictiona
 		return false
 	_left_upper_length = skeleton.get_bone_global_pose(_left_upper).origin.distance_to(skeleton.get_bone_global_pose(_left_fore).origin)
 	_left_fore_length = skeleton.get_bone_global_pose(_left_fore).origin.distance_to(skeleton.get_bone_global_pose(_left_wrist).origin)
+	_trigger_finger = -1
+	if profile.has("trigger_finger_curl"):
+		_trigger_finger = skeleton.find_bone("R_point1_033")
+		if _trigger_finger < 0:
+			return false
+		_trigger_finger_pose = skeleton.get_bone_pose_rotation(_trigger_finger)
 	for bone in [_left_upper, _left_fore, _left_wrist, _right_upper, _right_fore, _right_wrist]:
 		_bone_positions[bone] = skeleton.get_bone_pose_position(bone)
 	for child in arms.find_children("*", "MeshInstance3D", true, false):
@@ -135,6 +143,9 @@ func update(delta: float) -> void:
 	# shoulder adjustment before sampling, so correction cannot accumulate.
 	for bone: int in _bone_positions:
 		skeleton.set_bone_pose_position(bone, _bone_positions[bone])
+	if _trigger_finger >= 0:
+		# Restore the last uncorrected sample before animation evaluation, never accumulate the curl.
+		skeleton.set_bone_pose_rotation(_trigger_finger, _trigger_finger_pose)
 	var hold_idle := bool(_profile.get("lock_idle", false)) or (lock_idle_aim and bool(_profile.get("lock_ads_idle", false)))
 	if _clip == &"idle" and hold_idle:
 		animation.seek(0.0, true)
@@ -148,6 +159,9 @@ func update(delta: float) -> void:
 		_slide.global_transform = _slide_motion.global_transform * _slide_attachment
 	_lock_right_wrist()
 	_contact_left_wrist()
+	if _trigger_finger >= 0:
+		_trigger_finger_pose = skeleton.get_bone_pose_rotation(_trigger_finger)
+		skeleton.set_bone_pose_rotation(_trigger_finger, _trigger_finger_pose * Quaternion(Vector3.UP, float(_profile.trigger_finger_curl)))
 	for mesh in _meshes:
 		mesh.custom_aabb = get_skin_bounds(mesh)
 

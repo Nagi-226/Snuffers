@@ -272,7 +272,7 @@ Spike 不是做完整游戏，而是验证一条**最小手感闭环**：
 
 ### 7.3 传统9×19武器实机接入（2026-11-11机主批准A）
 
-使用已登记的 `g17_gen5_olight.glb` 和 `mpx_tactical.glb`，新增独立 `g17` / `mpx` 武器，不替换雷械。靶场沿现有全解锁机制开放；战役新游戏仍锁定，正式关卡配发/拾取不在本轮。两枪独立弹匣，共用 `ammo_9x19_reserve`，初始150发，与EC-57分离；跨关由GameState autoload自然保留，新游戏reset恢复。
+使用已登记的 `g17_gen5_olight.glb` 和 `mpx_tactical.glb`，新增独立 `g17` / `mpx` 武器，不替换雷械。靶场沿现有全解锁机制开放；战役新游戏仍锁定，正式关卡配发/拾取不在本轮。两枪独立弹匣，共用 `ammo_9x19_reserve`，初始510发（同日机主试玩追加，由150改为510），与EC-57分离；跨关由GameState autoload自然保留，新游戏reset恢复。
 
 | Config参数（G17 / MPX前缀） | Glock 17 Gen5 | SIG MPX |
 |---|---|---|
@@ -289,15 +289,19 @@ Spike 不是做完整游戏，而是验证一条**最小手感闭环**：
 | ADS_FOV / SOUND_PITCH | 65° / 1 | 65° / 1 |
 | DMG_HEAD_FACTOR / DMG_VS_SNIPER | 2 / 30 | 2 / 30 |
 
-共同 `AMMO_DMG_9X19=30`、`AMMO_9X19_RESERVE=150`。实际身体命中（含狙击手）30，头部60；这两枪不采用雷械的狙击手999特杀。G17固定半自动，MPX全自动→三发点射→半自动循环，无榴档。MPX子类复用EM127M的冷却余量模式，实际计发验证850 RPM；点射松开仍完成三发，重复按下不延长，换弹/切枪/切模式取消剩余计数。
+共同 `AMMO_DMG_9X19=30`、`AMMO_9X19_RESERVE=510`。实际身体命中（含狙击手）30，头部60；这两枪不采用雷械的狙击手999特杀。G17固定半自动，MPX全自动→三发点射→半自动循环，无榴档。MPX子类复用EM127M的冷却余量模式，实际计发验证850 RPM；点射松开仍完成三发，重复按下不延长，换弹/切枪/切模式取消剩余计数。
 
 机主同日追加要求两枪独立传统枪声：`g17.wav`来自gezortenplotz的Glock 17真枪户外录音（CC-BY 3.0，非Gen5专属），`mpx.wav`来自Franki-01234的MP5A3真枪9mm空包录音（CC0，MPX近似而非MPX/实弹原录）。未找到许可明确的确切MPX音源；不复用雷械pistol音源。公开HQ预览分别裁成0.75/0.60s单发，44.1kHz单声道PCM16，保留1倍基准音高，Godot正常导入压缩；实际Events.weapon_fired路由验证独立播放。完整来源、处理、哈希与许可见 `assets/audio/LICENSES.md`，标题页游戏内署名已列作者及近似边界。
 
 容量、口径及MPX850 RPM参考 [GLOCK资料](https://en.wikipedia.org/wiki/Glock) 和 [SIG MPX资料](https://modernfirearms.net/en/submachine-guns/u-s-a-submachine-guns/sig-sauer-mpx-eng/)。G17没有厂家固定射速。MPX三发点射按机主本轮明确追加实施；当前资料未确证本模型对应选射型的标准扳机组件包含此档，不能将游戏配置冒充已核实的标配。初始备弹、半自动输入上限、换弹、散布、后坐和射线预算是游戏近似，不是统一现实规格，也不表示弹丸最远飞距。
 
-G17原生黑臂沿昨日gen5标定：`weapon_anchor=(0,-0.055,0.06)`、`magazine_grip=(-0.025,-0.065,0.06)`，source_rotation=(0,PI,0)、root_scale=1、lock_idle=true、lock_ads_idle=false，接触/入匣0.20/0.84、left_elbow_pole=(-0.1,-0.3,0.15)。MPX使用实际独立 `Body/BodyPart21` 弹匣，向下拔0.225m、抓点(-0.036,-0.105,-0.163)、接触/拔出/换匣/入井0.18/0.42/0.58/0.82；黑臂right_grip=(0.014,-0.060,0.025)、support_grip_hip/ads=(-0.034,-0.025,-0.245)、support_rotation=0、hip_depth=0、reload_depth=0.15、reload_cant=(0.05,-0.04,-0.30)、reload_lift=(0,0.035,-0.04)。这些初始几何标定须通过真实Player掌面、入镜与ADS通光验收后冻结最终值。
+G17原生黑臂按同日机主高握反馈更新：`weapon_anchor=(-0.004,0.0019,0.065)`（双手相对枪体提高56.9mm，向左4mm、向后5mm）、`trigger_finger_curl=-0.2rad`（仅真实 `R_point1_033` 骨本地Y旋转约-11.46°）、`magazine_grip=(-0.025,-0.065,0.06)`，source_rotation=(0,PI,0)、root_scale=1、lock_idle=true、lock_ads_idle=false，接触/入匣0.20/0.84、left_elbow_pole=(-0.1,-0.3,0.15)。局部手指修正先恢复未修正的上帧姿态，再采样原动作和腕部IK，最后缓存源姿态并后乘旋转，防止累积；其他profile无该key，行为保持。MPX使用实际独立 `Body/BodyPart21` 弹匣，向下拔0.225m、抓点(-0.036,-0.105,-0.163)、接触/拔出/换匣/入井0.18/0.42/0.58/0.82；黑臂right_grip=(0.014,-0.060,0.025)、support_grip_hip/ads=(-0.034,-0.025,-0.245)、support_rotation=0、hip_depth=0、reload_depth=0.15、reload_cant=(0.05,-0.04,-0.30)、reload_lift=(0,0.035,-0.04)。
 
-以上几何值已通过本轮真实Player原生画面132/0验证，作为本轮最终标定。G17支撑手沿源两手握法包住右手，验收测真实右掌/手指局部蒙皮接触；MPX右手测真实握柄下部截面，分别保留前臂/机匣负控，不能用整枪AABB接近替代实际握持。
+G17支撑手沿源两手握法包住右手，左右掌自然高度差43.54mm；上部背板按真实三角面截线测量，并校验实际后手面接触、握高、枪体位置及机械瞄线。最终常量经337个源动作关键帧/中点的完整右腕/手指实体检查筛选，原骨rest/bind/scale保持；实际原生验证记录见同日交接。MPX右手测真实握柄下部截面，分别保留前臂/机匣负控，不能用整枪AABB接近替代实际握持。
+
+MPX的EXPS3按 [EOTECH官方手册](https://cdn.shopify.com/s/files/1/0698/3044/3191/files/EOTECH_HWS_Manual_EXPS3_XE1974_RevC.pdf?v=1754447701) 第10/12页装法校正：电池前右、NV/亮度按钮后左。仅 `HolographicSight` 实例组绕自身中心 `(-0.01343954,0.14699233,-0.01499999)` 旋转Y轴180°，原GLB不改；实际镜片重标 `OpticAim=(-0.06261628,0.24183671,0.24524984)`。镜内沿源红色crosshair纹理，关闭MPX的额外HUD青环，原生红准星中心投影误差0.4404px。
+
+G17/MPX HUD图标按既有完整实模Blender Freestyle流程重新提取，分别143/165条路径，共用120×58视区与三档线宽/亮度，显示于HUD和选枪栏；来源及衍生处理登记 `assets/ui/weapons/ATTRIBUTION.md`。
 
 验收：真实输入与实际命中、共享备弹守恒、部分/空仓换弹和切枪取消、HUD、场景替换及重启、源骨rest与真实蒙皮、实际瞄具通光、真实弹匣动作；相关回归与完整串行L1通过。技术验证不替代机主人类试玩和L4导出/性能门禁。
 

@@ -674,8 +674,8 @@ func _process(delta: float) -> void:
 	# （直射档平直弹道，全息环直瞄即可）。
 	if _ads_reticle != null:
 		var mode := GameState.current_weapon
-		if GameState.current_weapon == &"g17":
-			mode = &"none" ## Gen5 使用真实机械瞄具，中心不覆盖 HUD 瞄点。
+		if GameState.current_weapon in [&"g17", &"mpx"]:
+			mode = &"none" ## Gen5 机械瞄具及 MPX 源红准星均使用真实模型，不叠加 HUD 瞄点。
 		if GameState.current_weapon == &"em12g2":
 			mode = &"shotgun"
 		if _ads_reticle.mode != mode or not is_equal_approx(_ads_reticle.weight, _ads_weight):
