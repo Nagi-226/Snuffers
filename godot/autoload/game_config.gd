@@ -1247,6 +1247,8 @@ const MPX_FLASHLIGHT_RANGE: float = 50.0
 const WEAPON_FLASHLIGHT_ANGLE: float = 20.0
 const WEAPON_FLASHLIGHT_ATTENUATION: float = 1.0
 const CHAMBER_WEAPON_IDS: Array[StringName] = [&"rifle", &"pistol", &"g17", &"dmr", &"shotgun", &"spas12", &"smg", &"mpx", &"em57s2", &"lmg", &"magnum", &"em86s", &"em86b", &"em86d", &"em86m", &"em127g", &"em127m", &"em12g2"]
+const WEAPON_CHAMBER_BONUS_FONT_SIZE: int = 12
+const WEAPON_CHAMBER_BONUS_OFFSET := Vector2(3, -28) ## 相对大字右边及基线，膛内预留+1置于右上角。
 
 # ===== 第一人称模型近墙保护（视觉深度压缩；武器根节点朝向/射程保持单位尺度）=====
 const VIEWMODEL_WALL_MARGIN: float = 0.02 ## 可见模型与场景实体保留 2cm 间距

@@ -72,6 +72,7 @@ const MISSION_TODO_COLOR := Color(0.88, 0.86, 0.8, 0.95)
 ## 任务栏缓存态（_process 轮询去抖：值没变不重写文本）。
 var _mission_sig := ""
 var _weapon_selector: PanelContainer
+var _mag_capacities: Dictionary = {}
 var _selector_slots: Dictionary = {}
 var _selector_icons: Dictionary = {}
 var _selector_name: Label
@@ -95,6 +96,11 @@ func _ready() -> void:
 	_kill_label_base_y = _kill_label.position.y
 	_damage_label_base_y = _damage_label.position.y
 	_damage_flash.color.a = 0.0
+	for weapon_id: StringName in GameConfig.CHAMBER_WEAPON_IDS:
+		var data := WeaponData.new()
+		data.weapon_id = weapon_id
+		data.sync_from_config()
+		_mag_capacities[weapon_id] = data.mag_size
 	if district_mode or range_mode:
 		get_node("Minimap").visible = true
 		get_node("CompassBar").show_mission_markers = false
@@ -573,11 +579,14 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 	if weapon_id in [&"rifle", &"smg", &"em86b"] and mode == &"grenade":
 		mode_tag = "滚雷"
 	var available := mag
+	var show_chamber_bonus := false
 	if weapon_id in GameConfig.CHAMBER_WEAPON_IDS and bool(GameState.weapon_chambered.get(weapon_id, false)):
 		available += 1
+		show_chamber_bonus = mag == _mag_capacities.get(weapon_id)
 	_weapon_ammo.set("weapon_id", weapon_id)
 	_weapon_ammo.set("weapon_name", _weapon_display_name(weapon_id))
 	_weapon_ammo.set("mag", available)
+	_weapon_ammo.set("show_chamber_bonus", show_chamber_bonus)
 	_weapon_ammo.set("reserve", reserve)
 	_weapon_ammo.set("mode_tag", mode_tag)
 	_weapon_ammo.set("ammo_type", ammo_type)

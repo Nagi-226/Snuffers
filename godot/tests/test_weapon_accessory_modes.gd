@@ -15,6 +15,9 @@ var _wall: StaticBody3D
 var _night
 var _mode_events: Array[Dictionary] = []
 var _evidence: Array[Dictionary] = []
+var _mpx_static_laser_basis := Basis.IDENTITY
+var _mpx_static_laser_forward := Vector3.FORWARD
+var _mpx_static_laser_ready := false
 
 
 func _init() -> void:
@@ -273,6 +276,16 @@ func _direction_sample(id: StringName, light: SpotLight3D, label: String) -> Dic
 	var zero: Vector3 = weapon.global_position + forward * _config.WEAPON_LASER_ZERO_DISTANCE
 	var expected_beam := (zero - laser.global_position).normalized()
 	var expected_light := (zero - flashlight.global_position).normalized()
+	if id == &"mpx":
+		if not _mpx_static_laser_ready:
+			var camera: Camera3D = _player._camera
+			var screen_zero: Vector3 = camera.global_position - camera.global_basis.z.normalized() * _config.WEAPON_LASER_ZERO_DISTANCE
+			_mpx_static_laser_basis = laser.global_basis.orthonormalized()
+			_mpx_static_laser_forward = (screen_zero - laser.global_position).normalized()
+			_mpx_static_laser_ready = true
+		# Fixed idle zero plus the actual gun's subsequent animation rotation.
+		# White-light and G17 expectations retain their original marker direction.
+		expected_beam = (laser.global_basis.orthonormalized() * _mpx_static_laser_basis.inverse() * _mpx_static_laser_forward).normalized()
 	var beam: MeshInstance3D
 	for mesh in _visible_fx_meshes():
 		if mesh.mesh is CylinderMesh:
@@ -288,7 +301,7 @@ func _direction_sample(id: StringName, light: SpotLight3D, label: String) -> Dic
 	_assert(actual_from.distance_to(laser.global_position) < 0.001 and light.global_position.distance_to(flashlight.global_position) < 0.001, label + " world outputs start at the moving physical emitter mouths")
 	_assert(beam_error < 0.015 and light_error < 0.015, label + " actual outgoing beam and cone follow the animated gun basis with 25m convergence")
 	_evidence.append({"weapon": id, "phase": label, "marker_forward": forward, "beam_error_rad": beam_error, "light_error_rad": light_error})
-	return {"forward": forward}
+	return {"forward": forward, "laser_axis": axis}
 
 
 func _check_animation_directions(id: StringName, light: SpotLight3D) -> void:
@@ -298,6 +311,7 @@ func _check_animation_directions(id: StringName, light: SpotLight3D) -> void:
 	_state.weapon_chambered[id] = true
 	_state.ammo_9x19_reserve = 100
 	await _settle()
+	_mpx_static_laser_ready = false
 	var idle := _direction_sample(id, light, "%s actual idle" % id)
 	_assert(weapon._fire(), "%s direction control executes a real production shot" % id)
 	await create_timer(0.13).timeout
@@ -306,6 +320,8 @@ func _check_animation_directions(id: StringName, light: SpotLight3D) -> void:
 	var fired := _direction_sample(id, light, "%s actual fire" % id)
 	if not idle.is_empty() and not fired.is_empty():
 		_assert((idle.forward as Vector3).angle_to(fired.forward as Vector3) > 0.002, "%s fire direction control observes actual model-basis movement" % id)
+		if id == &"mpx":
+			_assert((idle.laser_axis as Vector3).angle_to(fired.laser_axis as Vector3) > 0.002, "MPX real firing rotates the actual outgoing laser away from its static zero")
 	await create_timer(0.8).timeout
 	weapon._start_reload()
 	await create_timer(weapon.weapon_data.reload_time * 0.35).timeout
@@ -315,6 +331,8 @@ func _check_animation_directions(id: StringName, light: SpotLight3D) -> void:
 	_assert(weapon._is_reloading, "%s reload direction sample occurs during its real native reload" % id)
 	if not idle.is_empty() and not reloading.is_empty():
 		_assert((idle.forward as Vector3).angle_to(reloading.forward as Vector3) > 0.02, "%s reload direction control observes actual raised-gun rotation" % id)
+		if id == &"mpx":
+			_assert((idle.laser_axis as Vector3).angle_to(reloading.laser_axis as Vector3) > 0.02, "MPX real reload rotates the actual outgoing laser away from its static zero")
 	await create_timer(weapon.weapon_data.reload_time).timeout
 	await _settle()
 

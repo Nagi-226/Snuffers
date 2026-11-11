@@ -17,6 +17,10 @@ var mag: int = 0:
 	set(value):
 		mag = value
 		queue_redraw()
+var show_chamber_bonus: bool = false:
+	set(value):
+		show_chamber_bonus = value
+		queue_redraw()
 var reserve: int = 0:
 	set(value):
 		reserve = value
@@ -56,7 +60,12 @@ func _draw() -> void:
 	var secondary := Color(0.38, 0.86, 1.0, 0.68)
 	if weapon_name != "":
 		draw_string(font, Vector2(70, -6), weapon_name, HORIZONTAL_ALIGNMENT_RIGHT, 178, 12, secondary)
-	draw_string(font, Vector2(0, 40), str(mag), HORIZONTAL_ALIGNMENT_LEFT, -1, 34, color)
+	var mag_text := str(mag - 1 if show_chamber_bonus else mag)
+	draw_string(font, Vector2(0, 40), mag_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 34, color)
+	if show_chamber_bonus:
+		var width := font.get_string_size(mag_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 34).x
+		var bonus_position := Vector2(width, 40) + GameConfig.WEAPON_CHAMBER_BONUS_OFFSET
+		draw_string(font, bonus_position, "+1", HORIZONTAL_ALIGNMENT_LEFT, -1, GameConfig.WEAPON_CHAMBER_BONUS_FONT_SIZE, color)
 	draw_string(font, Vector2(70, 32), str(reserve), HORIZONTAL_ALIGNMENT_LEFT, -1, 22, secondary)
 	draw_string(font, Vector2(1, 60), "弹药", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, secondary)
 	draw_string(font, Vector2(70, 60), "备弹", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, secondary)
