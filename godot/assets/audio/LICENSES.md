@@ -36,6 +36,18 @@
 | nano_stealth.wav | 隐形模式启动（短促力场展开，替换原 0.85s 合成占位；与夜视仪完全独立） | Freesound | Landing Forcefield | unfa | https://freesound.org/people/unfa/sounds/584173/ （官方预览 https://cdn.freesound.org/previews/584/584173_1038806-hq.mp3 ） | CC0（可商用、可修改） | 2026-11-07（淡入淡出、-18 LUFS 响度统一、44.1kHz 立体声） |
 | railgun.wav | EM-127G 重型反器材高斯步枪重炮击发（独立音源，突出冲击力） | Freesound | Railgun - Extremely LOUD Cannon | qubodup | https://freesound.org/people/qubodup/sounds/162260/ （官方预览 https://cdn.freesound.org/previews/162/162260_71257-hq.mp3 ） | CC0（可商用、可修改） | 2026-11-07（截取 0–2.8s、淡入淡出、-16 LUFS、44.1kHz 立体声） |
 | railgun_charged.wav | EM-127G 充能击发（在普通重炮音上叠加短促电磁放电瞬态） | Freesound 衍生＋本项目合成 | Railgun - Extremely LOUD Cannon；程序合成电磁瞬态 | qubodup；本项目 | https://freesound.org/people/qubodup/sounds/162260/ | CC0／项目自有合成部分 | 2026-11-07（2.8s、淡入淡出、-15 LUFS、44.1kHz 立体声 PCM） |
+| g17.wav | Glock 17 Gen5 单发；原始录音为 Glock 17 真枪射击，不是 Gen5 专属录音 | Freesound | glock17_02.wav | gezortenplotz | https://freesound.org/people/gezortenplotz/sounds/34982/ （官方 HQ 预览 https://cdn.freesound.org/previews/34/34982_11536-hq.mp3 ） | [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/)；可商用、可修改，须署名 | 2026-11-11（单发裁剪、低切、淡变、响度处理；0.75s、44.1kHz 单声道 PCM16） |
+| mpx.wav | SIG MPX 开火近似；源为 MP5A3 9mm 真枪空包弹录音，不是 MPX 或实弹的原录 | Freesound | MP5 submachine gun down the street.aif | Franki-01234 | https://freesound.org/people/Franki-01234/sounds/201671/ （官方 HQ 预览 https://cdn.freesound.org/previews/201/201671_3749344-hq.mp3 ） | [CC0](https://creativecommons.org/publicdomain/zero/1.0/)；可商用、可修改 | 2026-11-11（取连发最后一发及尾声，低切、淡变、响度处理；0.60s、44.1kHz 单声道 PCM16） |
+
+### 9×19 枪声来源与衍生记录（2026-11-11）
+
+- G17 页面明确说明为作者在户外靶场录制的 Glock 17 9mm 发射声；源发布日期 2007-05-17。没有将源描述升级为 Gen5 型号录音。MP5 页面明确说明作者为自己的独立电影录制真枪空包弹，枪型为 Heckler & Koch MP5A3—9mm；源发布日期 2013-09-28。
+- 本轮未找到开放许可的确切 MPX 真枪开火录音：Freesound 的 `MPX gun` / `MPX firing` 无结果，精确网络查询只找到商业库。MP5A3 近似保留火药枪发射声及街道尾响，与 G17 使用两个独立音源；不复用 `pistol.mp3` 的电磁激光声，不采用 airsoft、NC 素材或出处不明的游戏拆包。
+- 本次下载为公开、可依法改作的官方 HQ MP3 预览；Freesound 原 WAV/AIFF 下载需登录，本轮未取得原无损文件。源 MP3 保留在本地未入库目录 `.kimi-tmp/nov11_g17_mpx/audio_sources/`；入库 WAV 是解码处理输出，不声称恢复了无损源质量。
+- G17 处理：从解码后的源时间轴裁 `7.215–7.965s`，保留一发起音及回响；MPX 近似从 MP5 源裁 `1.709–2.309s`，只保留连发最后一发，不将整段连发声当单发重复触发。两者使用 ffmpeg 已安装工具，`highpass=f=70`、1ms 淡入、末尾 180/200ms 淡出、`loudnorm=I=-18:TP=-3:LRA=7`，输出 44.1kHz 单声道 PCM16 WAV。以上为离线音频编辑步骤，不新增运行时依赖。
+- G17 官方 HQ 源 SHA256：`32828f632b97131f5b4236fe09b372f5fe789a8d817c50eddd7a480af5461c62`；衍生 `g17.wav` SHA256：`f2bcca2fe02855bed10cf9b75cdc4c7485a2107d381e8b34c8c757e92a70d59c`。
+- MP5 官方 HQ 源 SHA256：`66f26be8d770b477e620f5fc6c3e56cfd0d5728d831b68425d1bea133c8893db`；衍生 `mpx.wav` SHA256：`6097c20ddf7870b46791b4474d25da8390df8dccff3cc08d25d123589e327ed0`。
+- 游戏内标题“资产署名”列出 G17 作者 gezortenplotz、来源、CC-BY 3.0 与本项目剪辑处理；MP5A3 近似同时列作者 Franki-01234、CC0 和原录边界。
 
 ---
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=24 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_controller"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/rifle.tscn" id="2_rifle"]
@@ -21,6 +21,8 @@
 [ext_resource type="PackedScene" path="res://scenes/weapons/em40t1.tscn" id="20_em40t1"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/em127m.tscn" id="21_em127m"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/em120r.tscn" id="22_em120r"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/g17.tscn" id="23_g17"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/mpx.tscn" id="24_mpx"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -45,6 +47,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.27, -0.62)
 
 [node name="Pistol" parent="Camera3D/WeaponMount" instance=ExtResource("4_pistol")]
 
+[node name="G17" parent="Camera3D/WeaponMount" instance=ExtResource("23_g17")]
+
 [node name="DMR" parent="Camera3D/WeaponMount" instance=ExtResource("7_dmr")]
 
 [node name="Shotgun" parent="Camera3D/WeaponMount" instance=ExtResource("8_shotgun")]
@@ -52,6 +56,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.27, -0.62)
 [node name="Spas12" parent="Camera3D/WeaponMount" instance=ExtResource("9_spas12")]
 
 [node name="SMG" parent="Camera3D/WeaponMount" instance=ExtResource("10_smg")]
+
+[node name="MPX" parent="Camera3D/WeaponMount" instance=ExtResource("24_mpx")]
 
 [node name="LMG" parent="Camera3D/WeaponMount" instance=ExtResource("11_lmg")]
 
@@ -85,10 +91,12 @@ script = ExtResource("6_explosion_fx")
 
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Rifle" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Pistol" to="." method="_on_weapon_recoil_kick"]
+[connection signal="recoil_kick" from="Camera3D/WeaponMount/G17" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/DMR" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Shotgun" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Spas12" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/SMG" to="." method="_on_weapon_recoil_kick"]
+[connection signal="recoil_kick" from="Camera3D/WeaponMount/MPX" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/LMG" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Magnum" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Em86s" to="." method="_on_weapon_recoil_kick"]

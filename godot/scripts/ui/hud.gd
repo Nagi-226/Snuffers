@@ -232,6 +232,8 @@ func _weapon_display_name(weapon_id: StringName) -> String:
 	match weapon_id:
 		&"pistol":
 			return "EM-57P 掣"
+		&"g17":
+			return "Glock 17 Gen5"
 		&"rifle":
 			return "EM-68A 霹雳"
 		&"dmr":
@@ -242,6 +244,8 @@ func _weapon_display_name(weapon_id: StringName) -> String:
 			return "SPAS-12 · 12GA"
 		&"smg":
 			return "EM-57S-1 雹·Ⅰ"
+		&"mpx":
+			return "SIG MPX"
 		&"em57s2":
 			return "EM-57S-2 雹·Ⅱ"
 		&"lmg":
@@ -471,8 +475,12 @@ func _refresh_ammo() -> void:
 	match GameState.current_weapon:
 		&"pistol":
 			_set_ammo_text(&"pistol", GameState.pistol_mag, GameState.pistol_reserve)
+		&"g17":
+			_set_ammo_text(&"g17", GameState.g17_mag, GameState.ammo_9x19_reserve)
 		&"smg":
 			_set_ammo_text(&"smg", GameState.smg_mag, GameState.pistol_reserve)
+		&"mpx":
+			_set_ammo_text(&"mpx", GameState.mpx_mag, GameState.ammo_9x19_reserve)
 		&"em57s2":
 			_set_ammo_text(&"em57s2", GameState.em57s2_mag, GameState.pistol_reserve)
 		&"lmg":
@@ -527,7 +535,9 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 		mode_tag = "半自动·激光" if GameState.em120r_guidance_mode == &"laser" else "半自动·追踪"
 	var ammo_type: String = {
 		&"pistol": "EC-57",
+		&"g17": "9×19mm",
 		&"smg": "EC-57",
+		&"mpx": "9×19mm",
 		&"em57s2": "EC-57",
 		&"rifle": "EC-68",
 		&"lmg": "EC-68",

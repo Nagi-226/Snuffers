@@ -2,11 +2,13 @@ extends Control
 
 const ICONS: Dictionary = {
 	&"pistol": preload("res://assets/ui/weapons/em57p.svg"),
+	&"g17": preload("res://assets/ui/weapons/g17.svg"),
 	&"rifle": preload("res://assets/ui/weapons/em68a.svg"),
 	&"dmr": preload("res://assets/ui/weapons/em68d.svg"),
 	&"shotgun": preload("res://assets/ui/weapons/em12g1.svg"),
 	&"spas12": preload("res://assets/ui/weapons/spas12.svg"),
 	&"smg": preload("res://assets/ui/weapons/em57s1.svg"),
+	&"mpx": preload("res://assets/ui/weapons/mpx.svg"),
 	&"em57s2": preload("res://assets/ui/weapons/em57s2.svg"),
 	&"em86m": preload("res://assets/ui/weapons/em86m.svg"),
 	&"em40t1": preload("res://assets/ui/weapons/em40t1.svg"),

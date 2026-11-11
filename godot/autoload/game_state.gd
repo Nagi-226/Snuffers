@@ -17,6 +17,9 @@ var rifle_mag: int = 0
 var rifle_reserve: int = 0 ## EM-68A / EM-68D 共用 EC-68 备弹池（2026-10-26 机主裁决）
 var pistol_mag: int = 0 ## EM-57P 弹匣（2026-10-19 冻结新增）
 var pistol_reserve: int = 0 ## EM-57P 备弹（2026-10-19 冻结新增）
+var g17_mag: int = 0 ## Glock 17 Gen5独立17发弹匣（2026-11-11）
+var mpx_mag: int = 0 ## SIG MPX独立30发弹匣（2026-11-11）
+var ammo_9x19_reserve: int = 0 ## 两枪共用9x19帕拉贝鲁姆；与EC-57分离
 var dmr_mag: int = 0 ## EM-68D 弹匣（2026-10-26）
 var shotgun_mag: int = 0 ## EM-12G-1 弹匣（2026-10-26）
 var shotgun_reserve: int = 0 ## EM-12G-1 备弹（EC-12）
@@ -100,6 +103,9 @@ func reset() -> void:
 	rifle_reserve = GameConfig.RIFLE_RESERVE
 	pistol_mag = GameConfig.PISTOL_MAG
 	pistol_reserve = GameConfig.PISTOL_RESERVE
+	g17_mag = GameConfig.G17_MAG
+	mpx_mag = GameConfig.MPX_MAG
+	ammo_9x19_reserve = GameConfig.AMMO_9X19_RESERVE
 	dmr_mag = GameConfig.DMR_MAG
 	shotgun_mag = GameConfig.SHOTGUN_MAG
 	shotgun_reserve = GameConfig.SHOTGUN_RESERVE
@@ -132,8 +138,13 @@ func reset() -> void:
 	intel_total = 0
 	mission_points = {}
 	current_weapon = &"rifle"
+	# 常规战役保持新武器锁定，靶场沿既有全解锁入口开放两枪。
 	weapon_unlocked = {&"rifle": true, &"pistol": true, &"dmr": false, &"shotgun": false, &"spas12": false, &"smg": false, &"em57s2": false, &"lmg": false, &"magnum": false, &"em86s": false, &"em86b": false, &"em86d": false, &"em86m": false, &"em127g": false, &"em127m": false, &"em120r": false, &"em12g2": false, &"em40t1": false}
 	fire_modes = {&"rifle": &"auto", &"pistol": &"semi", &"dmr": &"semi", &"shotgun": &"semi", &"spas12": &"semi", &"smg": &"auto", &"em57s2": &"auto", &"lmg": &"auto", &"magnum": &"semi", &"em86s": &"semi", &"em86b": &"burst", &"em86d": &"semi", &"em86m": &"auto", &"em127g": &"semi", &"em127m": &"auto", &"em120r": &"semi", &"em12g2": &"auto", &"em40t1": &"semi"}
+	weapon_unlocked[&"g17"] = false
+	weapon_unlocked[&"mpx"] = false
+	fire_modes[&"g17"] = &"semi"
+	fire_modes[&"mpx"] = &"auto"
 	is_prone = false
 	is_aiming = false
 	nano_mode = &"normal"

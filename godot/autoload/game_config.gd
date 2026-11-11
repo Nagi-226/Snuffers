@@ -125,6 +125,15 @@ const SCOPE_BREATH_PIXELS: float = 1.5 ## 呼吸摆动 ±px（L3225）
 # ===== 按真实弹匣位置换弹（2026-11-10，机主批准分步方案 A）=====
 # 方向和抓点按武器正交坐标，距离为实际米；阶段按原 reload_time 的比例。
 const MAGAZINE_RELOAD_PROFILES: Dictionary = {
+	&"mpx": {
+		"extraction_direction": Vector3.DOWN,
+		"extraction_distance": 0.225,
+		"grip_offset": Vector3(-0.036, -0.105, -0.163),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
 	&"rifle": {
 		"extraction_direction": Vector3.DOWN,
 		"extraction_distance": 0.20,
@@ -261,6 +270,16 @@ const BLACK_LONG_GUN_LEFT_ELBOW_POLE := Vector3(-0.08, -0.35, 0.22)
 const BLACK_LONG_GUN_SHOULDER_REACH: float = 0.94
 const BLACK_LONG_GUN_PALM_WEIGHT: float = 0.65
 const BLACK_LONG_GUN_PROFILES: Dictionary = {
+	&"mpx": {
+		"right_grip": Vector3(0.014, -0.060, 0.025),
+		"hip_depth": 0.0,
+		"reload_depth": 0.15,
+		"support_grip_hip": Vector3(-0.034, -0.025, -0.245),
+		"support_grip_ads": Vector3(-0.034, -0.025, -0.245),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
 	&"spas12": {
 		"right_grip": Vector3(0.065951, -0.143531, 0.187622),
 		"hip_depth": 0.0,
@@ -425,6 +444,17 @@ const BLACK_LONG_GUN_PROFILES: Dictionary = {
 
 # 原生黑色手臂只整体等比摆位；节点姿态校准不改骨rest/蒙皮或骨pose缩放。
 const BLACK_PISTOL_PROFILES: Dictionary = {
+	&"g17": {
+		"weapon_anchor": Vector3(0, -0.055, 0.06),
+		"magazine_grip": Vector3(-0.025, -0.065, 0.06),
+		"source_rotation": Vector3(0, PI, 0),
+		"root_scale": 1.0,
+		"lock_idle": true,
+		"lock_ads_idle": false,
+		"reload_contact_phase": 0.20,
+		"reload_seat_phase": 0.84,
+		"left_elbow_pole": Vector3(-0.1, -0.3, 0.15),
+	},
 	&"pistol": {
 		"weapon_anchor": Vector3(-0.007154029, -0.064155, 0.353723),
 		"magazine_grip": Vector3(-0.069989, -0.064596, 0.083652),
@@ -959,14 +989,14 @@ const SFX_PITCH_JITTER: float = 0.1 ## 枪声音高抖动 ±10%（L392）
 
 # ===== 武器选择分类（2026-10-29 机主裁决：Half-Life 数字类别 + 同键循环 + 滚轮）=====
 const WEAPON_CATEGORIES: Array = [
-	{"number": 1, "name": "手枪", "weapons": [&"pistol", &"magnum"]},
-	{"number": 2, "name": "冲锋枪", "weapons": [&"smg", &"em57s2"]},
+	{"number": 1, "name": "手枪", "weapons": [&"pistol", &"magnum", &"g17"]},
+	{"number": 2, "name": "冲锋枪", "weapons": [&"smg", &"em57s2", &"mpx"]},
 	{"number": 3, "name": "突击 / DMR", "weapons": [&"rifle", &"dmr", &"em86b", &"em86d"]},
 	{"number": 4, "name": "霰弹 / 狙击", "weapons": [&"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g"]},
 	{"number": 5, "name": "机枪", "weapons": [&"lmg", &"em86m", &"em127m"]},
 	{"number": 6, "name": "爆破重火力", "weapons": [&"em40t1", &"em120r"]},
 ]
-const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"magnum", &"smg", &"em57s2", &"rifle", &"dmr", &"em86b", &"em86d", &"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g", &"lmg", &"em86m", &"em127m", &"em40t1", &"em120r"]
+const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"magnum", &"g17", &"smg", &"em57s2", &"mpx", &"rifle", &"dmr", &"em86b", &"em86d", &"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g", &"lmg", &"em86m", &"em127m", &"em40t1", &"em120r"]
 const WEAPON_SELECTOR_HOLD_TIME: float = 1.6
 
 # ===== UI 反馈动效（G2 冻结自 W5 脚本常量迁入）=====
@@ -1151,6 +1181,50 @@ const STREET_LAMP_ANGLE_DEG: float = 65.0
 const STREET_LAMP_FADE_BEGIN_M: float = 32.0
 const STREET_LAMP_FADE_LENGTH_M: float = 12.0
 const STREET_LAMP_SHADOW_FADE_M: float = 24.0
+
+# ===== 9x19传统武器（2026-11-11机主批准A；MPX额外三发点射由机主指定）=====
+# 容量/MPX循环射速按公开规格；半自动输入上限、备弹、换弹、散布、后坐和射线预算为游戏近似。
+const AMMO_DMG_9X19: float = 30.0
+const AMMO_9X19_RESERVE: int = 150
+const G17_DMG_HEAD_FACTOR: float = 2.0
+const G17_DMG_VS_SNIPER: float = 30.0
+const G17_MAG: int = 17
+const G17_FIRE_INTERVAL: float = 0.15
+const G17_SEMI_FIRE_INTERVAL: float = 0.15
+const G17_RELOAD_TIME: float = 2.0
+const G17_RANGE: float = 80.0
+const G17_SPREAD_HIP: float = 0.009
+const G17_SPREAD_PRONE: float = 0.0045
+const G17_SPREAD_AIM: float = 0.0015
+const G17_RECOIL_PITCH: float = 0.006
+const G17_RECOIL_VIEW_OFFSET: float = 0.08
+const G17_RECOIL_DECAY: float = 0.82
+const G17_RECOIL_RECOVER_RATE: float = 8.0
+const G17_RECOIL_VIEW_ROT: float = 2.0
+const G17_RECOIL_VIEW_Y_FACTOR: float = 0.02
+const G17_RECOIL_VIEW_Z_FACTOR: float = 0.04
+const G17_ADS_FOV: float = 65.0
+const G17_SOUND_PITCH: float = 1.0
+const MPX_DMG_HEAD_FACTOR: float = 2.0
+const MPX_DMG_VS_SNIPER: float = 30.0
+const MPX_MAG: int = 30
+const MPX_FIRE_INTERVAL: float = 60.0 / 850.0
+const MPX_BURST_FIRE_INTERVAL: float = 60.0 / 850.0
+const MPX_SEMI_FIRE_INTERVAL: float = 0.15
+const MPX_RELOAD_TIME: float = 2.5
+const MPX_RANGE: float = 120.0
+const MPX_SPREAD_HIP: float = 0.006
+const MPX_SPREAD_PRONE: float = 0.003
+const MPX_SPREAD_AIM: float = 0.001
+const MPX_RECOIL_PITCH: float = 0.0035
+const MPX_RECOIL_VIEW_OFFSET: float = 0.06
+const MPX_RECOIL_DECAY: float = 0.84
+const MPX_RECOIL_RECOVER_RATE: float = 8.0
+const MPX_RECOIL_VIEW_ROT: float = 2.0
+const MPX_RECOIL_VIEW_Y_FACTOR: float = 0.02
+const MPX_RECOIL_VIEW_Z_FACTOR: float = 0.04
+const MPX_ADS_FOV: float = 65.0
+const MPX_SOUND_PITCH: float = 1.0
 
 # ===== 第一人称模型近墙保护（视觉深度压缩；武器根节点朝向/射程保持单位尺度）=====
 const VIEWMODEL_WALL_MARGIN: float = 0.02 ## 可见模型与场景实体保留 2cm 间距

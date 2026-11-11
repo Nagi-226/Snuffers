@@ -291,10 +291,12 @@ func _calibrate_ads() -> void:
 	_ads_fov_targets = {
 		&"rifle": GameConfig.RIFLE_ADS_FOV,
 		&"pistol": GameConfig.PISTOL_ADS_FOV,
+		&"g17": GameConfig.G17_ADS_FOV,
 		&"dmr": GameConfig.DMR_ADS_FOV,
 		&"shotgun": GameConfig.SHOTGUN_ADS_FOV,
 		&"spas12": GameConfig.SPAS12_ADS_FOV,
 		&"smg": GameConfig.SMG_ADS_FOV,
+		&"mpx": GameConfig.MPX_ADS_FOV,
 		&"lmg": GameConfig.LMG_ADS_FOV,
 		&"magnum": GameConfig.MAGNUM_ADS_FOV,
 		&"em86s": GameConfig.EM86S_SCOPE_FOVS[0],
@@ -308,7 +310,7 @@ func _calibrate_ads() -> void:
 		&"em120r": GameConfig.EM127G_SCOPE_FOVS[0],
 		&"em12g2": GameConfig.SHOTGUN_ADS_FOV,
 	}
-	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"], [&"spas12", "Spas12"], [&"smg", "SMG"], [&"em57s2", "Em57s2"], [&"lmg", "LMG"], [&"magnum", "Magnum"], [&"em86s", "Em86s"], [&"em86b", "Em86b"], [&"em86d", "Em86d"], [&"em86m", "Em86m"], [&"em40t1", "Em40t1"], [&"em127g", "Em127g"], [&"em12g2", "Em12g2"], [&"em127m", "Em127m"], [&"em120r", "Em120r"]]:
+	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"g17", "G17"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"], [&"spas12", "Spas12"], [&"smg", "SMG"], [&"mpx", "MPX"], [&"em57s2", "Em57s2"], [&"lmg", "LMG"], [&"magnum", "Magnum"], [&"em86s", "Em86s"], [&"em86b", "Em86b"], [&"em86d", "Em86d"], [&"em86m", "Em86m"], [&"em40t1", "Em40t1"], [&"em127g", "Em127g"], [&"em12g2", "Em12g2"], [&"em127m", "Em127m"], [&"em120r", "Em120r"]]:
 		var weapon_root := _weapon_mount.get_node_or_null(pair[1]) as Node3D
 		var fallback := Vector3(0.0, _mount_hip_pos.y, _mount_hip_pos.z)
 		if weapon_root == null:
@@ -672,6 +674,8 @@ func _process(delta: float) -> void:
 	# （直射档平直弹道，全息环直瞄即可）。
 	if _ads_reticle != null:
 		var mode := GameState.current_weapon
+		if GameState.current_weapon == &"g17":
+			mode = &"none" ## Gen5 使用真实机械瞄具，中心不覆盖 HUD 瞄点。
 		if GameState.current_weapon == &"em12g2":
 			mode = &"shotgun"
 		if _ads_reticle.mode != mode or not is_equal_approx(_ads_reticle.weight, _ads_weight):
@@ -1042,7 +1046,7 @@ func _cycle_fire_mode() -> void:
 		GameState.em120r_guidance_mode = &"homing" if GameState.em120r_guidance_mode == &"laser" else &"laser"
 		Events.ec120_guidance_changed.emit(GameState.em120r_guidance_mode)
 		return
-	if w in [&"dmr", &"spas12", &"magnum", &"em86s", &"em86d", &"em127g", &"em40t1"]:
+	if w in [&"g17", &"dmr", &"spas12", &"magnum", &"em86s", &"em86d", &"em127g", &"em40t1"]:
 		return
 	const ORDER_RIFLE: Array[StringName] = [&"auto", &"semi", &"burst", &"grenade"]
 	const ORDER_PISTOL: Array[StringName] = [&"auto", &"burst", &"semi"]
@@ -1053,6 +1057,8 @@ func _cycle_fire_mode() -> void:
 	var order: Array[StringName] = ORDER_PISTOL
 	if w in [&"rifle", &"smg"]:
 		order = ORDER_RIFLE
+	elif w == &"mpx":
+		order = ORDER_PISTOL ## 机主配置：全自动 / 三发点射 / 半自动，无榴弹档。
 	elif w in [&"shotgun", &"em12g2"]:
 		order = ORDER_SHOTGUN
 	elif w == &"em86b":
@@ -1154,7 +1160,7 @@ class AdsReticle extends Control:
 					draw_line(center + dir * 28.0, center + dir * 48.0, color, 1.2, true)
 				draw_arc(center, 18.0, 0.0, TAU, 64, color, 1.6, true)
 				draw_circle(center, 2.2, color)
-			&"rifle", &"shotgun", &"smg", &"lmg":
+			&"rifle", &"shotgun", &"smg", &"lmg", &"mpx":
 				# 全息环：外环 + 心点 + 四向短刻度
 				draw_arc(center, 22.0, 0.0, TAU, 64, color, 1.6, true)
 				draw_circle(center, 2.2, color)

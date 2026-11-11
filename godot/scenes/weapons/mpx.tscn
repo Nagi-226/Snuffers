@@ -1,0 +1,27 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/mpx_controller.gd" id="1_controller"]
+[ext_resource type="Resource" path="res://scenes/weapons/mpx.tres" id="2_data"]
+[ext_resource type="PackedScene" path="res://addons/community_weapons/mpx_tactical.glb" id="3_model"]
+[ext_resource type="PackedScene" path="res://addons/community_weapons/black_pistol_arms.glb" id="4_arms"]
+
+[node name="MPX" type="Node3D"]
+script = ExtResource("1_controller")
+weapon_data = ExtResource("2_data")
+mag_state_property = &"mpx_mag"
+reserve_state_property = &"ammo_9x19_reserve"
+magazine_node_path = NodePath("ViewModel/EM68A/MpxTactical/Body/BodyPart21")
+grenade_enabled = false
+
+[node name="ViewModel" type="Node3D" parent="."]
+
+; 复用已验收的长枪挂点；BodyPart21 是源模型的完整独立弹匣。
+[node name="EM68A" parent="ViewModel" instance=ExtResource("3_model")]
+position = Vector3(-0.05, 0.08, 0.25)
+
+[node name="ArmsEM68A" parent="ViewModel" instance=ExtResource("4_arms")]
+position = Vector3(-0.05, 0.08, 0.25)
+
+; EotechOpticalGlass 真实镜窗 AABB 中心，按 ADS 回正的源坐标标定。
+[node name="OpticAim" type="Marker3D" parent="ViewModel"]
+position = Vector3(-0.0642628, 0.24183672, 0.22475017)

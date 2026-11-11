@@ -41,3 +41,10 @@
 - 署名文案：`SPAS-12 HUD linework derived from Franchi SPAS-12 (Low-poly) by Saucy, licensed under Creative Commons Attribution.`
 
 SPAS-12 线稿来源是第一人称 Saucy 模型，与货架展示用的 LowPolyCount `spas12_display.glb` 分别记录。
+
+## 9×19 社区武器图标（2026-11-11）
+
+- `g17.svg`：Glock 17 Gen5 + Olight 的简化侧面示意线稿；外形参考已入库 `addons/community_weapons/g17_gen5_olight.glb`，原作者 8sianDude，来源 https://sketchfab.com/3d-models/g17-gen-5-handgun-olight-nsw-police-force-0200c248eba14385ad2bee8d4dc4e586 。
+- `mpx.svg`：SIG MPX 战术配件版的简化侧面示意线稿；外形参考已入库 `addons/community_weapons/mpx_tactical.glb`，本体原作者 michalstk11，来源 https://sketchfab.com/3d-models/sig-sauer-mpx-d6e0a8020a7b4a9a876787ec91290022 。配件作者为 Sambit_Raut（EXPS3）、elitej1gaming（前握把）、D_U（AN/PEQ15）、mbvisuals1（M600DF）；各自完整 URL 见 `addons/community_weapons/ATTRIBUTION.md`。
+- 图标绘制：本项目 Codex，2026-11-11；人工绘制 SVG 轮廓和主要结构，采用同一青蓝线稿样式与 `120×58` 视区，未复制源贴图或源网格，也未复用雷械图标。此两图不是前文 Blender Freestyle 提取流程的产物。
+- 源模型及配件许可证：[CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)；本项目此两张衍生示意图同按 CC-BY 4.0 提供。游戏内标题页“资产署名”已列以上原作者、来源与许可。

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+
+[resource]
+script = ExtResource("1_data")
+weapon_id = &"g17"
+kind = 0
+damage_body = 30.0
+headshot_factor = 2.0
+dmg_vs_sniper = 30.0
+fire_interval = 0.15
+semi_fire_interval = 0.15
+mag_size = 17
+reserve_size = 150
+reload_time = 2.0
+hitscan_range = 80.0
+spread_hip = 0.009
+spread_prone = 0.0045
+spread_aim = 0.0015
+recoil_pitch = 0.006
+recoil_view_offset = 0.08
+recoil_decay = 0.82
+recoil_recover_rate = 8.0
+view_recoil_rot_factor = 2.0
+view_recoil_y_factor = 0.02
+view_recoil_z_factor = 0.04

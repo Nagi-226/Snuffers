@@ -110,7 +110,7 @@ horizontal_alignment = 1
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/normal_font_size = 16
-text = "以下资源按 CC-BY 4.0 使用并改作：
+text = "社区模型与手臂按 CC-BY 4.0 使用并改作：
 https://creativecommons.org/licenses/by/4.0/
 模型尺寸、贴图与配件装配已调整；原生手臂动画按动作分段。
 
@@ -139,7 +139,17 @@ https://sketchfab.com/models/7723ab14e70446ef8e06a134984f287f
 https://sketchfab.com/models/bd896167e7ca44f19597d3afe6a8d83f
 
 上游 G17 9mm pistol — 3dvachevsky
-https://sketchfab.com/models/b4136758508c486cadcd96c74d7882b8"
+https://sketchfab.com/models/b4136758508c486cadcd96c74d7882b8
+
+Glock 17 9mm 开火实录 glock17_02.wav — gezortenplotz
+https://freesound.org/people/gezortenplotz/sounds/34982/
+CC-BY 3.0: https://creativecommons.org/licenses/by/3.0/
+本项目由官方 HQ 预览剪取单发、低切、淡变并调整响度；源为 Glock 17，不是 Gen5 专属录音。
+
+SIG MPX 开火近似：MP5A3 9mm 真枪空包弹街道实录 — Franki-01234
+https://freesound.org/people/Franki-01234/sounds/201671/
+CC0: https://creativecommons.org/publicdomain/zero/1.0/
+本项目由官方 HQ 预览剪取连发最后一发及尾响并处理；这是 MP5A3 近似，不是 MPX 或实弹原录。"
 selection_enabled = true
 
 [node name="CloseButton" type="Button" parent="CreditsPanel/VBox"]

@@ -73,6 +73,47 @@ enum Kind { HITSCAN, PROJECTILE } ## 0=即时命中（步枪），1=投射物（
 func sync_from_config() -> void:
 	burst_fire_interval = fire_interval
 	match weapon_id:
+		&"g17":
+			damage_body = GameConfig.AMMO_DMG_9X19
+			headshot_factor = GameConfig.G17_DMG_HEAD_FACTOR
+			dmg_vs_sniper = GameConfig.G17_DMG_VS_SNIPER
+			fire_interval = GameConfig.G17_FIRE_INTERVAL
+			semi_fire_interval = GameConfig.G17_SEMI_FIRE_INTERVAL
+			mag_size = GameConfig.G17_MAG
+			reserve_size = GameConfig.AMMO_9X19_RESERVE
+			reload_time = GameConfig.G17_RELOAD_TIME
+			hitscan_range = GameConfig.G17_RANGE
+			spread_hip = GameConfig.G17_SPREAD_HIP
+			spread_prone = GameConfig.G17_SPREAD_PRONE
+			spread_aim = GameConfig.G17_SPREAD_AIM
+			recoil_pitch = GameConfig.G17_RECOIL_PITCH
+			recoil_view_offset = GameConfig.G17_RECOIL_VIEW_OFFSET
+			recoil_decay = GameConfig.G17_RECOIL_DECAY
+			recoil_recover_rate = GameConfig.G17_RECOIL_RECOVER_RATE
+			view_recoil_rot_factor = GameConfig.G17_RECOIL_VIEW_ROT
+			view_recoil_y_factor = GameConfig.G17_RECOIL_VIEW_Y_FACTOR
+			view_recoil_z_factor = GameConfig.G17_RECOIL_VIEW_Z_FACTOR
+		&"mpx":
+			damage_body = GameConfig.AMMO_DMG_9X19
+			headshot_factor = GameConfig.MPX_DMG_HEAD_FACTOR
+			dmg_vs_sniper = GameConfig.MPX_DMG_VS_SNIPER
+			fire_interval = GameConfig.MPX_FIRE_INTERVAL
+			burst_fire_interval = GameConfig.MPX_BURST_FIRE_INTERVAL
+			semi_fire_interval = GameConfig.MPX_SEMI_FIRE_INTERVAL
+			mag_size = GameConfig.MPX_MAG
+			reserve_size = GameConfig.AMMO_9X19_RESERVE
+			reload_time = GameConfig.MPX_RELOAD_TIME
+			hitscan_range = GameConfig.MPX_RANGE
+			spread_hip = GameConfig.MPX_SPREAD_HIP
+			spread_prone = GameConfig.MPX_SPREAD_PRONE
+			spread_aim = GameConfig.MPX_SPREAD_AIM
+			recoil_pitch = GameConfig.MPX_RECOIL_PITCH
+			recoil_view_offset = GameConfig.MPX_RECOIL_VIEW_OFFSET
+			recoil_decay = GameConfig.MPX_RECOIL_DECAY
+			recoil_recover_rate = GameConfig.MPX_RECOIL_RECOVER_RATE
+			view_recoil_rot_factor = GameConfig.MPX_RECOIL_VIEW_ROT
+			view_recoil_y_factor = GameConfig.MPX_RECOIL_VIEW_Y_FACTOR
+			view_recoil_z_factor = GameConfig.MPX_RECOIL_VIEW_Z_FACTOR
 		&"rifle":
 			damage_body = GameConfig.AMMO_DMG_EC68 ## EM-68A 用 EC-68 步枪弹（伤害绑口径不绑枪，2026-10-22 机主裁决）
 			headshot_factor = GameConfig.RIFLE_DMG_HEAD_FACTOR

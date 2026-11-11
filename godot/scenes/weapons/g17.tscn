@@ -1,0 +1,27 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/pistol_controller.gd" id="1_controller"]
+[ext_resource type="Resource" path="res://scenes/weapons/g17.tres" id="2_data"]
+[ext_resource type="PackedScene" path="res://addons/community_weapons/g17_gen5_olight.glb" id="3_model"]
+[ext_resource type="PackedScene" path="res://addons/community_weapons/black_pistol_arms.glb" id="4_arms"]
+
+[node name="G17" type="Node3D"]
+script = ExtResource("1_controller")
+weapon_data = ExtResource("2_data")
+mag_state_property = &"g17_mag"
+reserve_state_property = &"ammo_9x19_reserve"
+magazine_node_path = NodePath("ViewModel/EM57P/G17Gen5Olight/Magazine")
+native_arms_profile = &"g17"
+
+[node name="ViewModel" type="Node3D" parent="."]
+
+; 内部挂点名称沿用已验收的 PistolController，模型为真实米制 Gen5。
+[node name="EM57P" parent="ViewModel" instance=ExtResource("3_model")]
+position = Vector3(-0.09, 0.12, 0.18)
+
+[node name="ArmsEM57P" parent="ViewModel" instance=ExtResource("4_arms")]
+position = Vector3(-0.09, 0.12, 0.18)
+
+; 源前后夜光机械瞄具顶面同高约 64.52mm，瞄线留在顶面上方。
+[node name="OpticAim" type="Marker3D" parent="ViewModel"]
+position = Vector3(-0.089524, 0.18462, 0.25767575)
