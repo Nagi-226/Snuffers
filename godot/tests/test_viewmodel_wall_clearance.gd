@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 var _failures := 0
 var _assertions := 0
 var _world: Node3D
@@ -223,11 +225,11 @@ func _shoot_and_reload_checks() -> void:
 	target.global_position = Vector3(0, 101.8, -90)
 	await physics_frame
 	await physics_frame
-	_state.rifle_mag = 3
+	Chamber.set_total(_state, &"rifle", 3)
 	_assert(rifle._fire(), "real rifle can fire while the side wall compresses its viewmodel")
 	_assert(target.hits.size() == 1, "near-wall display compression retains a real 90m hitscan hit")
-	_assert(_state.rifle_mag == 2, "near-wall firing consumes exactly one round")
-	_state.rifle_mag = 0
+	_assert(Chamber.total(_state, &"rifle") == 2, "near-wall firing consumes exactly one round")
+	Chamber.set_total(_state, &"rifle", 0)
 	_state.rifle_reserve = 90
 	rifle._start_reload()
 	await create_timer(0.06).timeout
@@ -237,7 +239,7 @@ func _shoot_and_reload_checks() -> void:
 	_assert(not rifle._is_reloading, "near-wall weapon switching preserves reload cancellation")
 	_assert(_maximum(_visible_bounds(), 0) <= 0.445, "switching weapons beside the wall does not expose intersecting geometry")
 	await create_timer(rifle.weapon_data.reload_time + 0.05).timeout
-	_assert(_state.rifle_mag == 0 and _state.rifle_reserve == 90, "cancelled reload timer cannot transfer ammunition after the switch")
+	_assert(Chamber.total(_state, &"rifle") == 0 and _state.rifle_reserve == 90, "cancelled reload timer cannot transfer ammunition after the switch")
 	_player._switch_weapon(&"rifle")
 	await _settle()
 	rifle._start_reload()
@@ -250,7 +252,7 @@ func _shoot_and_reload_checks() -> void:
 		safe_animation = safe_animation and _maximum(points, 0) <= 0.445
 		visible_animation = visible_animation and not points.is_empty()
 	_assert(safe_animation and visible_animation, "complete real reload animation remains visible and outside the wall")
-	_assert(_state.rifle_mag == rifle.weapon_data.mag_size and _state.rifle_reserve == 90 - rifle.weapon_data.mag_size, "near-wall reload completes with the original ammunition transfer")
+	_assert(Chamber.total(_state, &"rifle") == rifle.weapon_data.mag_size and _state.rifle_reserve == 90 - rifle.weapon_data.mag_size, "near-wall reload completes with the original ammunition transfer")
 	await _settle()
 	var weapon_transform: Transform3D = rifle._weapon_node.transform
 	side.queue_free()

@@ -64,7 +64,11 @@ func _process(delta: float) -> void:
 	super._process(delta)
 	if _native_arms == null and GameState.is_aiming and _arms_skeleton != null:
 		_pose_spas_right_arm_ads()
+	var was_pumping := _pump_left > 0.0
 	_pump_left = maxf(0.0, _pump_left - delta)
+	if was_pumping and _pump_left <= 0.0 \
+			and ChamberFeed.load_chamber(weapon_data.weapon_id, weapon_data.weapon_id + "_mag"):
+		Events.ammo_changed.emit(weapon_data.weapon_id, GameState.get(weapon_data.weapon_id + "_mag"), GameState.get(_reserve_key))
 	var phase := 1.0 - _pump_left / GameConfig.SPAS12_PUMP_TIME if _pump_left > 0.0 else 0.0
 	var pump_pull := sin(phase * PI) * GameConfig.SPAS12_PUMP_DISTANCE
 	if _pump_sleeve != null:
@@ -131,6 +135,10 @@ func _pose_native_spas(pump_pull: float) -> void:
 func _fire() -> bool:
 	if _pump_left > 0.0:
 		return false
+	if not _is_reloading and not ChamberFeed.is_chambered(weapon_data.weapon_id) \
+			and int(GameState.get(weapon_data.weapon_id + "_mag")) > 0:
+		_pump_left = GameConfig.SPAS12_PUMP_TIME
+		return false
 	var fired := super._fire()
 	if not fired:
 		return false
@@ -149,6 +157,8 @@ func _start_reload() -> void:
 		return
 	if int(GameState.get(weapon_data.weapon_id + "_mag")) >= weapon_data.mag_size:
 		return
+	# 插壳期间不延续上一枪的泵动；空膛装填完成后重新起泵上膛。
+	_pump_left = 0.0
 	_reload_generation += 1
 	_reload_progress = 0.0
 	Events.weapon_reload_started.emit(weapon_data.weapon_id)
@@ -172,6 +182,8 @@ func _on_weapon_reloaded(weapon_id: StringName) -> void:
 	_reset_reload_visuals()
 	_is_reloading = false
 	_reload_progress = 0.0
+	if not ChamberFeed.is_chambered(weapon_id) and int(GameState.get(weapon_id + "_mag")) > 0:
+		_pump_left = GameConfig.SPAS12_PUMP_TIME
 	if _shell != null:
 		_shell.visible = false
 

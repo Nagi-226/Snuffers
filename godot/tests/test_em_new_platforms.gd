@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 var _failures := 0
 var _player: CharacterBody3D
 var _state
@@ -106,7 +108,7 @@ func _run() -> void:
 	_player = _scene.get_node("Player") as CharacterBody3D
 	await process_frame
 
-	_assert(_state.em57s2_mag == 200 and _state.em86m_mag == 500 and _state.em40t1_mag == 20, "new magazines initialize to 200, 500 and 20")
+	_assert(Chamber.total(_state, &"em57s2") == 200 and Chamber.total(_state, &"em86m") == 500 and _state.em40t1_mag == 20, "new magazines initialize to 200, 500 and 20")
 	_assert(_state.pistol_reserve == 3000 and _state.em86_reserve == 4500 and _state.rifle_grenades == 200, "EC-57, EC-86 and EC-40 use the existing shared reserves")
 	_assert(_state.fire_modes[&"em57s2"] == &"auto" and _state.fire_modes[&"em86m"] == &"auto" and _state.fire_modes[&"em40t1"] == &"semi", "default fire modes are auto, auto and semi-only")
 
@@ -136,8 +138,8 @@ func _run() -> void:
 		var fired: bool = weapon._fire()
 		events.damage_dealt.disconnect(on_damage)
 		target.scale = Vector3.ONE
-		_assert(fired and is_equal_approx(report[0], spec.damage) and int(_state.get(weapon_id + "_mag")) == spec.mag - 1, "%s deals its exact damage and consumes its own magazine" % weapon_id)
-		_state.set(weapon_id + "_mag", 0)
+		_assert(fired and is_equal_approx(report[0], spec.damage) and int(Chamber.total(_state, weapon_id)) == spec.mag - 1, "%s deals its exact damage and consumes its own magazine" % weapon_id)
+		Chamber.set_total(_state, weapon_id, 0)
 		if weapon_id == &"em57s2":
 			_state.pistol_reserve = spec.reserve
 		else:
@@ -147,7 +149,7 @@ func _run() -> void:
 		await create_timer(data.reload_time + 0.1).timeout
 		_assert(not weapon._is_reloading, "%s finishes its real timed reload" % weapon_id)
 		var shared_after: int = _state.pistol_reserve if weapon_id == &"em57s2" else _state.em86_reserve
-		_assert(int(_state.get(weapon_id + "_mag")) == spec.mag and shared_after == spec.reserve - spec.mag, "%s reloads a full magazine from its shared ammunition pool" % weapon_id)
+		_assert(int(Chamber.total(_state, weapon_id)) == spec.mag and shared_after == spec.reserve - spec.mag, "%s reloads a full magazine from its shared ammunition pool" % weapon_id)
 		var model = weapon.get_node("ViewModel/EM68A") as Node3D
 		_assert(model.scene_file_path.contains("%s_viewmodel" % weapon_id), "%s uses its own generated first-person model" % weapon_id)
 		var muzzle = weapon.get_node("ViewModel/EM68A/Muzzle") as Marker3D

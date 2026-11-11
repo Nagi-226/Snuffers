@@ -1229,6 +1229,25 @@ const MPX_SOUND_PITCH: float = 1.0
 const MPX_RETICLE_COLOR: Color = Color(1, 0, 0, 1)
 const MPX_RETICLE_EMISSION_ENERGY: float = 2.0
 
+# ===== 传统武器配件与独立膛弹（2026-11-11机主确认）=====
+const WEAPON_ACCESSORY_MODES: Array[StringName] = [&"laser", &"flashlight", &"combined"]
+const WEAPON_ACCESSORY_DEFAULT_MODE: StringName = &"laser"
+const VIEWMODEL_WORLD_FX_META: StringName = &"viewmodel_world_fx"
+const WEAPON_LASER_COLOR: Color = Color(1.0, 0.0, 0.0, 1.0)
+const WEAPON_LASER_RANGE: float = 120.0
+const WEAPON_LASER_ZERO_DISTANCE: float = 25.0
+const WEAPON_LASER_WIDTH: float = 0.001
+const WEAPON_LASER_DOT_RADIUS: float = 0.004
+const WEAPON_LASER_DOT_MIN_DIAMETER_PIXELS: float = 2.0 ## 远处红点保留最小可见直径，物理落点不变。
+const WEAPON_LASER_EMISSION_ENERGY: float = 2.0
+const WEAPON_FLASHLIGHT_COLOR: Color = Color(1.0, 0.97, 0.94, 1.0)
+const WEAPON_FLASHLIGHT_ENERGY: float = 4.0
+const G17_FLASHLIGHT_RANGE: float = 35.0
+const MPX_FLASHLIGHT_RANGE: float = 50.0
+const WEAPON_FLASHLIGHT_ANGLE: float = 20.0
+const WEAPON_FLASHLIGHT_ATTENUATION: float = 1.0
+const CHAMBER_WEAPON_IDS: Array[StringName] = [&"rifle", &"pistol", &"g17", &"dmr", &"shotgun", &"spas12", &"smg", &"mpx", &"em57s2", &"lmg", &"magnum", &"em86s", &"em86b", &"em86d", &"em86m", &"em127g", &"em127m", &"em12g2"]
+
 # ===== 第一人称模型近墙保护（视觉深度压缩；武器根节点朝向/射程保持单位尺度）=====
 const VIEWMODEL_WALL_MARGIN: float = 0.02 ## 可见模型与场景实体保留 2cm 间距
 const VIEWMODEL_WALL_MIN_SCALE: float = 0.02

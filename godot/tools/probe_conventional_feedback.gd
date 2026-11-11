@@ -78,7 +78,7 @@ func _run() -> void:
 				if await _wait_feedback_fire_phase(weapon, phase):
 					await _feedback_capture(weapon, id, "fire_%03d" % int(phase * 100.0), false, false, phase)
 				await create_timer(0.4).timeout
-		_state.set(String(id) + "_mag", 3)
+		Chamber.set_total(_state, String(id), 3)
 		_press_reload(weapon)
 		_assert(weapon._is_reloading, "%s real R input starts a partial reload" % id)
 		for phase in [0.25, 0.5, 0.75]:
@@ -87,17 +87,18 @@ func _run() -> void:
 				if phase == 0.5:
 					_check_magazine_contact(weapon, id)
 		await _wait_reload_completed(weapon)
-		_assert(_state.get(String(id) + "_mag") == weapon.weapon_data.mag_size, "%s real partial reload completes" % id)
+		_assert(_state.get(String(id) + "_mag") == weapon.weapon_data.mag_size and Chamber.total(_state, id) == weapon.weapon_data.mag_size + 1 and Chamber.chamber(_state, id) == 1, "%s real partial reload completes with M container plus one retained chamber" % id)
 		await _feedback_capture(weapon, id, "reload_complete", false, false)
 		if id == &"g17":
 			_check_feedback_finger_repeat(weapon, "after_reload")
-		_state.set(String(id) + "_mag", 0)
+		Chamber.set_total(_state, String(id), 0)
 		_press_reload(weapon)
 		_assert(weapon._is_reloading, "%s real R input starts an empty reload" % id)
 		if await _wait_reload_phase(weapon, id, 0.5):
 			await _feedback_capture(weapon, id, "empty_reload_050", false, true, 0.5)
 		await _wait_reload_completed(weapon)
 		_check_source_skeleton(weapon, id)
+		_assert(_state.get(String(id) + "_mag") == weapon.weapon_data.mag_size - 1 and Chamber.total(_state, id) == weapon.weapon_data.mag_size and Chamber.chamber(_state, id) == 1, "%s real empty reload keeps M total and transfers one round from container to chamber" % id)
 		_player._switch_weapon(&"rifle")
 		await process_frame
 		_assert(not weapon.visible, "%s remains hidden after switching away" % id)

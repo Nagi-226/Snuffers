@@ -25,6 +25,7 @@ const KEY_JUMP: Key = KEY_SPACE ## 空格：跳跃（2026-10-18 机主立项）
 const KEY_SPRINT: Key = KEY_SHIFT ## 左 Shift+W：疾跑（2026-10-19 机主立项）
 const KEY_INTERACT: Key = KEY_F ## F：统一交互（开门/叙事等；拾取物不走此键，贴近自动捡拾）
 const KEY_FIRE_MODE: Key = KEY_X ## X：射击模式循环 全自动→三发点射→半自动（2026-10-19 机主立项）
+const KEY_ACCESSORY_MODE: Key = KEY_L ## L：G17/MPX 红点→手电→红点+手电。
 const KEY_RELEASE_MOUSE: Key = KEY_ESCAPE ## Esc：释放鼠标（点击画面恢复捕获）
 const KEY_BIG_MAP: Key = KEY_M ## M：全屏实时战术地图
 const KEY_NANO_MODE: Key = KEY_Q ## Q：装甲模式开关
@@ -428,6 +429,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_try_interact()
 			KEY_FIRE_MODE:
 				_cycle_fire_mode()
+			KEY_ACCESSORY_MODE:
+				_cycle_accessory_mode()
 
 
 func _physics_process(delta: float) -> void:
@@ -748,6 +751,8 @@ func _setup_viewmodel_depth() -> void:
 		if model != null:
 			_viewmodel_depth_models.append(model)
 	for node in _weapon_mount.find_children("*", "MeshInstance3D", true, false):
+		if bool(node.get_meta(GameConfig.VIEWMODEL_WORLD_FX_META, false)):
+			continue
 		# 制导光束跨越整个世界，不属于枪臂的实体显示体积。
 		if not String(node.name).to_lower().contains("laser"):
 			_viewmodel_depth_meshes.append(node as MeshInstance3D)
@@ -1036,7 +1041,21 @@ func _toggle_stealth() -> void:
 func _apply_nano_visuals() -> void:
 	_visual_nano_mode = GameState.nano_mode
 	for mesh in _weapon_mount.find_children("*", "MeshInstance3D", true, false):
+		if bool(mesh.get_meta(GameConfig.VIEWMODEL_WORLD_FX_META, false)):
+			continue
 		(mesh as MeshInstance3D).transparency = 0.82 if GameState.nano_mode == &"stealth" else 0.0
+
+
+## L：两枪分别保存配件档位；释放鼠标和未领取武器时不切换。
+func _cycle_accessory_mode() -> void:
+	var w := GameState.current_weapon
+	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or w not in [&"g17", &"mpx"] \
+			or not GameState.weapon_unlocked.get(w, false):
+		return
+	var order: Array[StringName] = GameConfig.WEAPON_ACCESSORY_MODES
+	var cur: StringName = GameState.weapon_accessory_modes.get(w, GameConfig.WEAPON_ACCESSORY_DEFAULT_MODE)
+	GameState.weapon_accessory_modes[w] = order[(order.find(cur) + 1) % order.size()]
+	Events.weapon_accessory_mode_changed.emit(w, GameState.weapon_accessory_modes[w])
 
 
 ## X：各武器只循环机主配置的射击模式；EM-86M 无点射，EM-40T-1 固定半自动。

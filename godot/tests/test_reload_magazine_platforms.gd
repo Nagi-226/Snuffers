@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 const HandSkin = preload("res://tests/hand_skin_probe.gd")
 
 const WEAPONS := [&"rifle", &"smg", &"lmg", &"dmr", &"shotgun", &"em57s2", &"em86b", &"em86d", &"em86s", &"em86m", &"em12g2", &"em127g", &"em127m", &"em40t1"]
@@ -95,7 +97,7 @@ func _check_weapon(weapon_id: StringName, profiles: Dictionary) -> void:
 		reserve_key = weapon_id + "_reserve"
 	var starting_mag: int = maxi(1, weapon.weapon_data.mag_size / 2)
 	var starting_reserve: int = weapon.weapon_data.mag_size * 2
-	state.set(mag_key, starting_mag)
+	Chamber.set_total(state, weapon_id, starting_mag)
 	state.set(reserve_key, starting_reserve)
 	var starts := int(_started.get(weapon_id, 0))
 	var finishes := int(_finished.get(weapon_id, 0))
@@ -147,11 +149,13 @@ func _check_weapon(weapon_id: StringName, profiles: Dictionary) -> void:
 	_assert(maximum_pull >= float(profile.extraction_distance) * 0.95, "%s physically extracts its real magazine clear of the well" % weapon_id)
 	_assert(exchanged and maximum_pull >= float(profile.extraction_distance) + 0.15, "%s moves the old magazine away and hides it during exchange" % weapon_id)
 	await create_timer(duration + 0.05).timeout
-	_assert(int(_finished.get(weapon_id, 0)) == finishes + 1 and not weapon._is_reloading and state.get(mag_key) == weapon.weapon_data.mag_size and state.get(reserve_key) == starting_reserve - (weapon.weapon_data.mag_size - starting_mag), "%s retains timed completion and shared reserve arithmetic" % weapon_id)
+	var expected_chamber := 1 if Chamber.IDS.has(weapon_id) else 0
+	var capacity_after: int = weapon.weapon_data.mag_size + expected_chamber
+	_assert(int(_finished.get(weapon_id, 0)) == finishes + 1 and not weapon._is_reloading and Chamber.total(state, weapon_id) == capacity_after and state.get(mag_key) == weapon.weapon_data.mag_size and Chamber.chamber(state, weapon_id) == expected_chamber and state.get(reserve_key) == starting_reserve - (capacity_after - starting_mag), "%s retains timed completion and shared reserve arithmetic" % weapon_id)
 	_assert(magazine.transform.is_equal_approx(magazine_home) and magazine.visible, "%s seats its real magazine at the original transform" % weapon_id)
 	weapon._process(0.0)
 	_assert(magazine.position.distance_to(magazine_home.origin) < 0.001 and magazine.visible, "%s returns to seated idle within 1mm after the completion callback" % weapon_id)
-	state.set(mag_key, starting_mag)
+	Chamber.set_total(state, weapon_id, starting_mag)
 	var reserve_after: int = state.get(reserve_key)
 	weapon._start_reload()
 	animation.seek(duration * 0.45, true)
@@ -162,7 +166,7 @@ func _check_weapon(weapon_id: StringName, profiles: Dictionary) -> void:
 	weapon._process(0.0)
 	_assert(magazine.position.distance_to(magazine_home.origin) < 0.001 and magazine.visible, "%s remains seated within 1mm when idle resumes after cancellation" % weapon_id)
 	await create_timer(duration + 0.05).timeout
-	_assert(int(_finished.get(weapon_id, 0)) == finishes + 1 and state.get(mag_key) == starting_mag and state.get(reserve_key) == reserve_after, "%s cancelled timer cannot duplicate ammunition later" % weapon_id)
+	_assert(int(_finished.get(weapon_id, 0)) == finishes + 1 and Chamber.total(state, weapon_id) == starting_mag and state.get(reserve_key) == reserve_after, "%s cancelled timer cannot duplicate ammunition later" % weapon_id)
 	parent.queue_free()
 	await process_frame
 

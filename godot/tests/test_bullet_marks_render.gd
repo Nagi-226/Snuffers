@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 const OUTPUT_DIR := "res://tmp_shots/bullet_marks"
 const SURFACES := [
 	["wall", Vector3(3.5, 1.3, 20), Vector3(8.0, 1.3, 20)],
@@ -141,7 +143,7 @@ func _fire_at(id: StringName, from: Vector3, toward: Vector3) -> bool:
 	weapon.set_process(false)
 	weapon.set_physics_process(false)
 	_player._weapon_mount.visible = false
-	_state.set(String(id) + "_mag", weapon.weapon_data.mag_size)
+	Chamber.set_total(_state, String(id), weapon.weapon_data.mag_size)
 	weapon.set("_is_reloading", false)
 	var data: WeaponData = weapon.weapon_data
 	var saved := Vector3(data.spread_hip, data.spread_aim, data.spread_prone)

@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 var _failures: int = 0
 var _player: CharacterBody3D
 
@@ -69,7 +71,7 @@ func _run() -> void:
 	_assert(state.current_weapon == &"spas12", "number 4 repeats into SPAS-12")
 	_assert(hud._selector_icons[4].size() == 5 and hud._selector_icons[4].filter(func(icon): return icon.visible).size() == 2 and hud._selector_icons[4].all(func(icon): return icon.visible == state.weapon_unlocked.get(icon.weapon_id, false)), "combined category shows only unlocked shotgun and sniper icons")
 	_assert(hud._selector_icons[3].all(func(icon): return not icon.visible), "other categories show only their number")
-	_assert(hud._weapon_ammo.weapon_id == &"spas12" and hud._weapon_ammo.mag == state.spas12_mag and hud._weapon_ammo.reserve == state.spas12_reserve, "ammo HUD follows weapon, magazine and reserve")
+	_assert(hud._weapon_ammo.weapon_id == &"spas12" and hud._weapon_ammo.mag == Chamber.total(state, &"spas12") and hud._weapon_ammo.reserve == state.spas12_reserve, "ammo HUD follows weapon, magazine and reserve")
 	_assert(hud._weapon_ammo.ammo_type == "12GA", "SPAS-12 displays its real 12GA ammunition")
 	for refresh in 20:
 		hud._set_ammo_text(&"spas12", 8, 40)
@@ -91,7 +93,7 @@ func _run() -> void:
 	state.fire_modes[&"rifle"] = &"grenade"
 	state.rifle_grenades = 3
 	hud._set_ammo_text(&"rifle", state.rifle_mag, state.rifle_reserve)
-	_assert(hud._weapon_ammo.mag == state.rifle_mag and hud._weapon_ammo.reserve == state.rifle_reserve and hud._weapon_ammo.mode_tag == "滚雷", "grenade mode keeps rifle magazine and reserve visible")
+	_assert(hud._weapon_ammo.mag == Chamber.total(state, &"rifle") and hud._weapon_ammo.reserve == state.rifle_reserve and hud._weapon_ammo.mode_tag == "滚雷", "grenade mode keeps rifle magazine and reserve visible")
 	_assert(hud._weapon_ammo.ammo_type == "EC-68" and hud._weapon_ammo.show_grenades and hud._weapon_ammo.grenade_stock == 3, "grenade mode displays EC-68 and EC-40P stock together")
 	state.fire_modes[&"rifle"] = &"auto"
 	hud._selector_time_left = 0.01

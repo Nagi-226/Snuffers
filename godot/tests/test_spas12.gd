@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 var _failures := 0
 
 
@@ -18,9 +20,9 @@ func _assert(condition: bool, label: String) -> void:
 func _run() -> void:
 	var state = root.get_node("GameState")
 	state.reset()
-	_assert(state.spas12_mag == 8 and state.spas12_reserve == 40, "SPAS uses independent 12-gauge ammunition")
+	_assert(Chamber.total(state, &"spas12") == 8 and state.spas12_reserve == 40, "SPAS uses independent 12-gauge ammunition")
 	_assert(not state.weapon_unlocked[&"spas12"], "SPAS starts locked")
-	_assert(state.shotgun_mag == 32 and state.shotgun_reserve == 160, "EM-12G-1 ammunition is unchanged")
+	_assert(Chamber.total(state, &"shotgun") == 32 and state.shotgun_reserve == 160, "EM-12G-1 ammunition is unchanged")
 	var data := WeaponData.new()
 	data.weapon_id = &"spas12"
 	data.sync_from_config()
@@ -33,26 +35,27 @@ func _run() -> void:
 	await physics_frame
 	_assert(weapon._pump_sleeve != null, "SPAS has an independent pump sleeve mesh")
 	_assert(weapon._fire(), "SPAS fires")
-	_assert(state.spas12_mag == 7 and state.spas12_reserve == 40, "SPAS consumes one shell per shot")
-	_assert(state.shotgun_mag == 32 and state.shotgun_reserve == 160, "SPAS firing does not consume EC-12 ammunition")
+	_assert(Chamber.total(state, &"spas12") == 7 and state.spas12_reserve == 40, "SPAS consumes one shell per shot")
+	_assert(Chamber.total(state, &"shotgun") == 32 and state.shotgun_reserve == 160, "SPAS firing does not consume EC-12 ammunition")
 	_assert(weapon._pump_left > 0.0, "firing starts the pump cycle")
-	state.spas12_mag = 2
+	await create_timer(root.get_node("GameConfig").SPAS12_PUMP_TIME + 0.1).timeout
+	Chamber.set_total(state, &"spas12", 2)
 	state.spas12_reserve = 5
 	weapon._start_reload()
 	weapon._start_reload()
 	await create_timer(root.get_node("GameConfig").SPAS12_RELOAD_SHELL_TIME + 0.1).timeout
-	_assert(state.spas12_mag == 3 and state.spas12_reserve == 4, "reload inserts exactly one shell per interval")
+	_assert(Chamber.total(state, &"spas12") == 3 and state.spas12_reserve == 4, "reload inserts exactly one shell per interval")
 	await create_timer(root.get_node("GameConfig").SPAS12_RELOAD_SHELL_TIME * 6.0).timeout
-	_assert(state.spas12_mag == 7 and state.spas12_reserve == 0, "reload stops when reserves empty without duplication")
+	_assert(Chamber.total(state, &"spas12") == 7 and state.spas12_reserve == 0, "reload stops when reserves empty without duplication")
 	_assert(not weapon._is_reloading, "reload leaves its active state")
-	state.spas12_mag = 2
+	Chamber.set_total(state, &"spas12", 2)
 	state.spas12_reserve = 5
 	weapon._start_reload()
 	await create_timer(0.15).timeout
 	state.current_weapon = &"rifle"
 	root.get_node("Events").weapon_switched.emit(&"rifle")
 	await create_timer(root.get_node("GameConfig").SPAS12_RELOAD_SHELL_TIME + 0.2).timeout
-	_assert(state.spas12_mag == 2 and state.spas12_reserve == 5, "switching cancels reload before the first shell")
+	_assert(Chamber.total(state, &"spas12") == 2 and state.spas12_reserve == 5, "switching cancels reload before the first shell")
 	weapon.queue_free()
 	await process_frame
 	var player := Node3D.new()

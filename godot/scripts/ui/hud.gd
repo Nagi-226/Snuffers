@@ -353,6 +353,7 @@ func _connect_events() -> void:
 	Events.weapon_switched.connect(_on_weapon_switched)
 	Events.weapon_category_selected.connect(_show_weapon_selector)
 	Events.fire_mode_changed.connect(_on_fire_mode_changed)
+	Events.weapon_accessory_mode_changed.connect(_on_weapon_accessory_mode_changed)
 	Events.ec120_guidance_changed.connect(_on_ec120_guidance_changed)
 	Events.message_posted.connect(_on_message_posted)
 	Events.kills_changed.connect(_refresh_kills)
@@ -378,6 +379,7 @@ func _disconnect_events() -> void:
 	Events.weapon_switched.disconnect(_on_weapon_switched)
 	Events.weapon_category_selected.disconnect(_show_weapon_selector)
 	Events.fire_mode_changed.disconnect(_on_fire_mode_changed)
+	Events.weapon_accessory_mode_changed.disconnect(_on_weapon_accessory_mode_changed)
 	Events.ec120_guidance_changed.disconnect(_on_ec120_guidance_changed)
 	Events.message_posted.disconnect(_on_message_posted)
 	Events.kills_changed.disconnect(_refresh_kills)
@@ -515,12 +517,17 @@ func _on_fire_mode_changed(weapon_id: StringName, _mode: StringName) -> void:
 		_refresh_ammo()
 
 
+func _on_weapon_accessory_mode_changed(weapon_id: StringName, _mode: StringName) -> void:
+	if weapon_id == GameState.current_weapon and weapon_id in [&"g17", &"mpx"]:
+		_refresh_ammo()
+
+
 func _on_ec120_guidance_changed(_mode: StringName) -> void:
 	if GameState.current_weapon == &"em120r":
 		_refresh_ammo()
 
 
-## 弹药行：主弹显示武器弹匣/备弹；EM-68A 另起一行显示 EC-40P 榴弹总余量。
+## 弹药行：主弹显示供弹容器与膛弹之和/备弹；EM-68A 另起一行显示 EC-40P 榴弹总余量。
 ## 滚雷档只切换射击模式标签，不再用榴弹余量替换步枪主弹。
 func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 	var mode: StringName = GameState.fire_modes.get(weapon_id, &"auto")
@@ -533,6 +540,14 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 		mode_tag = "泵动"
 	if weapon_id == &"em120r":
 		mode_tag = "半自动·激光" if GameState.em120r_guidance_mode == &"laser" else "半自动·追踪"
+	if weapon_id in [&"g17", &"mpx"]:
+		var accessory_mode: StringName = GameState.weapon_accessory_modes.get(weapon_id, GameConfig.WEAPON_ACCESSORY_DEFAULT_MODE)
+		var accessory_tag: String = {
+			&"laser": "红点",
+			&"flashlight": "手电",
+			&"combined": "红点+手电",
+		}.get(accessory_mode, "红点")
+		mode_tag += "·" + accessory_tag
 	var ammo_type: String = {
 		&"pistol": "EC-57",
 		&"g17": "9×19mm",
@@ -557,9 +572,12 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 	}.get(weapon_id, "")
 	if weapon_id in [&"rifle", &"smg", &"em86b"] and mode == &"grenade":
 		mode_tag = "滚雷"
+	var available := mag
+	if weapon_id in GameConfig.CHAMBER_WEAPON_IDS and bool(GameState.weapon_chambered.get(weapon_id, false)):
+		available += 1
 	_weapon_ammo.set("weapon_id", weapon_id)
 	_weapon_ammo.set("weapon_name", _weapon_display_name(weapon_id))
-	_weapon_ammo.set("mag", mag)
+	_weapon_ammo.set("mag", available)
 	_weapon_ammo.set("reserve", reserve)
 	_weapon_ammo.set("mode_tag", mode_tag)
 	_weapon_ammo.set("ammo_type", ammo_type)

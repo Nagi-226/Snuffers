@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 var _failures := 0
 
 
@@ -20,7 +22,7 @@ func _run() -> void:
 	var config = root.get_node("GameConfig")
 	state.reset()
 	_assert(state.pistol_reserve == 3000 and config.PISTOL_RESERVE_MAX == 3000, "EC-57 starts with 3000 reserve and accepts pickups up to 3000")
-	_assert(state.em57s2_mag == 200 and state.pistol_mag == 30 and state.smg_mag == 100, "EM-57S2 starts with 200 rounds while other EC-57 magazines retain their capacities")
+	_assert(Chamber.total(state, &"em57s2") == 200 and Chamber.total(state, &"pistol") == 30 and Chamber.total(state, &"smg") == 100, "EM-57S2 starts with 200 rounds while other EC-57 magazines retain their capacities")
 	for id in [&"pistol", &"smg", &"em57s2"]:
 		var data = load("res://scenes/weapons/%s.tres" % id)
 		data.sync_from_config()
@@ -35,19 +37,19 @@ func _run() -> void:
 	var weapon = player.get_node("Camera3D/WeaponMount/Em57s2")
 	var ammo = scene.get_node("HUD")._weapon_ammo
 	_assert(ammo.mag == 200 and ammo.reserve == 3000 and ammo.ammo_type == "EC-57", "EM-57S2 HUD shows 200 loaded and 3000 reserve")
-	state.em57s2_mag = 0
+	Chamber.set_total(state, &"em57s2", 0)
 	weapon._start_reload()
 	await create_timer(weapon.weapon_data.reload_time + 0.1).timeout
-	_assert(state.em57s2_mag == 200 and state.pistol_reserve == 2800 and not weapon._is_reloading, "empty timed reload moves exactly 200 rounds out of the shared reserve")
+	_assert(Chamber.total(state, &"em57s2") == 200 and state.pistol_reserve == 2800 and not weapon._is_reloading, "empty timed reload moves exactly 200 rounds out of the shared reserve")
 	_assert(ammo.mag == 200 and ammo.reserve == 2800, "reload refreshes the 200-round magazine and remaining reserve in the HUD")
 	player._switch_weapon(&"pistol")
 	_assert(ammo.mag == 30 and ammo.reserve == 2800, "switching to the pistol sees the same depleted EC-57 reserve")
 	player._switch_weapon(&"smg")
 	_assert(ammo.mag == 100 and ammo.reserve == 2800, "switching to EM-57S1 sees the same depleted EC-57 reserve")
-	state.em57s2_mag = 0
+	Chamber.set_total(state, &"em57s2", 0)
 	state.pistol_reserve = 73
 	weapon._on_weapon_reloaded(&"em57s2")
-	_assert(state.em57s2_mag == 73 and state.pistol_reserve == 0, "partial reserve reload does not create ammunition")
+	_assert(Chamber.total(state, &"em57s2") == 73 and state.pistol_reserve == 0, "partial reserve reload does not create ammunition")
 	state.pistol_reserve = 2990
 	player._switch_weapon(&"pistol")
 	player._switch_weapon(&"smg")

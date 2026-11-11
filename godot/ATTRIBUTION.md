@@ -143,3 +143,4 @@
 
 - 完整名称、作者、原 URL、CC-BY 4.0 许可及改作说明见 [community_weapons/ATTRIBUTION.md](addons/community_weapons/ATTRIBUTION.md)。
 - 衍生资产：装配版 MPX、G17 Gen5 + Olight、DJMaesen 原生黑色手臂。游戏内标题页“资产署名”入口保留署名；Sketchfab 原始下载留在 Git 排除的 `raw_assets/`，不提交。
+- 2026-11-11补充：shirioko的Weapon lights/X400白光+激光模块（CC-BY4.0），仅将264面X400烘焙为独立米制衍生GLB供G17挂载；来源、许可及原件哈希见上述社区武器台账，原四灯整包保管于git排除的raw_assets。

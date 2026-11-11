@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 const WEAPONS := [&"rifle", &"dmr", &"shotgun", &"smg", &"lmg", &"em57s2", &"em86b", &"em86d", &"em86s", &"em86m", &"em12g2", &"em127g", &"em127m", &"em40t1"]
 
 var _assertions := 0
@@ -31,8 +33,8 @@ func _run() -> void:
 		var gun: Node3D = weapon._weapon_node
 		var home := gun.transform
 		var configured_mag = weapon.get("mag_state_property")
-		var mag_key: StringName = configured_mag if configured_mag != null else id + "_mag"
-		state.set(mag_key, maxi(1, weapon.weapon_data.mag_size / 2))
+		var _mag_key: StringName = configured_mag if configured_mag != null else id + "_mag"
+		Chamber.set_total(state, id, maxi(1, weapon.weapon_data.mag_size / 2))
 		var reserve_key: StringName = weapon.reserve_state_property
 		if reserve_key == &"":
 			reserve_key = id + "_reserve"

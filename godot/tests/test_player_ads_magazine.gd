@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 const WEAPONS := {&"em86b": "Em86b", &"em57s2": "Em57s2", &"em86m": "Em86m", &"em12g2": "Em12g2"}
 const ORIGINAL_INTACT := {&"em86b": "em86b_viewmodel_intact.glb", &"em57s2": "em57s2_viewmodel.glb", &"em86m": "em86m_viewmodel.glb", &"em12g2": "em12g2_viewmodel_intact.glb"}
 var _failures := 0
@@ -62,7 +64,7 @@ func _run() -> void:
 		control.free()
 		original.free()
 		_assert(_duplicates(pair.node, gun, mag_faces) == 0, "%s hip body does not restore magazine faces into the gun" % weapon_id)
-		state.set(weapon_id + "_mag", 1)
+		Chamber.set_total(state, weapon_id, 1)
 		weapon._start_reload()
 		maximum_reload_duration = maxf(maximum_reload_duration, weapon.weapon_data.reload_time)
 		weapon._arms_animation.seek(weapon.weapon_data.reload_time * 0.45, true)

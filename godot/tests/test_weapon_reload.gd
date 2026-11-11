@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 var _failures: int = 0
 var _reload_counts: Dictionary = {"rifle": 0, "pistol": 0, "dmr": 0, "shotgun": 0}
 
@@ -32,7 +34,7 @@ func _check_weapon(weapon_id: StringName, scene_path: String, arms_path: NodePat
 	var state = root.get_node("GameState")
 	state.reset()
 	state.current_weapon = weapon_id
-	state.set(weapon_id + "_mag", mag)
+	Chamber.set_total(state, weapon_id, mag)
 	state.set(("rifle_reserve" if weapon_id == &"dmr" else weapon_id + "_reserve"), reserve)
 	var weapon := (load(scene_path) as PackedScene).instantiate()
 	root.add_child(weapon)
@@ -82,8 +84,8 @@ func _check_weapon(weapon_id: StringName, scene_path: String, arms_path: NodePat
 	await create_timer(duration + 0.1).timeout
 	_assert(_reload_counts[weapon_id] == 1, "%s emits reload completion exactly once" % weapon_id)
 	_assert(not weapon._is_reloading, "%s leaves reload state" % weapon_id)
-	_assert(state.get(weapon_id + "_mag") == weapon.weapon_data.mag_size, "%s refills magazine" % weapon_id)
-	_assert(state.get(("rifle_reserve" if weapon_id == &"dmr" else weapon_id + "_reserve")) == reserve - (weapon.weapon_data.mag_size - mag), "%s preserves reserve math" % weapon_id)
+	_assert(Chamber.total(state, weapon_id) == weapon.weapon_data.mag_size + 1 and state.get(weapon_id + "_mag") == weapon.weapon_data.mag_size and Chamber.chamber(state, weapon_id) == 1, "%s refills container and retains its real chamber round" % weapon_id)
+	_assert(state.get(("rifle_reserve" if weapon_id == &"dmr" else weapon_id + "_reserve")) == reserve - (weapon.weapon_data.mag_size + 1 - mag), "%s preserves reserve math" % weapon_id)
 	# 原生 Idle 会继续微摆，并带浮点误差；归位容差 1mm / 四元数点积 0.9999。
 	_assert(weapon._magazine.position.distance_to(weapon._mag_home_transform.origin) < 0.001, "%s magazine position returns home" % weapon_id)
 	var home_q: Quaternion = weapon._mag_home_transform.basis.get_rotation_quaternion()
@@ -91,7 +93,7 @@ func _check_weapon(weapon_id: StringName, scene_path: String, arms_path: NodePat
 	_assert(absf(home_q.dot(current_q)) > 0.9999, "%s magazine rotation returns home" % weapon_id)
 	_assert(weapon._magazine.visible, "%s magazine is visible after reload" % weapon_id)
 
-	state.set(weapon_id + "_mag", mag)
+	Chamber.set_total(state, weapon_id, mag)
 	state.set(("rifle_reserve" if weapon_id == &"dmr" else weapon_id + "_reserve"), reserve)
 	weapon._start_reload()
 	await create_timer(0.25).timeout
@@ -103,7 +105,7 @@ func _check_weapon(weapon_id: StringName, scene_path: String, arms_path: NodePat
 	_assert(player.current_animation != "reload", "%s weapon switch cancels reload animation" % weapon_id)
 	await create_timer(duration).timeout
 	_assert(_reload_counts[weapon_id] == 1, "%s cancelled reload does not complete later" % weapon_id)
-	_assert(state.get(weapon_id + "_mag") == mag, "%s cancelled reload preserves magazine" % weapon_id)
+	_assert(Chamber.total(state, weapon_id) == mag, "%s cancelled reload preserves magazine" % weapon_id)
 	_assert(state.get(("rifle_reserve" if weapon_id == &"dmr" else weapon_id + "_reserve")) == reserve, "%s cancelled reload preserves reserve" % weapon_id)
 	weapon.queue_free()
 	await process_frame

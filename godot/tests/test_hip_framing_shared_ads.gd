@@ -1,6 +1,8 @@
 ## Real Player frames: restore the authored stock/receiver framing and test the visible shared optic.
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 const PLATFORMS := {
 	&"rifle": "Rifle", &"dmr": "DMR", &"shotgun": "Shotgun", &"smg": "SMG",
 	&"lmg": "LMG", &"em57s2": "Em57s2", &"em86b": "Em86b", &"em86d": "Em86d",
@@ -144,8 +146,8 @@ func _run() -> void:
 		var equipped := _player.get_node("Camera3D/WeaponMount/" + PLATFORMS[id]) as Node3D
 		_assert(equipped._arms_node.is_visible_in_tree(), str(id) + " leaving ADS restores the equipped gun arms")
 		var configured_mag = equipped.get("mag_state_property")
-		var mag_key: StringName = configured_mag if configured_mag != null else id + "_mag"
-		state.set(mag_key, maxi(1, equipped.weapon_data.mag_size / 2))
+		var _mag_key: StringName = configured_mag if configured_mag != null else id + "_mag"
+		Chamber.set_total(state, id, maxi(1, equipped.weapon_data.mag_size / 2))
 		maximum_reload_time = maxf(maximum_reload_time, equipped.weapon_data.reload_time)
 		equipped._start_reload()
 		await create_timer(0.10).timeout

@@ -63,6 +63,8 @@ var current_weapon: StringName = &"rifle"
 var weapon_unlocked: Dictionary = {} ## 雷暴领装状态；初始仅 EM-68A / EM-57P
 ## 射击模式（2026-10-19 机主立项：X 键循环）：weapon_id → &"semi" / &"burst" / &"auto"
 var fire_modes: Dictionary = {}
+var weapon_accessory_modes: Dictionary = {} ## G17/MPX各自L三档：laser/flashlight/combined
+var weapon_chambered: Dictionary = {} ## weapon_id → bool，膛内状态与弹匣/弹箱独立
 var is_prone: bool = false
 var is_aiming: bool = false
 var nano_mode: StringName = &"normal" ## 主动模式：常规 / 装甲 / 隐形；力量为可叠加被动能力
@@ -145,6 +147,13 @@ func reset() -> void:
 	weapon_unlocked[&"mpx"] = false
 	fire_modes[&"g17"] = &"semi"
 	fire_modes[&"mpx"] = &"auto"
+	weapon_accessory_modes = {&"g17": GameConfig.WEAPON_ACCESSORY_DEFAULT_MODE, &"mpx": GameConfig.WEAPON_ACCESSORY_DEFAULT_MODE}
+	weapon_chambered = {}
+	for weapon_id: StringName in GameConfig.CHAMBER_WEAPON_IDS:
+		# 出生总装填量仍为M：容器中的一发移入独立膛位，不增加配弹。
+		var mag_key := String(weapon_id) + "_mag"
+		set(mag_key, int(get(mag_key)) - 1)
+		weapon_chambered[weapon_id] = true
 	is_prone = false
 	is_aiming = false
 	nano_mode = &"normal"

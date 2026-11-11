@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 var _failures: int = 0
 
 
@@ -78,7 +80,7 @@ func _run() -> void:
 	expected_optic.x += GameConfig.SHOTGUN_ADS_OFFSET_X * shotgun._aim_weight
 	_assert(Vector2(optic_in_camera.x, optic_in_camera.y).distance_to(expected_optic) < 0.002, "shotgun optic follows the compensated hip-to-ADS trajectory")
 	var frozen_weight: float = shotgun._aim_weight
-	state.shotgun_mag = 0
+	Chamber.set_total(state, &"shotgun", 0)
 	shotgun._start_reload()
 	player._set_aiming(false)
 	await create_timer(0.06).timeout

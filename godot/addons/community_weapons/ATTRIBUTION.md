@@ -10,6 +10,7 @@
 | Low Poly AN/PEQ 15 | D_U | https://sketchfab.com/3d-models/low-poly-anpeq-15-522f6a04c34946dbb168022187645c1a | CC-BY 4.0 | 2026-11-10 |
 | SureFire M600DF | mbvisuals1 | https://sketchfab.com/3d-models/surefire-m600df-game-ready-flashlight-c04c7a9b2f8346bd90c3938b0af8024a | CC-BY 4.0 | 2026-11-10 |
 | G17 Gen5 + Olight | 8sianDude | https://sketchfab.com/3d-models/g17-gen-5-handgun-olight-nsw-police-force-0200c248eba14385ad2bee8d4dc4e586 | CC-BY 4.0 | 2026-11-10 |
+| Weapon lights — X400 pistol light+laser | shirioko | https://sketchfab.com/3d-models/weapon-lights-d8315946217a40b38808353a7ce81520 | CC-BY 4.0 | 2026-11-11 |
 | G17 Pistol - Animated（组合来源） | user77 | https://sketchfab.com/3d-models/g17-pistol-animated-7723ab14e70446ef8e06a134984f287f | CC-BY 4.0 | 2026-11-10 |
 | animated pistol（黑色手臂及动画上游） | DJMaesen | https://sketchfab.com/3d-models/animated-pistol-bd896167e7ca44f19597d3afe6a8d83f | CC-BY 4.0 | 2026-11-10 |
 | G17 9mm Pistol（组合源包枪模上游） | 3dvachevsky | https://sketchfab.com/3d-models/g17-9mm-pistol-b4136758508c486cadcd96c74d7882b8 | CC-BY 4.0 | 2026-11-10 |
@@ -24,6 +25,8 @@
 
 ## 原件保管与重建
 
-下载原件留在 `godot/raw_assets/community_weapons/`，继承 Git 排除规则；该目录的 `.gdignore` 避免原件进入游戏导入队列。Git 只纳入处理后的项目资源及其必要贴图，不提交 Sketchfab 原始下载文件。
+- `x400_red_white.glb`（2026-11-11）：机主下载并提供`weapon_lights.glb`，官方模型API核作者shirioko、可下载、CC-BY4.0允许商用/改作。仅提取X400独立网格（264三角面），保留源材质、UV与拓扑；烘焙原FBX导出坐标变换，枪口为-Z，以真实世界AABB中心归零，尺寸37×44×90mm。原四灯整包不入库，放在git排除的`raw_assets/community_weapons/weapon_lights_20261111/`；提取GDScript及真实尺寸报告同目录。原件SHA256 `eef2c72cd8367e099f03ce2d2794ba125d5ed7a54b4a78f0be5121463f5ab2db`。用于G17红激光+白光组合模块，替换实例中的PL-2显示，不修改原G17 GLB。
+
+MPX/G17/黑臂下载原件留在 `godot/raw_assets/community_weapons/`，继承 Git 排除规则；该目录的 `.gdignore` 避免原件进入游戏导入队列。X400整包和提取脚本另存仓库根的 `raw_assets/community_weapons/weapon_lights_20261111/`，同样已核Git排除且在Godot项目目录外。Git只纳入处理后的项目资源及其必要贴图，不提交Sketchfab原始下载文件。
 
 MPX / Gen5 重建管线：`desktop-port/godot-spike/modeling/scripts/prepare_community_weapons.py`；原件 SHA256、衍生文件 SHA256、尺寸和配件边界见 `desktop-port/godot-spike/modeling/community_weapons/prepared_assets.json`。

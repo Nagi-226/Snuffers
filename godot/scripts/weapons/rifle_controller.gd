@@ -20,6 +20,7 @@ extends WeaponController
 
 const MagazineReloadMotion = preload("res://scripts/weapons/magazine_reload_motion.gd")
 const NativeLongGunArms = preload("res://scripts/player/native_long_gun_arms.gd")
+const ChamberFeed = preload("res://scripts/weapons/chamber_feed.gd")
 
 @export var mag_state_property: StringName = &"rifle_mag"
 @export var reserve_state_property: StringName = &"rifle_reserve"
@@ -454,12 +455,11 @@ func _fire() -> bool:
 		return _fire_grenade()
 	if _is_reloading:
 		return false
-	if _mag_value() <= 0:
+	if not ChamberFeed.consume_round(weapon_data.weapon_id, mag_state_property):
 		# 网页版弹尽自动换弹（index.html L2954）。
 		_start_reload()
 		return false
 
-	_set_mag_value(_mag_value() - 1)
 	Events.ammo_changed.emit(weapon_data.weapon_id, _mag_value(), _reserve_value())
 	Events.weapon_fired.emit(weapon_data.weapon_id)
 	# 微弱青蓝枪口焰（2026-10-19 机主立项）：炮口近似位 = 武器原点沿 -Z 前移 PLAYER_MUZZLE_OFFSET。
@@ -664,8 +664,5 @@ func _on_weapon_reloaded(weapon_id: StringName) -> void:
 		return
 	_reset_reload_visuals()
 	_is_reloading = false
-	var need: int = weapon_data.mag_size - _mag_value()
-	var take: int = mini(need, _reserve_value())
-	_set_mag_value(_mag_value() + take)
-	_set_reserve_value(_reserve_value() - take)
+	ChamberFeed.refill_magazine(weapon_id, mag_state_property, reserve_state_property, weapon_data.mag_size)
 	Events.ammo_changed.emit(weapon_data.weapon_id, _mag_value(), _reserve_value())

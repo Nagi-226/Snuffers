@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/weapons/mpx_controller.gd" id="1_controller"]
 [ext_resource type="Resource" path="res://scenes/weapons/mpx.tres" id="2_data"]
 [ext_resource type="PackedScene" path="res://addons/community_weapons/mpx_tactical.glb" id="3_model"]
 [ext_resource type="PackedScene" path="res://addons/community_weapons/black_pistol_arms.glb" id="4_arms"]
+[ext_resource type="Script" path="res://scripts/weapons/weapon_accessory.gd" id="5_accessory"]
 
 [node name="MPX" type="Node3D"]
 script = ExtResource("1_controller")
@@ -23,11 +24,24 @@ position = Vector3(-0.05, 0.08, 0.25)
 [node name="HolographicSight" parent="ViewModel/EM68A/MpxTactical" index="2"]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -0.02687908, 0, -0.02999998)
 
+; PEQ-15的小激光出口，区别于旁边的大照明通道。
+[node name="LaserOrigin" type="Marker3D" parent="ViewModel/EM68A/MpxTactical/InfraredModule"]
+position = Vector3(-0.0346875, 0.1264785, -0.245)
+
+; SureFire M600DF实际前镜片口沿；标记随原灯体移动。
+[node name="FlashlightOrigin" type="Marker3D" parent="ViewModel/EM68A/MpxTactical/WeaponLight"]
+position = Vector3(0.03419285, 0.085192245, -0.2825)
+
 [node name="ArmsEM68A" parent="ViewModel" instance=ExtResource("4_arms")]
 position = Vector3(-0.05, 0.08, 0.25)
 
 ; 转向后 EotechOpticalGlass 真实镜窗 AABB 中心，加现有模型容器偏移。
 [node name="OpticAim" type="Marker3D" parent="ViewModel"]
 position = Vector3(-0.06261628, 0.24183671, 0.24524984)
+
+[node name="WeaponAccessory" type="Node" parent="."]
+script = ExtResource("5_accessory")
+laser_origin_path = NodePath("ViewModel/EM68A/MpxTactical/InfraredModule/LaserOrigin")
+flashlight_origin_path = NodePath("ViewModel/EM68A/MpxTactical/WeaponLight/FlashlightOrigin")
 
 [editable path="ViewModel/EM68A"]

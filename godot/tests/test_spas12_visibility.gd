@@ -1,6 +1,8 @@
 ## Real Player visibility: renderer-skinned vertices and diagnostic rendered pixels.
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 const OUTPUT := "res://tmp_shots/spas12_visibility"
 
 var _assertions := 0
@@ -64,7 +66,7 @@ func _run() -> void:
 	_state.weapon_unlocked[&"spas12"] = true
 	if use_range:
 		_state.weapon_unlocked[&"shotgun"] = true
-		_state.shotgun_mag = 32
+		Chamber.set_total(_state, &"shotgun", 32)
 		_press(KEY_4)
 		_assert(_state.current_weapon == &"shotgun", "real key 4 selects EM shotgun first")
 		await _settle(30)
@@ -88,7 +90,7 @@ func _run() -> void:
 	await create_timer(0.25).timeout
 	await _check("pump")
 	await create_timer(0.7).timeout
-	_state.spas12_mag = 3
+	Chamber.set_total(_state, &"spas12", 3)
 	_state.spas12_reserve = 5
 	_weapon._start_reload()
 	await create_timer(0.28).timeout

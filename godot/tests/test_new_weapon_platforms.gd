@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 var _failures := 0
 var _player: CharacterBody3D
 var _state
@@ -98,7 +100,7 @@ func _run() -> void:
 	current_scene = scene
 	_player = scene.get_node("Player") as CharacterBody3D
 	await process_frame
-	_assert(_state.smg_mag == 100 and _state.lmg_mag == 600 and _state.magnum_mag == 15, "new magazine sizes are 100, 600 and 15")
+	_assert(Chamber.total(_state, &"smg") == 100 and Chamber.total(_state, &"lmg") == 600 and Chamber.total(_state, &"magnum") == 15, "new magazine sizes are 100, 600 and 15")
 	_assert(_state.pistol_reserve == 3000 and _state.rifle_reserve == 1800 and _state.magnum_reserve == 1500, "shared reserves and EC-127 reserve initialize correctly")
 	var smg_data = load("res://scenes/weapons/smg.tres")
 	smg_data.sync_from_config()
@@ -112,9 +114,9 @@ func _run() -> void:
 	_press(KEY_2)
 	_assert(_state.current_weapon == &"smg", "number 2 selects the SMG")
 	var smg = _player.get_node("Camera3D/WeaponMount/SMG")
-	_state.pistol_mag = 30
+	Chamber.set_total(_state, &"pistol", 30)
 	var smg_fired: bool = smg._fire()
-	_assert(smg_fired and _state.smg_mag == 99 and _state.pistol_mag == 30, "SMG consumes its own magazine, not the pistol magazine")
+	_assert(smg_fired and Chamber.total(_state, &"smg") == 99 and Chamber.total(_state, &"pistol") == 30, "SMG consumes its own magazine, not the pistol magazine")
 	_press(KEY_X)
 	_assert(_state.fire_modes[&"smg"] == &"semi", "SMG enters semi-auto")
 	_press(KEY_X)
@@ -125,29 +127,29 @@ func _run() -> void:
 	var grenade_fired: bool = smg._fire_grenade()
 	_assert(grenade_fired and _state.rifle_grenades == grenades_before - 1, "SMG consumes the shared grenade pool")
 	var smg_ammo = scene.get_node("HUD")._weapon_ammo
-	_assert(smg_ammo.mag == _state.smg_mag and smg_ammo.reserve == _state.pistol_reserve and smg_ammo.grenade_stock == grenades_before - 1, "SMG grenade fire preserves primary ammo HUD and only decreases EC-40P stock")
-	_state.smg_mag = 17
+	_assert(smg_ammo.mag == Chamber.total(_state, &"smg") and smg_ammo.reserve == _state.pistol_reserve and smg_ammo.grenade_stock == grenades_before - 1, "SMG grenade fire preserves primary ammo HUD and only decreases EC-40P stock")
+	Chamber.set_total(_state, &"smg", 17)
 	_state.pistol_reserve = 600
 	_press_reload(smg)
-	_assert(not smg._is_reloading and _state.smg_mag == 17 and _state.pistol_reserve == 600 and _state.rifle_grenades == grenades_before - 1, "SMG grenade mode ignores R without changing either ammunition pool")
-	_state.smg_mag = 0
+	_assert(not smg._is_reloading and Chamber.total(_state, &"smg") == 17 and _state.pistol_reserve == 600 and _state.rifle_grenades == grenades_before - 1, "SMG grenade mode ignores R without changing either ammunition pool")
+	Chamber.set_total(_state, &"smg", 0)
 	_state.pistol_reserve = 600
 	smg._on_weapon_reloaded(&"smg")
-	_assert(_state.smg_mag == 100 and _state.pistol_reserve == 500, "SMG reloads from the shared EC-57 reserve")
+	_assert(Chamber.total(_state, &"smg") == 100 and _state.pistol_reserve == 500, "SMG reloads from the shared EC-57 reserve")
 	_state.fire_modes[&"smg"] = &"auto"
-	_state.smg_mag = 80
+	Chamber.set_total(_state, &"smg", 80)
 	_press_reload(smg)
 	_assert(smg._is_reloading, "SMG automatic mode still reloads with R")
 	_press(KEY_5)
 	_assert(_state.current_weapon == &"lmg", "number 5 selects the LMG")
 	var lmg = _player.get_node("Camera3D/WeaponMount/LMG")
-	_state.rifle_mag = 60
+	Chamber.set_total(_state, &"rifle", 60)
 	var lmg_fired: bool = lmg._fire()
-	_assert(lmg_fired and _state.lmg_mag == 599 and _state.rifle_mag == 60, "LMG consumes its own magazine, not the rifle magazine")
-	_state.lmg_mag = 0
+	_assert(lmg_fired and Chamber.total(_state, &"lmg") == 599 and Chamber.total(_state, &"rifle") == 60, "LMG consumes its own magazine, not the rifle magazine")
+	Chamber.set_total(_state, &"lmg", 0)
 	_state.rifle_reserve = 1800
 	lmg._on_weapon_reloaded(&"lmg")
-	_assert(_state.lmg_mag == 600 and _state.rifle_reserve == 1200, "LMG reloads from the shared EC-68 reserve")
+	_assert(Chamber.total(_state, &"lmg") == 600 and _state.rifle_reserve == 1200, "LMG reloads from the shared EC-68 reserve")
 	_press(KEY_X)
 	_assert(_state.fire_modes[&"lmg"] == &"burst", "LMG supports three-round burst without a grenade mode")
 	_press(KEY_1)
@@ -155,20 +157,20 @@ func _run() -> void:
 	_assert(_state.current_weapon == &"magnum", "number 1 repeats from pistol to Magnum")
 	var magnum = _player.get_node("Camera3D/WeaponMount/Magnum")
 	var magnum_fired: bool = magnum._fire()
-	_assert(magnum_fired and _state.magnum_mag == 14, "Magnum consumes its own EC-127 magazine")
+	_assert(magnum_fired and Chamber.total(_state, &"magnum") == 14, "Magnum consumes its own EC-127 magazine")
 	_press(KEY_X)
 	_assert(_state.fire_modes[&"magnum"] == &"semi", "Magnum remains semi-auto")
-	_state.magnum_mag = 0
+	Chamber.set_total(_state, &"magnum", 0)
 	_state.magnum_reserve = 1500
 	magnum._on_weapon_reloaded(&"magnum")
-	_assert(_state.magnum_mag == 15 and _state.magnum_reserve == 1485, "Magnum reloads from its independent EC-127 reserve")
+	_assert(Chamber.total(_state, &"magnum") == 15 and _state.magnum_reserve == 1485, "Magnum reloads from its independent EC-127 reserve")
 	_press(KEY_3)
 	var rifle = _player.get_node("Camera3D/WeaponMount/Rifle")
 	_state.fire_modes[&"rifle"] = &"grenade"
-	_state.rifle_mag = 13
+	Chamber.set_total(_state, &"rifle", 13)
 	_state.rifle_reserve = 1800
 	_press_reload(rifle)
-	_assert(not rifle._is_reloading and _state.rifle_mag == 13 and _state.rifle_reserve == 1800, "rifle grenade mode ignores R without changing its ammunition display values")
+	_assert(not rifle._is_reloading and Chamber.total(_state, &"rifle") == 13 and _state.rifle_reserve == 1800, "rifle grenade mode ignores R without changing its ammunition display values")
 	var rifle_grenades_before: int = _state.rifle_grenades
 	var rifle_grenade_fired: bool = rifle._fire()
 	var rifle_ammo = scene.get_node("HUD")._weapon_ammo
@@ -228,7 +230,7 @@ func _run() -> void:
 		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center, Vector3(0, -0.018, 0)), "Magnum lower V-shaped optic region has no opaque face")
 		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center, Vector3(0.006, -0.008, 0)), "Magnum right lower optic region has no opaque face")
 		_assert(not _magnum_optic_occluded(magnum, _player._camera, lens_center, Vector3(-0.006, -0.008, 0)), "Magnum left lower optic region has no opaque face")
-	_state.magnum_mag = 4
+	Chamber.set_total(_state, &"magnum", 4)
 	magnum._start_reload()
 	_player._process(1.0 / 60.0)
 	_assert(magnum_arms.is_visible_in_tree() and not pistol_arms.is_visible_in_tree() and _player._scope_view_models[&"magnum"].visible, "Magnum ADS reload displays only its own animated weapon and arms")

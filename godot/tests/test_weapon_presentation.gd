@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 const HandSkin = preload("res://tests/hand_skin_probe.gd")
 
 var _failures := 0
@@ -104,7 +106,7 @@ func _run() -> void:
 	player._set_aiming(false)
 	_settle(player, smg)
 	_check_smg_grip(smg, "EM-57S1 after ADS")
-	state.smg_mag = 0
+	Chamber.set_total(state, &"smg", 0)
 	smg._start_reload()
 	await create_timer(smg.weapon_data.reload_time + 0.1).timeout
 	_assert(ammo.get("weapon_name") == "EM-57S-1 雹·Ⅰ" and ammo.mag == 100 and ammo.reserve == 2900, "real SMG reload refreshes ammunition while retaining its weapon identity")

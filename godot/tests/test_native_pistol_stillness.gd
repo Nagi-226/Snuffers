@@ -1,6 +1,8 @@
 ## 真实Player自然帧时钟：完整idle周期内枪身、60骨姿态及双掌蒙皮稳定。
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 var _assertions := 0
 var _failures := 0
 
@@ -35,10 +37,10 @@ func _run() -> void:
 			await create_timer(0.6).timeout
 			var label := "%s %s" % [weapon_id, "ADS" if aiming else "hip"]
 			await _check_idle(player, weapon, palms, label)
-			state.set(weapon.mag_state_property, 3)
+			Chamber.set_total(state, weapon_id, 3)
 			state.set(weapon.reserve_state_property, 100)
 			var home: Transform3D = weapon._weapon_node.transform
-			_assert(weapon._fire() and state.get(weapon.mag_state_property) == 2 and weapon._view_offset > 0.0, "%s real fire consumes one round and applies view recoil" % label)
+			_assert(weapon._fire() and Chamber.total(state, weapon_id) == 2 and weapon._view_offset > 0.0, "%s real fire consumes one round and applies view recoil" % label)
 			var fire_duration: float = weapon._arms_animation.get_animation(&"fire").length
 			var fire_progressed := false
 			var gun_moved := false
@@ -56,16 +58,16 @@ func _run() -> void:
 			await create_timer(weapon.weapon_data.reload_time * 0.35).timeout
 			_assert(weapon._is_reloading and weapon._arms_animation.current_animation == "reload" and weapon._arms_animation.current_animation_position > 0.0 and not weapon._magazine.transform.is_equal_approx(weapon._mag_home_transform), "%s real timed reload advances the existing animation and actual magazine" % label)
 			await create_timer(weapon.weapon_data.reload_time * 0.75).timeout
-			_assert(not weapon._is_reloading and state.get(weapon.mag_state_property) == weapon.weapon_data.mag_size and state.get(weapon.reserve_state_property) == starting_reserve - (weapon.weapon_data.mag_size - 2), "%s real timed reload preserves ammunition transfer" % label)
+			_assert(not weapon._is_reloading and Chamber.total(state, weapon_id) == weapon.weapon_data.mag_size + 1 and state.get(weapon.mag_state_property) == weapon.weapon_data.mag_size and Chamber.chamber(state, weapon_id) == 1 and state.get(weapon.reserve_state_property) == starting_reserve - (weapon.weapon_data.mag_size + 1 - 2), "%s real timed tactical reload preserves ammunition transfer" % label)
 			await _check_idle(player, weapon, palms, label + " after reload")
-		state.set(weapon.mag_state_property, 2)
+		Chamber.set_total(state, weapon_id, 2)
 		state.set(weapon.reserve_state_property, 100)
 		weapon._start_reload()
 		await create_timer(weapon.weapon_data.reload_time * 0.35).timeout
 		player._switch_weapon(&"magnum" if weapon_id == &"pistol" else &"pistol")
 		_assert(not weapon._is_reloading and weapon._magazine.transform.is_equal_approx(weapon._mag_home_transform) and weapon._magazine.visible, "%s switching weapons cancels and restores the existing reload" % weapon_id)
 		await create_timer(weapon.weapon_data.reload_time).timeout
-		_assert(state.get(weapon.mag_state_property) == 2 and state.get(weapon.reserve_state_property) == 100, "%s cancelled timer cannot migrate ammunition later" % weapon_id)
+		_assert(Chamber.total(state, weapon_id) == 2 and state.get(weapon.reserve_state_property) == 100, "%s cancelled timer cannot migrate ammunition later" % weapon_id)
 	player.queue_free()
 	await process_frame
 	# 共用helper的社区Gen5预览保留现有idle展示，不能被两枪约束误伤。

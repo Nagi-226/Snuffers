@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 var _assertions := 0
 var _failures := 0
 var _started: Dictionary = {}
@@ -80,15 +82,15 @@ func _check_weapon(weapon_id: StringName) -> void:
 	var gun: Node3D = weapon._weapon_node
 	var right_home := gun.global_transform.affine_inverse() * skeleton.global_transform * skeleton.get_bone_global_pose(right)
 	var magazine_home: Transform3D = weapon._mag_home_transform
-	state.set(weapon.mag_state_property, 3)
+	Chamber.set_total(state, weapon_id, 3)
 	state.set(weapon.reserve_state_property, 100)
-	_assert(weapon._fire() and state.get(weapon.mag_state_property) == 2 and animation.current_animation == "fire", "%s real firing consumes one round and plays the native fire action" % weapon_id)
+	_assert(weapon._fire() and Chamber.total(state, weapon_id) == 2 and animation.current_animation == "fire", "%s real firing consumes one round and plays the native fire action" % weapon_id)
 	for frame in 8:
 		weapon._process(1.0 / 60.0)
 	var duration: float = weapon.weapon_data.reload_time
 	for empty in [false, true]:
 		var starting_mag := 0 if empty else 2
-		state.set(weapon.mag_state_property, starting_mag)
+		Chamber.set_total(state, weapon_id, starting_mag)
 		state.set(weapon.reserve_state_property, 100)
 		var start_count := int(_started.get(weapon_id, 0))
 		var finish_count := int(_finished.get(weapon_id, 0))
@@ -121,9 +123,10 @@ func _check_weapon(weapon_id: StringName) -> void:
 		_assert(not weapon._fire(), "%s cannot fire during reload" % weapon_id)
 		await create_timer(duration + 0.1).timeout
 		_assert(int(_finished.get(weapon_id, 0)) == finish_count + 1 and not weapon._is_reloading, "%s original timed reload completes exactly once" % weapon_id)
-		_assert(state.get(weapon.mag_state_property) == weapon.weapon_data.mag_size and state.get(weapon.reserve_state_property) == 100 - (weapon.weapon_data.mag_size - starting_mag), "%s preserves reload ammunition math" % weapon_id)
+		var loaded_after: int = weapon.weapon_data.mag_size + (0 if empty else 1)
+		_assert(Chamber.total(state, weapon_id) == loaded_after and state.get(weapon.mag_state_property) == loaded_after - 1 and Chamber.chamber(state, weapon_id) == 1 and state.get(weapon.reserve_state_property) == 100 - (loaded_after - starting_mag), "%s preserves reload ammunition math and container/chamber separation" % weapon_id)
 		_assert(magazine.transform.is_equal_approx(magazine_home) and magazine.visible, "%s seats its real magazine after reload" % weapon_id)
-	state.set(weapon.mag_state_property, 2)
+	Chamber.set_total(state, weapon_id, 2)
 	state.set(weapon.reserve_state_property, 100)
 	var finishes := int(_finished.get(weapon_id, 0))
 	weapon._start_reload()
@@ -132,7 +135,7 @@ func _check_weapon(weapon_id: StringName) -> void:
 	root.get_node("Events").weapon_switched.emit(&"rifle")
 	_assert(not weapon._is_reloading and magazine.transform.is_equal_approx(magazine_home) and magazine.visible, "%s switching weapons resets the visible reload" % weapon_id)
 	await create_timer(duration + 0.1).timeout
-	_assert(int(_finished.get(weapon_id, 0)) == finishes and state.get(weapon.mag_state_property) == 2 and state.get(weapon.reserve_state_property) == 100, "%s cancelled reload cannot complete later" % weapon_id)
+	_assert(int(_finished.get(weapon_id, 0)) == finishes and Chamber.total(state, weapon_id) == 2 and state.get(weapon.reserve_state_property) == 100, "%s cancelled reload cannot complete later" % weapon_id)
 	mount.queue_free()
 	await process_frame
 

@@ -16,6 +16,7 @@ extends WeaponController
 @export var native_arms_profile: StringName = &""
 
 const NativeArms = preload("res://scripts/player/native_pistol_arms.gd")
+const ChamberFeed = preload("res://scripts/weapons/chamber_feed.gd")
 
 ## 射击模式机制已上收基类（2026-10-19：半自动/三发点射/全自动三档，X 键切换）；
 ## 本子类只保留弹药结算、散布射线与换弹三件套。
@@ -206,12 +207,11 @@ func _unhandled_input(event: InputEvent) -> void:
 func _fire() -> bool:
 	if _is_reloading:
 		return false
-	if _mag_value() <= 0:
+	if not ChamberFeed.consume_round(weapon_data.weapon_id, mag_state_property):
 		# 弹尽自动换弹（与步枪同口径）。
 		_start_reload()
 		return false
 
-	_set_mag_value(_mag_value() - 1)
 	Events.ammo_changed.emit(weapon_data.weapon_id, _mag_value(), _reserve_value())
 	Events.weapon_fired.emit(weapon_data.weapon_id)
 	if _native_arms != null:
@@ -302,7 +302,7 @@ func _on_reload_started(weapon_id: StringName) -> void:
 
 func _play_reload_anim() -> void:
 	if _native_arms != null:
-		_native_arms.play_reload(weapon_data.reload_time, _mag_value() == 0)
+		_native_arms.play_reload(weapon_data.reload_time, not ChamberFeed.has_round(weapon_data.weapon_id, _mag_value()))
 		return
 	_set_sleeve_extenders_visible(false)
 	if _magazine != null:
@@ -353,8 +353,5 @@ func _on_weapon_reloaded(weapon_id: StringName) -> void:
 		return
 	_reset_reload_visuals()
 	_is_reloading = false
-	var need: int = weapon_data.mag_size - _mag_value()
-	var take: int = mini(need, _reserve_value())
-	_set_mag_value(_mag_value() + take)
-	_set_reserve_value(_reserve_value() - take)
+	ChamberFeed.refill_magazine(weapon_id, mag_state_property, reserve_state_property, weapon_data.mag_size)
 	Events.ammo_changed.emit(weapon_data.weapon_id, _mag_value(), _reserve_value())

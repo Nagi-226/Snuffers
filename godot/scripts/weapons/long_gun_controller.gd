@@ -3,6 +3,7 @@ extends WeaponController
 
 const MagazineReloadMotion = preload("res://scripts/weapons/magazine_reload_motion.gd")
 const NativeLongGunArms = preload("res://scripts/player/native_long_gun_arms.gd")
+const ChamberFeed = preload("res://scripts/weapons/chamber_feed.gd")
 
 @export var weapon_node_path: NodePath = ^"ViewModel/Weapon"
 @export var magazine_node_path: NodePath = ^"ViewModel/Weapon/Magazine"
@@ -45,6 +46,7 @@ var _right_upper_hold_position := Vector3.ZERO
 var _charge_elapsed: float = 0.0
 var _charge_fired: bool = false
 var _charged_shot: bool = false
+var _charge_mouse_captured: bool = false
 var _magazine_reload: RefCounted
 var _native_arms: RefCounted
 
@@ -61,11 +63,12 @@ func _unhandled_input(event: InputEvent) -> void:
 				_trigger_held = true
 				_on_trigger_pressed()
 				return
+			if _charge_mouse_captured and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+				_cancel_charge()
+				return
 			if _trigger_held and not _charge_fired and _charge_elapsed < GameConfig.EM127G_CHARGE_TIME and _fire_cooldown <= 0.0 and _is_current_weapon():
 				_try_fire()
-			_trigger_held = false
-			_charge_elapsed = 0.0
-			_charge_fired = false
+			_cancel_charge()
 			return
 	if not (event is InputEventKey):
 		return
@@ -81,8 +84,24 @@ func _on_trigger_pressed() -> void:
 	if weapon_data.weapon_id == &"em127g":
 		_charge_elapsed = 0.0
 		_charge_fired = false
+		_charge_mouse_captured = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 		return
 	super()
+
+
+func _physics_process(delta: float) -> void:
+	if weapon_data != null and weapon_data.weapon_id == &"em127g" \
+			and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		_cancel_charge()
+	super(delta)
+
+
+func _cancel_charge() -> void:
+	_trigger_held = false
+	_charge_elapsed = 0.0
+	_charge_fired = false
+	_charged_shot = false
+	_charge_mouse_captured = false
 
 
 func _tick_weapon(delta: float) -> void:
@@ -433,31 +452,31 @@ func _fire() -> bool:
 	if _is_reloading:
 		return false
 	var weapon_id := weapon_data.weapon_id
-	if int(GameState.get(weapon_id + "_mag")) <= 0:
+	if not ChamberFeed.consume_round(weapon_id, weapon_id + "_mag", weapon_id != &"spas12"):
 		_start_reload()
 		return false
-	GameState.set(weapon_id + "_mag", int(GameState.get(weapon_id + "_mag")) - 1)
 	Events.ammo_changed.emit(weapon_id, GameState.get(weapon_id + "_mag"), GameState.get(_reserve_key))
 	Events.weapon_fired.emit(weapon_id)
-	if _charged_shot and weapon_id == &"em127g":
+	var charged := _charged_shot and weapon_id == &"em127g"
+	if charged:
 		Events.weapon_charge_fired.emit(weapon_id)
 	Events.player_muzzle_flash.emit(weapon_id, _muzzle_position())
-	var shot_damage: float = GameConfig.EM127G_CHARGED_DAMAGE_BODY if _charged_shot and weapon_id == &"em127g" else weapon_data.damage_body
+	var shot_damage: float = GameConfig.EM127G_CHARGED_DAMAGE_BODY if charged else weapon_data.damage_body
 	var total_damage := 0.0
 	var any_headshot := false
 	var any_hit := false
 	var ricochet_reported := false
-	var first_hit := _cast_spread_ray(0.0)
+	var first_hit := _cast_charged_ray(0.0) if charged else _cast_spread_ray(0.0)
 	var first_distance := weapon_data.hitscan_range
 	if not first_hit.is_empty():
 		first_distance = global_position.distance_to(first_hit.position)
 	var spread := _spread_for_distance(first_distance)
 	for pellet in weapon_data.pellet_count:
-		var hit := _cast_spread_ray(spread)
+		var hit := _cast_charged_ray(spread) if charged else _cast_spread_ray(spread)
 		if hit.is_empty():
 			continue
 		var collider: Object = hit.collider
-		if HitSolver.find_group_ancestor(collider, &"bunker") != null:
+		if not charged and HitSolver.find_group_ancestor(collider, &"bunker") != null:
 			Events.bullet_impacted.emit(hit.position, hit.normal, true)
 			Events.bullet_mark_requested.emit(hit.position, hit.normal, collider as Node3D)
 			if not ricochet_reported:
@@ -500,6 +519,40 @@ func _cast_spread_ray(spread: float) -> Dictionary:
 	return get_world_3d().direct_space_state.intersect_ray(query)
 
 
+## 充能高斯只穿场景掩体；所有重查询沿同一有限线段，首个存活敌人即停止。
+func _cast_charged_ray(spread: float) -> Dictionary:
+	var local_dir := Vector3(randf_range(-spread, spread), randf_range(-spread, spread), -1.0).normalized()
+	var from := global_position
+	var to: Vector3 = from + (global_transform.basis * local_dir) * weapon_data.hitscan_range
+	var query := PhysicsRayQueryParameters3D.create(from, to)
+	var excludes := HitSolver.collect_owner_rids(self)
+	query.exclude = excludes
+	query.collide_with_areas = true
+	var space := get_world_3d().direct_space_state
+	while true:
+		var hit := space.intersect_ray(query)
+		if hit.is_empty():
+			return {}
+		var collider_rid: RID = hit.get("rid", RID())
+		if not collider_rid.is_valid() or excludes.has(collider_rid):
+			push_error("EM-127G charged ray returned an invalid or already excluded collider RID")
+			return {}
+		var collider: Object = hit.collider
+		if not is_instance_valid(collider):
+			push_error("EM-127G charged ray returned an invalid collider")
+			return {}
+		var target := HitSolver.find_damageable(collider)
+		if target != null and not target.is_queued_for_deletion() \
+				and (HitSolver.find_group_ancestor(target, &"enemy") != null \
+				or HitSolver.find_group_ancestor(target, &"range_target") != null):
+			var health: Variant = target.get("health")
+			if target.get("_dead") != true and (health == null or float(health) > 0.0):
+				return hit
+		excludes.append(collider_rid)
+		query.exclude = excludes
+	return {}
+
+
 func _spread_for_distance(distance: float) -> float:
 	if weapon_data.weapon_id in [&"shotgun", &"em12g2"] and distance <= GameConfig.SHOTGUN_SPREAD_START:
 		return 0.0
@@ -532,6 +585,8 @@ func _start_reload() -> void:
 func _on_reload_started(weapon_id: StringName) -> void:
 	if weapon_id != weapon_data.weapon_id:
 		return
+	if weapon_id == &"em127g":
+		_cancel_charge()
 	_is_reloading = true
 	_play_reload_anim()
 
@@ -605,9 +660,5 @@ func _on_weapon_reloaded(weapon_id: StringName) -> void:
 		return
 	_reset_reload_visuals()
 	_is_reloading = false
-	var mag := int(GameState.get(weapon_id + "_mag"))
-	var reserve := int(GameState.get(_reserve_key))
-	var take: int = mini(weapon_data.mag_size - mag, reserve)
-	GameState.set(weapon_id + "_mag", mag + take)
-	GameState.set(_reserve_key, reserve - take)
-	Events.ammo_changed.emit(weapon_id, mag + take, reserve - take)
+	ChamberFeed.refill_magazine(weapon_id, weapon_id + "_mag", _reserve_key, weapon_data.mag_size)
+	Events.ammo_changed.emit(weapon_id, GameState.get(weapon_id + "_mag"), GameState.get(_reserve_key))

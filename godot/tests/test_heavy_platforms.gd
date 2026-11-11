@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 var _failures := 0
 var _player: CharacterBody3D
 var _state
@@ -35,7 +37,7 @@ func _run() -> void:
 	current_scene = scene
 	_player = scene.get_node("Player") as CharacterBody3D
 	await process_frame
-	_assert(_state.em127g_mag == 30 and _state.em12g2_mag == 64, "EM-127G and EM-12G-2 magazines initialize to 30 and 64")
+	_assert(Chamber.total(_state, &"em127g") == 30 and Chamber.total(_state, &"em12g2") == 64, "EM-127G and EM-12G-2 magazines initialize to 30 and 64")
 	_assert(_state.magnum_reserve == 1500 and _state.shotgun_reserve == 160, "EC-127 and EC-12 use their existing shared reserves")
 	_assert(_state.fire_modes[&"em127g"] == &"semi" and _state.fire_modes[&"em12g2"] == &"auto", "Gauss is semi-auto and EM-12G-2 starts full-auto")
 	var gauss_data = load("res://scenes/weapons/em127g.tres")
@@ -61,11 +63,11 @@ func _run() -> void:
 	var gauss_fired: bool = gauss._fire()
 	game_events.damage_dealt.disconnect(on_gauss_damage)
 	target.scale = Vector3.ONE
-	_assert(gauss_fired and is_equal_approx(gauss_damage[0], 450.0) and _state.em127g_mag == 29, "EM-127G deals its full 450 damage on a real hit")
-	_state.em127g_mag = 0
+	_assert(gauss_fired and is_equal_approx(gauss_damage[0], 450.0) and Chamber.total(_state, &"em127g") == 29, "EM-127G deals its full 450 damage on a real hit")
+	Chamber.set_total(_state, &"em127g", 0)
 	_state.magnum_reserve = 1500
 	gauss._on_weapon_reloaded(&"em127g")
-	_assert(_state.em127g_mag == 30 and _state.magnum_reserve == 1470, "EM-127G reloads from shared EC-127")
+	_assert(Chamber.total(_state, &"em127g") == 30 and _state.magnum_reserve == 1470, "EM-127G reloads from shared EC-127")
 	_player._set_aiming(true)
 	for frame in 20:
 		_player._process(1.0 / 60.0)
@@ -105,23 +107,23 @@ func _run() -> void:
 	release.pressed = false
 	gauss._trigger_held = true
 	gauss._on_trigger_pressed()
-	_assert(charge_damage.is_empty() and _state.em127g_mag == 30, "EM-127G quick press waits for release instead of firing on the press edge")
+	_assert(charge_damage.is_empty() and Chamber.total(_state, &"em127g") == 30, "EM-127G quick press waits for release instead of firing on the press edge")
 	gauss._tick_weapon(0.1)
 	gauss._unhandled_input(release)
-	_assert(charge_damage == [450.0] and _state.em127g_mag == 29, "EM-127G quick press and release fires only the 450-damage normal shot")
-	_state.em127g_mag = 30
+	_assert(charge_damage == [450.0] and Chamber.total(_state, &"em127g") == 29, "EM-127G quick press and release fires only the 450-damage normal shot")
+	Chamber.set_total(_state, &"em127g", 30)
 	gauss._fire_cooldown = 0.0
 	charge_damage.clear()
 	_player.get_node("Camera3D").look_at(target.global_position + Vector3(0, 1, 0))
 	gauss._trigger_held = true
 	gauss._on_trigger_pressed()
 	gauss._tick_weapon(0.5)
-	_assert(charge_damage.is_empty() and _state.em127g_mag == 30, "EM-127G holding does not fire a normal shot before the charge threshold")
+	_assert(charge_damage.is_empty() and Chamber.total(_state, &"em127g") == 30, "EM-127G holding does not fire a normal shot before the charge threshold")
 	gauss._tick_weapon(0.51)
-	_assert(charge_damage == [900.0] and _state.em127g_mag == 29, "EM-127G holding for one second fires only the 900-damage charged shot (got %s, mag %d)" % [str(charge_damage), _state.em127g_mag])
+	_assert(charge_damage == [900.0] and Chamber.total(_state, &"em127g") == 29, "EM-127G holding for one second fires only the 900-damage charged shot (got %s, mag %d)" % [str(charge_damage), Chamber.total(_state, &"em127g")])
 	gauss._tick_weapon(0.5)
 	gauss._unhandled_input(release)
-	_assert(charge_damage.size() == 1 and _state.em127g_mag == 29, "EM-127G fires once per hold and does not fire a normal shot on release")
+	_assert(charge_damage.size() == 1 and Chamber.total(_state, &"em127g") == 29, "EM-127G fires once per hold and does not fire a normal shot on release")
 	game_events.damage_dealt.disconnect(on_charge_damage)
 	_assert(game_events.has_signal(&"weapon_charge_fired"), "EM-127G has a dedicated charged-shot audio event")
 	_assert(ResourceLoader.exists("res://assets/audio/railgun_charged.wav"), "EM-127G charged shot has its own audio asset")
@@ -137,11 +139,11 @@ func _run() -> void:
 	events.damage_dealt.connect(on_damage)
 	var shotgun_fired: bool = shotgun._fire()
 	events.damage_dealt.disconnect(on_damage)
-	_assert(shotgun_fired and is_equal_approx(damage_report[0], 360.0) and _state.em12g2_mag == 63, "EM-12G-2 deals 360 total damage when all twelve pellets hit")
-	_state.em12g2_mag = 0
+	_assert(shotgun_fired and is_equal_approx(damage_report[0], 360.0) and Chamber.total(_state, &"em12g2") == 63, "EM-12G-2 deals 360 total damage when all twelve pellets hit")
+	Chamber.set_total(_state, &"em12g2", 0)
 	_state.shotgun_reserve = 160
 	shotgun._on_weapon_reloaded(&"em12g2")
-	_assert(_state.em12g2_mag == 64 and _state.shotgun_reserve == 96, "EM-12G-2 reloads from shared EC-12")
+	_assert(Chamber.total(_state, &"em12g2") == 64 and _state.shotgun_reserve == 96, "EM-12G-2 reloads from shared EC-12")
 	_player._cycle_fire_mode()
 	_assert(_state.fire_modes[&"em12g2"] == &"semi", "EM-12G-2 full-auto switches to semi-auto")
 	_player._cycle_fire_mode()

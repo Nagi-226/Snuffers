@@ -1,6 +1,8 @@
 ## Special supply paths retain real timed gameplay while moving native hands and gun.
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 const HandSkin = preload("res://tests/hand_skin_probe.gd")
 
 var _assertions := 0
@@ -69,7 +71,7 @@ func _check_spas(state: Node) -> void:
 	weapon.set_physics_process(false)
 	var skeleton: Skeleton3D = weapon._arms_skeleton
 	_assert(skeleton != null and skeleton.get_bone_count() == 60, "SPAS uses the original sixty-joint black arm skin")
-	state.spas12_mag = 2
+	Chamber.set_total(state, &"spas12", 2)
 	state.spas12_reserve = 5
 	var gun: Node3D = weapon._weapon_node
 	var home := gun.transform

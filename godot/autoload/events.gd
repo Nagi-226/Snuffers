@@ -39,6 +39,8 @@ signal weapon_charge_fired(weapon_id: StringName)
 ## 射击模式切换（2026-10-19 机主立项：X 键循环；2026-10-22 步枪追加 &"grenade" 榴档，闭环 全自动→半自动→三发点射→滚雷）。
 ## mode: &"semi" / &"burst" / &"auto" / &"grenade"
 signal fire_mode_changed(weapon_id: StringName, mode: StringName)
+## G17/MPX配件L三档：laser / flashlight / combined。
+signal weapon_accessory_mode_changed(weapon_id: StringName, mode: StringName)
 ## EC-120 指向、未发射目标锁与制导模式；每枚自主导弹保存自己的发射时目标。
 signal ec120_aim_changed(aim_point: Vector3)
 signal ec120_aim_origin_changed(origin: Vector3)

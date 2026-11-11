@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 const HandSkin = preload("res://tests/hand_skin_probe.gd")
 
 var _failures := 0
@@ -26,7 +28,7 @@ func _run() -> void:
 	var state = root.get_node("GameState")
 	state.reset()
 	state.current_weapon = &"rifle"
-	state.rifle_mag = 12
+	Chamber.set_total(state, &"rifle", 12)
 	state.rifle_reserve = 100
 	var weapon = (load("res://scenes/weapons/rifle.tscn") as PackedScene).instantiate()
 	root.add_child(weapon)
@@ -110,9 +112,9 @@ func _run() -> void:
 	_assert(exchanged and maximum_pull >= float(profile.extraction_distance) + 0.15, "old magazine leaves the working area and hides during the incoming-magazine exchange")
 	await create_timer(duration + 0.1).timeout
 	weapon._process(0.0)
-	_assert(_finished == 1 and not weapon._is_reloading and state.rifle_mag == 60 and state.rifle_reserve == 52, "existing timed reload completion and ammunition math remain compatible")
+	_assert(_finished == 1 and not weapon._is_reloading and Chamber.total(state, &"rifle") == 61 and state.rifle_mag == 60 and Chamber.chamber(state, &"rifle") == 1 and state.rifle_reserve == 51, "existing timed tactical reload completion and ammunition math remain compatible")
 	_assert(magazine.transform.is_equal_approx(magazine_home) and magazine.visible, "real magazine seats at its original transform after reload")
-	state.rifle_mag = 12
+	Chamber.set_total(state, &"rifle", 12)
 	weapon._start_reload()
 	animation.seek(duration * 0.45, true)
 	weapon._process(1.0 / 60.0)
@@ -121,7 +123,7 @@ func _run() -> void:
 	weapon._process(0.0)
 	_assert(not weapon._is_reloading and magazine.transform.is_equal_approx(magazine_home) and magazine.visible, "switching weapons cancels the visible reload and restores the magazine")
 	await create_timer(duration + 0.1).timeout
-	_assert(_finished == 1 and state.rifle_mag == 12 and state.rifle_reserve == 52, "cancelled reload does not complete later or change ammunition")
+	_assert(_finished == 1 and Chamber.total(state, &"rifle") == 12 and state.rifle_reserve == 51, "cancelled reload does not complete later or change ammunition")
 	events.weapon_reload_started.disconnect(_on_started)
 	events.weapon_reloaded.disconnect(_on_finished)
 	weapon.queue_free()

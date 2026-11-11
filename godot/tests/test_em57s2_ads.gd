@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 var _failures := 0
 var _scene: Node3D
 var _player: CharacterBody3D
@@ -104,7 +106,7 @@ func _run() -> void:
 	var visible_cuts := _visible_near_cuts(model)
 	print("EM57S2_ADS_DIAG optic=", optic_local, " near=", _player._camera.near, " visible_near_cuts=", visible_cuts)
 	_assert(visible_cuts == 0, "no gun surface is cut by the near plane inside the visible frame")
-	root.get_node("GameState").em57s2_mag = 100
+	Chamber.set_total(root.get_node("GameState"), &"em57s2", 100)
 	smg._start_reload()
 	var reload_cuts := 0
 	for frame in 8:
@@ -121,7 +123,7 @@ func _run() -> void:
 	print("EM57S2_ADS_RELOAD_CUTS ", reload_cuts)
 	_assert(reload_cuts == 0, "ADS reload keeps the gun outside visible near-plane cuts")
 	await create_timer(0.8).timeout
-	_assert(not smg._is_reloading and _player._ads_weight > 0.99 and root.get_node("GameState").em57s2_mag == 200, "reload completes normally and held right mouse returns to the forward optic")
+	_assert(not smg._is_reloading and _player._ads_weight > 0.99 and Chamber.total(root.get_node("GameState"), &"em57s2") == 201 and root.get_node("GameState").em57s2_mag == 200, "tactical reload completes normally and held right mouse returns to the forward optic")
 	_player._set_aiming(false)
 	_settle(smg)
 	_assert(mesh_node.mesh == hip_mesh, "hip restores the exact original mesh")

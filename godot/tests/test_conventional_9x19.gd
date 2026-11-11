@@ -1,6 +1,8 @@
 ## G17 / MPX playable integration: real inputs, damage, shared ammunition and reloads.
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 const WEAPONS := [
 	[&"g17", "G17", "res://scenes/weapons/g17.tscn", 17],
 	[&"mpx", "MPX", "res://scenes/weapons/mpx.tscn", 30],
@@ -48,7 +50,7 @@ func _run() -> void:
 	if _failures > 0:
 		_finish()
 		return
-	_assert(_state.g17_mag == 17 and _state.mpx_mag == 30, "restart initializes the standard 17/30-round magazines")
+	_assert(Chamber.total(_state, &"g17") == 17 and Chamber.total(_state, &"mpx") == 30, "restart initializes the standard 17/30-round magazines")
 	_assert(_state.ammo_9x19_reserve == 510, "restart initializes one shared 510-round 9x19 reserve")
 	_assert(not _state.weapon_unlocked[&"g17"] and not _state.weapon_unlocked[&"mpx"], "campaign restart keeps the additional weapons locked")
 	_assert(_state.fire_modes[&"g17"] == &"semi" and _state.fire_modes[&"mpx"] == &"auto", "restart selects the approved firing modes")
@@ -169,17 +171,17 @@ func _check_selection() -> void:
 func _check_g17_trigger() -> void:
 	_player._switch_weapon(&"g17")
 	var weapon = _weapon(&"g17")
-	_state.g17_mag = 17
+	Chamber.set_total(_state, &"g17", 17)
 	_state.ammo_9x19_reserve = 150
 	var ec57_before: int = _state.pistol_reserve
-	var mpx_before: int = _state.mpx_mag
+	var mpx_before: int = Chamber.total(_state, &"mpx")
 	weapon._fire_cooldown = 0.0
 	_reset_shots(&"g17")
 	_trigger(weapon, true)
 	await create_timer(0.45).timeout
 	_trigger(weapon, false)
-	_assert(_shot_times[&"g17"].size() == 1 and _state.g17_mag == 16, "holding the G17 trigger produces exactly one round")
-	_assert(_state.mpx_mag == mpx_before and _state.pistol_reserve == ec57_before and _state.ammo_9x19_reserve == 150, "G17 firing consumes its magazine without touching MPX, EC57 or reserve")
+	_assert(_shot_times[&"g17"].size() == 1 and Chamber.total(_state, &"g17") == 16, "holding the G17 trigger produces exactly one round")
+	_assert(Chamber.total(_state, &"mpx") == mpx_before and _state.pistol_reserve == ec57_before and _state.ammo_9x19_reserve == 150, "G17 firing consumes its magazine without touching MPX, EC57 or reserve")
 	weapon._fire_cooldown = 0.0
 	_trigger(weapon, true)
 	_trigger(weapon, false)
@@ -191,13 +193,13 @@ func _check_g17_trigger() -> void:
 	_trigger(weapon, false)
 	_assert(_shot_times[&"g17"].size() == 3, "G17 allows another deliberate press after the 400 RPM input cooldown")
 	_assert(is_equal_approx(weapon.weapon_data.semi_fire_interval, 0.15), "G17 declares the approved 400 RPM input ceiling")
-	_assert(_hud._weapon_ammo.mag == _state.g17_mag and _hud._weapon_ammo.reserve == 150, "G17 HUD follows actual trigger ammunition changes")
+	_assert(_hud._weapon_ammo.mag == Chamber.total(_state, &"g17") and _hud._weapon_ammo.reserve == 150, "G17 HUD follows actual trigger ammunition changes")
 
 
 func _check_mpx_trigger() -> void:
 	_player._switch_weapon(&"mpx")
 	var weapon = _weapon(&"mpx")
-	_state.mpx_mag = 30
+	Chamber.set_total(_state, &"mpx", 30)
 	_state.ammo_9x19_reserve = 0
 	_state.fire_modes[&"mpx"] = &"auto"
 	weapon._fire_cooldown = 0.0
@@ -206,7 +208,7 @@ func _check_mpx_trigger() -> void:
 	await create_timer(2.8).timeout
 	_trigger(weapon, false)
 	var frames: Array = _shot_frames[&"mpx"]
-	_assert(frames.size() == 30 and _state.mpx_mag == 0, "MPX held automatic trigger fires exactly its real 30-round magazine")
+	_assert(frames.size() == 30 and Chamber.total(_state, &"mpx") == 0, "MPX held automatic trigger fires exactly its real 30-round magazine")
 	if frames.size() == 30:
 		var seconds := float(frames[-1] - frames[0]) / float(Engine.physics_ticks_per_second)
 		var rpm := 60.0 * 29.0 / seconds
@@ -216,13 +218,13 @@ func _check_mpx_trigger() -> void:
 	_assert(not weapon._is_reloading, "empty MPX with no reserve cannot invent a reload")
 	await _check_burst(weapon)
 	_state.fire_modes[&"mpx"] = &"semi"
-	_state.mpx_mag = 30
+	Chamber.set_total(_state, &"mpx", 30)
 	weapon._fire_cooldown = 0.0
 	_reset_shots(&"mpx")
 	_trigger(weapon, true)
 	await create_timer(0.4).timeout
 	_trigger(weapon, false)
-	_assert(_shot_times[&"mpx"].size() == 1 and _state.mpx_mag == 29, "MPX semi automatic mode produces one round per trigger press")
+	_assert(_shot_times[&"mpx"].size() == 1 and Chamber.total(_state, &"mpx") == 29, "MPX semi automatic mode produces one round per trigger press")
 	_state.fire_modes[&"mpx"] = &"burst"
 	weapon._fire_cooldown = 0.0
 	_reset_shots(&"mpx")
@@ -239,13 +241,13 @@ func _check_mpx_trigger() -> void:
 
 func _check_burst(weapon) -> void:
 	_state.fire_modes[&"mpx"] = &"burst"
-	_state.mpx_mag = 30
+	Chamber.set_total(_state, &"mpx", 30)
 	weapon._fire_cooldown = 0.0
 	_reset_shots(&"mpx")
 	_trigger(weapon, true)
 	await create_timer(0.4).timeout
 	_trigger(weapon, false)
-	_assert(_shot_times[&"mpx"].size() == 3 and _state.mpx_mag == 27, "holding MPX burst trigger stops after exactly three rounds")
+	_assert(_shot_times[&"mpx"].size() == 3 and Chamber.total(_state, &"mpx") == 27, "holding MPX burst trigger stops after exactly three rounds")
 	weapon._fire_cooldown = 0.0
 	_reset_shots(&"mpx")
 	_trigger(weapon, true)
@@ -254,21 +256,21 @@ func _check_burst(weapon) -> void:
 	_trigger(weapon, true)
 	_trigger(weapon, false)
 	await create_timer(0.4).timeout
-	_assert(_shot_times[&"mpx"].size() == 3 and _state.mpx_mag == 24, "repressing during the active burst cannot reset or extend its three-round budget")
-	_state.mpx_mag = 2
+	_assert(_shot_times[&"mpx"].size() == 3 and Chamber.total(_state, &"mpx") == 24, "repressing during the active burst cannot reset or extend its three-round budget")
+	Chamber.set_total(_state, &"mpx", 2)
 	weapon._fire_cooldown = 0.0
 	_reset_shots(&"mpx")
 	_trigger(weapon, true)
 	_trigger(weapon, false)
 	await create_timer(0.35).timeout
-	_assert(_shot_times[&"mpx"].size() == 2 and _state.mpx_mag == 0, "a two-round MPX magazine ends the burst without negative ammunition")
+	_assert(_shot_times[&"mpx"].size() == 2 and Chamber.total(_state, &"mpx") == 0, "a two-round MPX magazine ends the burst without negative ammunition")
 
 
 func _check_mpx_auto_reload() -> void:
 	_player._switch_weapon(&"mpx")
 	var weapon = _weapon(&"mpx")
 	_state.fire_modes[&"mpx"] = &"auto"
-	_state.mpx_mag = 30
+	Chamber.set_total(_state, &"mpx", 30)
 	_state.ammo_9x19_reserve = 30
 	var ec57_before: int = _state.pistol_reserve
 	var reload_before: int = _reload_counts[&"mpx"]
@@ -277,16 +279,16 @@ func _check_mpx_auto_reload() -> void:
 	# One press remains held through the entire real automatic reload; never synthesize another press.
 	_trigger(weapon, true)
 	await create_timer(2.35).timeout
-	_assert(_shot_times[&"mpx"].size() == 30 and _state.mpx_mag == 0 and weapon._is_reloading, "a held MPX trigger empties thirty rounds and enters automatic reload")
+	_assert(_shot_times[&"mpx"].size() == 30 and Chamber.total(_state, &"mpx") == 0 and weapon._is_reloading, "a held MPX trigger empties thirty rounds and enters automatic reload")
 	_assert(_state.ammo_9x19_reserve == 30, "MPX automatic reload defers shared reserve settlement until the real timer completes")
 	await create_timer(float(weapon.weapon_data.reload_time) + 0.2).timeout
 	var count: int = _shot_times[&"mpx"].size()
 	_assert(_reload_counts[&"mpx"] == reload_before + 1 and _state.ammo_9x19_reserve == 0, "the actual MPX automatic reload completes exactly once using the shared thirty spare rounds")
-	_assert(count > 30 and _state.mpx_mag < 30, "the continuously held MPX trigger resumes with round thirty-one after automatic reload")
-	_assert(count + _state.mpx_mag + _state.ammo_9x19_reserve == 60 and _state.pistol_reserve == ec57_before, "MPX cross-reload automatic fire conserves all sixty 9x19 rounds and preserves EC57")
+	_assert(count > 30 and Chamber.total(_state, &"mpx") < 30, "the continuously held MPX trigger resumes with round thirty-one after automatic reload")
+	_assert(count + Chamber.total(_state, &"mpx") + _state.ammo_9x19_reserve == 60 and _state.pistol_reserve == ec57_before, "MPX cross-reload automatic fire conserves all sixty 9x19 rounds and preserves EC57")
 	if count > 30:
 		var pause := float(_shot_times[&"mpx"][30] - _shot_times[&"mpx"][29]) / 1000000.0
-		print("MPX_AUTO_RELOAD first_mag=30 total_shots=", count, " reload_gap_seconds=", pause, " magazine=", _state.mpx_mag)
+		print("MPX_AUTO_RELOAD first_mag=30 total_shots=", count, " reload_gap_seconds=", pause, " magazine=", Chamber.total(_state, &"mpx"))
 		_assert(pause >= float(weapon.weapon_data.reload_time) and pause <= float(weapon.weapon_data.reload_time) + 0.25, "MPX resumes immediately after the real reload duration without firing through the reload")
 	_trigger(weapon, false)
 	await create_timer(0.2).timeout
@@ -306,7 +308,7 @@ func _check_damage() -> void:
 		_player._switch_weapon(id)
 		var weapon = _weapon(id)
 		_state.fire_modes[id] = &"semi"
-		_state.set(String(id) + "_mag", 10)
+		Chamber.set_total(_state, String(id), 10)
 		target.global_position = weapon.global_position - weapon.global_basis.z * 1.5
 		await physics_frame
 		await physics_frame
@@ -330,8 +332,8 @@ func _check_damage() -> void:
 
 func _check_reload() -> void:
 	var ec57_before: int = _state.pistol_reserve
-	_state.g17_mag = 5
-	_state.mpx_mag = 8
+	Chamber.set_total(_state, &"g17", 5)
+	Chamber.set_total(_state, &"mpx", 8)
 	_state.ammo_9x19_reserve = 100
 	for item: Array in WEAPONS:
 		var id: StringName = item[0]
@@ -341,44 +343,44 @@ func _check_reload() -> void:
 		_state.ammo_9x19_reserve = 100
 		var weapon = _weapon(id)
 		var property := String(id) + "_mag"
-		var before: int = _state.get(property)
+		var before: int = Chamber.total(_state, id)
 		var reserve_before: int = _state.ammo_9x19_reserve
-		var other_before: int = _state.mpx_mag if id == &"g17" else _state.g17_mag
+		var other_before: int = Chamber.total(_state, &"mpx") if id == &"g17" else Chamber.total(_state, &"g17")
 		var reload_before: int = _reload_counts[id]
 		_reload(weapon)
 		_reload(weapon)
 		_assert(weapon._is_reloading, "%s R enters a real timed reload" % id)
-		_assert(_state.get(property) == before and _state.ammo_9x19_reserve == reserve_before, "%s reload defers all ammunition settlement until completion" % id)
-		var rounds_before: int = _state.g17_mag + _state.mpx_mag + _state.ammo_9x19_reserve
+		_assert(Chamber.total(_state, id) == before and _state.ammo_9x19_reserve == reserve_before, "%s reload defers all ammunition settlement until completion" % id)
+		var rounds_before: int = Chamber.total(_state, &"g17") + Chamber.total(_state, &"mpx") + _state.ammo_9x19_reserve
 		weapon._fire_cooldown = 0.0
 		_trigger(weapon, true)
 		_trigger(weapon, false)
-		_assert(_state.get(property) == before, "%s cannot fire while reloading" % id)
+		_assert(Chamber.total(_state, id) == before, "%s cannot fire while reloading" % id)
 		await create_timer(float(weapon.weapon_data.reload_time) + 0.1).timeout
 		_assert(_reload_counts[id] == reload_before + 1 and not weapon._is_reloading, "%s repeated R requests settle exactly once" % id)
-		_assert(_state.get(property) == int(item[3]) and _state.ammo_9x19_reserve == reserve_before - (int(item[3]) - before), "%s fills its magazine from the one shared 9x19 reserve" % id)
-		_assert((_state.mpx_mag if id == &"g17" else _state.g17_mag) == other_before and _state.g17_mag + _state.mpx_mag + _state.ammo_9x19_reserve == rounds_before, "%s reload preserves the other magazine and total round conservation" % id)
-		_assert(_hud._weapon_ammo.mag == _state.get(property) and _hud._weapon_ammo.reserve == _state.ammo_9x19_reserve, "%s actual completed reload updates the HUD" % id)
+		_assert(_state.get(property) == int(item[3]) and Chamber.chamber(_state, id) == 1 and Chamber.total(_state, id) == int(item[3]) + 1 and _state.ammo_9x19_reserve == reserve_before - (int(item[3]) + 1 - before), "%s tactical reload fills its container and retains a conserved chamber round" % id)
+		_assert((Chamber.total(_state, &"mpx") if id == &"g17" else Chamber.total(_state, &"g17")) == other_before and Chamber.total(_state, &"g17") + Chamber.total(_state, &"mpx") + _state.ammo_9x19_reserve == rounds_before, "%s reload preserves the other magazine and total round conservation" % id)
+		_assert(_hud._weapon_ammo.mag == Chamber.total(_state, id) and _hud._weapon_ammo.reserve == _state.ammo_9x19_reserve, "%s actual completed reload updates the HUD" % id)
 		_assert(weapon._magazine != null and weapon._magazine.visible and weapon._magazine.global_transform.origin.is_finite(), "%s has its real magazine restored after reload" % id)
-		_state.set(property, 0)
+		Chamber.set_total(_state, id, 0)
 		_state.ammo_9x19_reserve = 3
 		_reload(weapon)
 		await create_timer(float(weapon.weapon_data.reload_time) + 0.1).timeout
-		_assert(_state.get(property) == 3 and _state.ammo_9x19_reserve == 0, "%s empty reload uses only the three available spare rounds" % id)
-		_state.set(property, 2)
+		_assert(_state.get(property) == 2 and Chamber.chamber(_state, id) == 1 and Chamber.total(_state, id) == 3 and _state.ammo_9x19_reserve == 0, "%s empty reload uses only three spare rounds and transfers one into the chamber" % id)
+		Chamber.set_total(_state, id, 2)
 		_state.ammo_9x19_reserve = 20
 		_reload(weapon)
 		await create_timer(0.15).timeout
 		_player._switch_weapon(&"mpx" if id == &"g17" else &"g17")
 		_assert(not weapon._is_reloading and weapon._magazine != null and weapon._magazine.visible, "%s switching cancels reload and restores its real magazine" % id)
 		await create_timer(float(weapon.weapon_data.reload_time) + 0.1).timeout
-		_assert(_state.get(property) == 2 and _state.ammo_9x19_reserve == 20, "%s cancelled timer cannot settle ammunition later" % id)
+		_assert(Chamber.total(_state, id) == 2 and _state.ammo_9x19_reserve == 20, "%s cancelled timer cannot settle ammunition later" % id)
 	_assert(_state.pistol_reserve == ec57_before, "all conventional reloads preserve the independent EC57 reserve")
 
 
 func _check_scene_persistence() -> void:
-	_state.g17_mag = 7
-	_state.mpx_mag = 11
+	Chamber.set_total(_state, &"g17", 7)
+	Chamber.set_total(_state, &"mpx", 11)
 	_state.ammo_9x19_reserve = 43
 	_state.fire_modes[&"mpx"] = &"burst"
 	_events.weapon_fired.disconnect(_on_weapon_fired)
@@ -395,11 +397,11 @@ func _check_scene_persistence() -> void:
 	await process_frame
 	_player = _scene.get_node("Player")
 	_hud = _scene.get_node("HUD")
-	_assert(_state.g17_mag == 7 and _state.mpx_mag == 11 and _state.ammo_9x19_reserve == 43 and _state.fire_modes[&"mpx"] == &"burst", "replacing a real playable scene preserves autoload magazines, shared reserve and selected mode")
+	_assert(Chamber.total(_state, &"g17") == 7 and Chamber.total(_state, &"mpx") == 11 and _state.ammo_9x19_reserve == 43 and _state.fire_modes[&"mpx"] == &"burst", "replacing a real playable scene preserves autoload magazines, shared reserve and selected mode")
 	_player._switch_weapon(&"mpx")
 	_assert(_hud._weapon_ammo.mag == 11 and _hud._weapon_ammo.reserve == 43 and "点射" in _hud._weapon_ammo.mode_tag, "the replacement scene HUD restores retained MPX ammunition and firing mode")
 	_state.reset()
-	_assert(_state.g17_mag == 17 and _state.mpx_mag == 30 and _state.ammo_9x19_reserve == 510, "explicit new-game restart restores the approved conventional loadout")
+	_assert(Chamber.total(_state, &"g17") == 17 and Chamber.total(_state, &"mpx") == 30 and _state.ammo_9x19_reserve == 510, "explicit new-game restart restores the approved conventional loadout")
 	_assert(not _state.weapon_unlocked[&"g17"] and not _state.weapon_unlocked[&"mpx"], "explicit new-game restart restores campaign lock state")
 
 

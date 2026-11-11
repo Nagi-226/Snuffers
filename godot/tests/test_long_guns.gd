@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 var _failures: int = 0
 var _events: Node
 var _config: Node
@@ -34,8 +36,8 @@ func _run() -> void:
 	_events.damage_dealt.connect(_on_damage_dealt)
 	_events.hit_confirmed.connect(_on_hit_confirmed)
 	_state.reset()
-	_assert(_state.dmr_mag == 60 and _state.rifle_reserve == 1800, "DMR reset ammunition")
-	_assert(_state.shotgun_mag == 32 and _state.shotgun_reserve == 160, "shotgun reset ammunition")
+	_assert(Chamber.total(_state, &"dmr") == 60 and _state.rifle_reserve == 1800, "DMR reset ammunition")
+	_assert(Chamber.total(_state, &"shotgun") == 32 and _state.shotgun_reserve == 160, "shotgun reset ammunition")
 	_assert(_state.fire_modes[&"dmr"] == &"semi", "DMR factory mode is semi only")
 	_assert(_state.fire_modes[&"shotgun"] == &"semi", "shotgun factory mode is semi")
 	_assert(not _state.weapon_unlocked[&"dmr"] and not _state.weapon_unlocked[&"shotgun"], "new weapons start locked until JB-02 pickup")
@@ -103,7 +105,7 @@ func _check_single_shot(data: WeaponData) -> void:
 	_damage_events.clear()
 	_hit_events = 0
 	_assert(weapon._fire(), "DMR fires")
-	_assert(_state.dmr_mag == 59, "DMR consumes one round")
+	_assert(Chamber.total(_state, &"dmr") == 59, "DMR consumes one round")
 	_assert(target.damage_calls.size() == 1 and target.damage_calls[0] == 90.0, "DMR deals one EC-68 hit")
 	_assert(_damage_events == [[90.0, false]], "DMR emits one damage event")
 	weapon.queue_free()
@@ -118,10 +120,10 @@ func _check_trigger_cadence(data: WeaponData) -> void:
 	await process_frame
 	weapon._on_trigger_pressed()
 	weapon._on_trigger_pressed()
-	_assert(_state.dmr_mag == 59, "semi trigger edge respects fire cooldown")
+	_assert(Chamber.total(_state, &"dmr") == 59, "semi trigger edge respects fire cooldown")
 	weapon._tick_weapon(data.semi_fire_interval + 0.01)
 	weapon._on_trigger_pressed()
-	_assert(_state.dmr_mag == 58, "semi trigger fires again after cooldown")
+	_assert(Chamber.total(_state, &"dmr") == 58, "semi trigger fires again after cooldown")
 	weapon.queue_free()
 	await process_frame
 
@@ -129,17 +131,17 @@ func _check_trigger_cadence(data: WeaponData) -> void:
 func _check_dmr_shared_reload(data: WeaponData) -> void:
 	_state.reset()
 	_state.current_weapon = &"dmr"
-	_state.dmr_mag = 10
-	_state.rifle_mag = 45
+	Chamber.set_total(_state, &"dmr", 10)
+	Chamber.set_total(_state, &"rifle", 45)
 	_state.rifle_reserve = 100
 	var weapon := _make_weapon(data)
 	weapon.reserve_state_property = &"rifle_reserve"
 	weapon._reserve_key = &"rifle_reserve"
 	weapon._start_reload()
 	await create_timer(data.reload_time + 0.1).timeout
-	_assert(_state.dmr_mag == 60, "DMR reload fills its 60-round magazine")
-	_assert(_state.rifle_reserve == 50, "DMR reload draws from the shared rifle reserve")
-	_assert(_state.rifle_mag == 45, "DMR reload does not alter the rifle magazine")
+	_assert(Chamber.total(_state, &"dmr") == 61 and _state.dmr_mag == 60 and Chamber.chamber(_state, &"dmr") == 1, "DMR tactical reload fills its 60-round magazine and retains one chamber round")
+	_assert(_state.rifle_reserve == 49, "DMR reload draws from the shared rifle reserve")
+	_assert(Chamber.total(_state, &"rifle") == 45, "DMR reload does not alter the rifle magazine")
 	weapon.queue_free()
 	await process_frame
 
@@ -154,7 +156,7 @@ func _check_shotgun(data: WeaponData) -> void:
 	_damage_events.clear()
 	_hit_events = 0
 	_assert(weapon._fire(), "shotgun fires")
-	_assert(_state.shotgun_mag == 31, "shotgun consumes one shell not twelve")
+	_assert(Chamber.total(_state, &"shotgun") == 31, "shotgun consumes one shell not twelve")
 	_assert(target.damage_calls.size() == 12, "shotgun resolves twelve pellet hits")
 	var total := 0.0
 	for amount in target.damage_calls:
@@ -203,22 +205,22 @@ func _check_pickups() -> void:
 func _check_reload(data: WeaponData) -> void:
 	_state.reset()
 	_state.current_weapon = &"shotgun"
-	_state.shotgun_mag = 7
+	Chamber.set_total(_state, &"shotgun", 7)
 	_state.shotgun_reserve = 40
 	var weapon := _make_weapon(data)
 	weapon._start_reload()
 	weapon._start_reload()
 	await create_timer(data.reload_time + 0.1).timeout
-	_assert(_state.shotgun_mag == 32, "shotgun reload fills magazine")
-	_assert(_state.shotgun_reserve == 15, "shotgun reload preserves reserve math")
-	_state.shotgun_mag = 7
+	_assert(Chamber.total(_state, &"shotgun") == 33 and _state.shotgun_mag == 32 and Chamber.chamber(_state, &"shotgun") == 1, "shotgun tactical reload fills magazine and retains one chamber shell")
+	_assert(_state.shotgun_reserve == 14, "shotgun reload preserves reserve math")
+	Chamber.set_total(_state, &"shotgun", 7)
 	_state.shotgun_reserve = 40
 	weapon._start_reload()
 	await create_timer(0.2).timeout
 	_state.current_weapon = &"rifle"
 	_events.weapon_switched.emit(&"rifle")
 	await create_timer(data.reload_time).timeout
-	_assert(_state.shotgun_mag == 7 and _state.shotgun_reserve == 40, "switching cancels shotgun reload without ammunition duplication")
+	_assert(Chamber.total(_state, &"shotgun") == 7 and _state.shotgun_reserve == 40, "switching cancels shotgun reload without ammunition duplication")
 	_assert(not weapon._is_reloading, "switching clears shotgun reload state")
 	weapon.queue_free()
 	await process_frame

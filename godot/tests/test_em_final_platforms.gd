@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 var _failures := 0
 var _player: CharacterBody3D
 var _state
@@ -64,7 +66,7 @@ func _run() -> void:
 		_world.queue_free()
 		quit(1)
 		return
-	_assert(_state.em127m_mag == 500 and _state.em120r_mag == 10, "new magazines initialize to 500 and 10")
+	_assert(Chamber.total(_state, &"em127m") == 500 and _state.em120r_mag == 10, "new magazines initialize to 500 and 10")
 	_assert(_state.em120r_reserve == 150, "EC-120 reserve initializes to the approved 150 missiles")
 	_assert(_state.fire_modes[&"em127m"] == &"auto" and _state.fire_modes[&"em120r"] == &"semi", "Thunder starts auto and Longbow stays semi-auto")
 	var thunder = _player.get_node("Camera3D/WeaponMount/Em127m")
@@ -115,23 +117,23 @@ func _run() -> void:
 		" player_rotation=", _player.rotation, " camera_rotation=", _player._camera.rotation,
 		" pitch=", _player._pitch, " weapon_origin=", thunder.global_position,
 		" weapon_forward=", -thunder.global_basis.z, " target=", target.global_position,
-		" hits=", target.hits, " ammo=", _state.em127m_mag,
+		" hits=", target.hits, " ammo=", Chamber.total(_state, &"em127m"),
 		" ray_hit=", before_hit.get("collider"), " ray_position=", before_hit.get("position"))
 	var body_fired: bool = thunder._fire()
 	var after_hit: Dictionary = thunder._cast_spread_ray()
 	print("THUNDER_FIXTURE_AFTER: fired=", body_fired,
 		" player_rotation=", _player.rotation, " camera_rotation=", _player._camera.rotation,
-		" pitch=", _player._pitch, " hits=", target.hits, " ammo=", _state.em127m_mag,
+		" pitch=", _player._pitch, " hits=", target.hits, " ammo=", Chamber.total(_state, &"em127m"),
 		" ray_hit=", after_hit.get("collider"), " ray_position=", after_hit.get("position"))
-	_assert(target.hits.size() == 1 and target.hits[0] == 450.0 and _state.em127m_mag == 499, "real Thunder body hit deals exactly 450 and consumes one round")
-	_state.em127m_mag = 0
+	_assert(target.hits.size() == 1 and target.hits[0] == 450.0 and Chamber.total(_state, &"em127m") == 499, "real Thunder body hit deals exactly 450 and consumes one round")
+	Chamber.set_total(_state, &"em127m", 0)
 	_state.magnum_reserve = 1500
 	thunder._on_weapon_reloaded(&"em127m")
-	_assert(_state.em127m_mag == 500 and _state.magnum_reserve == 1000, "Thunder reload consumes the existing shared EC-127 reserve")
-	_state.em127g_mag = 0
+	_assert(Chamber.total(_state, &"em127m") == 500 and _state.magnum_reserve == 1000, "Thunder reload consumes the existing shared EC-127 reserve")
+	Chamber.set_total(_state, &"em127g", 0)
 	_player.get_node("Camera3D/WeaponMount/Em127g")._on_weapon_reloaded(&"em127g")
-	_assert(_state.em127g_mag == 30 and _state.magnum_reserve == 970, "Gauss sees the same reserve already consumed by Thunder")
-	_state.em127m_mag = 500
+	_assert(Chamber.total(_state, &"em127g") == 30 and _state.magnum_reserve == 970, "Gauss sees the same reserve already consumed by Thunder")
+	Chamber.set_total(_state, &"em127m", 500)
 	thunder._camera_kick = 0.0
 	thunder._fire_cooldown = 0.0
 	thunder._trigger_held = true

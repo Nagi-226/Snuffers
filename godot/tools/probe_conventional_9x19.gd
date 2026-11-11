@@ -1,6 +1,8 @@
 ## Real range Player, production lighting and renderer-baked hands for the conventional guns.
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 const OUTPUT := "res://tmp_shots/conventional_9x19"
 const WEAPONS := [[&"g17", "G17"], [&"mpx", "MPX"]]
 
@@ -95,7 +97,7 @@ func _run() -> void:
 		await create_timer(0.05).timeout
 		await _capture(weapon, id, "fire", false, false)
 		await create_timer(0.4).timeout
-		_state.set(String(id) + "_mag", 3)
+		Chamber.set_total(_state, String(id), 3)
 		_press_reload(weapon)
 		_assert(weapon._is_reloading, "%s production R starts the partial reload captured below" % id)
 		for phase in [0.25, 0.5, 0.75]:
@@ -104,14 +106,15 @@ func _run() -> void:
 				if phase == 0.5:
 					_check_magazine_contact(weapon, id)
 		await _wait_reload_completed(weapon)
-		_assert(not weapon._is_reloading and _state.get(String(id) + "_mag") == weapon.weapon_data.mag_size, "%s captured reload completes with a full real magazine" % id)
+		_assert(not weapon._is_reloading and _state.get(String(id) + "_mag") == weapon.weapon_data.mag_size and Chamber.total(_state, id) == weapon.weapon_data.mag_size + 1 and Chamber.chamber(_state, id) == 1, "%s captured tactical reload completes with a full container and retained chamber" % id)
 		await _capture(weapon, id, "reload_complete", false, false)
-		_state.set(String(id) + "_mag", 0)
+		Chamber.set_total(_state, String(id), 0)
 		_press_reload(weapon)
 		_assert(weapon._is_reloading, "%s production R starts the empty reload" % id)
 		if await _wait_reload_phase(weapon, id, 0.5):
 			await _capture(weapon, id, "empty_reload_050", false, true, 0.5)
 		await _wait_reload_completed(weapon)
+		_assert(_state.get(String(id) + "_mag") == weapon.weapon_data.mag_size - 1 and Chamber.total(_state, id) == weapon.weapon_data.mag_size and Chamber.chamber(_state, id) == 1, "%s captured empty reload transfers one of its M rounds into the chamber" % id)
 		_player._switch_weapon(&"rifle")
 		await process_frame
 		_assert(not weapon.visible, "%s disappears when a different gun is selected" % id)

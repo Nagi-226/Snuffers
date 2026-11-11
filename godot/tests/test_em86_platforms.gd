@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Chamber = preload("res://tests/chamber_test_support.gd")
+
 var _failures := 0
 var _player: CharacterBody3D
 var _state
@@ -47,7 +49,7 @@ func _run() -> void:
 	current_scene = scene
 	_player = scene.get_node("Player") as CharacterBody3D
 	await process_frame
-	_assert(_state.em86s_mag == 45 and _state.em86b_mag == 45 and _state.em86d_mag == 45, "all EM-86 magazines initialize to 45")
+	_assert(Chamber.total(_state, &"em86s") == 45 and Chamber.total(_state, &"em86b") == 45 and Chamber.total(_state, &"em86d") == 45, "all EM-86 magazines initialize to 45")
 	_assert(_state.em86_reserve == 4500, "shared EC-86 reserve initializes to 4500")
 	_assert(_state.fire_modes[&"em86b"] == &"burst" and _state.fire_modes[&"em86s"] == &"semi" and _state.fire_modes[&"em86d"] == &"semi", "EM-86B starts in burst and both precision rifles are semi-auto")
 
@@ -61,15 +63,15 @@ func _run() -> void:
 		var node_name := weapon_id.to_pascal_case()
 		var weapon = _player.get_node("Camera3D/WeaponMount/" + node_name)
 		var fired: bool = weapon._fire()
-		_assert(fired and int(_state.get(weapon_id + "_mag")) == 44, "%s consumes its own magazine on a real shot" % weapon_id)
+		_assert(fired and int(Chamber.total(_state, weapon_id)) == 44, "%s consumes its own magazine on a real shot" % weapon_id)
 		var muzzle_path := "ViewModel/EM68A/Muzzle" if weapon_id == &"em86b" else "ViewModel/Weapon/Muzzle"
 		var muzzle := weapon.get_node(muzzle_path) as Marker3D
 		var forward_offset: float = (muzzle.global_position - weapon.global_position).dot(-_player._camera.global_basis.z)
 		_assert(forward_offset > 0.0, "%s muzzle is in front of the first-person camera" % weapon_id)
-		_state.set(weapon_id + "_mag", 0)
+		Chamber.set_total(_state, weapon_id, 0)
 		_state.em86_reserve = 900
 		weapon._on_weapon_reloaded(weapon_id)
-		_assert(int(_state.get(weapon_id + "_mag")) == 45 and _state.em86_reserve == 855, "%s reloads 45 rounds from the shared EC-86 pool" % weapon_id)
+		_assert(int(Chamber.total(_state, weapon_id)) == 45 and _state.em86_reserve == 855, "%s reloads 45 rounds from the shared EC-86 pool" % weapon_id)
 
 	_player._switch_weapon(&"em86b")
 	var battle = _player.get_node("Camera3D/WeaponMount/Em86b")
@@ -85,14 +87,14 @@ func _run() -> void:
 	_assert(is_equal_approx(battle._fire_cooldown, 60.0 / 650.0), "EM-86B auto fires at 650 RPM")
 	_player._cycle_fire_mode()
 	_assert(_state.fire_modes[&"em86b"] == &"grenade", "EM-86B auto switches to its underbarrel grenade")
-	_state.em86b_mag = 20
+	Chamber.set_total(_state, &"em86b", 20)
 	_state.em86_reserve = 900
 	var hud_ammo = scene.get_node("HUD")._weapon_ammo
 	var grenades_before: int = _state.rifle_grenades
 	var grenade_fired: bool = battle._fire()
 	_assert(grenade_fired and hud_ammo.mag == 20 and hud_ammo.reserve == 900 and hud_ammo.grenade_stock == grenades_before - 1, "EM-86B grenade preserves EC-86 HUD and only consumes EC-40P")
 	battle._start_reload()
-	_assert(not battle._is_reloading and _state.em86b_mag == 20 and _state.em86_reserve == 900, "EM-86B grenade mode ignores reload")
+	_assert(not battle._is_reloading and Chamber.total(_state, &"em86b") == 20 and _state.em86_reserve == 900, "EM-86B grenade mode ignores reload")
 	_player._cycle_fire_mode()
 	_assert(_state.fire_modes[&"em86b"] == &"burst", "EM-86B grenade mode wraps to burst")
 

@@ -180,7 +180,7 @@ func _check_pistol_auto_feedback() -> void:
 	_assert(int(_feedback_shots.get(&"pistol", 0)) >= before + 4 and burst_frames > 0 and burst_non_idle == 0, "EM-57P auto clears residual burst animation and keeps native idle across four real rounds")
 	_feedback_trigger(weapon, false)
 	await create_timer(0.65).timeout
-	var partial_mag: int = _state.get(weapon.mag_state_property)
+	var partial_mag: int = Chamber.total(_state, &"pistol")
 	var partial_reserve: int = _state.get(weapon.reserve_state_property)
 	_feedback_trigger(weapon, true)
 	_press_reload(weapon)
@@ -191,10 +191,10 @@ func _check_pistol_auto_feedback() -> void:
 	_assert(animation.current_animation == "reload" and animation.current_animation_position > 0.0 and not weapon._magazine.transform.is_equal_approx(weapon._mag_home_transform), "partial manual reload progresses the native clip and moves the actual magazine during auto mode")
 	_feedback_trigger(weapon, false)
 	await create_timer(weapon.weapon_data.reload_time + 0.1).timeout
-	_assert(not weapon._is_reloading and animation.current_animation == "idle" and int(_state.get(weapon.mag_state_property)) == weapon.weapon_data.mag_size and int(_state.get(weapon.reserve_state_property)) == partial_reserve - (weapon.weapon_data.mag_size - partial_mag), "partial manual reload returns to native idle and preserves exact ammunition transfer")
+	_assert(not weapon._is_reloading and animation.current_animation == "idle" and int(_state.get(weapon.mag_state_property)) == weapon.weapon_data.mag_size and Chamber.total(_state, &"pistol") == weapon.weapon_data.mag_size + 1 and int(_state.get(weapon.reserve_state_property)) == partial_reserve - (weapon.weapon_data.mag_size + 1 - partial_mag), "partial manual reload returns to native idle and preserves exact ammunition transfer")
 	# Manual empty and automatic depletion both retain their real empty-reload clip.
 	for automatic in [false, true]:
-		_state.set(weapon.mag_state_property, 2 if automatic else 0)
+		Chamber.set_total(_state, &"pistol", 2 if automatic else 0)
 		_state.set(weapon.reserve_state_property, 100)
 		before = int(_feedback_shots.get(&"pistol", 0))
 		_feedback_trigger(weapon, true)
@@ -212,7 +212,7 @@ func _check_pistol_auto_feedback() -> void:
 		_assert(int(_feedback_shots.get(&"pistol", 0)) == before and animation.current_animation == "reload_empty" and animation.current_animation_position > 0.0, "%s blocks held auto fire without replacing the progressing empty-reload clip" % label)
 		_feedback_trigger(weapon, false)
 		await create_timer(weapon.weapon_data.reload_time + 0.1).timeout
-		_assert(not weapon._is_reloading and animation.current_animation == "idle" and int(_state.get(weapon.mag_state_property)) == weapon.weapon_data.mag_size and int(_state.get(weapon.reserve_state_property)) == 100 - weapon.weapon_data.mag_size, "%s completes exact ammunition transfer and restores native idle" % label)
+		_assert(not weapon._is_reloading and animation.current_animation == "idle" and int(_state.get(weapon.mag_state_property)) == weapon.weapon_data.mag_size - 1 and Chamber.total(_state, &"pistol") == weapon.weapon_data.mag_size and int(_state.get(weapon.reserve_state_property)) == 100 - weapon.weapon_data.mag_size, "%s completes exact ammunition transfer and restores native idle" % label)
 	_feedback_trigger(weapon, true)
 	await create_timer(0.12).timeout
 	_player._switch_weapon(&"g17")
