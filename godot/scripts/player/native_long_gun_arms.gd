@@ -119,10 +119,15 @@ func reset() -> void:
 func pose_hold(aim_weight: float) -> void:
 	if skeleton == null or not is_instance_valid(_gun):
 		return
+	var finger_rotations: Dictionary = _profile.get("support_finger_rotations", {}) if animation.current_animation != "reload" else {}
 	for bone in skeleton.get_bone_count():
 		# 装填时保留原生手指曲线，肩肘腕由真实抓点解算。
 		if animation.current_animation != "reload" or bone in _uppers or bone in _fores or bone in _wrists:
-			skeleton.set_bone_pose_rotation(bone, _rotations[bone])
+			var rotation := _rotations[bone]
+			var bone_name := skeleton.get_bone_name(bone)
+			if finger_rotations.has(bone_name):
+				rotation = rotation * (finger_rotations[bone_name] as Quaternion)
+			skeleton.set_bone_pose_rotation(bone, rotation)
 		skeleton.set_bone_pose_position(bone, _positions[bone])
 		skeleton.set_bone_pose_scale(bone, _scales[bone])
 	_arms.global_transform = _gun.global_transform * _arms_in_gun
@@ -207,7 +212,9 @@ func _place_palm(hand: int, point_world: Vector3, basis_world: Basis) -> void:
 	var palm_offset := wrist_pose.affine_inverse() * _palm_position(hand)
 	var target_basis := (skeleton.global_basis.inverse() * basis_world).orthonormalized()
 	var target := Transform3D(target_basis, skeleton.global_transform.affine_inverse() * point_world - target_basis * palm_offset)
-	var pole: Vector3 = GameConfig.BLACK_LONG_GUN_RIGHT_ELBOW_POLE if hand == 0 else GameConfig.BLACK_LONG_GUN_LEFT_ELBOW_POLE
+	var pole: Vector3 = GameConfig.BLACK_LONG_GUN_RIGHT_ELBOW_POLE
+	if hand == 1:
+		pole = _profile.get("left_elbow_pole", GameConfig.BLACK_LONG_GUN_LEFT_ELBOW_POLE) as Vector3
 	pole = skeleton.global_basis.inverse() * (_gun.global_basis.orthonormalized() * pole)
 	_place_arm(hand, target, pole)
 
@@ -222,6 +229,12 @@ func _place_arm(hand: int, target: Transform3D, pole_offset: Vector3) -> void:
 	var fore := skeleton.get_bone_global_pose(fore_bone)
 	var wrist := skeleton.get_bone_global_pose(wrist_bone)
 	var shoulder := upper.origin
+	# 专属平台以掌面反解后的腕目标锚肩，避免源袖肩开放截口进入画面。
+	var shoulder_key := "right_shoulder_direction" if hand == 0 else "left_shoulder_direction"
+	if _profile.has(shoulder_key):
+		var shoulder_direction: Vector3 = skeleton.global_basis.inverse() * _gun.global_basis.orthonormalized() * (_profile[shoulder_key] as Vector3)
+		if shoulder_direction.is_finite() and shoulder_direction.length_squared() > 0.000001:
+			shoulder = target.origin + shoulder_direction.normalized() * (upper_length + fore_length) * GameConfig.BLACK_LONG_GUN_SHOULDER_REACH
 	var reach := target.origin - shoulder
 	var length := reach.length()
 	var minimum := absf(upper_length - fore_length)
