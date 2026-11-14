@@ -1,7 +1,7 @@
 ## Native production range: persistent inventory, real GLB and cyan pulse pixels.
 extends SceneTree
 
-const OUTPUT_DIR := "res://tmp_shots/ec60e"
+const OUTPUT_DIR := "res://tmp_shots/ec60e_hud"
 var _assertions := 0
 var _failures := 0
 var _world: Node3D
@@ -109,6 +109,7 @@ func _inventory_checks() -> void:
 	_assert(_inventory.is_visible_in_tree() and _inventory.get("stock") == 100, "real HUD starts visible with 100 grenades")
 	var bounds := _inventory.get_global_rect()
 	_assert(bounds.size.x >= 250.0 and bounds.size.y >= 90.0 and Rect2(Vector2.ZERO, Vector2(root.size)).encloses(bounds), "inventory is a fixed visible viewport region")
+	_assert(is_equal_approx(bounds.position.x, 16.0) and is_equal_approx(bounds.end.y, root.size.y - 16.0), "grenade HUD occupies the bottom-left corner with 16px screen margins")
 	var before := await _capture("hud_100")
 	_state.ec60e_grenades = 0
 	_events.emit_signal("ec60e_stock_changed", 0)
@@ -120,6 +121,10 @@ func _inventory_checks() -> void:
 	_assert(_changed_pixels(before, depleted, icon_rect) == 0, "the model outline remains unchanged beside the zero count")
 	_inventory.visible = false
 	var hidden := await _capture("hud_zero_reference_hidden")
+	var left_edge := Rect2i(Vector2i(bounds.position), Vector2i(4, int(bounds.size.y)))
+	var top_blank := Rect2i(Vector2i(bounds.position + Vector2(4, 1)), Vector2i(int(bounds.size.x) - 8, 4))
+	_assert(_changed_pixels(hidden, depleted, left_edge) == 0, "grenade HUD left edge draws no outer border or panel background")
+	_assert(_changed_pixels(hidden, depleted, top_blank) == 0, "grenade HUD blank area is transparent against the actual range scene")
 	var icon_pixels := _cyan_changes(hidden, depleted, icon_rect)
 	print("EC60E_HUD_ICON cyan_pixels=", icon_pixels)
 	_assert(icon_pixels > 150, "the native HUD really renders a detailed cyan model outline")
@@ -136,6 +141,12 @@ func _inventory_checks() -> void:
 	_assert(_inventory.is_visible_in_tree() and _inventory.get("stock") == 100, "district HUD mode retains the same always-present grenade inventory")
 	hud.range_mode = true
 	hud.district_mode = false
+	root.size = Vector2i(1280, 720)
+	await process_frame
+	var resized_bounds := _inventory.get_global_rect()
+	_assert(is_equal_approx(resized_bounds.position.x, 16.0) and is_equal_approx(resized_bounds.end.y, 704.0) and resized_bounds.size == bounds.size, "1280x720 preserves the bottom-left grenade HUD margins and readable size")
+	root.size = Vector2i(1920, 1080)
+	await process_frame
 
 
 func _model_and_pulse_checks() -> void:

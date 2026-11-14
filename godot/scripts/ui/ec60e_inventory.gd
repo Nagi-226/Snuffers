@@ -9,7 +9,7 @@ var stock: int = 0
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	texture_filter = Control.TEXTURE_FILTER_LINEAR
-	set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	var bounds := GameConfig.EC60E_HUD_RECT
 	offset_left = bounds.x
 	offset_top = bounds.y
@@ -31,9 +31,6 @@ func _on_stock_changed(total: int) -> void:
 
 func _draw() -> void:
 	var font := get_theme_default_font()
-	var panel := Rect2(Vector2.ZERO, size)
-	draw_rect(panel, GameConfig.EC60E_HUD_PANEL_BG)
-	draw_rect(panel, GameConfig.EC60E_HUD_BORDER, false)
 	draw_string(font, GameConfig.EC60E_HUD_TITLE_POINT, "EC-60E · 闷罐",
 			HORIZONTAL_ALIGNMENT_LEFT, -1, GameConfig.EC60E_HUD_FONTS.x, GameConfig.EC60E_HUD_SECONDARY)
 	draw_string(font, GameConfig.EC60E_HUD_COUNT_POINT, str(stock),
