@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3]
+[gd_scene load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_controller"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/rifle.tscn" id="2_rifle"]
@@ -23,6 +23,8 @@
 [ext_resource type="PackedScene" path="res://scenes/weapons/em120r.tscn" id="22_em120r"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/g17.tscn" id="23_g17"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/mpx.tscn" id="24_mpx"]
+[ext_resource type="Script" path="res://scripts/weapons/ec60e_controller.gd" id="25_ec60e"]
+[ext_resource type="Script" path="res://scripts/weapons/ec60e_plasma_fx.gd" id="26_ec60e_plasma_fx"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -88,6 +90,12 @@ script = ExtResource("5_fx")
 
 [node name="ExplosionFx" type="Node3D" parent="."]
 script = ExtResource("6_explosion_fx")
+
+[node name="EC60EController" type="Node3D" parent="."]
+script = ExtResource("25_ec60e")
+
+[node name="PlasmaFx" type="Node3D" parent="."]
+script = ExtResource("26_ec60e_plasma_fx")
 
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Rifle" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Pistol" to="." method="_on_weapon_recoil_kick"]

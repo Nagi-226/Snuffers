@@ -190,7 +190,7 @@ func _enable_loop(stream: AudioStream) -> void:
 ## medkit_used → medkit ｜ night_vision_toggled → nightvision
 ## heli_called → helicopter（loop 总线循环）｜ mission_completed / game_over → 停全部 loop
 ## nano_mode_changed → armor 播 nano_armor；stealth 播 nano_stealth；normal 无触发音
-## rpg_exploded → explosion ｜ player_moving_changed → footstep 循环起停（loop 总线；
+## rpg_exploded / ec60e_exploded → explosion ｜ player_moving_changed → footstep 循环起停（loop 总线；
 ##   结束态由 mission_completed / game_over 的 stop_all_loops 兜底，开地图暂停沿用同一通道）
 ## enemy_fired → &"rifle" 用 rifle；&"machine_gun" 复用 rifle 音源按 ENEMY_MG_PITCH 降调
 ##   （±GameConfig.SFX_PITCH_JITTER 抖动不变）；position 暂不参与衰减（见交付报告）
@@ -208,6 +208,7 @@ func _connect_events() -> void:
 	Events.mission_completed.connect(_on_mission_ended)
 	Events.game_over.connect(_on_game_over)
 	Events.rpg_exploded.connect(_on_rpg_exploded)
+	Events.ec60e_exploded.connect(_on_ec60e_exploded)
 	Events.player_moving_changed.connect(_on_player_moving_changed)
 	Events.enemy_fired.connect(_on_enemy_fired)
 	# 拾取（2026-10-07 冻结新增）：battery_picked → reload（备弹补充感）；
@@ -231,6 +232,7 @@ func _disconnect_events() -> void:
 	Events.mission_completed.disconnect(_on_mission_ended)
 	Events.game_over.disconnect(_on_game_over)
 	Events.rpg_exploded.disconnect(_on_rpg_exploded)
+	Events.ec60e_exploded.disconnect(_on_ec60e_exploded)
 	Events.player_moving_changed.disconnect(_on_player_moving_changed)
 	Events.enemy_fired.disconnect(_on_enemy_fired)
 	Events.battery_picked.disconnect(_on_battery_picked)
@@ -352,6 +354,11 @@ func _on_game_over(_reason: StringName) -> void:
 
 ## RPG 爆炸：爆炸音效锚点（position 暂不参与衰减，见交付报告）。
 func _on_rpg_exploded(_position: Vector3) -> void:
+	play_sfx(&"explosion")
+
+
+## EC-60E 复用既有爆炸音源；保持独立事件，避免触发橙色榴弹 FX。
+func _on_ec60e_exploded(_position: Vector3) -> void:
 	play_sfx(&"explosion")
 
 

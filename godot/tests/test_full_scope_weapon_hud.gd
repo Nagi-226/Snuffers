@@ -9,6 +9,7 @@ var _world: Node3D
 var _player: CharacterBody3D
 var _hud: CanvasLayer
 var _ammo: Control
+var _inventory: Control
 var _state
 var _started_msec := 0
 
@@ -39,6 +40,10 @@ func _run() -> void:
 	_hud = (load("res://scenes/ui/hud.tscn") as PackedScene).instantiate() as CanvasLayer
 	_world.add_child(_hud)
 	_ammo = _hud._weapon_ammo
+	_inventory = _hud.find_child("EC60EInventory", true, false) as Control
+	if _inventory == null:
+		_abort("production HUD is missing its grenade inventory")
+		return
 	for id in _state.weapon_unlocked:
 		_state.weapon_unlocked[id] = true
 	# Keep world geometry and tactical labels fixed across paired renders.
@@ -142,12 +147,18 @@ func _difference(first: Image, second: Image) -> Dictionary:
 
 
 func _check_fields(id: StringName) -> bool:
+	_assert(_inventory.is_visible_in_tree(), "%s scope keeps the grenade inventory visible above its mask" % id)
 	var full: Image = await _capture("%s_full_scope" % id)
 	if full == null:
 		return false
 	_ammo.visible = false
+	# Isolate the existing black scope surround; the new inventory also overlaps
+	# the top four pixels of this fixed ammunition sampling region.
+	var inventory_visible := _inventory.visible
+	_inventory.visible = false
 	var mask: Image = await _capture()
 	_ammo.visible = true
+	_inventory.visible = inventory_visible
 	if mask == null:
 		return false
 	var maximum := 0.0

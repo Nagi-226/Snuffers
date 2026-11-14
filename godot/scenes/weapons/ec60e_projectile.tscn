@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/ec60e_projectile.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/ec60e_grenade.glb" id="2_model"]
+
+[node name="EC60EProjectile" type="RigidBody3D"]
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

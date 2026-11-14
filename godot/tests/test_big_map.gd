@@ -28,7 +28,7 @@ func _run() -> void:
 	player._toggle_big_map()
 	map._refresh_markers()
 	_assert(map._enemies.size() == 64, "all 64 enemies are tracked on the live map")
-	_assert(map._pickups.size() == 2, "remaining equipment supplies are tracked")
+	_assert(map._pickups.size() == 3, "DMR, shotgun and the existing SPAS-12 supply are tracked")
 	_assert(map._objectives.size() == 2, "unclaimed DMR and shotgun are current objectives")
 	var rect: Rect2 = map._map_rect()
 	var center: Vector2 = map.world_to_map(Vector3.ZERO)
@@ -48,7 +48,7 @@ func _run() -> void:
 	pickup.queue_free()
 	await process_frame
 	map._refresh_markers()
-	_assert(map._pickups.size() == 1, "collected supply disappears from the live map")
+	_assert(map._pickups.size() == 2, "collected DMR disappears while shotgun and SPAS-12 supplies remain")
 	_finish(district)
 
 

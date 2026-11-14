@@ -19,7 +19,8 @@ const KEY_CATEGORY_SHOTGUN: Key = KEY_4
 const KEY_CATEGORY_MACHINE_GUN: Key = KEY_5
 const KEY_CATEGORY_HEAVY: Key = KEY_6
 const KEY_NIGHT_VISION: Key = KEY_N ## N：夜视仪切换（§11.2 机主裁决：V→N，与昼夜演示场景键位一致）
-const KEY_MEDKIT: Key = KEY_G ## G：使用药包（F 统一交互）
+const KEY_MEDKIT: Key = KEY_T ## T：使用药包（F 统一交互）
+const KEY_GRENADE: Key = KEY_G ## G：独立投掷 EC-60E，不切换当前枪械。
 const KEY_HELI: Key = KEY_H ## 网页版 H：呼叫直升机
 const KEY_JUMP: Key = KEY_SPACE ## 空格：跳跃（2026-10-18 机主立项）
 const KEY_SPRINT: Key = KEY_SHIFT ## 左 Shift+W：疾跑（2026-10-19 机主立项）
@@ -421,6 +422,14 @@ func _unhandled_input(event: InputEvent) -> void:
 				_toggle_night_vision()
 			KEY_MEDKIT:
 				_use_medkit()
+			KEY_GRENADE:
+				if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or get_tree().paused:
+					return
+				if GameState.mission_phase == GameState.MissionPhase.COMPLETED \
+						or GameState.mission_phase == GameState.MissionPhase.GAME_OVER:
+					return
+				var excludes: Array[RID] = [get_rid()]
+				Events.ec60e_throw_requested.emit(_camera.global_position, -_camera.global_basis.z, velocity, excludes)
 			KEY_HELI:
 				_call_heli()
 			KEY_JUMP:
@@ -1099,7 +1108,7 @@ func _toggle_night_vision() -> void:
 	Events.night_vision_toggled.emit(GameState.night_vision)
 
 
-## F：药包占位——生命值 +MEDKIT_HEAL（不超上限），库存 -1，广播信号。
+## T：药包占位——生命值 +MEDKIT_HEAL（不超上限），库存 -1，广播信号。
 func _use_medkit() -> void:
 	if GameState.medkits <= 0:
 		return

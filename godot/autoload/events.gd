@@ -70,6 +70,12 @@ signal hit_confirmed(is_headshot: bool)
 signal ricochet_on_bunker()
 ## 榴弹爆炸（爆炸音效/特效锚点，G2 冻结新增）。信号名保留护 G2 冻结面，现由 EM-40G 榴弹爆炸发射（2026-10-22 旧 RPG 已退役并入步枪榴档）。
 signal rpg_exploded(position: Vector3)
+## EC-60E 独立手雷（2026-11-12）：输入仅请求，武器模块成功生成后扣库存。
+## origin 为相机位置，投掷模块负责沿 direction 检查安全出生点；excludes 为玩家 RID。
+signal ec60e_throw_requested(origin: Vector3, direction: Vector3, inherited_velocity: Vector3, excludes: Array[RID])
+signal ec60e_stock_changed(total: int)
+## 专用青蓝光波与音效，不触发普通榴弹橙色火球。
+signal ec60e_exploded(position: Vector3)
 ## 榴弹/导弹实际撞击表面时的炸痕，保留 rpg_exploded 音效/爆炸契约。
 signal explosion_surface_impacted(position: Vector3, normal: Vector3, receiver: Node3D)
 ## 对敌人造成伤害（HUD 伤害飘字用，G2 冻结新增）。与 hit_confirmed 互补；伤害投递仍走 take_damage 鸭子接口。

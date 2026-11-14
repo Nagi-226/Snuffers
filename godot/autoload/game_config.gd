@@ -892,6 +892,54 @@ const GRENADE_LAUNCH_FORWARD: float = 0.7 ## 出膛点沿枪管前移量 m（下
 ## 从武器原点直接出膛会显得"从手臂处发射"）
 const GRENADE_LAUNCH_DROP: float = 0.15 ## 出膛点下移量 m（发射管挂在枪管下方）
 
+# ===== EC-60E「闷罐」独立手投等离子雷（2026-11-12 机主确认）=====
+const EC60E_STARTING_STOCK: int = 100
+const EC60E_FUSE_TIME: float = 3.0 ## 投出后定时引爆；暂停时引信同步暂停
+const EC60E_INNER_RADIUS: float = 15.0
+const EC60E_OUTER_RADIUS: float = 25.0
+const EC60E_INNER_DAMAGE: float = 900.0 ## ≤15m，球形距离且无视遮挡
+const EC60E_OUTER_DAMAGE: float = 750.0 ## (15,25]m，25m 外无伤害
+const EC60E_SELF_DAMAGE: bool = false ## 本轮机主指定玩家免伤
+# 下列投掷/物理值为首轮实施标定；全部留在契约中便于试玩调整。
+const EC60E_THROW_SPEED: float = 12.0
+const EC60E_THROW_UP_SPEED: float = 2.5
+const EC60E_INHERIT_VELOCITY: float = 0.65
+const EC60E_THROW_INTERVAL: float = 0.65
+const EC60E_LAUNCH_FORWARD: float = 0.5
+const EC60E_QUERY_RADIUS: float = 0.056 ## 包住运行圆柱任意转姿的 55.402mm 外接球
+const EC60E_SPAWN_MARGIN: float = 0.002
+const EC60E_COLLISION_RADIUS: float = 0.0305
+const EC60E_COLLISION_HEIGHT: float = 0.0925 ## 平盖圆柱完整包住实模；胶囊圆头会漏端盖
+const EC60E_MAX_CONTACTS: int = 16
+const EC60E_CONTACT_ALLOWED_PENETRATION: float = 0.001 ## 仅手雷本体纠偏；不改世界10mm默认容差
+const EC60E_COLLISION_MASK: int = 3
+const EC60E_MASS: float = 0.5
+const EC60E_BOUNCE: float = 0.38
+const EC60E_FRICTION: float = 0.8
+const EC60E_LINEAR_DAMP: float = 0.2
+const EC60E_ANGULAR_DAMP: float = 0.8
+const EC60E_SPIN := Vector3(5.0, 2.0, 1.0)
+const EC60E_GRAVITY_SCALE: float = 1.0
+const EC60E_FX_POOL: int = 6
+const EC60E_FX_LIFETIME: float = 0.85
+const EC60E_FX_WAVE_TIME: float = 0.65
+const EC60E_FX_FLASH_TIME: float = 0.22
+const EC60E_FX_FLASH_RANGE: float = 12.0
+const EC60E_FX_FLASH_ENERGY: float = 8.0
+const EC60E_FX_COLOR := Color(0.15, 0.85, 1.0)
+const EC60E_FX_CORE_COLOR := Color(0.72, 0.96, 1.0)
+const EC60E_FX_CORE_RADIUS: float = 1.8
+const EC60E_HUD_RECT := Vector4(-286.0, -252.0, -16.0, -156.0)
+const EC60E_HUD_ICON_RECT := Rect2(178.0, 8.0, 80.0, 80.0)
+const EC60E_HUD_TITLE_POINT := Vector2(12.0, 22.0)
+const EC60E_HUD_COUNT_POINT := Vector2(12.0, 62.0)
+const EC60E_HUD_HINT_POINT := Vector2(12.0, 83.0)
+const EC60E_HUD_FONTS := Vector3i(14, 34, 11)
+const EC60E_HUD_COLOR := Color(0.38, 0.86, 1.0, 0.95)
+const EC60E_HUD_SECONDARY := Color(0.38, 0.86, 1.0, 0.68)
+const EC60E_HUD_PANEL_BG := Color(0.02, 0.07, 0.1, 0.35)
+const EC60E_HUD_BORDER := Color(0.4, 0.95, 1.0, 0.25)
+
 # ===== 敌人（G2 门禁基准）=====
 const INFANTRY_HP: float = 150.0 ## 步兵血量（2026-10-22 机主裁决 50→150：寄生体宿主强化，步枪 75 伤 2 发/手枪 45 伤 4 发击杀；原 50 为网页版 L1139 值）
 const INFANTRY_SPEED: float = 3.5 ## 步兵移动速度 u/s（L1140）

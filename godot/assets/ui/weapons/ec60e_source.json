@@ -1,0 +1,36 @@
+{
+  "id": "ec60e",
+  "source": "godot/assets/models/weapons/ec60e_grenade.glb",
+  "bounds_coordinate_space": "Blender world coordinates in meters after glTF import; Z up (Godot up corresponds to Blender Z)",
+  "min": [
+    -0.029871348291635513,
+    -0.03002173639833927,
+    -0.045823343098163605
+  ],
+  "max": [
+    0.02987639047205448,
+    0.03004218265414238,
+    0.04610078036785126
+  ],
+  "mesh_count": 1,
+  "projection": "orthographic three-quarter canister; actual intact model",
+  "resolution": [
+    1440,
+    1440
+  ],
+  "source_sha256": "d1ed3f89f23189cbf02747afbe60f433ed04d015c245f12c5f8c73d46ea6ecbd",
+  "linework_paths": {
+    "outline": 3,
+    "structure": 80,
+    "detail": 70
+  },
+  "upstream_pipeline": ".kimi-tmp/weapon_icons_v2/render_model_lines.py + visible_line_export.py + process_linework.py",
+  "svg_viewbox": [
+    0,
+    0,
+    120,
+    120
+  ],
+  "date": "2026-11-14",
+  "svg_sha256": "d96b0430fb372b98a70084f419aa5bcf135163a2b9c6343cc6ccb6a8785c44bc"
+}

@@ -48,6 +48,7 @@ var em40t1_mag: int = 0 ## EM-40T-1 20 发弹匣；与下挂模块共用 EC-40 �
 ## EM-40G「滚雷」榴弹余量（2026-10-22 冻结新增：并入步枪第四射击档，模块 6 发弹匣
 ## =雷池，总数制无换弹；旧 rpg_ammo 随 RPG 武器退役移除；EM-40T-1 以此为共享备弹）
 var rifle_grenades: int = 0
+var ec60e_grenades: int = 0 ## EC-60E 手投库存，与 EC-40 雷池/枪械栏分离（2026-11-12）
 var medkits: int = 0
 var kills: int = 0
 ## 取证终端已收集数（叙事收集品，2026-10-07 冻结新增）
@@ -134,6 +135,7 @@ func reset() -> void:
 	em12g2_mag = GameConfig.EM12G2_MAG
 	em40t1_mag = GameConfig.EM40T1_MAG
 	rifle_grenades = GameConfig.GRENADE_AMMO
+	ec60e_grenades = GameConfig.EC60E_STARTING_STOCK
 	medkits = 0
 	kills = 0
 	intel = 0
