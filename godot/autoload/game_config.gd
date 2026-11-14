@@ -76,7 +76,7 @@ const ARMOR_REGEN_RATE: float = 12.0 ## 护甲回充速率 点/s（满充 100 �
 const HEALTH_REGEN_RATE: float = 8.0 ## 生命值回复速率 点/s（与护甲同延迟同步回复，慢于护甲）
 const MEDKIT_AUTO_HEALTH_FRACTION: float = 0.2 ## 活着且生命值严格低于20%时自动消耗一包补满
 const MEDKIT_PICKUP_RADIUS: float = 3.0 ## 拾取半径（L849）
-const MEDKIT_MAX_CARRY: int = 5 ## 携带上限（L2305）
+const MEDKIT_MAX_CARRY: int = 50 ## 携带上限（2026-11-14 机主指定）
 
 # ===== 拾取（2026-10-07 机主裁决冻结：居民区室内补给 = 电池组/医疗注射/取证终端，无 RPG）=====
 const BATTERY_PICKUP_ROUNDS: int = 300 ## EC-68 电池组单件补充数（2026-11-10 机主裁决）

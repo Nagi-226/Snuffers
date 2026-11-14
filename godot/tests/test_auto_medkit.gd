@@ -11,6 +11,7 @@ var _events: Node
 var _uses: Array[int] = []
 var _health: Array[float] = []
 var _messages: Array[String] = []
+var _pickups: Array[int] = []
 var _deaths := 0
 
 
@@ -43,6 +44,10 @@ func _record_message(message: String) -> void:
 	_messages.append(message)
 
 
+func _record_pickup(total: int) -> void:
+	_pickups.append(total)
+
+
 func _case(hp: float, medkits: int) -> void:
 	_state.reset()
 	_state.hp = hp
@@ -52,6 +57,7 @@ func _case(hp: float, medkits: int) -> void:
 	_uses.clear()
 	_health.clear()
 	_messages.clear()
+	_pickups.clear()
 	_deaths = 0
 
 
@@ -72,6 +78,7 @@ func _run() -> void:
 	_events.player_health_changed.connect(_record_health)
 	_events.game_over.connect(_record_death)
 	_events.message_posted.connect(_record_message)
+	_events.medkit_picked.connect(_record_pickup)
 	var constants: Dictionary = _config.get_script().get_script_constant_map()
 	_assert(constants.get("MEDKIT_AUTO_HEALTH_FRACTION") == 0.2, "Config declares the approved strict 20% automatic medicine threshold")
 	_assert(not _player.get_script().get_script_constant_map().has("KEY_MEDKIT"), "Player has no manual medkit key binding")
@@ -80,6 +87,7 @@ func _run() -> void:
 	_check_passive_regen()
 	_check_guards()
 	_check_unbound_t()
+	await _check_max_carry()
 	_check_range_supplies()
 	await _finish()
 
@@ -163,6 +171,31 @@ func _check_unbound_t() -> void:
 		_assert(_state.hp == hp and _state.medkits == 1 and _uses.is_empty(), "T at %s HP no longer manually uses medicine" % hp)
 
 
+func _check_max_carry() -> void:
+	_assert(_config.MEDKIT_MAX_CARRY == 50, "Config sets the approved medkit carry limit to fifty")
+	_case(float(_config.HEALTH_MAX), 49)
+	var accepted := (load("res://scenes/levels/pickup.tscn") as PackedScene).instantiate() as Area3D
+	accepted.kind = &"medkit"
+	accepted.position = Vector3(1000, 0, 1000)
+	_world.add_child(accepted)
+	accepted.set_process(false)
+	accepted.call("_on_body_entered", _player)
+	_assert(_state.medkits == 50 and _pickups == [50] and accepted.is_queued_for_deletion(), "real pickup increases forty-nine to fifty and publishes medkit_picked(50)")
+	var retained := (load("res://scenes/levels/pickup.tscn") as PackedScene).instantiate() as Area3D
+	retained.kind = &"medkit"
+	retained.position = Vector3(1000, 0, 1000)
+	_world.add_child(retained)
+	retained.set_process(false)
+	retained.call("_on_body_entered", _player)
+	_assert(_state.medkits == 50 and _pickups == [50] and not retained.is_queued_for_deletion() and not retained.get("_collected"), "full stock refuses another pickup without exceeding fifty or deleting the supply")
+	_state.hp = 21.0
+	_player._apply_damage(&"hp", 2.0)
+	_assert(_state.medkits == 49 and _uses == [49] and _state.hp == _config.HEALTH_MAX, "automatic use frees exactly one slot from a full fifty-medkit inventory")
+	retained.call("_on_body_entered", _player)
+	_assert(_state.medkits == 50 and _pickups == [50, 50] and retained.is_queued_for_deletion(), "the retained real supply refills the freed slot to fifty")
+	await process_frame
+
+
 func _check_range_supplies() -> void:
 	_state.reset()
 	var range_scene := (load("res://scenes/levels/weapons_range.tscn") as PackedScene).instantiate() as Node3D
@@ -185,6 +218,7 @@ func _finish() -> void:
 	_events.player_health_changed.disconnect(_record_health)
 	_events.game_over.disconnect(_record_death)
 	_events.message_posted.disconnect(_record_message)
+	_events.medkit_picked.disconnect(_record_pickup)
 	_world.queue_free()
 	current_scene = null
 	await process_frame
