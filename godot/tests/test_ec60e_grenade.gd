@@ -91,7 +91,7 @@ func _run() -> void:
 	player.set_physics_process(false)
 	_assert(player.has_node("EC60EController"), "actual Player owns the independent EC60EController")
 	var player_constants: Dictionary = player.get_script().get_script_constant_map()
-	_assert(player_constants.get("KEY_MEDKIT") == KEY_T, "medkit moves from G to T")
+	_assert(not player_constants.has("KEY_MEDKIT"), "automatic medicine has no manual medkit key binding")
 	var hud := (load("res://scenes/ui/hud.tscn") as PackedScene).instantiate() as CanvasLayer
 	root.add_child(hud)
 	await process_frame

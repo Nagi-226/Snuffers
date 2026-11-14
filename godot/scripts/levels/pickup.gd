@@ -109,7 +109,7 @@ func _on_body_entered(body: Node3D) -> void:
 				return  # 携带上限：留在原地不吞件
 			GameState.medkits += 1
 			Events.medkit_picked.emit(GameState.medkits)
-			Events.message_posted.emit("医疗注射  +1（F 使用）")
+			Events.message_posted.emit("药包  +1（低生命值时自动补满）")
 		&"intel":
 			GameState.intel += 1
 			GameState.mission_points.erase(String(name))  # 任务标记收尾（小地图/罗盘）

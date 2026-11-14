@@ -31,7 +31,7 @@ func _assert(condition: bool, label: String) -> void:
 
 
 func _run() -> void:
-	_assert(DisplayServer.get_name() != "headless", "Player G/T integration requires native mouse capture")
+	_assert(DisplayServer.get_name() != "headless", "Player grenade input integration requires native mouse capture")
 	if _failures:
 		quit(1)
 		return
@@ -117,7 +117,7 @@ func _ammo_snapshot() -> Dictionary:
 
 func _check_input() -> void:
 	_state.medkits = 2
-	_state.hp = 10.0
+	_state.hp = 50.0
 	var ammo_before := _ammo_snapshot()
 	var camera := _player.get_node("Camera3D") as Camera3D
 	_player.velocity = Vector3(1, 0, 2)
@@ -127,7 +127,7 @@ func _check_input() -> void:
 	_assert(_requests.size() == 1 and _requests[0].origin.is_equal_approx(camera.global_position)
 		and _requests[0].direction.is_equal_approx(-camera.global_basis.z)
 		and _requests[0].velocity == _player.velocity and _requests[0].excludes.has(_player.get_rid()), "Player supplies the real camera aim, velocity and its collision RID")
-	_assert(_ammo_snapshot() == ammo_before and _state.medkits == 2 and _state.hp == 10.0, "G leaves all gun ammunition, EC-40, selection, firing modes and medicine untouched")
+	_assert(_ammo_snapshot() == ammo_before and _state.medkits == 2 and _state.hp == 50.0, "G leaves all gun ammunition, EC-40, selection, firing modes and medicine untouched")
 	if grenades.size() == 1:
 		var projectile := grenades[0]
 		_assert(projectile.get_collision_exceptions().has(_player), "spawned RigidBody explicitly excludes the actual Player collision")
@@ -145,7 +145,7 @@ func _check_input() -> void:
 	_key(KEY_G)
 	_assert(_grenades().size() == 2 and _state.ec60e_grenades == 98 and _stocks == [99, 98], "a new G press after the real cooldown creates exactly one additional grenade")
 	_key(KEY_T)
-	_assert(_state.medkits == 1 and _state.hp == minf(10.0 + float(_config.MEDKIT_HEAL), float(_config.HEALTH_MAX)) and _state.ec60e_grenades == 98, "T uses the actual medkit healing path without consuming a grenade")
+	_assert(_state.medkits == 2 and _state.hp == 50.0 and _state.ec60e_grenades == 98, "T no longer consumes medicine or a grenade")
 	await _clear_and_ready()
 	# Existing reload signal is the same live state transition used by an R reload.
 	_events.weapon_reload_started.emit(&"rifle")

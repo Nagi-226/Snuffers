@@ -74,7 +74,7 @@ const ARMOR_ABSORB_FACTOR: float = 0.6 ## 护甲吸收上限 = 伤害×0.6（L32
 const ARMOR_REGEN_DELAY: float = 4.0 ## 最后一次受击后进入回充的脱战时长 s（生命值与护甲共用同一延迟）
 const ARMOR_REGEN_RATE: float = 12.0 ## 护甲回充速率 点/s（满充 100 约 8.3s）
 const HEALTH_REGEN_RATE: float = 8.0 ## 生命值回复速率 点/s（与护甲同延迟同步回复，慢于护甲）
-const MEDKIT_HEAL: float = 50.0 ## 生命值 +50（2026-10-21 单一生命值制）
+const MEDKIT_AUTO_HEALTH_FRACTION: float = 0.2 ## 活着且生命值严格低于20%时自动消耗一包补满
 const MEDKIT_PICKUP_RADIUS: float = 3.0 ## 拾取半径（L849）
 const MEDKIT_MAX_CARRY: int = 5 ## 携带上限（L2305）
 
@@ -930,7 +930,7 @@ const EC60E_FX_COLOR := Color(0.15, 0.85, 1.0)
 const EC60E_FX_CORE_COLOR := Color(0.72, 0.96, 1.0)
 const EC60E_FX_CORE_RADIUS: float = 1.8
 const EC60E_HUD_RECT := Vector4(16.0, -112.0, 286.0, -16.0) ## 左下角；距左/下边缘16px
-const EC60E_HUD_ICON_RECT := Rect2(178.0, 8.0, 80.0, 80.0)
+const EC60E_HUD_ICON_RECT := Rect2(92.0, 8.0, 80.0, 80.0)
 const EC60E_HUD_TITLE_POINT := Vector2(12.0, 22.0)
 const EC60E_HUD_COUNT_POINT := Vector2(12.0, 62.0)
 const EC60E_HUD_HINT_POINT := Vector2(12.0, 83.0)
@@ -939,6 +939,15 @@ const EC60E_HUD_COLOR := Color(0.38, 0.86, 1.0, 0.95)
 const EC60E_HUD_SECONDARY := Color(0.38, 0.86, 1.0, 0.68)
 const EC60E_HUD_PANEL_BG := Color(0.02, 0.07, 0.1, 0.35)
 const EC60E_HUD_BORDER := Color(0.4, 0.95, 1.0, 0.25)
+
+## 药包与左下手雷横向并列；共用既有青蓝线稿/字号标定。
+const MEDKIT_HUD_RECT := Vector4(302.0, -112.0, 572.0, -16.0)
+const MEDKIT_HUD_ICON_RECT := Rect2(48.0, 8.0, 80.0, 80.0)
+const MEDKIT_HUD_TITLE_POINT := EC60E_HUD_TITLE_POINT
+const MEDKIT_HUD_COUNT_POINT := EC60E_HUD_COUNT_POINT
+const MEDKIT_HUD_FONTS := EC60E_HUD_FONTS
+const MEDKIT_HUD_COLOR := EC60E_HUD_COLOR
+const MEDKIT_HUD_SECONDARY := EC60E_HUD_SECONDARY
 
 # ===== 敌人（G2 门禁基准）=====
 const INFANTRY_HP: float = 150.0 ## 步兵血量（2026-10-22 机主裁决 50→150：寄生体宿主强化，步枪 75 伤 2 发/手枪 45 伤 4 发击杀；原 50 为网页版 L1139 值）

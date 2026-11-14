@@ -117,7 +117,8 @@ func _inventory_checks() -> void:
 	_assert(_inventory.get("stock") == 0 and _inventory.is_visible_in_tree(), "depleted stock remains visibly present at zero")
 	var count_rect := Rect2i(Vector2i(bounds.position + Vector2(10, 30)), Vector2i(120, 40))
 	_assert(_changed_pixels(before, depleted, count_rect) > 100, "100 to zero visibly redraws the real count glyphs")
-	var icon_rect := Rect2i(Vector2i(bounds.position + Vector2(178, 8)), Vector2i(80, 80))
+	var icon_bounds: Rect2 = _config.EC60E_HUD_ICON_RECT
+	var icon_rect := Rect2i(Vector2i(bounds.position + icon_bounds.position), Vector2i(icon_bounds.size))
 	_assert(_changed_pixels(before, depleted, icon_rect) == 0, "the model outline remains unchanged beside the zero count")
 	_inventory.visible = false
 	var hidden := await _capture("hud_zero_reference_hidden")

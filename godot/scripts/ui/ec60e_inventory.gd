@@ -35,6 +35,4 @@ func _draw() -> void:
 			HORIZONTAL_ALIGNMENT_LEFT, -1, GameConfig.EC60E_HUD_FONTS.x, GameConfig.EC60E_HUD_SECONDARY)
 	draw_string(font, GameConfig.EC60E_HUD_COUNT_POINT, str(stock),
 			HORIZONTAL_ALIGNMENT_LEFT, -1, GameConfig.EC60E_HUD_FONTS.y, GameConfig.EC60E_HUD_COLOR)
-	draw_string(font, GameConfig.EC60E_HUD_HINT_POINT, "[G] 投掷手雷  ·  [T] 药包",
-			HORIZONTAL_ALIGNMENT_LEFT, -1, GameConfig.EC60E_HUD_FONTS.z, GameConfig.EC60E_HUD_SECONDARY)
 	draw_texture_rect(ICON_TEXTURE, GameConfig.EC60E_HUD_ICON_RECT, false)

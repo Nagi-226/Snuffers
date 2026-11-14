@@ -19,7 +19,6 @@ const KEY_CATEGORY_SHOTGUN: Key = KEY_4
 const KEY_CATEGORY_MACHINE_GUN: Key = KEY_5
 const KEY_CATEGORY_HEAVY: Key = KEY_6
 const KEY_NIGHT_VISION: Key = KEY_N ## N：夜视仪切换（§11.2 机主裁决：V→N，与昼夜演示场景键位一致）
-const KEY_MEDKIT: Key = KEY_T ## T：使用药包（F 统一交互）
 const KEY_GRENADE: Key = KEY_G ## G：独立投掷 EC-60E，不切换当前枪械。
 const KEY_HELI: Key = KEY_H ## 网页版 H：呼叫直升机
 const KEY_JUMP: Key = KEY_SPACE ## 空格：跳跃（2026-10-18 机主立项）
@@ -420,8 +419,6 @@ func _unhandled_input(event: InputEvent) -> void:
 				_select_weapon_category(6)
 			KEY_NIGHT_VISION:
 				_toggle_night_vision()
-			KEY_MEDKIT:
-				_use_medkit()
 			KEY_GRENADE:
 				if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or get_tree().paused:
 					return
@@ -526,6 +523,7 @@ func _update_armor_regen(delta: float) -> void:
 	if GameState.mission_phase == GameState.MissionPhase.COMPLETED \
 			or GameState.mission_phase == GameState.MissionPhase.GAME_OVER:
 		return
+	_use_medkit()
 	var needs := GameState.armor < GameConfig.ARMOR_MAX or GameState.hp < GameConfig.HEALTH_MAX
 	if not needs:
 		return
@@ -1108,13 +1106,17 @@ func _toggle_night_vision() -> void:
 	Events.night_vision_toggled.emit(GameState.night_vision)
 
 
-## T：药包占位——生命值 +MEDKIT_HEAL（不超上限），库存 -1，广播信号。
+## 低于生命值阈值时自动消耗一个药包并补满；致命伤和结束态不触发。
 func _use_medkit() -> void:
-	if GameState.medkits <= 0:
+	if get_tree().paused or GameState.mission_phase == GameState.MissionPhase.COMPLETED \
+			or GameState.mission_phase == GameState.MissionPhase.GAME_OVER:
+		return
+	if GameState.medkits <= 0 or GameState.hp <= 0.0 \
+			or GameState.hp >= GameConfig.HEALTH_MAX * GameConfig.MEDKIT_AUTO_HEALTH_FRACTION:
 		return
 	GameState.medkits -= 1
+	GameState.hp = GameConfig.HEALTH_MAX
 	Events.medkit_used.emit(GameState.medkits)
-	GameState.hp = minf(GameState.hp + GameConfig.MEDKIT_HEAL, GameConfig.HEALTH_MAX)
 	Events.player_health_changed.emit(&"hp", GameState.hp, GameConfig.HEALTH_MAX)
 
 
@@ -1136,6 +1138,7 @@ func _apply_damage(_part: StringName, amount: float) -> void:
 		Events.armor_changed.emit(GameState.armor, GameConfig.ARMOR_MAX)
 	GameState.hp = maxf(0.0, GameState.hp - actual)
 	Events.player_health_changed.emit(&"hp", GameState.hp, GameConfig.HEALTH_MAX)
+	_use_medkit()
 	if GameState.hp <= 0.0:
 		GameState.mission_phase = GameState.MissionPhase.GAME_OVER
 		Events.game_over.emit(&"enemy")

@@ -52,7 +52,7 @@ func _run() -> void:
 	root.add_child(enemy)
 	await process_frame
 	var config = root.get_node("GameConfig")
-	_assert(player.KEY_INTERACT == KEY_F and player.KEY_MEDKIT == KEY_T, "interaction uses F and medkit uses T")
+	_assert(player.KEY_INTERACT == KEY_F and not player.get_script().get_script_constant_map().has("KEY_MEDKIT"), "interaction uses F and medicine has no manual key binding")
 	_assert(state.nano_mode == &"normal" and hud._awareness_state == &"green", "default normal mode and green awareness")
 	hud._process(0.0)
 	_assert(not hud._nano_armor_overlay.visible, "normal mode hides armor hexagons")

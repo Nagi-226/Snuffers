@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/levels/greybox_arena.tscn" id="1_arena"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/audio_manager.tscn" id="4_audio"]
 [ext_resource type="Script" path="res://scripts/levels/range_builder.gd" id="5_range"]
+[ext_resource type="PackedScene" path="res://scenes/levels/pickup.tscn" id="6_medkit"]
 
 [node name="WeaponsRange" type="Node3D"]
 
@@ -21,3 +22,29 @@ range_mode = true
 
 [node name="RangeFacilities" type="Node3D" parent="."]
 script = ExtResource("5_range")
+
+[node name="RangeMedkits" type="Node3D" parent="."]
+
+[node name="Medkit01" parent="RangeMedkits" instance=ExtResource("6_medkit")]
+position = Vector3(34, 0.45, 17)
+kind = &"medkit"
+
+[node name="Medkit02" parent="RangeMedkits" instance=ExtResource("6_medkit")]
+position = Vector3(37, 0.45, 17)
+kind = &"medkit"
+
+[node name="Medkit03" parent="RangeMedkits" instance=ExtResource("6_medkit")]
+position = Vector3(40, 0.45, 17)
+kind = &"medkit"
+
+[node name="Medkit04" parent="RangeMedkits" instance=ExtResource("6_medkit")]
+position = Vector3(34, 0.45, 20)
+kind = &"medkit"
+
+[node name="Medkit05" parent="RangeMedkits" instance=ExtResource("6_medkit")]
+position = Vector3(37, 0.45, 20)
+kind = &"medkit"
+
+[node name="Medkit06" parent="RangeMedkits" instance=ExtResource("6_medkit")]
+position = Vector3(40, 0.45, 20)
+kind = &"medkit"
