@@ -4,7 +4,7 @@ extends SceneTree
 const WEAPONS := {
 	&"sig516": {"asset": "sig516_tactical.glb", "length": 1.097582, "mag": 30, "damage": 45.0, "groups": ["Body", "Magazine", "ACOG", "InfraredModule", "WeaponLight", "Foregrip"]},
 	&"sr25": {"asset": "sr25_precision.glb", "length": 1.10, "mag": 20, "damage": 105.0, "groups": ["Body", "Magazine", "Scope", "Bipod"]},
-	&"m700": {"asset": "m700_scoped.glb", "length": 1.054058, "mag": 4, "damage": 140.0, "groups": ["Body", "InternalMagazine", "Bolt", "Scope"]},
+	&"m700": {"asset": "m700_scoped.glb", "length": 1.054058, "mag": 5, "damage": 140.0, "groups": ["Body", "InternalMagazine", "Bolt", "Scope"]},
 }
 
 var _assertions := 0
@@ -688,7 +688,7 @@ func _check_reload_runtime(id: StringName) -> void:
 		await _check_m700_insertion_visibility(round_mesh, round_points)
 		await _advance(duration * 0.65)
 		_assert(_loaded(id) == 4 and int(_state.get(reserve_key)) == 99, "M700 inserts its first real cartridge separately before completing the next")
-		await _advance(duration + 0.15)
+		await _advance(duration * 2.0 + 0.15)
 	else:
 		_assert(not magazine.transform.is_equal_approx(magazine_home) or not magazine.visible, "%s moves its real detachable magazine during reload" % id)
 		await _capture("%s_magazine_pull" % id)

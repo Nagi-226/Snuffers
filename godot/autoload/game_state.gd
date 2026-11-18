@@ -22,7 +22,7 @@ var mpx_mag: int = 0 ## SIG MPX独立30发弹匣（2026-11-11）
 var ammo_9x19_reserve: int = 0 ## 两枪共用9x19帕拉贝鲁姆；与EC-57分离
 var sig516_mag: int = 0 ## SIG516独立30发弹匣
 var sr25_mag: int = 0 ## SR25独立20发弹匣
-var m700_mag: int = 0 ## M700四发内部弹仓；膛位由weapon_chambered独立保存
+var m700_mag: int = 0 ## M700五发内部弹仓；膛位由weapon_chambered独立保存
 var ammo_556_reserve: int = 0 ## SIG516的5.56x45备弹
 var ammo_308_reserve: int = 0 ## SR25/M700共用7.62x51/.308备弹
 var dmr_mag: int = 0 ## EM-68D 弹匣（2026-10-26）
@@ -115,7 +115,7 @@ func reset() -> void:
 	mpx_mag = GameConfig.MPX_MAG
 	sig516_mag = GameConfig.SIG516_MAG
 	sr25_mag = GameConfig.SR25_MAG
-	m700_mag = GameConfig.M700_MAG + 1 ## 初装4仓+1膛，下方迁移一发后实际容器为4
+	m700_mag = GameConfig.M700_MAG + 1 ## 初装5仓+1膛，下方迁移一发后实际容器为5
 	ammo_556_reserve = GameConfig.AMMO_556_RESERVE
 	ammo_308_reserve = GameConfig.AMMO_308_RESERVE
 	ammo_9x19_reserve = GameConfig.AMMO_9X19_RESERVE

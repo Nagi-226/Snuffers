@@ -5,7 +5,7 @@ const IDS := [&"sig516", &"sr25", &"m700"]
 const DETAILS := {
 	&"sig516": {"name": "SIG516", "ammo": "5.56×45mm", "reserve": &"ammo_556_reserve", "cap": 30, "pitch": "SIG516_SOUND_PITCH"},
 	&"sr25": {"name": "SR25", "ammo": "7.62×51mm", "reserve": &"ammo_308_reserve", "cap": 20, "pitch": "SR25_SOUND_PITCH"},
-	&"m700": {"name": "Remington M700", "ammo": ".308 Win", "reserve": &"ammo_308_reserve", "cap": 4, "pitch": "M700_SOUND_PITCH"},
+	&"m700": {"name": "Remington M700", "ammo": ".308 Win", "reserve": &"ammo_308_reserve", "cap": 5, "pitch": "M700_SOUND_PITCH"},
 }
 const SOURCES := [
 	["N-GONE", "a9ea47674b824665b4e3b58a28b149e8"],
@@ -39,6 +39,13 @@ func _run() -> void:
 	var config = root.get_node("GameConfig")
 	_assert(config.AMMO_556_RESERVE == 600 and state.ammo_556_reserve == 600, "real fresh Config and GameState start the shared 5.56 reserve at the approved 600 rounds")
 	_assert(config.AMMO_308_RESERVE == 300 and state.ammo_308_reserve == 300, "real fresh Config and GameState start the shared .308 reserve at the approved 300 rounds")
+	_assert(config.M700_MAG == 5, "real fresh Config freezes M700 at five internal rounds independently of the HUD fixture")
+	var fresh_m700_total: int = int(state.m700_mag) + (1 if state.weapon_chambered.get(&"m700", false) else 0)
+	_assert(state.m700_mag == 5 and state.weapon_chambered.get(&"m700", false) and fresh_m700_total == 6, "real fresh GameState supplies five M700 internal rounds plus one retained chamber before any manual HUD state")
+	var m700_data = load("res://scenes/weapons/m700.tres").duplicate()
+	_assert(m700_data.mag_size == 5, "raw M700 WeaponData resource stores the approved five-round internal capacity before Config sync")
+	m700_data.sync_from_config()
+	_assert(m700_data.mag_size == 5, "M700 WeaponData Config sync retains the approved five-round internal capacity")
 	var hud = (load("res://scenes/ui/hud.tscn") as PackedScene).instantiate()
 	root.add_child(hud)
 	await process_frame
@@ -47,6 +54,8 @@ func _run() -> void:
 		state.current_weapon = id
 		events.weapon_switched.emit(id)
 		_assert(ammo.weapon_id == id and ammo.reserve == 300, "%s actual fresh HUD consumes the same approved 300-round .308 reserve" % id)
+		if id == &"m700":
+			_assert(ammo.mag == 6 and ammo.show_chamber_bonus, "actual fresh M700 HUD displays five internal rounds plus one chamber without manually replacing its state")
 	if "--reserve-only" in OS.get_cmdline_user_args():
 		hud.queue_free()
 		await process_frame
