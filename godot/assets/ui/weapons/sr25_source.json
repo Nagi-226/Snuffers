@@ -1,0 +1,56 @@
+{
+  "id": "sr25",
+  "source": "godot/addons/community_weapons/sr25_precision.glb",
+  "min": [
+    -0.07996534556150436,
+    -0.5499999523162842,
+    -0.13776090741157532
+  ],
+  "max": [
+    0.07996534556150436,
+    0.550000011920929,
+    0.18483701348304749
+  ],
+  "mesh_count": 45,
+  "projection": "orthographic right side; muzzle to screen right; actual intact model",
+  "resolution": [
+    1440,
+    696
+  ],
+  "source_sha256": "358b96ec2292853f3a42cd66ade312980e6eccdf4b47a8891d463f24d30f04fb",
+  "source_scene": "godot/scenes/weapons/sr25.tscn",
+  "processing": "Blender Freestyle visibility-tested contours and actual transparent-mesh silhouette; legacy three-layer SVG pipeline",
+  "date": "2026-11-18",
+  "blender_version": "5.3.0",
+  "svg_sha256": "21b6494a2104d746a76cf5becf6352713ea8c7eb900fcfa3cfffeafebb919a1c",
+  "svg_path_count": 160,
+  "view_box": [
+    0,
+    0,
+    120,
+    58
+  ],
+  "source_size": [
+    240,
+    116
+  ],
+  "license": "CC-BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "original_sources": [
+    [
+      "Low-Poly SR-25",
+      "TastyTony",
+      "https://sketchfab.com/3d-models/low-poly-sr-25-81976c51d61543a288cf135fd7485951"
+    ],
+    [
+      "Leupold Mk4 LRT M1 10\u00d740mm Scope",
+      "GoldbergR",
+      "https://sketchfab.com/3d-models/leupold-mk-4-lrt-m1-1040mm-scope-low-poly-bf0e3597985940408d24669297d15509"
+    ],
+    [
+      "Harris Bipod",
+      "GoldbergR",
+      "https://sketchfab.com/3d-models/harris-bipod-low-poly-daa7dd1e247e453496974a5d252396f4"
+    ]
+  ]
+}

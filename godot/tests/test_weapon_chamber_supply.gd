@@ -55,7 +55,8 @@ func _run() -> void:
 	await physics_frame
 	await physics_frame
 	await process_frame
-	_assert(_config.CHAMBER_WEAPON_IDS == IDS and _state.weapon_chambered.size() == 18, "frozen chamber contract covers all 18 guns exactly")
+	var expected_ids: Array = IDS + [&"sig516", &"sr25", &"m700"]
+	_assert(_config.CHAMBER_WEAPON_IDS == expected_ids and _state.weapon_chambered.size() == 21, "frozen chamber contract preserves all eighteen legacy guns and explicitly appends three conventional rifles")
 	for id: StringName in IDS:
 		await _check_gun(id)
 	await _check_shared_pools()

@@ -1,0 +1,38 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/sig516_controller.gd" id="1_controller"]
+[ext_resource type="Resource" path="res://scenes/weapons/sig516.tres" id="2_data"]
+[ext_resource type="PackedScene" path="res://addons/community_weapons/sig516_tactical.glb" id="3_model"]
+[ext_resource type="PackedScene" path="res://addons/community_weapons/black_pistol_arms.glb" id="4_arms"]
+[ext_resource type="Script" path="res://scripts/weapons/weapon_accessory.gd" id="5_accessory"]
+
+[node name="Sig516" type="Node3D"]
+script = ExtResource("1_controller")
+weapon_data = ExtResource("2_data")
+magazine_node_path = NodePath("ViewModel/Weapon/Sig516Tactical/Magazine")
+muzzle_node_path = NodePath("ViewModel/Weapon/Sig516Tactical/Muzzle")
+reserve_state_property = &"ammo_556_reserve"
+
+[node name="ViewModel" type="Node3D" parent="."]
+
+[node name="Weapon" parent="ViewModel" instance=ExtResource("3_model")]
+position = Vector3(-0.04, -0.035, 0.12)
+
+[node name="LaserEmitter" type="Marker3D" parent="ViewModel/Weapon/Sig516Tactical/InfraredModule"]
+position = Vector3(-0.02124796, 0.09842730, -0.16500002)
+
+[node name="LightEmitter" type="Marker3D" parent="ViewModel/Weapon/Sig516Tactical/WeaponLight"]
+position = Vector3(0.05163239, 0.05012675, -0.23050001)
+
+[node name="OpticAim" type="Marker3D" parent="ViewModel"]
+position = Vector3(-0.04, 0.08084798, 0.36757625)
+
+[node name="Arms" parent="ViewModel" instance=ExtResource("4_arms")]
+position = Vector3(-0.04, -0.035, 0.12)
+
+[node name="WeaponAccessory" type="Node" parent="."]
+script = ExtResource("5_accessory")
+laser_origin_path = NodePath("ViewModel/Weapon/Sig516Tactical/InfraredModule/LaserEmitter")
+flashlight_origin_path = NodePath("ViewModel/Weapon/Sig516Tactical/WeaponLight/LightEmitter")
+
+[editable path="ViewModel/Weapon"]

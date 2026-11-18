@@ -25,7 +25,7 @@ const KEY_JUMP: Key = KEY_SPACE ## 空格：跳跃（2026-10-18 机主立项）
 const KEY_SPRINT: Key = KEY_SHIFT ## 左 Shift+W：疾跑（2026-10-19 机主立项）
 const KEY_INTERACT: Key = KEY_F ## F：统一交互（开门/叙事等；拾取物不走此键，贴近自动捡拾）
 const KEY_FIRE_MODE: Key = KEY_X ## X：射击模式循环 全自动→三发点射→半自动（2026-10-19 机主立项）
-const KEY_ACCESSORY_MODE: Key = KEY_L ## L：G17/MPX 红点→手电→红点+手电。
+const KEY_ACCESSORY_MODE: Key = KEY_L ## L：G17/MPX/SIG516 红点→手电→红点+手电。
 const KEY_RELEASE_MOUSE: Key = KEY_ESCAPE ## Esc：释放鼠标（点击画面恢复捕获）
 const KEY_BIG_MAP: Key = KEY_M ## M：全屏实时战术地图
 const KEY_NANO_MODE: Key = KEY_Q ## Q：装甲模式开关
@@ -150,6 +150,19 @@ func _ready() -> void:
 	_dmr_scope.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_dmr_scope_material = ShaderMaterial.new()
 	_dmr_scope_material.shader = load("res://scripts/player/dmr_scope.gdshader") as Shader
+	_dmr_scope_material.set_shader_parameter("conventional_reticle_half_width", GameConfig.CONVENTIONAL_SCOPE_RETICLE_HALF_WIDTH)
+	_dmr_scope_material.set_shader_parameter("conventional_reticle_aa", GameConfig.CONVENTIONAL_SCOPE_RETICLE_AA)
+	_dmr_scope_material.set_shader_parameter("sig516_chevron_size", GameConfig.SIG516_ACOG_CHEVRON_SIZE)
+	_dmr_scope_material.set_shader_parameter("sig516_bdc_start", GameConfig.SIG516_ACOG_BDC_START)
+	_dmr_scope_material.set_shader_parameter("sig516_bdc_step", GameConfig.SIG516_ACOG_BDC_STEP)
+	_dmr_scope_material.set_shader_parameter("sig516_bdc_count", GameConfig.SIG516_ACOG_BDC_COUNT)
+	_dmr_scope_material.set_shader_parameter("sig516_bdc_half_width", GameConfig.SIG516_ACOG_BDC_HALF_WIDTH)
+	_dmr_scope_material.set_shader_parameter("sig516_bdc_width_step", GameConfig.SIG516_ACOG_BDC_WIDTH_STEP)
+	_dmr_scope_material.set_shader_parameter("sr25_mildot_spacing", GameConfig.SR25_MILDOT_SPACING)
+	_dmr_scope_material.set_shader_parameter("sr25_mildot_radius", GameConfig.SR25_MILDOT_RADIUS)
+	_dmr_scope_material.set_shader_parameter("sr25_mildot_count", GameConfig.SR25_MILDOT_COUNT)
+	_dmr_scope_material.set_shader_parameter("m700_duplex_inner_length", GameConfig.M700_DUPLEX_INNER_LENGTH)
+	_dmr_scope_material.set_shader_parameter("m700_duplex_outer_half_width", GameConfig.M700_DUPLEX_OUTER_HALF_WIDTH)
 	_dmr_scope.material = _dmr_scope_material
 	_dmr_scope.visible = false
 	reticle_layer.add_child(_dmr_scope)
@@ -298,6 +311,9 @@ func _calibrate_ads() -> void:
 		&"spas12": GameConfig.SPAS12_ADS_FOV,
 		&"smg": GameConfig.SMG_ADS_FOV,
 		&"mpx": GameConfig.MPX_ADS_FOV,
+		&"sig516": GameConfig.SIG516_ADS_FOV,
+		&"sr25": GameConfig.SR25_SCOPE_FOVS[0],
+		&"m700": GameConfig.M700_SCOPE_FOVS[0],
 		&"lmg": GameConfig.LMG_ADS_FOV,
 		&"magnum": GameConfig.MAGNUM_ADS_FOV,
 		&"em86s": GameConfig.EM86S_SCOPE_FOVS[0],
@@ -311,7 +327,7 @@ func _calibrate_ads() -> void:
 		&"em120r": GameConfig.EM127G_SCOPE_FOVS[0],
 		&"em12g2": GameConfig.SHOTGUN_ADS_FOV,
 	}
-	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"g17", "G17"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"], [&"spas12", "Spas12"], [&"smg", "SMG"], [&"mpx", "MPX"], [&"em57s2", "Em57s2"], [&"lmg", "LMG"], [&"magnum", "Magnum"], [&"em86s", "Em86s"], [&"em86b", "Em86b"], [&"em86d", "Em86d"], [&"em86m", "Em86m"], [&"em40t1", "Em40t1"], [&"em127g", "Em127g"], [&"em12g2", "Em12g2"], [&"em127m", "Em127m"], [&"em120r", "Em120r"]]:
+	for pair: Array in [[&"rifle", "Rifle"], [&"pistol", "Pistol"], [&"g17", "G17"], [&"dmr", "DMR"], [&"shotgun", "Shotgun"], [&"spas12", "Spas12"], [&"smg", "SMG"], [&"mpx", "MPX"], [&"sig516", "Sig516"], [&"sr25", "SR25"], [&"m700", "M700"], [&"em57s2", "Em57s2"], [&"lmg", "LMG"], [&"magnum", "Magnum"], [&"em86s", "Em86s"], [&"em86b", "Em86b"], [&"em86d", "Em86d"], [&"em86m", "Em86m"], [&"em40t1", "Em40t1"], [&"em127g", "Em127g"], [&"em12g2", "Em12g2"], [&"em127m", "Em127m"], [&"em120r", "Em120r"]]:
 		var weapon_root := _weapon_mount.get_node_or_null(pair[1]) as Node3D
 		var fallback := Vector3(0.0, _mount_hip_pos.y, _mount_hip_pos.z)
 		if weapon_root == null:
@@ -381,7 +397,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			_set_aiming(button.pressed)
 		elif button.pressed and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED \
 				and button.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
-			if GameState.current_weapon in [&"em86s", &"em127g", &"em127m", &"em120r"] and GameState.is_aiming:
+			if GameState.current_weapon in [&"em86s", &"em127g", &"em127m", &"em120r", &"sig516", &"sr25", &"m700"] and GameState.is_aiming:
 				_adjust_em86s_zoom(1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else -1)
 			else:
 				_cycle_unlocked_weapon(-1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else 1)
@@ -663,7 +679,9 @@ func _process(delta: float) -> void:
 	var lowering_for_reload := GameState.current_weapon == &"em57s2" and bool(_em57s2_controller.get("_is_reloading"))
 	var ads_target := 1.0 if GameState.is_aiming and not lowering_for_reload else 0.0
 	var weapon_changed := _last_ads_weapon != GameState.current_weapon
-	if not is_equal_approx(_ads_weight, ads_target) or weapon_changed or GameState.current_weapon in [&"shotgun", &"em86s", &"em127g", &"em127m", &"em120r"]:
+	if weapon_changed and GameState.current_weapon in [&"sig516", &"sr25", &"m700"]:
+		_em86s_zoom_index = 0 ## 持镜换入传统镜时，从各枪默认倍率开始。
+	if not is_equal_approx(_ads_weight, ads_target) or weapon_changed or GameState.current_weapon in [&"shotgun", &"em86s", &"em127g", &"em127m", &"em120r", &"sr25", &"m700"]:
 		_last_ads_weapon = GameState.current_weapon
 		_ads_weight = move_toward(_ads_weight, ads_target, delta / GameConfig.ADS_LERP_TIME)
 		if GameState.current_weapon == &"shotgun":
@@ -672,7 +690,7 @@ func _process(delta: float) -> void:
 			_weapon_mount.position = _mount_hip_pos.lerp(
 				_ads_mount_targets.get(GameState.current_weapon, _mount_hip_pos), _ads_weight)
 		var fov_target: float = _ads_fov_targets.get(GameState.current_weapon, GameConfig.FOV_BASE)
-		if GameState.current_weapon in [&"em86s", &"em127g", &"em127m", &"em120r"]:
+		if GameState.current_weapon in [&"em86s", &"em127g", &"em127m", &"em120r", &"sr25", &"m700"]:
 			fov_target = _scope_fovs()[_em86s_zoom_index]
 		_camera.fov = lerpf(GameConfig.FOV_BASE, fov_target, _ads_weight)
 		var camera_forward: float = GameConfig.SHOTGUN_ADS_CAMERA_FORWARD if GameState.current_weapon == &"shotgun" else 0.0
@@ -684,8 +702,8 @@ func _process(delta: float) -> void:
 	# （直射档平直弹道，全息环直瞄即可）。
 	if _ads_reticle != null:
 		var mode := GameState.current_weapon
-		if GameState.current_weapon in [&"g17", &"mpx"]:
-			mode = &"none" ## Gen5 机械瞄具及 MPX 源红准星均使用真实模型，不叠加 HUD 瞄点。
+		if GameState.current_weapon in [&"g17", &"mpx", &"sig516", &"sr25", &"m700"]:
+			mode = &"none" ## 传统机械/光学瞄具沿用模型或全屏镜面，不另叠加 HUD 瞄点。
 		if GameState.current_weapon == &"em12g2":
 			mode = &"shotgun"
 		if _ads_reticle.mode != mode or not is_equal_approx(_ads_reticle.weight, _ads_weight):
@@ -703,11 +721,13 @@ func _process(delta: float) -> void:
 		if arms != null:
 			arms.visible = GameState.current_weapon != pair[0] or _ads_weight < 0.75
 	var grenade_scope := GameState.current_weapon == &"em40t1"
-	var full_scope := GameState.current_weapon in [&"dmr", &"em86s", &"em86d", &"em127g", &"em127m", &"em40t1"] and _ads_weight > 0.6
+	var conventional_scope := GameState.current_weapon in [&"sig516", &"sr25", &"m700"]
+	var full_scope := (conventional_scope or GameState.current_weapon in [&"dmr", &"em86s", &"em86d", &"em127g", &"em127m", &"em40t1"]) and _ads_weight > 0.6
 	var missile_scope := GameState.current_weapon == &"em120r" and _ads_weight > 0.6
 	if _dmr_scope != null:
 		_dmr_scope.visible = full_scope
 		_dmr_tactical.visible = full_scope
+		_dmr_tactical.set("electronics_enabled", not conventional_scope)
 		match GameState.current_weapon:
 			&"dmr":
 				_dmr_view_model.visible = not full_scope
@@ -721,11 +741,29 @@ func _process(delta: float) -> void:
 				_weapon_mount.get_node("Em127m/ViewModel").visible = not full_scope
 			&"em40t1":
 				_weapon_mount.get_node("Em40t1/ViewModel").visible = not full_scope
+			&"sig516":
+				_weapon_mount.get_node("Sig516/ViewModel").visible = not full_scope
+			&"sr25":
+				_weapon_mount.get_node("SR25/ViewModel").visible = not full_scope
+			&"m700":
+				_weapon_mount.get_node("M700/ViewModel").visible = not full_scope
 		var viewport_size := get_viewport().get_visible_rect().size
 		_dmr_scope_material.set_shader_parameter("aspect", viewport_size.x / viewport_size.y)
 		_dmr_scope_material.set_shader_parameter("weight", clampf((_ads_weight - 0.6) / 0.4, 0.0, 1.0))
+		_dmr_scope_material.set_shader_parameter("conventional_optic", conventional_scope)
+		var conventional_style := 0
+		match GameState.current_weapon:
+			&"sig516":
+				conventional_style = 1
+			&"sr25":
+				conventional_style = 2
+			&"m700":
+				conventional_style = 3
+		_dmr_scope_material.set_shader_parameter("conventional_style", conventional_style)
+		_dmr_scope_material.set_shader_parameter("conventional_reticle_color", GameConfig.SIG516_ACOG_RETICLE_COLOR if GameState.current_weapon == &"sig516" else GameConfig.CONVENTIONAL_SCOPE_RETICLE_COLOR)
 		_dmr_scope_material.set_shader_parameter("center_style", 2.0 if grenade_scope else (1.0 if GameState.current_weapon in [&"em86s", &"em127g", &"em127m"] else 0.0))
-		_dmr_tactical.set("zoom_text", "%dX" % _scope_zooms()[_em86s_zoom_index] if GameState.current_weapon in [&"em86s", &"em127g", &"em127m"] else "")
+		var zoom_index := 0 if GameState.current_weapon == &"sig516" else _em86s_zoom_index
+		_dmr_tactical.set("zoom_text", "%dX" % _scope_zooms()[zoom_index] if conventional_scope or GameState.current_weapon in [&"em86s", &"em127g", &"em127m"] else "")
 		_dmr_tactical.set("reticle_mode", &"grenade" if grenade_scope else &"hitscan")
 		_dmr_tactical.set("range_limit", GameConfig.GRENADE_MAX_RANGE if grenade_scope else GameConfig.DMR_RANGE)
 		_dmr_tactical.set("projectile_speed", GameConfig.GRENADE_PROJECTILE_SPEED)
@@ -938,17 +976,29 @@ func _toggle_big_map() -> void:
 func _set_aiming(aiming: bool) -> void:
 	if GameState.is_aiming == aiming:
 		return
-	if aiming and GameState.current_weapon in [&"em86s", &"em127g", &"em127m", &"em120r"]:
+	if aiming and GameState.current_weapon in [&"em86s", &"em127g", &"em127m", &"em120r", &"sig516", &"sr25", &"m700"]:
 		_em86s_zoom_index = 0
 	GameState.is_aiming = aiming
 	Events.player_aim_changed.emit(aiming)
 
 
 func _scope_fovs() -> Array[float]:
+	if GameState.current_weapon == &"sig516":
+		return [GameConfig.SIG516_ADS_FOV]
+	if GameState.current_weapon == &"sr25":
+		return GameConfig.SR25_SCOPE_FOVS
+	if GameState.current_weapon == &"m700":
+		return GameConfig.M700_SCOPE_FOVS
 	return GameConfig.EM127G_SCOPE_FOVS if GameState.current_weapon in [&"em127g", &"em127m", &"em120r"] else GameConfig.EM86S_SCOPE_FOVS
 
 
 func _scope_zooms() -> Array[int]:
+	if GameState.current_weapon == &"sig516":
+		return GameConfig.SIG516_ZOOM_LEVELS
+	if GameState.current_weapon == &"sr25":
+		return GameConfig.SR25_ZOOM_LEVELS
+	if GameState.current_weapon == &"m700":
+		return GameConfig.M700_ZOOM_LEVELS
 	return GameConfig.EM127G_SCOPE_ZOOMS if GameState.current_weapon in [&"em127g", &"em127m", &"em120r"] else GameConfig.EM86S_SCOPE_ZOOMS
 
 
@@ -1053,10 +1103,10 @@ func _apply_nano_visuals() -> void:
 		(mesh as MeshInstance3D).transparency = 0.82 if GameState.nano_mode == &"stealth" else 0.0
 
 
-## L：两枪分别保存配件档位；释放鼠标和未领取武器时不切换。
+## L：传统武器分别保存配件档位；释放鼠标和未领取武器时不切换。
 func _cycle_accessory_mode() -> void:
 	var w := GameState.current_weapon
-	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or w not in [&"g17", &"mpx"] \
+	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or w not in [&"g17", &"mpx", &"sig516"] \
 			or not GameState.weapon_unlocked.get(w, false):
 		return
 	var order: Array[StringName] = GameConfig.WEAPON_ACCESSORY_MODES
@@ -1072,7 +1122,7 @@ func _cycle_fire_mode() -> void:
 		GameState.em120r_guidance_mode = &"homing" if GameState.em120r_guidance_mode == &"laser" else &"laser"
 		Events.ec120_guidance_changed.emit(GameState.em120r_guidance_mode)
 		return
-	if w in [&"g17", &"dmr", &"spas12", &"magnum", &"em86s", &"em86d", &"em127g", &"em40t1"]:
+	if w in [&"g17", &"dmr", &"spas12", &"magnum", &"em86s", &"em86d", &"em127g", &"em40t1", &"sr25", &"m700"]:
 		return
 	const ORDER_RIFLE: Array[StringName] = [&"auto", &"semi", &"burst", &"grenade"]
 	const ORDER_PISTOL: Array[StringName] = [&"auto", &"burst", &"semi"]
@@ -1091,7 +1141,7 @@ func _cycle_fire_mode() -> void:
 		order = ORDER_EM86B
 	elif w == &"em57s2":
 		order = ORDER_EM57S2
-	elif w in [&"em86m", &"em127m"]:
+	elif w in [&"em86m", &"em127m", &"sig516"]:
 		order = ORDER_AUTO_SEMI
 	var cur: StringName = GameState.fire_modes.get(w, &"auto")
 	GameState.fire_modes[w] = order[(order.find(cur) + 1) % order.size()]

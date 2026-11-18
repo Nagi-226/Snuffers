@@ -51,6 +51,30 @@
 
 ---
 
+### SIG516 / SR25 / M700 独立枪声（2026-11-18）
+
+| 入库文件 | 原始条目与作者 | 原始页面 | 许可证 | 下载日期 |
+|---|---|---|---|---|
+| sig516_fire.wav | Colt M4A1 SOCOM — areniporgen | https://freesound.org/people/areniporgen/sounds/737569/ | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | 2026-11-18 |
+| sr25_fire.wav | Heckler & Koch G3 — areniporgen | https://freesound.org/people/areniporgen/sounds/712577/ | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | 2026-11-18 |
+| m700_fire.wav | 308_rifle_02.wav — gezortenplotz | https://freesound.org/people/gezortenplotz/sounds/43756/ | [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/) | 2026-11-18 |
+
+- 三条来源页面与许可链接已逐项读取。M4 页面说明为5.56×45mm户外近距离真枪录音；G3 页面说明为7.62×51mm户外半自动/全自动真枪录音；M700 页面说明为作者使用 Zoom H4 录制的 Remington 700 .308 户外枪声。SIG516与SR25使用各自同口径录音近似，不将 M4/G3 声源宣称为 SIG516/SR25 实录。
+- 下载的是各条目公开的官方 HQ MP3 预览，原无损 WAV 下载需要登录，本轮未取得。正式 WAV 是预览解码后编辑输出，不声称恢复了无损原录质量。源预览、原页面 HTML 与离线候选保留在本机 `D:/Temp/snuffers-rifles-audio-nov18/`，未入库；运行时新增依赖为0。
+
+| 文件 | 官方 HQ 源 URL | 源 MP3 SHA256 | 入库 WAV SHA256 |
+|---|---|---|---|
+| sig516_fire.wav | https://cdn.freesound.org/previews/737/737569_15072041-hq.mp3 | 1735b196b5db6369d734ee5731834e35c9ad17a2a32353e9d809b6c6c2ecb6f2 | ce46387f6475bf6869620c1b89bf2ceb1cd8b38fc231aea8cc29a5f25f16666d |
+| sr25_fire.wav | https://cdn.freesound.org/previews/712/712577_15072041-hq.mp3 | 7d5c7418de960dacf3c89eeed61ff7322a9759741a3ddf9fd2cc12b8f58e25bd | dcf292bd0a448b71226b0a426f933a65532683862a742d2c494b4cbb9c4708b2 |
+| m700_fire.wav | https://cdn.freesound.org/previews/43/43756_11536-hq.mp3 | bcea8d06f4249079f921ca3809ead97938867bc350559535e9022b52c7bdc7cb | b6c3635db70fb9d2fb61661855fa68d58ba08d1f8719e423eff0986bbf910214 |
+
+- 裁剪窗口以解码预览时间轴计：SIG516 `0.025–0.425s`，SR25 `0.005–0.545s`（第一发，排除后续自动连发），M700 `0.875–1.625s`（仅枪声与回响，排除后段栓机及弹壳声）。三个输入均为不同原始录音，不从现有 rifle/G17/MPX 声源派生。
+- 使用本机已有 ffmpeg：裁剪后 `highpass=f=70`、1ms淡入，末尾180ms（SIG/SR）或200ms（M700）淡出；初次 `loudnorm=I=-18:TP=-3:LRA=7` 后转为44.1kHz单声道PCM16，再对最终单声道做 `loudnorm=I=-18:TP=-3:LRA=7:linear=true` 修正下混后的响度。没有变速或变调；播放音高基值1.0，保留既有微量随机抖动。
+- 最终文件自动测量：时长 `0.40/0.54/0.75s`，响度分别 `-17.95/-17.99/-18.02 LUFS`，真峰值分别 `-7.59/-7.03/-7.73dBTP`，PCM剪波样本数均0。三文件与三原始音源 SHA256 均各自不同。
+- 游戏内“资产署名”新增三个原始条目、作者、URL、许可及本项目编辑说明；M700遵循CC-BY 3.0署名条件。
+
+---
+
 ## 备注
 
 1. Mixkit 各条目官方下载文件多为 WAV；为保持任务规定的 `.mp3` 文件名与 MP3 内容一致，本次统一采用其官方 `-preview.mp3` 版本（同一音效的完整 MP3 编码，288kbps 立体声），仅 `rifle.mp3` 为官方原始 MP3 下载文件（ID3，448kbps）。

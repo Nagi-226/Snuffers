@@ -62,6 +62,9 @@
 | railgun_charged.wav（EM-127G 充能击发，重炮音叠加程序合成电磁瞬态） | qubodup；本项目合成部分 | https://freesound.org/people/qubodup/sounds/162260/ | CC0／项目自有合成部分 | 2026-11-07 |
 | g17.wav（真实Glock 17户外开火录音裁单发，不是Gen5专属原录） | gezortenplotz | https://freesound.org/people/gezortenplotz/sounds/34982/ | CC-BY 3.0；标题页游戏内署名，HQ预览剪辑/滤波/淡变/响度处理 | 2026-11-11 |
 | mpx.wav（MPX音效近似：真实MP5A3的9mm空包弹录音裁单发，不是MPX或实弹原录） | Franki-01234 | https://freesound.org/people/Franki-01234/sounds/201671/ | CC0；HQ预览剪辑/滤波/淡变/响度处理 | 2026-11-11 |
+| sig516_fire.wav（5.56×45突击步枪近似音源，Colt M4A1 SOCOM实录裁单发，不宣称SIG516型号实录） | areniporgen | https://freesound.org/people/areniporgen/sounds/737569/ | CC0；官方HQ预览剪辑/滤波/淡变/响度处理 | 2026-11-18 |
+| sr25_fire.wav（7.62×51步枪近似音源，Heckler & Koch G3实录裁单发，不宣称SR25型号实录） | areniporgen | https://freesound.org/people/areniporgen/sounds/712577/ | CC0；官方HQ预览剪辑/滤波/淡变/响度处理 | 2026-11-18 |
+| m700_fire.wav（Remington 700 .308户外实录裁单发，未包含源片段后续栓声） | gezortenplotz | https://freesound.org/people/gezortenplotz/sounds/43756/ | CC-BY 3.0；标题页游戏内署名，官方HQ预览剪辑/滤波/淡变/响度处理 | 2026-11-18 |
 
 ---
 
@@ -144,3 +147,4 @@
 - 完整名称、作者、原 URL、CC-BY 4.0 许可及改作说明见 [community_weapons/ATTRIBUTION.md](addons/community_weapons/ATTRIBUTION.md)。
 - 衍生资产：装配版 MPX、G17 Gen5 + Olight、DJMaesen 原生黑色手臂。游戏内标题页“资产署名”入口保留署名；Sketchfab 原始下载留在 Git 排除的 `raw_assets/`，不提交。
 - 2026-11-11补充：shirioko的Weapon lights/X400白光+激光模块（CC-BY4.0），仅将264面X400烘焙为独立米制衍生GLB供G17挂载；来源、许可及原件哈希见上述社区武器台账，原四灯整包保管于git排除的raw_assets。
+- 2026-11-18补充：SIG516原枪/ACOG、SR25、M700自带镜、Leupold与Harris及已登记配件的正式装配衍生GLB；完整作者、URL、CC-BY4.0与源/衍生哈希见社区武器子台账。三枪原下载保存在机主Downloads，HUD实模线稿来源见`assets/ui/weapons/ATTRIBUTION.md`。

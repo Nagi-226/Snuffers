@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+
+[resource]
+script = ExtResource("1_data")
+weapon_id = &"sig516"
+kind = 0
+damage_body = 45.0
+headshot_factor = 3.0
+dmg_vs_sniper = 45.0
+fire_interval = 0.07058823529411765
+burst_fire_interval = 0.07058823529411765
+semi_fire_interval = 0.15
+mag_size = 30
+reserve_size = 600
+reload_time = 2.6
+hitscan_range = 500.0
+spread_hip = 0.006
+spread_prone = 0.0025
+spread_aim = 0.0006
+recoil_pitch = 0.004
+recoil_view_offset = 0.09
+recoil_decay = 0.82
+recoil_recover_rate = 7.0
+view_recoil_rot_factor = 2.2
+view_recoil_y_factor = 0.025
+view_recoil_z_factor = 0.05

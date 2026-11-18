@@ -1,0 +1,61 @@
+{
+  "id": "sig516",
+  "source": "godot/addons/community_weapons/sig516_tactical.glb",
+  "min": [
+    -0.03845815360546112,
+    -0.5487911105155945,
+    -0.1583998203277588
+  ],
+  "max": [
+    0.0664914920926094,
+    0.5487911105155945,
+    0.15839983522891998
+  ],
+  "mesh_count": 20,
+  "projection": "orthographic right side; muzzle to screen right; actual intact model",
+  "resolution": [
+    1440,
+    696
+  ],
+  "source_sha256": "d4590b57b9dfbe20a58182217559052673cc76d0b441edbb548bede78ca81de5",
+  "source_scene": "godot/scenes/weapons/sig516.tscn",
+  "processing": "Blender Freestyle visibility-tested contours and actual transparent-mesh silhouette; legacy three-layer SVG pipeline",
+  "date": "2026-11-18",
+  "blender_version": "5.3.0",
+  "svg_sha256": "51f05dfea2df555506558c8aef6ee5c59eb5a69615a6c8e276ed9b17f5a7711e",
+  "svg_path_count": 160,
+  "view_box": [
+    0,
+    0,
+    120,
+    58
+  ],
+  "source_size": [
+    240,
+    116
+  ],
+  "license": "CC-BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "original_sources": [
+    [
+      "ARCTIC \u2014 White SIG516 SOPMOD",
+      "N-GONE",
+      "https://sketchfab.com/3d-models/arctic-white-sig-516-sopmod-a9ea47674b824665b4e3b58a28b149e8"
+    ],
+    [
+      "Foregrip",
+      "elitej1gaming",
+      "https://sketchfab.com/models/52781078a99c4e55934dab26a998875f"
+    ],
+    [
+      "AN/PEQ-15",
+      "D_U",
+      "https://sketchfab.com/models/522f6a04c34946dbb168022187645c1a"
+    ],
+    [
+      "SureFire M600DF",
+      "mbvisuals1",
+      "https://sketchfab.com/models/c04c7a9b2f8346bd90c3938b0af8024a"
+    ]
+  ]
+}

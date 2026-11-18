@@ -245,9 +245,10 @@ func _fire() -> bool:
 		return true
 
 	var is_head := HitSolver.is_headshot(collider)
-	var damage: float = weapon_data.damage_body * (weapon_data.headshot_factor if is_head else 1.0)
+	var damage: float = weapon_data.damage_body
 	if weapon_data.weapon_id not in [&"g17", &"mpx"] and HitSolver.find_group_ancestor(collider, &"sniper") != null:
 		damage = weapon_data.dmg_vs_sniper
+	damage *= weapon_data.headshot_factor if is_head else 1.0
 	target.take_damage(damage, is_head)
 	Events.damage_dealt.emit(damage, is_head)
 	Events.hit_confirmed.emit(is_head)

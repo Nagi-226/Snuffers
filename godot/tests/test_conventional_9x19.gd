@@ -312,7 +312,7 @@ func _check_damage() -> void:
 		target.global_position = weapon.global_position - weapon.global_basis.z * 1.5
 		await physics_frame
 		await physics_frame
-		for sample: Array in [[false, false, 30.0], [true, false, 30.0], [false, true, 60.0]]:
+		for sample: Array in [[false, false, 30.0], [true, false, 30.0], [false, true, 90.0]]:
 			if bool(sample[0]):
 				target.add_to_group(&"sniper")
 			else:
@@ -325,7 +325,7 @@ func _check_damage() -> void:
 			_assert(target.amounts.size() == before + 1, "%s actual ray reaches the physical %s target" % [id, "sniper" if bool(sample[0]) else "body"])
 			if target.amounts.size() == before + 1:
 				_assert(is_equal_approx(target.amounts[-1], float(sample[2])) and target.headshots[-1] == bool(sample[1]), "%s actual %s hit deals %s damage" % [id, "head" if bool(sample[1]) else "body", sample[2]])
-		_assert(is_equal_approx(weapon.weapon_data.damage_body, 30.0) and is_equal_approx(weapon.weapon_data.headshot_factor, 2.0), "%s synchronizes the approved per-round damage and head multiplier" % id)
+		_assert(is_equal_approx(weapon.weapon_data.damage_body, 30.0) and is_equal_approx(weapon.weapon_data.headshot_factor, 3.0), "%s synchronizes the approved per-round damage and head multiplier" % id)
 	target.queue_free()
 	await process_frame
 

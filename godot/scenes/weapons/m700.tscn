@@ -1,0 +1,40 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/m700_controller.gd" id="1_controller"]
+[ext_resource type="Resource" path="res://scenes/weapons/m700.tres" id="2_data"]
+[ext_resource type="PackedScene" path="res://addons/community_weapons/m700_scoped.glb" id="3_model"]
+[ext_resource type="PackedScene" path="res://addons/community_weapons/black_pistol_arms.glb" id="4_arms"]
+
+[sub_resource type="StandardMaterial3D" id="Material_round"]
+albedo_color = Color(0.60, 0.42, 0.12, 1)
+metallic = 0.70
+roughness = 0.30
+
+[sub_resource type="CylinderMesh" id="Mesh_round"]
+material = SubResource("Material_round")
+top_radius = 0.33
+bottom_radius = 0.5
+height = 1.0
+radial_segments = 12
+
+[node name="M700" type="Node3D"]
+script = ExtResource("1_controller")
+weapon_data = ExtResource("2_data")
+magazine_node_path = NodePath("ViewModel/Weapon/M700Scoped/InternalMagazine")
+muzzle_node_path = NodePath("ViewModel/Weapon/M700Scoped/Muzzle")
+reserve_state_property = &"ammo_308_reserve"
+
+[node name="ViewModel" type="Node3D" parent="."]
+
+[node name="Weapon" parent="ViewModel" instance=ExtResource("3_model")]
+position = Vector3(-0.04, -0.035, 0.12)
+
+[node name="OpticAim" type="Marker3D" parent="ViewModel"]
+position = Vector3(-0.04, 0.04044416, 0.38101416)
+
+[node name="Arms" parent="ViewModel" instance=ExtResource("4_arms")]
+position = Vector3(-0.04, -0.035, 0.12)
+
+[node name="LoadingRound" type="MeshInstance3D" parent="ViewModel"]
+mesh = SubResource("Mesh_round")
+visible = false

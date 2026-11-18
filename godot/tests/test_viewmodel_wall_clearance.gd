@@ -63,6 +63,7 @@ func _run() -> void:
 		[&"shotgun", false], [&"shotgun", true],
 		[&"em86b", false], [&"em86b", true],
 		[&"em127m", false], [&"em120r", false],
+		[&"sig516", false], [&"sr25", false], [&"m700", false],
 	]
 	for entry: Array in cases:
 		var id: StringName = entry[0]

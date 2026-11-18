@@ -244,6 +244,12 @@ func _weapon_display_name(weapon_id: StringName) -> String:
 			return "EM-68A 霹雳"
 		&"dmr":
 			return "EM-68D 穿杨 · DMR"
+		&"sig516":
+			return "SIG516"
+		&"sr25":
+			return "SR25"
+		&"m700":
+			return "Remington M700"
 		&"shotgun":
 			return "EM-12G-1 霰·Ⅰ"
 		&"spas12":
@@ -497,6 +503,12 @@ func _refresh_ammo() -> void:
 			_set_ammo_text(&"magnum", GameState.magnum_mag, GameState.magnum_reserve)
 		&"dmr":
 			_set_ammo_text(&"dmr", GameState.dmr_mag, GameState.rifle_reserve)
+		&"sig516":
+			_set_ammo_text(&"sig516", GameState.sig516_mag, GameState.ammo_556_reserve)
+		&"sr25":
+			_set_ammo_text(&"sr25", GameState.sr25_mag, GameState.ammo_308_reserve)
+		&"m700":
+			_set_ammo_text(&"m700", GameState.m700_mag, GameState.ammo_308_reserve)
 		&"em86s", &"em86b", &"em86d", &"em86m":
 			_set_ammo_text(GameState.current_weapon, GameState.get(GameState.current_weapon + "_mag"), GameState.em86_reserve)
 		&"em127g":
@@ -524,7 +536,7 @@ func _on_fire_mode_changed(weapon_id: StringName, _mode: StringName) -> void:
 
 
 func _on_weapon_accessory_mode_changed(weapon_id: StringName, _mode: StringName) -> void:
-	if weapon_id == GameState.current_weapon and weapon_id in [&"g17", &"mpx"]:
+	if weapon_id == GameState.current_weapon and weapon_id in [&"g17", &"mpx", &"sig516"]:
 		_refresh_ammo()
 
 
@@ -544,9 +556,11 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 	}.get(mode, "")
 	if weapon_id == &"spas12":
 		mode_tag = "泵动"
+	if weapon_id == &"m700":
+		mode_tag = "栓动"
 	if weapon_id == &"em120r":
 		mode_tag = "半自动·激光" if GameState.em120r_guidance_mode == &"laser" else "半自动·追踪"
-	if weapon_id in [&"g17", &"mpx"]:
+	if weapon_id in [&"g17", &"mpx", &"sig516"]:
 		var accessory_mode: StringName = GameState.weapon_accessory_modes.get(weapon_id, GameConfig.WEAPON_ACCESSORY_DEFAULT_MODE)
 		var accessory_tag: String = {
 			&"laser": "红点",
@@ -564,6 +578,9 @@ func _set_ammo_text(weapon_id: StringName, mag: int, reserve: int) -> void:
 		&"lmg": "EC-68",
 		&"magnum": "EC-127",
 		&"dmr": "EC-68",
+		&"sig516": "5.56×45mm",
+		&"sr25": "7.62×51mm",
+		&"m700": ".308 Win",
 		&"em86s": "EC-86",
 		&"em86b": "EC-86",
 		&"em86d": "EC-86",

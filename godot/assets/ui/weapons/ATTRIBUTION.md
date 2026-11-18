@@ -65,3 +65,13 @@ SPAS-12 线稿来源是第一人称 Saucy 模型，与货架展示用的 LowPoly
 - **来源 URL**：https://github.com/Nagi-226/Snuffers/blob/dev1/godot/assets/ui/weapons/medkit.svg 。
 - **许可证 / 权属**：项目原创资产，不赋予第三方 CC 许可。
 - **处理 / 日期**：2026-11-14，SVG 原始尺寸 `240×240`、视区 `120×120`，HUD 显示 `80×80`；无背景填充、外部链接或新增依赖。
+
+## SIG516 / SR25 / M700 实模线稿（2026-11-18）
+
+- `sig516.svg`：由完整正式 `godot/addons/community_weapons/sig516_tactical.glb` 生成，包含原装 ACOG、PEQ15、SureFire 手电、下握把及弹匣；枪口朝右，160 条实际可见路径（轮廓10、结构80、细节70）。原枪作者 N-GONE，名称 ARCTIC — White SIG516 SOPMOD，来源 https://sketchfab.com/3d-models/arctic-white-sig-516-sopmod-a9ea47674b824665b4e3b58a28b149e8 。配件作者 elitej1gaming（下握把）、D_U（AN/PEQ-15）、mbvisuals1（SureFire M600DF），来源 URL 与上述原作逐项记录在 `sig516_source.json` 及 `addons/community_weapons/ATTRIBUTION.md`。
+- `sr25.svg`：由完整正式 `godot/addons/community_weapons/sr25_precision.glb` 生成，包含原枪、弹匣、Leupold Mk4 LRT M1 10×40mm 镜体/镜环/旋钮与 Harris 两脚架。原枪作者 TastyTony，来源 https://sketchfab.com/3d-models/low-poly-sr-25-81976c51d61543a288cf135fd7485951 ；镜体与两脚架作者 GoldbergR，来源 https://sketchfab.com/3d-models/leupold-mk-4-lrt-m1-1040mm-scope-low-poly-bf0e3597985940408d24669297d15509 / https://sketchfab.com/3d-models/harris-bipod-low-poly-daa7dd1e247e453496974a5d252396f4 。首版实模对照发现两脚架顶座悬空；在原网格整体上移65mm、实际安装面距护木三角面0.372mm验证后重生成正式线稿，160 条可见路径（轮廓16、结构74、细节70）。原纯色 PBR 网格没有图片，不据纹理猜测或补画结构。
+- `m700.svg`：由完整正式 `godot/addons/community_weapons/m700_scoped.glb` 生成，保留原枪托、栓机、自带镜体、镜环与旋钮，未增加两脚架或 Leupold 镜体。原作者 mehmetuysun，名称 Remington Model 700 .308 Winchester Low Poly，来源 https://sketchfab.com/3d-models/remington-model-700-308-winchester-low-poly-f55c2e95edd84b80b283e181d63e5ef6 。35 条实际可见路径（轮廓3、结构12、细节20）；狩猎型原网格较简洁，未补造凹槽、结构或贴图线。
+- 作者/处理/日期：原模型与配件作者如上，本项目 Codex于2026-11-18提取衍生线稿；Blender 5.3.0 Freestyle读取实际可见轮廓与结构，透明实模轮廓闭合外框，沿用原三档青蓝线宽/透明度和 `120×58` 视区，原始 SVG 尺寸 `240×116`。无原贴图、隐藏边或外部图像引用，不修改源 GLB，没有新增游戏运行时依赖。
+- 许可证：所有上述原作与本次衍生线稿均按 [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/) 使用；游戏标题页资产署名包含原作者、原作URL、许可与改作说明。
+- 追溯：`sig516_source.json` / `m700_source.json` 保存正式源与 SVG 的 SHA256、真实包围盒、原作者与URL、视角和路径数量。源模型 SHA256 分别为 `d4590b57b9dfbe20a58182217559052673cc76d0b441edbb548bede78ca81de5` / `0fc2a6ffc99b2bae6e7693270597772852f7964917704f25859d175151b10b85`；离线入口 `.kimi-tmp/nov18_conventional_icons/build_icons.py`，复用 `.kimi-tmp/weapon_icons_v2/` 可见线流程，实际模型与线稿对照见生成目录的 `samples.png`。
+- SR25 追溯：`sr25_source.json` 记录最终接触修正后的源 SHA256 `358b96ec2292853f3a42cd66ade312980e6eccdf4b47a8891d463f24d30f04fb` 与 SVG 哈希；实际安装面接触26项验证见 `.kimi-tmp/nov18_continue/sr25_contact_green.log`，原悬空对照保留在 `.kimi-tmp/nov18_conventional_icons/sr25_mount_red.png`。三张正式图均由同一实际模型流程生成，原有武器 SVG 保持。

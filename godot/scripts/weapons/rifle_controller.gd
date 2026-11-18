@@ -487,10 +487,11 @@ func _fire() -> bool:
 		return true
 
 	var is_head := HitSolver.is_headshot(collider)
-	var damage: float = weapon_data.damage_body * (weapon_data.headshot_factor if is_head else 1.0)
-	# 狙击手固定伤害（index.html L3014：网页版不分部位一律 999）。
+	var damage: float = weapon_data.damage_body
+	# 狙击手沿用固定体伤；机主2026-11-18指定头部仍乘统一倍率。
 	if weapon_data.weapon_id not in [&"g17", &"mpx"] and HitSolver.find_group_ancestor(collider, &"sniper") != null:
 		damage = weapon_data.dmg_vs_sniper
+	damage *= weapon_data.headshot_factor if is_head else 1.0
 	target.take_damage(damage, is_head)
 	# G2 冻结契约：HUD 伤害飘字（与 hit_confirmed 互补；狙击手固定伤害如实广播）。
 	Events.damage_dealt.emit(damage, is_head)

@@ -452,7 +452,7 @@ func _fire() -> bool:
 	if _is_reloading:
 		return false
 	var weapon_id := weapon_data.weapon_id
-	if not ChamberFeed.consume_round(weapon_id, weapon_id + "_mag", weapon_id != &"spas12"):
+	if not ChamberFeed.consume_round(weapon_id, weapon_id + "_mag", weapon_id not in [&"spas12", &"m700"]):
 		_start_reload()
 		return false
 	Events.ammo_changed.emit(weapon_id, GameState.get(weapon_id + "_mag"), GameState.get(_reserve_key))
@@ -489,9 +489,10 @@ func _fire() -> bool:
 			Events.bullet_mark_requested.emit(hit.position, hit.normal, collider as Node3D)
 			continue
 		var is_head := HitSolver.is_headshot(collider)
-		var damage: float = shot_damage * (weapon_data.headshot_factor if is_head else 1.0)
+		var damage: float = shot_damage
 		if not _charged_shot and HitSolver.find_group_ancestor(collider, &"sniper") != null:
 			damage = weapon_data.dmg_vs_sniper
+		damage *= weapon_data.headshot_factor if is_head else 1.0
 		target.take_damage(damage, is_head)
 		total_damage += damage
 		any_headshot = any_headshot or is_head
@@ -576,7 +577,8 @@ func _start_reload() -> void:
 	_reload_generation += 1
 	var generation := _reload_generation
 	Events.weapon_reload_started.emit(weapon_id)
-	await get_tree().create_timer(weapon_data.reload_time).timeout
+	# SIG516/SR25的实际暂停冻结换弹计时和弹药结算。
+	await get_tree().create_timer(weapon_data.reload_time, weapon_id not in [&"sig516", &"sr25"]).timeout
 	if not is_instance_valid(self) or generation != _reload_generation:
 		return
 	Events.weapon_reloaded.emit(weapon_id)

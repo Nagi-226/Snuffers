@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3]
+[gd_scene load_steps=29 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_controller"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/rifle.tscn" id="2_rifle"]
@@ -25,6 +25,9 @@
 [ext_resource type="PackedScene" path="res://scenes/weapons/mpx.tscn" id="24_mpx"]
 [ext_resource type="Script" path="res://scripts/weapons/ec60e_controller.gd" id="25_ec60e"]
 [ext_resource type="Script" path="res://scripts/weapons/ec60e_plasma_fx.gd" id="26_ec60e_plasma_fx"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/sig516.tscn" id="27_sig516"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/sr25.tscn" id="28_sr25"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/m700.tscn" id="29_m700"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -60,6 +63,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.27, -0.62)
 [node name="SMG" parent="Camera3D/WeaponMount" instance=ExtResource("10_smg")]
 
 [node name="MPX" parent="Camera3D/WeaponMount" instance=ExtResource("24_mpx")]
+
+[node name="Sig516" parent="Camera3D/WeaponMount" instance=ExtResource("27_sig516")]
+
+[node name="SR25" parent="Camera3D/WeaponMount" instance=ExtResource("28_sr25")]
+
+[node name="M700" parent="Camera3D/WeaponMount" instance=ExtResource("29_m700")]
 
 [node name="LMG" parent="Camera3D/WeaponMount" instance=ExtResource("11_lmg")]
 
@@ -105,6 +114,9 @@ script = ExtResource("26_ec60e_plasma_fx")
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Spas12" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/SMG" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/MPX" to="." method="_on_weapon_recoil_kick"]
+[connection signal="recoil_kick" from="Camera3D/WeaponMount/Sig516" to="." method="_on_weapon_recoil_kick"]
+[connection signal="recoil_kick" from="Camera3D/WeaponMount/SR25" to="." method="_on_weapon_recoil_kick"]
+[connection signal="recoil_kick" from="Camera3D/WeaponMount/M700" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/LMG" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Magnum" to="." method="_on_weapon_recoil_kick"]
 [connection signal="recoil_kick" from="Camera3D/WeaponMount/Em86s" to="." method="_on_weapon_recoil_kick"]

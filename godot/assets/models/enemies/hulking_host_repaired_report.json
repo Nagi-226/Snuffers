@@ -1,0 +1,241 @@
+{
+  "source_sha256": "33e8e57aacf9a6fce1f846d78f0eb69b934e373a7f002961b00a301f703939b5",
+  "source": "hulking_host_animated.glb",
+  "forward": [
+    0,
+    0,
+    -1
+  ],
+  "yaw_baked": -1.5707963267948966,
+  "floor_shift": 0.004135740455240011,
+  "bone_count": 16,
+  "speed": 1.8,
+  "windup": 1.15,
+  "recover": 1.0,
+  "uv_indices_materials_images": "unchanged",
+  "weight_method": "existing nearest-three-segment inverse-distance^4 seeds; original-surface smoothing with sole/claw anchors; continuous four-influence compression",
+  "weight_smoothing_iterations": 100,
+  "death": "connected backward collapse, right-shoulder fold, actual complete weighted mesh floor contact at every key",
+  "death_back_pitch": 1.831,
+  "death_shoulder_fold": 0.665,
+  "output": "hulking_host_repaired.glb",
+  "output_sha256": "f39eef501a6d5f6e1eca923c0ef6a7e5f7a231780f51c3a718f5f73c129148ad",
+  "vertices": 19134,
+  "triangles": 14997,
+  "clips": {
+    "idle": 2.0,
+    "walk": 1.0,
+    "attack": 2.15,
+    "death": 2.4
+  },
+  "joints": {
+    "hips": {
+      "parent": null,
+      "head": [
+        -0.04,
+        0.95,
+        0.18
+      ],
+      "tail": [
+        -0.04,
+        1.25,
+        0.16
+      ]
+    },
+    "spine": {
+      "parent": "hips",
+      "head": [
+        -0.04,
+        1.25,
+        0.16
+      ],
+      "tail": [
+        -0.03,
+        1.6,
+        0.11
+      ]
+    },
+    "chest": {
+      "parent": "spine",
+      "head": [
+        -0.03,
+        1.6,
+        0.11
+      ],
+      "tail": [
+        -0.14,
+        1.97,
+        -0.06
+      ]
+    },
+    "head": {
+      "parent": "chest",
+      "head": [
+        -0.14,
+        1.97,
+        -0.06
+      ],
+      "tail": [
+        -0.16,
+        2.23,
+        -0.25
+      ]
+    },
+    "upper_arm_r": {
+      "parent": "chest",
+      "head": [
+        0.39,
+        1.69,
+        0.21
+      ],
+      "tail": [
+        0.46,
+        1.02,
+        -0.3
+      ]
+    },
+    "forearm_r": {
+      "parent": "upper_arm_r",
+      "head": [
+        0.46,
+        1.02,
+        -0.3
+      ],
+      "tail": [
+        0.36,
+        0.31,
+        -0.87
+      ]
+    },
+    "hand_r": {
+      "parent": "forearm_r",
+      "head": [
+        0.36,
+        0.31,
+        -0.87
+      ],
+      "tail": [
+        0.36,
+        0.12,
+        -1.13
+      ]
+    },
+    "upper_arm_l": {
+      "parent": "chest",
+      "head": [
+        -0.43,
+        1.62,
+        0.29
+      ],
+      "tail": [
+        -0.59,
+        1.06,
+        0.28
+      ]
+    },
+    "forearm_l": {
+      "parent": "upper_arm_l",
+      "head": [
+        -0.59,
+        1.06,
+        0.28
+      ],
+      "tail": [
+        -0.58,
+        0.64,
+        0.38
+      ]
+    },
+    "hand_l": {
+      "parent": "forearm_l",
+      "head": [
+        -0.58,
+        0.64,
+        0.38
+      ],
+      "tail": [
+        -0.57,
+        0.41,
+        0.4
+      ]
+    },
+    "thigh_r": {
+      "parent": "hips",
+      "head": [
+        0.23,
+        0.94,
+        0.18
+      ],
+      "tail": [
+        0.3,
+        0.53,
+        -0.08
+      ]
+    },
+    "shin_r": {
+      "parent": "thigh_r",
+      "head": [
+        0.3,
+        0.53,
+        -0.08
+      ],
+      "tail": [
+        0.3,
+        0.14,
+        0.26
+      ]
+    },
+    "foot_r": {
+      "parent": "shin_r",
+      "head": [
+        0.3,
+        0.14,
+        0.26
+      ],
+      "tail": [
+        0.3,
+        0.075,
+        -0.17
+      ]
+    },
+    "thigh_l": {
+      "parent": "hips",
+      "head": [
+        -0.29,
+        0.94,
+        0.19
+      ],
+      "tail": [
+        -0.35,
+        0.53,
+        -0.07
+      ]
+    },
+    "shin_l": {
+      "parent": "thigh_l",
+      "head": [
+        -0.35,
+        0.53,
+        -0.07
+      ],
+      "tail": [
+        -0.35,
+        0.14,
+        0.27
+      ]
+    },
+    "foot_l": {
+      "parent": "shin_l",
+      "head": [
+        -0.35,
+        0.14,
+        0.27
+      ],
+      "tail": [
+        -0.35,
+        0.075,
+        -0.15
+      ]
+    }
+  }
+}

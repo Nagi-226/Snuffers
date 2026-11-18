@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemies/hulking_host.gd" id="1_script"]
-[ext_resource type="PackedScene" path="res://assets/models/enemies/hulking_host_animated.glb" id="2_model"]
+[ext_resource type="PackedScene" path="res://assets/models/enemies/hulking_host_repaired.glb" id="2_model"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule_body"]
 radius = 0.55

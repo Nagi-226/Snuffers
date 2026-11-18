@@ -19,7 +19,7 @@ enum Kind { HITSCAN, PROJECTILE } ## 0=即时命中（步枪），1=投射物（
 
 # ===== 伤害（hitscan）=====
 @export var damage_body: float = 25.0 ## 身体伤害（按弹药口径：GameConfig.AMMO_DMG_EC68 / AMMO_DMG_EC57）
-@export var headshot_factor: float = 2.0 ## 爆头倍率（GameConfig.RIFLE_DMG_HEAD_FACTOR）
+@export var headshot_factor: float = 3.0 ## 爆头倍率（GameConfig.RIFLE_DMG_HEAD_FACTOR）
 @export var dmg_vs_sniper: float = 999.0 ## 对狙击手固定伤害（GameConfig.RIFLE_DMG_VS_SNIPER）
 
 # ===== 射速 / 弹药 / 换弹（hitscan）=====
@@ -73,6 +73,69 @@ enum Kind { HITSCAN, PROJECTILE } ## 0=即时命中（步枪），1=投射物（
 func sync_from_config() -> void:
 	burst_fire_interval = fire_interval
 	match weapon_id:
+		&"sig516":
+			damage_body = GameConfig.SIG516_DAMAGE_BODY
+			headshot_factor = GameConfig.SIG516_DMG_HEAD_FACTOR
+			dmg_vs_sniper = GameConfig.SIG516_DMG_VS_SNIPER
+			fire_interval = GameConfig.SIG516_FIRE_INTERVAL
+			burst_fire_interval = GameConfig.SIG516_BURST_FIRE_INTERVAL
+			semi_fire_interval = GameConfig.SIG516_SEMI_FIRE_INTERVAL
+			mag_size = GameConfig.SIG516_MAG
+			reserve_size = GameConfig.AMMO_556_RESERVE
+			reload_time = GameConfig.SIG516_RELOAD_TIME
+			hitscan_range = GameConfig.SIG516_RANGE
+			spread_hip = GameConfig.SIG516_SPREAD_HIP
+			spread_prone = GameConfig.SIG516_SPREAD_PRONE
+			spread_aim = GameConfig.SIG516_SPREAD_AIM
+			recoil_pitch = GameConfig.SIG516_RECOIL_PITCH
+			recoil_view_offset = GameConfig.SIG516_RECOIL_VIEW_OFFSET
+			recoil_decay = GameConfig.SIG516_RECOIL_DECAY
+			recoil_recover_rate = GameConfig.SIG516_RECOIL_RECOVER_RATE
+			view_recoil_rot_factor = GameConfig.SIG516_RECOIL_VIEW_ROT
+			view_recoil_y_factor = GameConfig.SIG516_RECOIL_VIEW_Y_FACTOR
+			view_recoil_z_factor = GameConfig.SIG516_RECOIL_VIEW_Z_FACTOR
+		&"sr25":
+			damage_body = GameConfig.SR25_DAMAGE_BODY
+			headshot_factor = GameConfig.SR25_DMG_HEAD_FACTOR
+			dmg_vs_sniper = GameConfig.SR25_DMG_VS_SNIPER
+			fire_interval = GameConfig.SR25_FIRE_INTERVAL
+			burst_fire_interval = GameConfig.SR25_BURST_FIRE_INTERVAL
+			semi_fire_interval = GameConfig.SR25_SEMI_FIRE_INTERVAL
+			mag_size = GameConfig.SR25_MAG
+			reserve_size = GameConfig.AMMO_308_RESERVE
+			reload_time = GameConfig.SR25_RELOAD_TIME
+			hitscan_range = GameConfig.SR25_RANGE
+			spread_hip = GameConfig.SR25_SPREAD_HIP
+			spread_prone = GameConfig.SR25_SPREAD_PRONE
+			spread_aim = GameConfig.SR25_SPREAD_AIM
+			recoil_pitch = GameConfig.SR25_RECOIL_PITCH
+			recoil_view_offset = GameConfig.SR25_RECOIL_VIEW_OFFSET
+			recoil_decay = GameConfig.SR25_RECOIL_DECAY
+			recoil_recover_rate = GameConfig.SR25_RECOIL_RECOVER_RATE
+			view_recoil_rot_factor = GameConfig.SR25_RECOIL_VIEW_ROT
+			view_recoil_y_factor = GameConfig.SR25_RECOIL_VIEW_Y_FACTOR
+			view_recoil_z_factor = GameConfig.SR25_RECOIL_VIEW_Z_FACTOR
+		&"m700":
+			damage_body = GameConfig.M700_DAMAGE_BODY
+			headshot_factor = GameConfig.M700_DMG_HEAD_FACTOR
+			dmg_vs_sniper = GameConfig.M700_DMG_VS_SNIPER
+			fire_interval = GameConfig.M700_FIRE_INTERVAL
+			burst_fire_interval = GameConfig.M700_BURST_FIRE_INTERVAL
+			semi_fire_interval = GameConfig.M700_SEMI_FIRE_INTERVAL
+			mag_size = GameConfig.M700_MAG
+			reserve_size = GameConfig.AMMO_308_RESERVE
+			reload_time = GameConfig.M700_RELOAD_TIME
+			hitscan_range = GameConfig.M700_RANGE
+			spread_hip = GameConfig.M700_SPREAD_HIP
+			spread_prone = GameConfig.M700_SPREAD_PRONE
+			spread_aim = GameConfig.M700_SPREAD_AIM
+			recoil_pitch = GameConfig.M700_RECOIL_PITCH
+			recoil_view_offset = GameConfig.M700_RECOIL_VIEW_OFFSET
+			recoil_decay = GameConfig.M700_RECOIL_DECAY
+			recoil_recover_rate = GameConfig.M700_RECOIL_RECOVER_RATE
+			view_recoil_rot_factor = GameConfig.M700_RECOIL_VIEW_ROT
+			view_recoil_y_factor = GameConfig.M700_RECOIL_VIEW_Y_FACTOR
+			view_recoil_z_factor = GameConfig.M700_RECOIL_VIEW_Z_FACTOR
 		&"g17":
 			damage_body = GameConfig.AMMO_DMG_9X19
 			headshot_factor = GameConfig.G17_DMG_HEAD_FACTOR
@@ -376,7 +439,7 @@ func sync_from_config() -> void:
 			view_recoil_z_factor = GameConfig.EM86_RECOIL_VIEW_Z_FACTOR
 		&"em40t1":
 			damage_body = GameConfig.GRENADE_EXPLODE_DAMAGE
-			headshot_factor = 1.0
+			headshot_factor = GameConfig.RIFLE_DMG_HEAD_FACTOR
 			dmg_vs_sniper = GameConfig.GRENADE_EXPLODE_DAMAGE
 			fire_interval = GameConfig.GRENADE_FIRE_INTERVAL
 			semi_fire_interval = GameConfig.GRENADE_FIRE_INTERVAL
@@ -428,7 +491,7 @@ func sync_from_config() -> void:
 			view_recoil_z_factor = GameConfig.RIFLE_RECOIL_VIEW_Z_FACTOR
 		&"em120r":
 			damage_body = GameConfig.EM120R_DAMAGE_BODY
-			headshot_factor = 1.0
+			headshot_factor = GameConfig.RIFLE_DMG_HEAD_FACTOR
 			fire_interval = GameConfig.EM120R_FIRE_INTERVAL
 			semi_fire_interval = GameConfig.EM120R_FIRE_INTERVAL
 			mag_size = GameConfig.EM120R_MAG

@@ -1,0 +1,46 @@
+{
+  "id": "m700",
+  "source": "godot/addons/community_weapons/m700_scoped.glb",
+  "min": [
+    -0.021737443283200264,
+    -0.5270288586616516,
+    -0.10489478707313538
+  ],
+  "max": [
+    0.035191215574741364,
+    0.5270288586616516,
+    0.10489475727081299
+  ],
+  "mesh_count": 19,
+  "projection": "orthographic right side; muzzle to screen right; actual intact model",
+  "resolution": [
+    1440,
+    696
+  ],
+  "source_sha256": "0fc2a6ffc99b2bae6e7693270597772852f7964917704f25859d175151b10b85",
+  "source_scene": "godot/scenes/weapons/m700.tscn",
+  "processing": "Blender Freestyle visibility-tested contours and actual transparent-mesh silhouette; legacy three-layer SVG pipeline",
+  "date": "2026-11-18",
+  "blender_version": "5.3.0",
+  "svg_sha256": "e1bbb4f7594c27236d3a7e3fcc8cb7693c31d5ee0bd1c1076fce5043b1001055",
+  "svg_path_count": 35,
+  "view_box": [
+    0,
+    0,
+    120,
+    58
+  ],
+  "source_size": [
+    240,
+    116
+  ],
+  "license": "CC-BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "original_sources": [
+    [
+      "Remington Model 700 .308 Winchester Low Poly",
+      "mehmetuysun",
+      "https://sketchfab.com/3d-models/remington-model-700-308-winchester-low-poly-f55c2e95edd84b80b283e181d63e5ef6"
+    ]
+  ]
+}

@@ -14,7 +14,7 @@ extends Node
 ## 按蜂后裁决以 .wav 入库，加载时先找 .mp3 再找 .wav）。
 const AUDIO_DIR: String = "res://assets/audio/"
 ## 枪声类音效：播放时附加 ±GameConfig.SFX_PITCH_JITTER 随机 pitch_scale（派单口径）。
-const GUN_SOUNDS: Array[StringName] = [&"rifle", &"pistol", &"rocket", &"g17", &"mpx"]
+const GUN_SOUNDS: Array[StringName] = [&"rifle", &"pistol", &"rocket", &"g17", &"mpx", &"sig516_fire", &"sr25_fire", &"m700_fire"]
 ## 敌人机枪音高基值：复用 rifle.mp3 降调以区分敌我枪声（G2 派单口径；契约冻结未含此项，
 ## 属听觉表现常量，如需调参由蜂后在下轮契约冻结迁入 GameConfig）。
 const ENEMY_MG_PITCH: float = 0.8
@@ -264,6 +264,12 @@ func _on_weapon_fired(weapon_id: StringName) -> void:
 			play_sfx_pitched(&"mpx", GameConfig.MPX_SOUND_PITCH)
 		&"dmr":
 			play_sfx_pitched(&"rifle", GameConfig.DMR_SOUND_PITCH)
+		&"sig516":
+			play_sfx_pitched(&"sig516_fire", GameConfig.SIG516_SOUND_PITCH)
+		&"sr25":
+			play_sfx_pitched(&"sr25_fire", GameConfig.SR25_SOUND_PITCH)
+		&"m700":
+			play_sfx_pitched(&"m700_fire", GameConfig.M700_SOUND_PITCH)
 		&"shotgun":
 			play_sfx_pitched(&"rifle", GameConfig.SHOTGUN_SOUND_PITCH)
 		&"spas12":

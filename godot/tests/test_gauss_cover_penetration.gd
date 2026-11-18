@@ -71,7 +71,7 @@ func _run() -> void:
 	_events.hit_confirmed.connect(_on_hit)
 	_events.ricochet_on_bunker.connect(_on_ricochet)
 	await _sync_physics()
-	_assert(_weapon.weapon_data.damage_body == 450.0 and _weapon.weapon_data.headshot_factor == 2.0 and _weapon.weapon_data.hitscan_range == 320.0, "production Gauss retains 450 normal damage, doubled head damage and 320m range")
+	_assert(_weapon.weapon_data.damage_body == 450.0 and _weapon.weapon_data.headshot_factor == 3.0 and _weapon.weapon_data.hitscan_range == 320.0, "production Gauss retains 450 normal damage, triple head damage and 320m range")
 	_assert(root.get_node("GameConfig").EM127G_CHARGE_TIME == 1.0 and root.get_node("GameConfig").EM127G_CHARGED_DAMAGE_BODY == 900.0, "production full charge remains one second and 900 body damage")
 	await _check_cover_cases()
 	await _check_normal_shots()
@@ -305,7 +305,7 @@ func _check_first_enemy() -> void:
 
 
 func _check_head_and_range() -> void:
-	for sample: Array in [["head_behind_cover", 20.0, true, 1800.0], ["inside_range", 319.9, false, 900.0], ["outside_range", 321.0, false, 0.0]]:
+	for sample: Array in [["head_behind_cover", 20.0, true, 2700.0], ["inside_range", 319.9, false, 900.0], ["outside_range", 321.0, false, 0.0]]:
 		var label: String = sample[0]
 		await _new_case(label)
 		_wall(5.0, 1.0)

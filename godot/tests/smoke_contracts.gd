@@ -199,8 +199,10 @@ func _run() -> void:
 	_assert(state.armor == config.ARMOR_MAX, "game_state.gd reset() armor == ARMOR_MAX")
 	for entry: Array in [[&"rifle", config.RIFLE_MAG], [&"pistol", config.PISTOL_MAG], [&"g17", config.G17_MAG], [&"mpx", config.MPX_MAG], [&"dmr", config.DMR_MAG], [&"shotgun", config.SHOTGUN_MAG], [&"spas12", config.SPAS12_MAG], [&"smg", config.SMG_MAG], [&"em57s2", config.EM57S2_MAG], [&"lmg", config.LMG_MAG], [&"magnum", config.MAGNUM_MAG], [&"em86s", config.EM86_MAG], [&"em86b", config.EM86_MAG], [&"em86d", config.EM86_MAG], [&"em86m", config.EM86M_MAG], [&"em127g", config.EM127G_MAG], [&"em127m", config.EM127M_MAG], [&"em12g2", config.EM12G2_MAG]]:
 		_assert(int(state.get(String(entry[0]) + "_mag")) == int(entry[1]) - 1 and state.weapon_chambered.get(entry[0], false) == true, "%s reset preserves M total as M-1 container plus one chamber" % entry[0])
-	_assert(state.weapon_chambered.size() == 18 and not state.weapon_chambered.has(&"em120r") and not state.weapon_chambered.has(&"em40t1"), "reset chamber state covers exactly eighteen guns and excludes missiles/grenades")
-	_assert(events.has_signal(&"weapon_accessory_mode_changed") and state.weapon_accessory_modes == {&"g17": &"laser", &"mpx": &"laser"}, "accessory contract exposes mode events and resets both guns to laser")
+	_assert(state.weapon_chambered.size() == 21 and not state.weapon_chambered.has(&"em120r") and not state.weapon_chambered.has(&"em40t1"), "reset chamber state covers exactly twenty-one guns and excludes missiles/grenades")
+	for entry: Array in [[&"sig516", config.SIG516_MAG - 1], [&"sr25", config.SR25_MAG - 1], [&"m700", config.M700_MAG]]:
+		_assert(int(state.get(String(entry[0]) + "_mag")) == int(entry[1]) and state.weapon_chambered.get(entry[0], false) == true, "%s reset includes its independent conventional magazine and chamber contract" % entry[0])
+	_assert(events.has_signal(&"weapon_accessory_mode_changed") and state.weapon_accessory_modes == {&"g17": &"laser", &"mpx": &"laser", &"sig516": &"laser"}, "accessory contract exposes mode events and resets all three guns to laser")
 	# 取证终端计数（2026-10-07 冻结新增状态字段）：reset() 必须归零（换图/重开不串档）。
 	_assert(state.intel == 0, "game_state.gd reset() intel == 0")
 

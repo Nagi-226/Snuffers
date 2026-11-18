@@ -5,6 +5,7 @@ var excluded_rids: Array[RID] = []
 var _range_distance := INF
 var _range_text := "RNG --- M"
 var zoom_text := ""
+var electronics_enabled := true
 var reticle_mode: StringName = &"hitscan"
 var range_limit: float = GameConfig.DMR_RANGE
 var projectile_speed: float = GameConfig.GRENADE_PROJECTILE_SPEED
@@ -18,6 +19,15 @@ var _refresh_left := 0.0
 func _process(delta: float) -> void:
 	if not visible or camera == null:
 		return
+	if not electronics_enabled:
+		_targets.clear()
+		_primary_target = null
+		_target_age.clear()
+		_range_distance = INF
+		_range_text = ""
+		_refresh_left = 0.0
+		queue_redraw()
+		return
 	for target in _target_age:
 		if is_instance_valid(target):
 			_target_age[target] += delta
@@ -30,7 +40,7 @@ func _process(delta: float) -> void:
 
 
 func _refresh_range() -> void:
-	if camera == null:
+	if camera == null or not electronics_enabled:
 		return
 	var from := camera.global_position
 	var to := from - camera.global_basis.z * range_limit
@@ -49,7 +59,7 @@ func _refresh_range() -> void:
 func _refresh_targets() -> void:
 	_targets.clear()
 	_primary_target = null
-	if camera == null:
+	if camera == null or not electronics_enabled:
 		return
 	var candidates: Array[Dictionary] = []
 	var nodes := get_tree().get_nodes_in_group(&"enemy") + get_tree().get_nodes_in_group(&"range_target")
@@ -153,6 +163,10 @@ func _draw() -> void:
 		return
 	var font := get_theme_default_font()
 	var center := size * 0.5
+	if not electronics_enabled:
+		if zoom_text != "":
+			draw_string(font, center + Vector2(-_scope_radius() * 0.72, _scope_radius() * 0.72), zoom_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, GameConfig.CONVENTIONAL_SCOPE_ZOOM_COLOR)
+		return
 	for entry in _targets:
 		if not is_instance_valid(entry.target):
 			continue

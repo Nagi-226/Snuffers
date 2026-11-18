@@ -70,6 +70,16 @@ func _run() -> void:
 	await physics_frame
 	overlay._refresh_targets()
 	_assert(overlay._targets.size() == 1, "target reacquires after occlusion clears")
+	_assert(overlay.electronics_enabled, "existing electronic scopes retain target finding by default")
+	overlay.electronics_enabled = false
+	overlay._process(0.1)
+	_assert(overlay._targets.is_empty() and overlay._target_age.is_empty() and overlay._primary_target == null and overlay._range_text == "" and is_inf(overlay._range_distance), "conventional mode clears real previously acquired tracking and range state while a visible target remains")
+	overlay._refresh_targets()
+	overlay._refresh_range()
+	_assert(overlay._targets.is_empty() and overlay._range_text == "", "conventional mode refuses explicit scan requests against the same visible target")
+	overlay.electronics_enabled = true
+	overlay._process(0.1)
+	_assert(overlay._targets.size() == 1 and overlay._primary_target == enemy and overlay._range_text != "", "returning to an electronic scope restores the real target scan after conventional use")
 	enemy.global_position = Vector3(100, 0, -40)
 	await physics_frame
 	overlay._refresh_targets()

@@ -117,6 +117,25 @@ https://creativecommons.org/licenses/by/4.0/
 Sig Sauer MPX — michalstk11
 https://sketchfab.com/models/d6e0a8020a7b4a9a876787ec91290022
 
+ARCTIC — White SIG516 SOPMOD（含原装 ACOG）— N-GONE
+https://sketchfab.com/3d-models/arctic-white-sig-516-sopmod-a9ea47674b824665b4e3b58a28b149e8
+本项目调整尺寸与贴图，将配件装配为 PEQ15、SureFire 手电与下握把，并提取 HUD 线稿。
+
+Low-Poly SR-25 — TastyTony
+https://sketchfab.com/3d-models/low-poly-sr-25-81976c51d61543a288cf135fd7485951
+本项目调整尺寸与部件，装配下列 Leupold 镜体与 Harris 两脚架，并提取 HUD 线稿。
+
+Remington Model 700 .308 Winchester Low Poly（含原装镜体）— mehmetuysun
+https://sketchfab.com/3d-models/remington-model-700-308-winchester-low-poly-f55c2e95edd84b80b283e181d63e5ef6
+本项目调整部件与栓动姿态，保留原装镜体，并提取 HUD 线稿。
+
+Leupold Mk4 LRT M1 10×40mm Scope (Low-Poly) — GoldbergR
+https://sketchfab.com/3d-models/leupold-mk-4-lrt-m1-1040mm-scope-low-poly-bf0e3597985940408d24669297d15509
+
+Harris Bipod (Low-Poly) — GoldbergR
+https://sketchfab.com/3d-models/harris-bipod-low-poly-daa7dd1e247e453496974a5d252396f4
+镜体与两脚架仅用于 SR25；本项目调整尺寸、材质与装配。以上五份原作与衍生 HUD 线稿均为 CC-BY 4.0。
+
 EOTech HWS EXPS 3 — Sambit_Raut
 https://sketchfab.com/models/04d1452515134866b8a97c3e7cb9a18e
 
@@ -153,7 +172,22 @@ CC-BY 3.0: https://creativecommons.org/licenses/by/3.0/
 SIG MPX 开火近似：MP5A3 9mm 真枪空包弹街道实录 — Franki-01234
 https://freesound.org/people/Franki-01234/sounds/201671/
 CC0: https://creativecommons.org/publicdomain/zero/1.0/
-本项目由官方 HQ 预览剪取连发最后一发及尾响并处理；这是 MP5A3 近似，不是 MPX 或实弹原录。"
+本项目由官方 HQ 预览剪取连发最后一发及尾响并处理；这是 MP5A3 近似，不是 MPX 或实弹原录。
+
+SIG516 开火近似：Colt M4A1 SOCOM 5.56×45mm 户外真枪录音 — areniporgen
+https://freesound.org/people/areniporgen/sounds/737569/
+CC0: https://creativecommons.org/publicdomain/zero/1.0/
+本项目由官方 HQ 预览剪取0.40秒单发并低切、淡变、调整响度；保留源音高，是同口径近似。
+
+SR25 开火近似：Heckler & Koch G3 7.62×51mm 户外真枪录音 — areniporgen
+https://freesound.org/people/areniporgen/sounds/712577/
+CC0: https://creativecommons.org/publicdomain/zero/1.0/
+本项目由官方 HQ 预览剪取第一发半自动射击及尾声，0.54秒；低切、淡变、调整响度，保留源音高。
+
+Remington M700 .308 开火录音：308_rifle_02.wav — gezortenplotz
+https://freesound.org/people/gezortenplotz/sounds/43756/
+CC-BY 3.0: https://creativecommons.org/licenses/by/3.0/
+作者标明为 Remington 700 户外录音；本项目由官方 HQ 预览剪取0.75秒单发及回响，低切、淡变、调整响度。"
 selection_enabled = true
 
 [node name="CloseButton" type="Button" parent="CreditsPanel/VBox"]

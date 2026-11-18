@@ -1,0 +1,483 @@
+[
+  {
+    "output": "godot\\addons\\community_weapons\\sig516_tactical.glb",
+    "sha256": "d4590b57b9dfbe20a58182217559052673cc76d0b441edbb548bede78ca81de5",
+    "bytes": 67863696,
+    "triangles": 81830,
+    "blender_bounds": [
+      [
+        -0.03845815360546112,
+        -0.5487911105155945,
+        -0.1583998203277588
+      ],
+      [
+        0.0664914920926094,
+        0.5487911105155945,
+        0.15839983522891998
+      ]
+    ],
+    "blender_dimensions": [
+      0.10494964569807053,
+      1.097582221031189,
+      0.3167996406555176
+    ],
+    "groups": {
+      "ACOG": {
+        "min": [
+          -0.032344456762075424,
+          -0.25166207551956177,
+          0.07329659163951874
+        ],
+        "max": [
+          0.03255289047956467,
+          -0.10251286625862122,
+          0.15839983522891998
+        ],
+        "triangles": 7107
+      },
+      "Body": {
+        "min": [
+          -0.03845815360546112,
+          -0.5487911105155945,
+          -0.11394653469324112
+        ],
+        "max": [
+          0.04146180674433708,
+          0.5487911105155945,
+          0.09780463576316833
+        ],
+        "triangles": 37053
+      },
+      "Foregrip": {
+        "min": [
+          -0.01986604928970337,
+          0.13171172142028809,
+          -0.09600000083446503
+        ],
+        "max": [
+          0.01986604928970337,
+          0.16828826069831848,
+          0.024000000208616257
+        ],
+        "triangles": 11924
+      },
+      "InfraredModule": {
+        "min": [
+          -0.03561241552233696,
+          0.044999994337558746,
+          0.08301430195569992
+        ],
+        "max": [
+          0.03561241552233696,
+          0.16499999165534973,
+          0.12320046871900558
+        ],
+        "triangles": 3552
+      },
+      "Magazine": {
+        "min": [
+          -0.015094775706529617,
+          -0.14209671318531036,
+          -0.1583998203277588
+        ],
+        "max": [
+          0.015094775706529617,
+          -0.03595978766679764,
+          0.04604127258062363
+        ],
+        "triangles": 10048
+      },
+      "WeaponLight": {
+        "min": [
+          0.027508506551384926,
+          0.08949999511241913,
+          0.02521694451570511
+        ],
+        "max": [
+          0.0664914920926094,
+          0.2304999828338623,
+          0.06478305160999298
+        ],
+        "triangles": 12146
+      }
+    },
+    "markers_blender": {
+      "Muzzle": [
+        0.0,
+        0.5487911105155945,
+        0.05076611042022705
+      ],
+      "OpticAim": [
+        0.0,
+        -0.2475762516260147,
+        0.11584798246622086
+      ],
+      "LaserOrigin": [
+        -0.02124796062707901,
+        0.16500002145767212,
+        0.09842730313539505
+      ],
+      "FlashlightOrigin": [
+        0.051632389426231384,
+        0.2305000126361847,
+        0.05012674629688263
+      ]
+    },
+    "markers_godot": {
+      "Muzzle": [
+        0.0,
+        0.05076611042022705,
+        -0.5487911105155945
+      ],
+      "OpticAim": [
+        0.0,
+        0.11584798246622086,
+        0.2475762516260147
+      ],
+      "LaserOrigin": [
+        -0.02124796062707901,
+        0.09842730313539505,
+        -0.16500002145767212
+      ],
+      "FlashlightOrigin": [
+        0.051632389426231384,
+        0.05012674629688263,
+        -0.2305000126361847
+      ]
+    },
+    "sources": [
+      {
+        "file": "arctic_-_white_sig_516_sopmod.glb",
+        "author": "N-GONE",
+        "uid": "a9ea47674b824665b4e3b58a28b149e8",
+        "source": "https://sketchfab.com/models/a9ea47674b824665b4e3b58a28b149e8",
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "sha256": "ce4b8ea7dd6d25e6dbb0bb93ece49aaefecf78e176c6154833d71c8a0e284fa8"
+      },
+      {
+        "file": "foregrip.glb",
+        "author": "elitej1gaming",
+        "uid": "52781078a99c4e55934dab26a998875f",
+        "source": "https://sketchfab.com/models/52781078a99c4e55934dab26a998875f",
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "sha256": "f3dc2c23a3359b785fabb8dea0b238ff27421d90617da4409f91eb8c68d1a959"
+      },
+      {
+        "file": "low-poly_anpeq_15.glb",
+        "author": "D_U",
+        "uid": "522f6a04c34946dbb168022187645c1a",
+        "source": "https://sketchfab.com/models/522f6a04c34946dbb168022187645c1a",
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "sha256": "c4ff660c077292a2f62eb8b3265c6da0cda0d20959d82e52cf23d04ac33313f3"
+      },
+      {
+        "file": "surefire_m600df_game_ready_flashlight.glb",
+        "author": "mbvisuals1",
+        "uid": "c04c7a9b2f8346bd90c3938b0af8024a",
+        "source": "https://sketchfab.com/models/c04c7a9b2f8346bd90c3938b0af8024a",
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "sha256": "de9e409f08818da76e581dd4431365b1c49ef416cbdf166fc9324c9df00d9d05"
+      }
+    ],
+    "modifications": "Original SIG516/ACOG/suppressor retained at measured 1.097582m including suppressor; original ITPIAL and foregrip are replaced in this derivative by the existing MPX PEQ15/SureFire/foregrip, avoiding duplicates. PMAG is a complete separate source part. Retained source faces/UVs/PBR preserved; textures reduced to 2K; muzzle Godot -Z.",
+    "texture_max": 2048
+  },
+  {
+    "output": "godot\\addons\\community_weapons\\sr25_precision.glb",
+    "sha256": "358b96ec2292853f3a42cd66ade312980e6eccdf4b47a8891d463f24d30f04fb",
+    "bytes": 1602972,
+    "triangles": 20202,
+    "blender_bounds": [
+      [
+        -0.07996534556150436,
+        -0.5499999523162842,
+        -0.13776090741157532
+      ],
+      [
+        0.07996534556150436,
+        0.550000011920929,
+        0.18483701348304749
+      ]
+    ],
+    "blender_dimensions": [
+      0.15993069112300873,
+      1.0999999046325684,
+      0.3225979208946228
+    ],
+    "groups": {
+      "Bipod": {
+        "min": [
+          -0.07996534556150436,
+          0.2818739414215088,
+          -0.12956692278385162
+        ],
+        "max": [
+          0.07996534556150436,
+          0.3981260657310486,
+          0.019999999552965164
+        ],
+        "triangles": 4800
+      },
+      "LeftLeg": {
+        "min": [
+          -0.07996534556150436,
+          0.3427477777004242,
+          -0.12956692278385162
+        ],
+        "max": [
+          -0.006607638671994209,
+          0.38318055868148804,
+          0.009168367832899094
+        ],
+        "triangles": 1084
+      },
+      "RightLeg": {
+        "min": [
+          0.00660857604816556,
+          0.3427477777004242,
+          -0.12956690788269043
+        ],
+        "max": [
+          0.07996534556150436,
+          0.38318055868148804,
+          0.00916849821805954
+        ],
+        "triangles": 1084
+      },
+      "Body": {
+        "min": [
+          -0.0250901710242033,
+          -0.5499999523162842,
+          -0.13093292713165283
+        ],
+        "max": [
+          0.034272026270627975,
+          0.550000011920929,
+          0.13776090741157532
+        ],
+        "triangles": 12597
+      },
+      "Magazine": {
+        "min": [
+          -0.016652386635541916,
+          -0.10830605030059814,
+          -0.13776090741157532
+        ],
+        "max": [
+          0.01665225252509117,
+          -0.01846339926123619,
+          0.03884206339716911
+        ],
+        "triangles": 1145
+      },
+      "Scope": {
+        "min": [
+          -0.04863150417804718,
+          -0.2562839984893799,
+          0.09999999403953552
+        ],
+        "max": [
+          0.04863150417804718,
+          0.09628401696681976,
+          0.18483701348304749
+        ],
+        "triangles": 1660
+      }
+    },
+    "markers_blender": {
+      "Muzzle": [
+        4.152384391886699e-08,
+        0.550000011920929,
+        0.06567727029323578
+      ],
+      "OpticAim": [
+        5.010515451431274e-07,
+        -0.2507060170173645,
+        0.13342800736427307
+      ]
+    },
+    "markers_godot": {
+      "Muzzle": [
+        4.152384391886699e-08,
+        0.06567727029323578,
+        -0.550000011920929
+      ],
+      "OpticAim": [
+        5.010515451431274e-07,
+        0.13342800736427307,
+        0.2507060170173645
+      ]
+    },
+    "sources": [
+      {
+        "file": "low-poly_sr-25.glb",
+        "author": "TastyTony",
+        "uid": "81976c51d61543a288cf135fd7485951",
+        "source": "https://sketchfab.com/models/81976c51d61543a288cf135fd7485951",
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "sha256": "ade81a122f85d479d6a90e4a623e0751047cbd01ff1752fc2098252386ed5a56"
+      },
+      {
+        "file": "leupold_mk_4_lrt_m1_1040mm_scope_low-poly.glb",
+        "author": "GoldbergR",
+        "uid": "bf0e3597985940408d24669297d15509",
+        "source": "https://sketchfab.com/models/bf0e3597985940408d24669297d15509",
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "sha256": "9c175d8cb53a8cc425bb1306c963cb34a9b6004520ccd00452b0d12b1a2d48a8"
+      },
+      {
+        "file": "harris_bipod_low-poly.glb",
+        "author": "GoldbergR",
+        "uid": "daa7dd1e247e453496974a5d252396f4",
+        "source": "https://sketchfab.com/models/daa7dd1e247e453496974a5d252396f4",
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "sha256": "cccced54b6522f0e731dab58fe843dea58290684febc07a99faddf99b6b126b3"
+      }
+    ],
+    "modifications": "SR25 working length 1.10m; original mag_05/bullets_07 weights partition complete faces into the detachable magazine; chamber bullet_06 stays with the body. Source rest skin is baked without replacing source geometry. Leupold Mk4 10x40 and Harris bipod retain their full mesh/UV/PBR, with independently grouped legs; the original Harris saddle seats on the measured handguard underside at Godot Y=0.020m. The original Leupold glass uses transparent optical material. Source materials have no textures; factor PBR/normals/UVs retained; muzzle Godot -Z.",
+    "texture_max": 2048
+  },
+  {
+    "output": "godot\\addons\\community_weapons\\m700_scoped.glb",
+    "sha256": "0fc2a6ffc99b2bae6e7693270597772852f7964917704f25859d175151b10b85",
+    "bytes": 6036700,
+    "triangles": 9829,
+    "blender_bounds": [
+      [
+        -0.021737443283200264,
+        -0.5270288586616516,
+        -0.10489478707313538
+      ],
+      [
+        0.03519119694828987,
+        0.5270288586616516,
+        0.10489475727081299
+      ]
+    ],
+    "blender_dimensions": [
+      0.056928642094135284,
+      1.0540577173233032,
+      0.20978954434394836
+    ],
+    "groups": {
+      "Body": {
+        "min": [
+          -0.01688349060714245,
+          -0.5270288586616516,
+          -0.10489478707313538
+        ],
+        "max": [
+          0.016926011070609093,
+          0.5270288586616516,
+          0.051199913024902344
+        ],
+        "triangles": 4079
+      },
+      "Bolt": {
+        "min": [
+          -0.010346970520913601,
+          -0.22768428921699524,
+          -0.01179414987564087
+        ],
+        "max": [
+          0.03519119694828987,
+          -0.05634094774723053,
+          0.04397261142730713
+        ],
+        "triangles": 1114
+      },
+      "InternalMagazine": {
+        "min": [
+          -0.011048288084566593,
+          -0.14701442420482635,
+          -0.013471275568008423
+        ],
+        "max": [
+          0.011053440161049366,
+          -0.07724370807409286,
+          0.02480447292327881
+        ],
+        "triangles": 360
+      },
+      "Scope": {
+        "min": [
+          -0.021737443283200264,
+          -0.2610141336917877,
+          0.04580658674240112
+        ],
+        "max": [
+          0.02945009618997574,
+          0.030159488320350647,
+          0.10489475727081299
+        ],
+        "triangles": 4276
+      }
+    },
+    "markers_blender": {
+      "Muzzle": [
+        4.607432657621757e-08,
+        0.5270288586616516,
+        0.033291369676589966
+      ],
+      "OpticAim": [
+        -2.2818580802663746e-08,
+        -0.2610141634941101,
+        0.07544416189193726
+      ],
+      "BoltPivot": [
+        -1.744666988656718e-08,
+        -0.19956666231155396,
+        0.033291369676589966
+      ],
+      "BoltGrip": [
+        0.02899998240172863,
+        -0.19962447881698608,
+        -0.0019032657146453857
+      ],
+      "RoundPort": [
+        -1.2381204506084487e-08,
+        -0.14162448048591614,
+        0.04009672999382019
+      ]
+    },
+    "markers_godot": {
+      "Muzzle": [
+        4.607432657621757e-08,
+        0.033291369676589966,
+        -0.5270288586616516
+      ],
+      "OpticAim": [
+        -2.2818580802663746e-08,
+        0.07544416189193726,
+        0.2610141634941101
+      ],
+      "BoltPivot": [
+        -1.744666988656718e-08,
+        0.033291369676589966,
+        0.19956666231155396
+      ],
+      "BoltGrip": [
+        0.02899998240172863,
+        -0.0019032657146453857,
+        0.19962447881698608
+      ],
+      "RoundPort": [
+        -1.2381204506084487e-08,
+        0.04009672999382019,
+        0.14162448048591614
+      ]
+    },
+    "sources": [
+      {
+        "file": "remington_model_700_.308_winchester_low_poly.glb",
+        "author": "mehmetuysun",
+        "uid": "f55c2e95edd84b80b283e181d63e5ef6",
+        "source": "https://sketchfab.com/models/f55c2e95edd84b80b283e181d63e5ef6",
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "sha256": "40fc001c0542e47e4c29ba2ea41eb0ed5abf64ae014d225fb03c90a6c07a7c26"
+      }
+    ],
+    "modifications": "Original M700 hunting rifle and its original scope/rings/turrets/rail retained at measured 1.054058m; no Leupold or bipod added. The four original bolt meshes share a shaft pivot; internal box/spring remain inside the stock. Source mesh faces/UV/PBR preserved; source scope contains no lens per author description. Textures 2K; muzzle Godot -Z.",
+    "texture_max": 2048
+  }
+]

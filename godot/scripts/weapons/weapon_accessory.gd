@@ -1,4 +1,4 @@
-## G17/MPX实际配件出口；世界光束和灯光与枪臂显示变换分别更新。
+## G17/MPX/SIG516实际配件出口；世界光束和灯光与枪臂显示变换分别更新。
 extends Node
 
 const HitSolver = preload("res://scripts/weapons/hit_solver.gd")
@@ -12,7 +12,8 @@ var _flashlight_origin: Marker3D
 var _laser_direction_local := Vector3.FORWARD
 var _flashlight_direction_local := Vector3.FORWARD
 var _mpx: RifleController
-var _mpx_laser_in_gun := Transform3D.IDENTITY
+var _sig516: LongGunController
+var _laser_in_gun := Transform3D.IDENTITY
 var _laser_beam: MeshInstance3D
 var _laser_dot: MeshInstance3D
 var _laser_cylinder: CylinderMesh
@@ -34,18 +35,23 @@ func _ready() -> void:
 		push_error("weapon accessory could not resolve its actual emitter markers and sight reference")
 		set_process(false)
 		return
-	# 源静止几何保留G17/白灯的归零角；MPX红激光另校静止展示基座。
+	# 源静止几何保留G17/白灯的归零角；MPX/SIG516红激光另校静止展示基座。
 	_laser_direction_local = (_laser_origin.to_local(aim_reference.global_position) + Vector3.FORWARD * GameConfig.WEAPON_LASER_ZERO_DISTANCE).normalized()
 	_flashlight_direction_local = (_flashlight_origin.to_local(aim_reference.global_position) + Vector3.FORWARD * GameConfig.WEAPON_LASER_ZERO_DISTANCE).normalized()
-	if _weapon.weapon_data.weapon_id == &"mpx":
-		_mpx = _weapon as RifleController
-		var gun := _weapon.get_node_or_null(^"ViewModel/EM68A") as Node3D
-		if _mpx == null or gun == null:
-			push_error("mpx accessory requires its rifle controller and source gun geometry")
+	if _weapon.weapon_data.weapon_id in [&"mpx", &"sig516"]:
+		var gun: Node3D
+		if _weapon.weapon_data.weapon_id == &"mpx":
+			_mpx = _weapon as RifleController
+			gun = _weapon.get_node_or_null(^"ViewModel/EM68A") as Node3D
+		else:
+			_sig516 = _weapon as LongGunController
+			gun = _weapon.get_node_or_null(^"ViewModel/Weapon") as Node3D
+		if (_mpx == null and _sig516 == null) or gun == null:
+			push_error("rifle accessory requires its actual controller and source gun geometry")
 			set_process(false)
 			return
 		# 子ready早于控制器ready；此时只缓存已存在的源几何，不读其onready字段。
-		_mpx_laser_in_gun = gun.global_transform.affine_inverse() * _laser_origin.global_transform
+		_laser_in_gun = gun.global_transform.affine_inverse() * _laser_origin.global_transform
 	_build_world_effects()
 
 
@@ -140,16 +146,18 @@ func _laser_direction() -> Vector3:
 	var actual_basis := _laser_origin.global_basis.orthonormalized()
 	var source_direction := actual_basis * _laser_direction_local
 	var camera := get_viewport().get_camera_3d()
-	if _mpx == null or _mpx._view_model == null or camera == null:
+	if (_mpx == null and _sig516 == null) or _weapon._view_model == null or camera == null:
 		return source_direction
-	var hip_weight := 1.0 - _mpx._aim_weight
-	var pose := Transform3D(Basis(Quaternion(Vector3.UP, RifleController.HIP_POSE_YAW * hip_weight) * Quaternion(Vector3.RIGHT, RifleController.HIP_POSE_PITCH * hip_weight)), Vector3.ZERO)
-	var gun_reference := pose * _mpx._weapon_home
-	gun_reference.origin.z -= float(GameConfig.BLACK_LONG_GUN_PROFILES[&"mpx"].hip_depth) * hip_weight
-	var model_scale := _mpx._view_model.scale
+	var hip_weight := 1.0 - (_mpx._aim_weight if _mpx != null else _sig516._aim_weight)
+	var yaw: float = RifleController.HIP_POSE_YAW if _mpx != null else GameConfig.SHOTGUN_HIP_POSE_YAW
+	var pitch: float = RifleController.HIP_POSE_PITCH if _mpx != null else GameConfig.SHOTGUN_HIP_POSE_PITCH
+	var pose := Transform3D(Basis(Quaternion(Vector3.UP, yaw * hip_weight) * Quaternion(Vector3.RIGHT, pitch * hip_weight)), Vector3.ZERO)
+	var gun_reference := pose * (_mpx._weapon_home if _mpx != null else _sig516._weapon_home)
+	gun_reference.origin.z -= float(GameConfig.BLACK_LONG_GUN_PROFILES[_weapon.weapon_data.weapon_id].hip_depth) * hip_weight
+	var model_scale := _weapon._view_model.scale
 	# 静止V排除后坐位移/旋转；当前挂载和近墙压缩仍参与真实出口的基准位置。
-	var model_reference := Transform3D(Basis.IDENTITY.scaled(model_scale), _mpx._view_model_base_pos * model_scale)
-	var reference := _mpx.global_transform * model_reference * gun_reference * _mpx_laser_in_gun
+	var model_reference := Transform3D(Basis.IDENTITY.scaled(model_scale), _weapon._view_model_base_pos * model_scale)
+	var reference := _weapon.global_transform * model_reference * gun_reference * _laser_in_gun
 	var zero := camera.global_position - camera.global_basis.z.normalized() * GameConfig.WEAPON_LASER_ZERO_DISTANCE
 	var direction_to_zero := zero - reference.origin
 	# 先去各轴尺度再判退化；合法0.02近墙缩放的原行列式只有8e-6。

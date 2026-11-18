@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/long_gun_controller.gd" id="1_controller"]
+[ext_resource type="Resource" path="res://scenes/weapons/sr25.tres" id="2_data"]
+[ext_resource type="PackedScene" path="res://addons/community_weapons/sr25_precision.glb" id="3_model"]
+[ext_resource type="PackedScene" path="res://addons/community_weapons/black_pistol_arms.glb" id="4_arms"]
+
+[node name="SR25" type="Node3D"]
+script = ExtResource("1_controller")
+weapon_data = ExtResource("2_data")
+magazine_node_path = NodePath("ViewModel/Weapon/SR25Precision/Magazine")
+muzzle_node_path = NodePath("ViewModel/Weapon/SR25Precision/Muzzle")
+reserve_state_property = &"ammo_308_reserve"
+
+[node name="ViewModel" type="Node3D" parent="."]
+
+[node name="Weapon" parent="ViewModel" instance=ExtResource("3_model")]
+position = Vector3(-0.04, -0.035, 0.12)
+
+[node name="OpticAim" type="Marker3D" parent="ViewModel"]
+position = Vector3(-0.04, 0.09842801, 0.37070602)
+
+[node name="Arms" parent="ViewModel" instance=ExtResource("4_arms")]
+position = Vector3(-0.04, -0.035, 0.12)

@@ -30,3 +30,20 @@
 MPX/G17/黑臂下载原件留在 `godot/raw_assets/community_weapons/`，继承 Git 排除规则；该目录的 `.gdignore` 避免原件进入游戏导入队列。X400整包和提取脚本另存仓库根的 `raw_assets/community_weapons/weapon_lights_20261111/`，同样已核Git排除且在Godot项目目录外。Git只纳入处理后的项目资源及其必要贴图，不提交Sketchfab原始下载文件。
 
 MPX / Gen5 重建管线：`desktop-port/godot-spike/modeling/scripts/prepare_community_weapons.py`；原件 SHA256、衍生文件 SHA256、尺寸和配件边界见 `desktop-port/godot-spike/modeling/community_weapons/prepared_assets.json`。
+
+## SIG516 / SR25 / M700（2026-11-18 接续引入）
+
+以下五份来源已在本轮通过 Sketchfab 官方模型 API 核验为可下载、CC-BY 4.0；许可证允许商用与改作，游戏内署名保留作者、URL 与许可证。
+
+| 名称 | 作者 | 来源 | 许可证 | 日期 |
+|---|---|---|---|---|
+| ARCTIC — White SIG 516 SOPMOD（含原装 ACOG） | N-GONE | https://sketchfab.com/3d-models/arctic-white-sig-516-sopmod-a9ea47674b824665b4e3b58a28b149e8 | CC-BY 4.0 | 2026-11-18 |
+| Low-Poly SR-25 | TastyTony | https://sketchfab.com/3d-models/low-poly-sr-25-81976c51d61543a288cf135fd7485951 | CC-BY 4.0 | 2026-11-18 |
+| Remington Model 700 .308 Winchester Low Poly（含原装狙击镜） | mehmetuysun | https://sketchfab.com/3d-models/remington-model-700-308-winchester-low-poly-f55c2e95edd84b80b283e181d63e5ef6 | CC-BY 4.0 | 2026-11-18 |
+| Leupold Mk 4 LRT M1 10×40mm Scope (Low-Poly) | GoldbergR | https://sketchfab.com/3d-models/leupold-mk-4-lrt-m1-1040mm-scope-low-poly-bf0e3597985940408d24669297d15509 | CC-BY 4.0 | 2026-11-18 |
+| Harris Bipod (Low-Poly) | GoldbergR | https://sketchfab.com/3d-models/harris-bipod-low-poly-daa7dd1e247e453496974a5d252396f4 | CC-BY 4.0 | 2026-11-18 |
+
+- `sig516_tactical.glb`：保留原枪、原装 ACOG 和消音器，按原毫米尺度归一至全长 1.097582m；衍生模型将原 ITPIAL/下握把替换为上表已登记的 D_U PEQ15、mbvisuals1 SureFire 与 elitej1gaming 下握把，避免重复配件。原 PMAG 两个材质网格完整合为独立可拆弹匣。最终 81830 三角面，不对保留源面进行减面；UV/PBR 保留，26 张内嵌 PNG 实测均 2048×2048。
+- `sr25_precision.glb`：1.10m 资产工作尺度；按原作者 `mag_05`、`bullets_07` 蒙皮权重将完整源面分到真实可拆弹匣，`bullet_06` 膛内展示弹留在枪身。原皮肤静止姿态烘焙，原枪 13742 三角面全部保留；加装完整 Leupold 1660 面与 Harris 4800 面，共 20202 面。原枪、Leupold 与 Harris 源文件均无贴图，最终保留23项平色金属度/粗糙度 PBR 材质、完整法线与 UV，不补造纹理。镜体、镜环、镜片及左右两脚独立保留；Harris 原安装座整体上移65mm，顶座局部 Godot Y=20mm 与护木实测底面19.585mm相接，修复原64.66mm悬空；未改源面或补造转接座。原 Leupold 玻璃网格仅改透明光学材质。镜体标称 10×40mm，游戏 16×/32×倍率为机主指定的玩法值。
+- `m700_scoped.glb`：保留原狩猎枪型、自带镜体/镜环/旋钮/导轨，未加装 Leupold 或两脚架。按原米制全长 1.054058m 保留全部 9829 三角面与 UV/PBR。四个原栓机网格归入枪膛轴心枢轴；原内置弹仓与弹簧保留在枪托内。作者明确原镜筒不含镜片，本项目不据模型名称推定真实镜倍率；游戏 16×/32×/64×为机主指定。
+- 三枪枪口统一为 Godot -Z；SIG516/M700 的贴图最长边 2048 并内嵌，SR25 按源文件保持无贴图材质。下载原件保留在机主 Downloads，不进入 Git 或 Godot 导入队列；加工后模型与原来源链的 SHA256、真实部件边界、枪口/光口/插弹口位置见 `desktop-port/godot-spike/modeling/community_weapons/prepared_conventional_rifles.json`。重建管线为同目录 `modeling/scripts/prepare_conventional_rifles.py`，使用现有离线 Blender；游戏运行时未新增外部依赖。

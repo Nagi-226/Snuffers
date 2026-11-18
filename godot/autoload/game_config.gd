@@ -100,7 +100,7 @@ const AMMO_DMG_EC68: float = 75.0 ## EC-68 无壳步枪弹单发身体伤害
 const AMMO_DMG_EC57: float = 45.0 ## EC-57 无壳手枪弹单发身体伤害
 
 # ===== 步枪（G2 门禁基准）=====
-const RIFLE_DMG_HEAD_FACTOR: float = 2.0 ## 爆头倍率（L2985）
+const RIFLE_DMG_HEAD_FACTOR: float = 3.0 ## 爆头倍率（L2985）
 const RIFLE_DMG_VS_SNIPER: float = 999.0 ## 对狙击手固定伤害（L3014）
 const RIFLE_FIRE_INTERVAL: float = 0.075 ## 全自动/三发点射射速 s/发 = 800 RPM（2026-10-19 机主裁决：原 600 RPM L2609 提速）
 const RIFLE_SEMI_FIRE_INTERVAL: float = 0.1 ## 半自动最小击发间隔 s（机主口径：半自动维持原 600 RPM 手感上限不变）
@@ -125,6 +125,25 @@ const SCOPE_BREATH_PIXELS: float = 1.5 ## 呼吸摆动 ±px（L3225）
 # ===== 按真实弹匣位置换弹（2026-11-10，机主批准分步方案 A）=====
 # 方向和抓点按武器正交坐标，距离为实际米；阶段按原 reload_time 的比例。
 const MAGAZINE_RELOAD_PROFILES: Dictionary = {
+	&"sig516": {
+		"extraction_direction": Vector3.DOWN,
+		"extraction_distance": 0.225,
+		"grip_offset": Vector3(-0.032, -0.10, 0.010),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
+	&"sr25": {
+		"extraction_direction": Vector3.DOWN,
+		"extraction_distance": 0.185,
+		"grip_offset": Vector3(-0.032, -0.085, 0),
+		"contact_phase": 0.18,
+		"pull_phase": 0.42,
+		"new_phase": 0.58,
+		"seat_phase": 0.82,
+	},
+
 	&"mpx": {
 		"extraction_direction": Vector3.DOWN,
 		"extraction_distance": 0.225,
@@ -270,6 +289,38 @@ const BLACK_LONG_GUN_LEFT_ELBOW_POLE := Vector3(-0.08, -0.35, 0.22)
 const BLACK_LONG_GUN_SHOULDER_REACH: float = 0.94
 const BLACK_LONG_GUN_PALM_WEIGHT: float = 0.65
 const BLACK_LONG_GUN_PROFILES: Dictionary = {
+	&"sig516": {
+		"right_grip": Vector3(0.018, -0.070, 0.225),
+		"hip_depth": 0.0,
+		"reload_depth": 0.24,
+		"support_grip_hip": Vector3(-0.034, -0.035, -0.150),
+		"support_grip_ads": Vector3(-0.034, -0.035, -0.150),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+	&"sr25": {
+		"right_grip": Vector3(0.022, -0.072, 0.225),
+		"hip_depth": 0.0,
+		"reload_depth": 0.28,
+		"support_grip_hip": Vector3(-0.032, -0.031, -0.245),
+		"support_grip_ads": Vector3(-0.032, -0.031, -0.245),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+	&"m700": {
+		"right_grip": Vector3(0.020, -0.036, 0.270),
+		"hip_depth": 0.0,
+		"hip_rearward": -0.20,
+		"reload_depth": 0.0,
+		"support_grip_hip": Vector3(-0.025, -0.025, -0.120),
+		"support_grip_ads": Vector3(-0.025, -0.025, -0.120),
+		"support_rotation": Vector3.ZERO,
+		"reload_cant": Vector3(0.05, -0.04, -0.30),
+		"reload_lift": Vector3(0, 0.035, -0.04),
+	},
+
 	&"mpx": {
 		"right_grip": Vector3(0.014, -0.060, 0.025),
 		"hip_depth": 0.0,
@@ -508,7 +559,7 @@ const BLACK_PISTOL_PROFILES: Dictionary = {
 
 # ===== 手枪（EM-57P「掣」，2026-10-19 机主立项：EDAA 雷械设定落地，2 号键位；
 #       网页版无手枪，数值按设定文档+手感类比定标，G4 试玩复核）=====
-const PISTOL_DMG_HEAD_FACTOR: float = 2.0 ## 爆头倍率
+const PISTOL_DMG_HEAD_FACTOR: float = 3.0 ## 爆头倍率
 const PISTOL_DMG_VS_SNIPER: float = 999.0 ## 对狙击手固定伤害（沿用步枪语义）
 const PISTOL_FIRE_INTERVAL: float = 0.06 ## 全自动/三发点射射速 s/发 = 1000 RPM（2026-10-19 机主裁决）
 const PISTOL_SEMI_FIRE_INTERVAL: float = 0.15 ## 半自动最小击发间隔 s（≈400 RPM 上限，机主口径：半自动不变）
@@ -591,7 +642,7 @@ const LONG_GUN_SHOULDER_DIRECTION := Vector3(0.03, -0.36, 0.14) ## 新长枪双�
 
 # ===== EM-68D「穿杨」精确射手步枪（2026-10-26 机主裁决：弹匣与备弹池均和 EM-68A 通用）=====
 const DMR_DAMAGE_BODY: float = 90.0 ## 机主指定单发伤害；DMR 精准平台专项值，不改 EC-68 通用 75
-const DMR_DMG_HEAD_FACTOR: float = 2.0
+const DMR_DMG_HEAD_FACTOR: float = 3.0
 const DMR_DMG_VS_SNIPER: float = 999.0
 const DMR_FIRE_INTERVAL: float = 0.22 ## 仅半自动；与半自动间隔一致，便于数据资源统一
 const DMR_SEMI_FIRE_INTERVAL: float = 0.22 ## 约 272 RPM，突出有节奏单发
@@ -783,7 +834,7 @@ const EM12G2_SOUND_PITCH: float = 0.65
 
 # ===== EM-12G-1「霰·Ⅰ」无托电磁霰弹枪（2026-10-26 机主数值裁决）=====
 const AMMO_DMG_EC12_PELLET: float = 30.0 ## EC-12「砂」单丸身体伤害；一次击发 12 丸
-const SHOTGUN_DMG_HEAD_FACTOR: float = 1.5
+const SHOTGUN_DMG_HEAD_FACTOR: float = 3.0
 const SHOTGUN_DMG_VS_SNIPER: float = 999.0
 const SHOTGUN_PELLET_COUNT: int = 12
 const SHOTGUN_FIRE_INTERVAL: float = 0.12 ## 全自动 500 RPM
@@ -818,7 +869,7 @@ const SHOTGUN_ADS_OFFSET_X: float = 0.003 ## 仅开镜向右补偿3mm，修正Op
 
 # ===== SPAS-12 传统泵动霰弹枪（独立 12GA 弹药，不与 EC-12 混用）=====
 const SPAS12_DAMAGE_BODY: float = 20.0
-const SPAS12_DMG_HEAD_FACTOR: float = 1.5
+const SPAS12_DMG_HEAD_FACTOR: float = 3.0
 const SPAS12_DMG_VS_SNIPER: float = 999.0
 const SPAS12_PELLET_COUNT: int = 8
 const SPAS12_FIRE_INTERVAL: float = 0.85
@@ -999,7 +1050,7 @@ const HULKING_HOST_WINDUP: float = 1.15
 const HULKING_HOST_RECOVER: float = 1.0
 const HULKING_HOST_DAMAGE: float = 35.0
 const HULKING_HOST_COOLDOWN: float = 2.0
-const HULKING_HOST_MODEL_YAW_OFFSET: float = -PI * 0.5 ## GLB 模型本地 +X 朝前，转为 Godot -Z 前进
+const HULKING_HOST_MODEL_YAW_OFFSET: float = 0.0 ## 修复GLB已烘焙为Godot -Z，避免重复转向造成侧移
 const HULKING_HOST_SMASH_SOUND_PITCH: float = 0.65
 const INFANTRY_LOSE_SIGHT_TIME: float = 4.0 ## 脱战时长 s（2026-10-20 机主裁决新增：持续丢失视线超过该时长 → 回巡逻，杜绝"隔墙锁定后无限追打"）
 const INFANTRY_FALLBACK_COVER_DIST: float = 5.0 ## 撤退掩体距离
@@ -1064,12 +1115,12 @@ const SFX_PITCH_JITTER: float = 0.1 ## 枪声音高抖动 ±10%（L392）
 const WEAPON_CATEGORIES: Array = [
 	{"number": 1, "name": "手枪", "weapons": [&"pistol", &"magnum", &"g17"]},
 	{"number": 2, "name": "冲锋枪", "weapons": [&"smg", &"em57s2", &"mpx"]},
-	{"number": 3, "name": "突击 / DMR", "weapons": [&"rifle", &"dmr", &"em86b", &"em86d"]},
-	{"number": 4, "name": "霰弹 / 狙击", "weapons": [&"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g"]},
+	{"number": 3, "name": "突击 / DMR", "weapons": [&"rifle", &"dmr", &"em86b", &"em86d", &"sig516", &"sr25"]},
+	{"number": 4, "name": "霰弹 / 狙击", "weapons": [&"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g", &"m700"]},
 	{"number": 5, "name": "机枪", "weapons": [&"lmg", &"em86m", &"em127m"]},
 	{"number": 6, "name": "爆破重火力", "weapons": [&"em40t1", &"em120r"]},
 ]
-const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"magnum", &"g17", &"smg", &"em57s2", &"mpx", &"rifle", &"dmr", &"em86b", &"em86d", &"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g", &"lmg", &"em86m", &"em127m", &"em40t1", &"em120r"]
+const WEAPON_SCROLL_ORDER: Array[StringName] = [&"pistol", &"magnum", &"g17", &"smg", &"em57s2", &"mpx", &"rifle", &"dmr", &"em86b", &"em86d", &"sig516", &"sr25", &"shotgun", &"spas12", &"em12g2", &"em86s", &"em127g", &"m700", &"lmg", &"em86m", &"em127m", &"em40t1", &"em120r"]
 const WEAPON_SELECTOR_HOLD_TIME: float = 1.6
 
 # ===== UI 反馈动效（G2 冻结自 W5 脚本常量迁入）=====
@@ -1259,7 +1310,7 @@ const STREET_LAMP_SHADOW_FADE_M: float = 24.0
 # 容量/MPX循环射速按公开规格；半自动输入上限、备弹、换弹、散布、后坐和射线预算为游戏近似。
 const AMMO_DMG_9X19: float = 30.0
 const AMMO_9X19_RESERVE: int = 510
-const G17_DMG_HEAD_FACTOR: float = 2.0
+const G17_DMG_HEAD_FACTOR: float = 3.0
 const G17_DMG_VS_SNIPER: float = 30.0
 const G17_MAG: int = 17
 const G17_FIRE_INTERVAL: float = 0.15
@@ -1278,7 +1329,7 @@ const G17_RECOIL_VIEW_Y_FACTOR: float = 0.02
 const G17_RECOIL_VIEW_Z_FACTOR: float = 0.04
 const G17_ADS_FOV: float = 65.0
 const G17_SOUND_PITCH: float = 1.0
-const MPX_DMG_HEAD_FACTOR: float = 2.0
+const MPX_DMG_HEAD_FACTOR: float = 3.0
 const MPX_DMG_VS_SNIPER: float = 30.0
 const MPX_MAG: int = 30
 const MPX_FIRE_INTERVAL: float = 60.0 / 850.0
@@ -1318,7 +1369,7 @@ const G17_FLASHLIGHT_RANGE: float = 35.0
 const MPX_FLASHLIGHT_RANGE: float = 50.0
 const WEAPON_FLASHLIGHT_ANGLE: float = 20.0
 const WEAPON_FLASHLIGHT_ATTENUATION: float = 1.0
-const CHAMBER_WEAPON_IDS: Array[StringName] = [&"rifle", &"pistol", &"g17", &"dmr", &"shotgun", &"spas12", &"smg", &"mpx", &"em57s2", &"lmg", &"magnum", &"em86s", &"em86b", &"em86d", &"em86m", &"em127g", &"em127m", &"em12g2"]
+const CHAMBER_WEAPON_IDS: Array[StringName] = [&"rifle", &"pistol", &"g17", &"dmr", &"shotgun", &"spas12", &"smg", &"mpx", &"em57s2", &"lmg", &"magnum", &"em86s", &"em86b", &"em86d", &"em86m", &"em127g", &"em127m", &"em12g2", &"sig516", &"sr25", &"m700"]
 const WEAPON_CHAMBER_BONUS_FONT_SIZE: int = 12
 const WEAPON_CHAMBER_BONUS_OFFSET := Vector2(3, -28) ## 相对大字右边及基线，膛内预留+1置于右上角。
 
@@ -1328,3 +1379,114 @@ const VIEWMODEL_WALL_MIN_SCALE: float = 0.02
 const VIEWMODEL_WALL_RELEASE_TIME: float = 0.12 ## 接近即时收缩，退开 120ms 恢复
 const VIEWMODEL_WALL_SEARCH_STEPS: int = 8
 const VIEWMODEL_WALL_MIN_NEAR: float = 0.001
+
+# ===== 传统步枪（2026-11-18机主授权）=====
+# Mechanical references: SIG516 30-round detachable STANAG/PMAG, selective semi/auto;
+# SR25 20-round detachable magazine, semi; M700 .308 hunting source has 4-round internal magazine + chamber.
+# 850RPM is a game sample in the publicly reported 750-950RPM SIG516 range.
+# Semi input ceilings, reserves, reload/cycle time, ray budgets, recoil and spread are game approximations.
+# Damage/head factors and scope steps are direct owner choices on 2026-11-18.
+
+const AMMO_556_RESERVE: int = 600
+const AMMO_308_RESERVE: int = 300
+
+const SIG516_DAMAGE_BODY: float = 45.0
+const SIG516_DMG_HEAD_FACTOR: float = 3.0
+const SIG516_DMG_VS_SNIPER: float = 45.0
+const SIG516_MAG: int = 30
+const SIG516_FIRE_INTERVAL: float = 60.0 / 850.0
+const SIG516_BURST_FIRE_INTERVAL: float = 60.0 / 850.0
+const SIG516_SEMI_FIRE_INTERVAL: float = 0.15
+const SIG516_RELOAD_TIME: float = 2.6
+const SIG516_RANGE: float = 500.0
+const SIG516_SPREAD_HIP: float = 0.006
+const SIG516_SPREAD_PRONE: float = 0.0025
+const SIG516_SPREAD_AIM: float = 0.0006
+const SIG516_RECOIL_PITCH: float = 0.004
+const SIG516_RECOIL_VIEW_OFFSET: float = 0.09
+const SIG516_RECOIL_DECAY: float = 0.82
+const SIG516_RECOIL_RECOVER_RATE: float = 7.0
+const SIG516_RECOIL_VIEW_ROT: float = 2.2
+const SIG516_RECOIL_VIEW_Y_FACTOR: float = 0.025
+const SIG516_RECOIL_VIEW_Z_FACTOR: float = 0.05
+const SIG516_ADS_FOV: float = 21.71845521
+const SIG516_ZOOM_LEVELS: Array[int] = [4]
+const SIG516_SOUND_PITCH: float = 1.0
+
+const SR25_DAMAGE_BODY: float = 105.0
+const SR25_DMG_HEAD_FACTOR: float = 3.0
+const SR25_DMG_VS_SNIPER: float = 105.0
+const SR25_MAG: int = 20
+const SR25_FIRE_INTERVAL: float = 0.20
+const SR25_BURST_FIRE_INTERVAL: float = 0.20
+const SR25_SEMI_FIRE_INTERVAL: float = 0.20
+const SR25_RELOAD_TIME: float = 3.0
+const SR25_RANGE: float = 1000.0
+const SR25_SPREAD_HIP: float = 0.010
+const SR25_SPREAD_PRONE: float = 0.002
+const SR25_SPREAD_AIM: float = 0.0002
+const SR25_RECOIL_PITCH: float = 0.006
+const SR25_RECOIL_VIEW_OFFSET: float = 0.14
+const SR25_RECOIL_DECAY: float = 0.80
+const SR25_RECOIL_RECOVER_RATE: float = 6.0
+const SR25_RECOIL_VIEW_ROT: float = 2.8
+const SR25_RECOIL_VIEW_Y_FACTOR: float = 0.03
+const SR25_RECOIL_VIEW_Z_FACTOR: float = 0.06
+const SR25_SOUND_PITCH: float = 1.0
+const SR25_ZOOM_LEVELS: Array[int] = [16, 32]
+const SR25_SCOPE_FOVS: Array[float] = [5.49136734, 2.74726090]
+
+const M700_DAMAGE_BODY: float = 140.0
+const M700_DMG_HEAD_FACTOR: float = 3.0
+const M700_DMG_VS_SNIPER: float = 140.0
+const M700_MAG: int = 4
+const M700_FIRE_INTERVAL: float = 0.85
+const M700_BURST_FIRE_INTERVAL: float = 0.85
+const M700_SEMI_FIRE_INTERVAL: float = 0.85
+const M700_RELOAD_TIME: float = 0.65 # Per inserted round, not the entire internal magazine.
+const M700_RANGE: float = 1200.0
+const M700_SPREAD_HIP: float = 0.012
+const M700_SPREAD_PRONE: float = 0.003
+const M700_SPREAD_AIM: float = 0.00015
+const M700_RECOIL_PITCH: float = 0.009
+const M700_RECOIL_VIEW_OFFSET: float = 0.18
+const M700_RECOIL_DECAY: float = 0.78
+const M700_RECOIL_RECOVER_RATE: float = 5.5
+const M700_RECOIL_VIEW_ROT: float = 3.2
+const M700_RECOIL_VIEW_Y_FACTOR: float = 0.035
+const M700_RECOIL_VIEW_Z_FACTOR: float = 0.07
+const M700_SOUND_PITCH: float = 1.0
+const M700_ZOOM_LEVELS: Array[int] = [16, 32, 64]
+const M700_SCOPE_FOVS: Array[float] = [5.49136734, 2.74726090, 1.37382786]
+const M700_BOLT_TIME: float = 0.85
+const M700_BOLT_PULL: float = 0.085
+const M700_BOLT_LIFT: float = PI / 3.0
+const M700_BOLT_OPEN_PHASE: float = 0.28
+const M700_BOLT_CLOSE_PHASE: float = 0.82
+const M700_ROUND_RETRIEVE_PHASE: float = 0.18
+const M700_ROUND_INSERT_PHASE: float = 0.78
+const M700_RELOAD_CANT: float = 0.30
+const M700_RELOAD_LIFT := Vector3(0, 0.035, -0.04)
+const M700_ROUND_START := Vector3(-0.15, -0.12, 0.10) # Retrieval pose; receiver insertion uses the measured port.
+const M700_ROUND_PORT := Vector3(0, 0.04009673, 0.14162448) # Source receiver loading port.
+const M700_ROUND_HAND_OFFSET := Vector3(0.004695, -0.078206, 0.090906) # Source thumb/index pinch meets the cartridge tail; palm stays below and behind.
+const M700_ROUND_RADIUS: float = 0.00595
+const M700_ROUND_LENGTH: float = 0.0711
+
+
+const CONVENTIONAL_SCOPE_RETICLE_COLOR: Color = Color(0.08, 0.08, 0.08, 1.0)
+const CONVENTIONAL_SCOPE_ZOOM_COLOR: Color = Color(0.90, 0.90, 0.90, 1.0)
+const CONVENTIONAL_SCOPE_RETICLE_HALF_WIDTH: float = 0.001
+const CONVENTIONAL_SCOPE_RETICLE_AA: float = 0.0006
+const SIG516_ACOG_RETICLE_COLOR: Color = Color(0.92, 0.05, 0.035, 1.0)
+const SIG516_ACOG_CHEVRON_SIZE := Vector2(0.020, 0.022)
+const SIG516_ACOG_BDC_START: float = 0.060
+const SIG516_ACOG_BDC_STEP: float = 0.040
+const SIG516_ACOG_BDC_COUNT: int = 4
+const SIG516_ACOG_BDC_HALF_WIDTH: float = 0.026
+const SIG516_ACOG_BDC_WIDTH_STEP: float = 0.004
+const SR25_MILDOT_SPACING: float = 0.040
+const SR25_MILDOT_RADIUS: float = 0.0025
+const SR25_MILDOT_COUNT: int = 4
+const M700_DUPLEX_INNER_LENGTH: float = 0.120
+const M700_DUPLEX_OUTER_HALF_WIDTH: float = 0.0035
